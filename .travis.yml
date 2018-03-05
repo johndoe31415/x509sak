@@ -3,5 +3,5 @@ python:
   - 3.5
 
 script: 
-    - apt-get install pyasn1 pyasn1_modules
+    - sudo apt-get install pyasn1 pyasn1_modules
     - python3 -m unittest x509sak.tests
