@@ -19,6 +19,22 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-from .X509CertificateTests import X509CertificateTests
-from .CertificatePoolTests import CertificatePoolTests
-from .NumberTheoryTests import NumberTheoryTests
+import unittest
+from x509sak.NumberTheory import NumberTheory
+
+class NumberTheoryTests(unittest.TestCase):
+	def test_egcd(self):
+		(g, s, t) = NumberTheory.egcd(4567, 123)
+		self.assertEqual(g, 1)
+		self.assertEqual(s, -23)
+		self.assertEqual(t, 854)
+
+		(g, s, t) = NumberTheory.egcd(123, 4567)
+		self.assertEqual(g, 1)
+		self.assertEqual(s, 854)
+		self.assertEqual(t, -23)
+
+		(g, s, t) = NumberTheory.egcd(101 * 17, 101 * 11)
+		self.assertEqual(g, 101)
+		self.assertEqual(s, 2)
+		self.assertEqual(t, -3)

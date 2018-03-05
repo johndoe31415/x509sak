@@ -19,6 +19,9 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-from .X509CertificateTests import X509CertificateTests
-from .CertificatePoolTests import CertificatePoolTests
-from .NumberTheoryTests import NumberTheoryTests
+from x509sak.NumberTheory import NumberTheory
+
+class DodgyRSAKeypair(object):
+	"""Class to generate deliberately broken or oddball RSA keypairs."""
+	def
+
