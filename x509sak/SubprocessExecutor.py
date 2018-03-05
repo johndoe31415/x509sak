@@ -23,7 +23,7 @@ import subprocess
 from x509sak.Tools import CmdTools
 
 class SubprocessExecutor(object):
-	_verbose = False
+	_verbose = True
 	_pause_after_failed_execution = False
 
 	@classmethod
@@ -39,11 +39,17 @@ class SubprocessExecutor(object):
 		text = proc.stdout.read()
 		proc.stdout.close()
 
-		if proc.returncode in success_retcodes:
-			return True
+		success = proc.returncode in success_retcodes
+		if cls._verbose:
+			if success:
+				print("Successful: %s" % (CmdTools.cmdline(cmd)))
+			else:
+				print("Failed: %s" % (CmdTools.cmdline(cmd)))
+				print(text.decode())
+				print()
 
 		# Execution failed.
-		if exception_on_failure:
+		if (not success) and exception_on_failure:
 			if cls._pause_after_failed_execution:
 				print("Execution failed: %s" % (CmdTools.cmdline(cmd)))
 				print("Return code: %d (expected one of %s)." % (proc.returncode, str(success_retcodes)))
@@ -51,4 +57,4 @@ class SubprocessExecutor(object):
 				print(text.decode())
 				input("Hit ENTER to continue...")
 			raise Exception("Execution of command failed: %s" % (CmdTools.cmdline(cmd)))
-		return False
+		return success
