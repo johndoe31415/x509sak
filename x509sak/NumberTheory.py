@@ -117,7 +117,7 @@ class NumberTheory(object):
 			p += 2
 
 	@classmethod
-	def gen_insecure_probable_fastprime(cls, nprimes):
+	def __gen_insecure_probable_fastprime(cls, nprimes):
 		"""Generate a cryptographically INSECURE probabilistic fast prime
 		consisting of n CRT moduli. Must have at least nprimes >= 10 (otherwise
 		probability that generation fails and erroneously returns 1)."""
