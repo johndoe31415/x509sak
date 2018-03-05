@@ -25,6 +25,10 @@ Options vary from command to command. To receive further info, type
     ./x509sak.py [command] --help
 ```
 
+# Dependencies
+x509sak requires Python3, pyasn1 and pyasn1_modules support. If you want
+graphs, then you also need GraphViz support too.
+
 ## buildca
 ```
 usage: ./x509sak.py buildchain [-s path] [--inform {pem,der}]
@@ -248,3 +252,6 @@ positional arguments:
 optional arguments:
   -v, --verbose  Increase verbosity level.
 ```
+
+# License
+GNU GPL-3.
