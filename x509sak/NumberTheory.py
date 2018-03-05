@@ -19,6 +19,8 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
+import random
+
 class NumberTheory(object):
 	"""Collection of number theoretic functions and modular arithmetic
 	helpers."""
@@ -37,7 +39,7 @@ class NumberTheory(object):
 	@classmethod
 	def modinv(cls, a, m):
 		"""Calculate modular inverse of a modulo m."""
-		(g, x, y) = cls._egcd(a, m)
+		(g, x, y) = cls.egcd(a, m)
 		if g != 1:
 			raise Exception("Modular inverse of %d mod %d does not exist" % (a, m))
 		else:
@@ -61,7 +63,7 @@ class NumberTheory(object):
 		return False
 
 	@classmethod
-	def _is_probable_prime(cls, p, trials = 10):
+	def is_probable_prime(cls, p, trials = 10):
 		"""Probabilistic Miller-Rabin primality test for a number p with
 		'trials' Miller-Rabin rounds."""
 		if p in [ 2, 3 ]:
@@ -81,22 +83,55 @@ class NumberTheory(object):
 			n = random.randint(minval, maxval)
 			n |= 1
 			n |= 2 ** (bitlength - 2)
-			if cls._is_probable_prime(n):
+			if cls.is_probable_prime(n):
 				return n
+
+	@classmethod
+	def solve_crt(cls, moduli):
+		"""Solve the Chinese Remainder Theorem for the given values and
+		moduli."""
+		# Calculate product of all moduli
+		product = 1
+		for modulus in moduli.keys():
+			product *= modulus
+
+		# Then determine the solution
+		solution = 0
+		for modulus in moduli.keys():
+			if moduli[modulus] == 0:
+				continue
+
+			rem_product = product // modulus
+			one_value = cls.modinv(rem_product, modulus)
+			solution += rem_product * one_value * moduli[modulus]
+
+		return solution % product
+
+	@classmethod
+	def iter_primes(cls):
+		yield 2
+		p = 3
+		while True:
+			if cls.is_probable_prime(p):
+				yield p
+			p += 2
 
 	@classmethod
 	def gen_insecure_probable_fastprime(cls, nprimes):
 		"""Generate a cryptographically INSECURE probabilistic fast prime
-		consisting of n CRT moduli."""
-		p = 1
+		consisting of n CRT moduli. Must have at least nprimes >= 10 (otherwise
+		probability that generation fails and erroneously returns 1)."""
+		assert(nprimes >= 10)
 		i = 0
-		result = { }
-		while i < nprimes:
-			p += 2
-			if cls._is_probable_prime(p):
-				q = random.randint(1, p - 1)
-				result[p] = q
-				i += 1
-		print(result)
-		return result
+		moduli = { }
+		for p in cls.iter_primes():
+			q = random.randint(1, p - 1)
+			moduli[p] = q
+			i += 1
+			if i == nprimes:
+				break
+		print(sorted(moduli.items()))
+		prime = cls.solve_crt(moduli)
+		assert(prime != 1)
+		return prime
 
