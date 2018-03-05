@@ -1,5 +1,6 @@
 # x509sak
 [![Build Status](https://travis-ci.org/johndoe31415/x509sak.svg?branch=master)](https://travis-ci.org/johndoe31415/x509sak)
+
 X.509 Swiss Army Knife (x509sak) is a toolkit written in Python that acts as a
 boilerplate on top of OpenSSL to ease creation of X.509 certificates,
 certificate signing requests and CAs. It can automatically find CA chains and

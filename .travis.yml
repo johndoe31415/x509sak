@@ -4,7 +4,7 @@ python:
 
 before_install:
     - sudo apt-get install python3-pip
-    - sudo pip3 install pyasn1 pyasn1_modules
+    - pip3 install pyasn1 pyasn1_modules
 
 script: 
     - python3 -m unittest x509sak.tests
