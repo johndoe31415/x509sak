@@ -32,8 +32,9 @@ Options vary from command to command. To receive further info, type
 [//]: # (End of summary -- auto-generated, do not edit!)
 
 # Dependencies
-x509sak requires Python3, pyasn1 and pyasn1_modules support. If you want
-graphs, then you also need to install the Graphviz package as well.
+x509sak requires Python3, pyasn1 and pyasn1_modules support. It also relies on
+OpenSSL. If you want graph support, then you also need to install the Graphviz
+package as well.
 
 ## buildchain
 [//]: # (Begin of cmd-buildchain -- auto-generated, do not edit!)
@@ -87,6 +88,12 @@ optional arguments:
 [//]: # (End of cmd-buildchain -- auto-generated, do not edit!)
 
 ## graph
+The graph utility can be used to plot multiple certificates and their
+certificate hierarchy. Some metadata is displayed within the graph as well.
+Here's an example of some certificates that I've plotted:
+
+![Certificate Graph](https://raw.githubusercontent.com/johndoe31415/x509sak/master/docs/test_graph.png)
+
 [//]: # (Begin of cmd-graph -- auto-generated, do not edit!)
 ```
 Error: the following arguments are required: -o/--outfile, crtsource
