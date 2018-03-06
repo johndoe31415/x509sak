@@ -62,3 +62,11 @@ class SubprocessExecutor(object):
 			return (success, text)
 		else:
 			return success
+
+	@classmethod
+	def set_verbose(cls):
+		cls._verbose = True
+
+	@classmethod
+	def pause_after_failed_execution(cls):
+		cls._pause_after_failed_execution = True

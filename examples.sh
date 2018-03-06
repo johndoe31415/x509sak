@@ -28,4 +28,4 @@ cd output
 ../x509sak.py createcsr --create-crt foo_ca -k ecc:secp256r1 --san-dns foobar --san-ip 1.2.3.4 --extension "1.2.3.4.5=DER:00:11:22:33" -s "/CN=moo koo 4" -f client3.key client4.crt
 
 # Revoke the last generated certificate
-../x509sak.py revokecrt foo_ca client4.crt
+../x509sak.py revokecrt -vvv foo_ca client4.crt

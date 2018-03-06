@@ -31,11 +31,15 @@ class BaseAction(object):
 		formatter = logging.Formatter("{asctime} [{levelname:.1s}]: {name} {message}", style = "{")
 
 		handler = logging.StreamHandler()
-		if self._args.verbose:
-			handler.setLevel(logging.DEBUG)
-		else:
-			handler.setLevel(logging.INFO)
+		handler.setLevel({
+			0:	logging.INFO,
+		}.get(self._args.verbose, logging.DEBUG))
 		handler.setFormatter(formatter)
 		logging.root.addHandler(handler)
+
+		if self._args.verbose >= 2:
+			SubprocessExecutor.set_verbose()
+		if self._args.verbose >= 3:
+			SubprocessExecutor.pause_after_failed_execution()
 
 		self._log = logging.getLogger("x509sak." + __class__.__name__)
