@@ -25,6 +25,7 @@
 
 import sys
 import collections
+import textwrap
 
 from .FriendlyArgumentParser import FriendlyArgumentParser
 from .PrefixMatcher import PrefixMatcher
@@ -65,7 +66,10 @@ class MultiCommand(object):
 		print("Available commands:", file = sys.stderr)
 		for commandname in self._cmdorder:
 			command = self._commands[commandname]
-			print("    %-15s    %s" % (command.name, command.description))
+			commandname_line = command.name
+			for description_line in textwrap.wrap(command.description, width = 56):
+				print("    %-15s    %s" % (commandname_line, description_line))
+				commandname_line = ""
 		print(file = sys.stderr)
 		print("Options vary from command to command. To receive further info, type", file = sys.stderr)
 		print("    %s [command] --help" % (sys.argv[0]), file = sys.stderr)

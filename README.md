@@ -9,30 +9,37 @@ output them in a specifically desired format, graph CA hierarchies and more.
 The tool is used similarly to OpenSSL in its syntax. The help page is meant to
 be comprehensive and self-explanatory. These are the currently available commands:
 
+[//]: # (Begin of summary -- auto-generated, do not edit!)
 ```
 $ ./x509sak.py
 Error: No command supplied.
 Syntax: ./x509sak.py [command] [options]
 
 Available commands:
+
+Options vary from command to command. To receive further info, type
+    ./x509sak.py [command] --help
     buildchain         Build a certificate chain
     graph              Graph a certificate pool
     findcrt            Find a specific certificate
     createca           Create a new certificate authority (CA)
-    createcsr          Create a new certificate signing request (CSR) or certificate
-    signcsr            Make a certificate authority (CA) sign a crtificate signing request (CSR) and output the certificate
+    createcsr          Create a new certificate signing request (CSR) or
+                       certificate
+    signcsr            Make a certificate authority (CA) sign a crtificate
+                       signing request (CSR) and output the certificate
     revokecrt          Revoke a specific certificate
-
-Options vary from command to command. To receive further info, type
-    ./x509sak.py [command] --help
 ```
+[//]: # (End of summary -- auto-generated, do not edit!)
 
 # Dependencies
 x509sak requires Python3, pyasn1 and pyasn1_modules support. If you want
-graphs, then you also need GraphViz support too.
+graphs, then you also need to install the Graphviz package as well.
 
-## buildca
+## buildchain
+[//]: # (Begin of cmd-buildchain -- auto-generated, do not edit!)
 ```
+Error: the following arguments are required: -o/--outfile, crtfile
+
 usage: ./x509sak.py buildchain [-s path] [--inform {pem,der}]
                                [--order-leaf-to-root] [--allow-partial-chain]
                                [--outform {rootonly,intermediates,fullchain,all-except-root,multifile}]
@@ -74,11 +81,16 @@ optional arguments:
                         style formatting can be used of course (e.g., %02d).
   -o file, --outfile file
                         Specifies the output filename. Mandatory argument.
-  -v, --verbose         Increase verbosity level.
+  -v, --verbose         Increase verbosity level. Can be specified multiple
+                        times.
 ```
+[//]: # (End of cmd-buildchain -- auto-generated, do not edit!)
 
 ## graph
+[//]: # (Begin of cmd-graph -- auto-generated, do not edit!)
 ```
+Error: the following arguments are required: -o/--outfile, crtsource
+
 usage: ./x509sak.py graph [-f {dot,png,ps,pdf}] -o file [-v]
                           crtsource [crtsource ...]
 
@@ -95,11 +107,16 @@ optional arguments:
                         ps, pdf, defaults to dot.
   -o file, --outfile file
                         Specifies the output filename. Mandatory argument.
-  -v, --verbose         Increase verbosity level.
+  -v, --verbose         Increase verbosity level. Can be specified multiple
+                        times.
 ```
+[//]: # (End of cmd-graph -- auto-generated, do not edit!)
 
 ## findcrt
+[//]: # (Begin of cmd-findcrt -- auto-generated, do not edit!)
 ```
+Error: the following arguments are required: crtsource
+
 usage: ./x509sak.py findcrt [-h hash] [-v] crtsource [crtsource ...]
 
 Find a specific certificate
@@ -112,11 +129,16 @@ positional arguments:
 optional arguments:
   -h hash, --hashval hash
                         Find only certificates with a particular hash prefix.
-  -v, --verbose         Increase verbosity level.
+  -v, --verbose         Increase verbosity level. Can be specified multiple
+                        times.
 ```
+[//]: # (End of cmd-findcrt -- auto-generated, do not edit!)
 
 ## createca
+[//]: # (Begin of cmd-createca -- auto-generated, do not edit!)
 ```
+Error: the following arguments are required: capath
+
 usage: ./x509sak.py createca [-k keyspec] [-p capath] [-s subject] [-d days]
                              [-h alg] [--serial serial] [-f] [-v]
                              capath
@@ -147,11 +169,17 @@ optional arguments:
                         already exists. When this option is specified the
                         complete directory will be erased before creating the
                         new CA.
-  -v, --verbose         Increase verbosity level.
+  -v, --verbose         Increase verbosity level. Can be specified multiple
+                        times.
 ```
+[//]: # (End of cmd-createca -- auto-generated, do not edit!)
 
 ## createcsr
+[//]: # (Begin of cmd-createcsr -- auto-generated, do not edit!)
 ```
+Error: the following arguments are required: in_key_filename,
+  out_filename
+
 usage: ./x509sak.py createcsr [-k keyspec]
                               [-t {rootca,ca,tls-server,tls-client}]
                               [-s subject] [-d days] [-h alg] [--san-dns FQDN]
@@ -199,11 +227,17 @@ optional arguments:
                         Instead of creating a certificate signing request,
                         directly create a certificate instead. Needs to supply
                         the CA path that should issue the certificate.
-  -v, --verbose         Increase verbosity level.
+  -v, --verbose         Increase verbosity level. Can be specified multiple
+                        times.
 ```
+[//]: # (End of cmd-createcsr -- auto-generated, do not edit!)
 
 ## signcsr
+[//]: # (Begin of cmd-signcsr -- auto-generated, do not edit!)
 ```
+Error: the following arguments are required: capath, in_csr_filename,
+  out_crt_filename
+
 usage: ./x509sak.py signcsr [-t {rootca,ca,tls-server,tls-client}]
                             [-s subject] [--san-dns FQDN] [--san-ip IP]
                             [-d days] [-h alg] [-f] [-v]
@@ -238,11 +272,16 @@ optional arguments:
                         default hash function specified in the CA config.
   -f, --force           Overwrite the output certificate file if it already
                         exists.
-  -v, --verbose         Increase verbosity level.
+  -v, --verbose         Increase verbosity level. Can be specified multiple
+                        times.
 ```
+[//]: # (End of cmd-signcsr -- auto-generated, do not edit!)
 
 ## revokecrt
+[//]: # (Begin of cmd-revokecrt -- auto-generated, do not edit!)
 ```
+Error: the following arguments are required: capath, crt_filename
+
 usage: ./x509sak.py revokecrt [-v] capath crt_filename
 
 Revoke a specific certificate
@@ -252,8 +291,9 @@ positional arguments:
   crt_filename   Filename of the output certificate.
 
 optional arguments:
-  -v, --verbose  Increase verbosity level.
+  -v, --verbose  Increase verbosity level. Can be specified multiple times.
 ```
+[//]: # (End of cmd-revokecrt -- auto-generated, do not edit!)
 
 # License
 GNU GPL-3.
