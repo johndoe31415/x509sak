@@ -37,6 +37,14 @@ OpenSSL. If you want graph support, then you also need to install the Graphviz
 package as well.
 
 ## buildchain
+The "buildchain" command is useful if you want to have a complete (or partial)
+certificate chain from a given leaf certfificate and a bundle of CAs. x509sak
+will figure out which of the CAs are appropriate (if any) and generate a chain
+in the order you want (root to leaf or leaf to root) including the certs you
+want (e.g., all certificates, all except root cert, etc.). This is useful if
+you have, for example, a webserver certificate and want to automatically find
+the chain of trust that you can use to deploy on your webserver.
+
 [//]: # (Begin of cmd-buildchain -- auto-generated, do not edit!)
 ```
 Error: the following arguments are required: -o/--outfile, crtfile
@@ -120,6 +128,12 @@ optional arguments:
 [//]: # (End of cmd-graph -- auto-generated, do not edit!)
 
 ## findcrt
+When looking for a bunch of certificates (some of which might be in PEM format)
+by their authoritative hash (i.e., the SHA256 hash over their
+DER-representation), findcrt can help you out. You specify a bunch of
+certificates and the hash prefix you're looking for and x509sak will show it to
+you.
+
 [//]: # (Begin of cmd-findcrt -- auto-generated, do not edit!)
 ```
 Error: the following arguments are required: crtsource
@@ -142,6 +156,14 @@ optional arguments:
 [//]: # (End of cmd-findcrt -- auto-generated, do not edit!)
 
 ## createca
+Creating a CA structure that can be used with "openssl ca" is tedious. The
+"createca" command does exactly this for you in one simple command. The created
+OpenSSL config file directly works with "openssl ca" for manual operation but
+can also be used with other x509sak commands (e.g., creating or revoking
+certificates). x509sak takes care that you have all the necessary setup files
+in place (index, serial, etc.) and can just as easily create intermediate CAs
+as it can create root CAs.
+
 [//]: # (Begin of cmd-createca -- auto-generated, do not edit!)
 ```
 Error: the following arguments are required: capath
@@ -182,6 +204,14 @@ optional arguments:
 [//]: # (End of cmd-createca -- auto-generated, do not edit!)
 
 ## createcsr
+The "createcsr" command can (as the name suggests) create CSRs, but also can
+directly generate CRTs that are signed by a previously created CA. The
+advantage over using OpenSSL manually is that the API is quite simple to
+configure the certificate manually for most cases (e.g., webserver certificates
+with X.509 Subject Alternative Name set), but also is flexible enough for
+custom stuff by including your custom extensions directly into the extension
+file configuration used by OpenSSL.
+
 [//]: # (Begin of cmd-createcsr -- auto-generated, do not edit!)
 ```
 Error: the following arguments are required: in_key_filename,
@@ -240,6 +270,9 @@ optional arguments:
 [//]: # (End of cmd-createcsr -- auto-generated, do not edit!)
 
 ## signcsr
+The signcsr command allows you to turn a CSR into a certificate by signing it
+by a CA private key.
+
 [//]: # (Begin of cmd-signcsr -- auto-generated, do not edit!)
 ```
 Error: the following arguments are required: capath, in_csr_filename,
@@ -285,6 +318,10 @@ optional arguments:
 [//]: # (End of cmd-signcsr -- auto-generated, do not edit!)
 
 ## revokecrt
+With revokecrt it's possible to easily revoke a certificate that you've
+previous generated. Simply specify the CA and the certificate that you want to
+revoke and you're set.
+
 [//]: # (Begin of cmd-revokecrt -- auto-generated, do not edit!)
 ```
 Error: the following arguments are required: capath, crt_filename
