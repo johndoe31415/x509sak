@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2017-2017 Johannes Bauer
+#	Copyright (C) 2018-2018 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -23,7 +23,7 @@ import subprocess
 from x509sak.Tools import CmdTools
 
 class SubprocessExecutor(object):
-	_verbose = True
+	_verbose = False
 	_pause_after_failed_execution = False
 
 	@classmethod
@@ -53,7 +53,7 @@ class SubprocessExecutor(object):
 			if cls._pause_after_failed_execution:
 				print("Execution failed: %s" % (CmdTools.cmdline(cmd)))
 				print("Return code: %d (expected one of %s)." % (proc.returncode, str(success_retcodes)))
-				print("Output was:")
+				print("output was:")
 				print(text.decode())
 				input("Hit ENTER to continue...")
 			raise Exception("Execution of command failed: %s" % (CmdTools.cmdline(cmd)))

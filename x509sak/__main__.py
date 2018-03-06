@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2017-2017 Johannes Bauer
+#	Copyright (C) 2018-2018 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -40,20 +40,20 @@ def genparser(parser):
 	parser.add_argument("--allow-partial-chain", action = "store_true", help = "When building the certificate chain, a full chain must be found or the chain building fails. When this option is specified, also partial chain matches are permitted, i.e., not going up to a root CA. Note that this can have undesired side effects when no root certificates are found at all (the partial chain will then consist of only the leaf certificate itself).")
 	parser.add_argument("--outform", choices = [ "rootonly", "intermediates", "fullchain", "all-except-root", "multifile" ], default = "fullchain", help = "Specifies what to write into the output file. Possible options are %(choices)s. Default is %(default)s. When specifying multifile, a %%d format must be included in the filename to serve as a template; typical printf-style formatting can be used of course (e.g., %%02d).")
 	parser.add_argument("-o", "--outfile", metavar = "file", required = True, help = "Specifies the output filename. Mandatory argument.")
-	parser.add_argument("-v", "--verbose", action = "store_true", help = "Increase verbosity level.")
+	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
 	parser.add_argument("crtfile", metavar = "crtfile", type = str, help = "Certificate that a chain shall be build for, in PEM format.")
 mc.register("buildchain", "Build a certificate chain", genparser, action = ActionBuildChain, aliases = [ "bc" ])
 
 def genparser(parser):
 	parser.add_argument("-f", "--format", choices = [ "dot", "png", "ps", "pdf" ], default = "dot", help = "Specifies the output format. Can be one of %(choices)s, defaults to %(default)s.")
 	parser.add_argument("-o", "--outfile", metavar = "file", required = True, help = "Specifies the output filename. Mandatory argument.")
-	parser.add_argument("-v", "--verbose", action = "store_true", help = "Increase verbosity level.")
+	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
 	parser.add_argument("crtsource", metavar = "crtsource", nargs = "+", type = str, help = "Certificate file (in PEM format) or directory (conainting PEM-formatted .pem or .crt files) which should be included in the graph.")
 mc.register("graph", "Graph a certificate pool", genparser, action = ActionGraphPool)
 
 def genparser(parser):
 	parser.add_argument("-h", "--hashval", metavar = "hash", type = str, help = "Find only certificates with a particular hash prefix.")
-	parser.add_argument("-v", "--verbose", action = "store_true", help = "Increase verbosity level.")
+	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
 	parser.add_argument("crtsource", metavar = "crtsource", nargs = "+", type = str, help = "Certificate file (in PEM format) or directory (conainting PEM-formatted .pem or .crt files) which should be included in the search.")
 mc.register("findcrt", "Find a specific certificate", genparser, action = ActionFindCert)
 
@@ -65,7 +65,7 @@ def genparser(parser):
 	parser.add_argument("-h", "--hashfnc", metavar = "alg", type = str, default = "sha256", help = "Hash function to use for signing. Defaults to %(default)s.")
 	parser.add_argument("--serial", metavar = "serial", type = baseint, help = "Serial number to use for root CA certificate. Randomized by default.")
 	parser.add_argument("-f", "--force", action = "store_true", help = "By default, the capath will not be overwritten if it already exists. When this option is specified the complete directory will be erased before creating the new CA.")
-	parser.add_argument("-v", "--verbose", action = "store_true", help = "Increase verbosity level.")
+	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
 	parser.add_argument("capath", metavar = "capath", type = str, help = "Directory to create the new CA in.")
 mc.register("createca", "Create a new certificate authority (CA)", genparser, action = ActionCreateCA)
 
@@ -80,7 +80,7 @@ def genparser(parser):
 	parser.add_argument("--extension", metavar = "key=value", type = KeyValue, action = "append", default = [ ], help = "Additional certificate X.509 extension to include on top of the extensions in the template and by the SAN parameters. Can be specified multiple times.")
 	parser.add_argument("-f", "--force", action = "store_true", help = "Overwrite the output file if it already exists.")
 	parser.add_argument("-c", "--create-crt", metavar = "capath", help = "Instead of creating a certificate signing request, directly create a certificate instead. Needs to supply the CA path that should issue the certificate.")
-	parser.add_argument("-v", "--verbose", action = "store_true", help = "Increase verbosity level.")
+	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
 	parser.add_argument("key_filename", metavar = "in_key_filename", type = str, help = "Filename of the input private key.")
 	parser.add_argument("out_filename", metavar = "out_filename", type = str, help = "Filename of the output certificate signing request or certificate.")
 mc.register("createcsr", "Create a new certificate signing request (CSR) or certificate", genparser, action = ActionCreateCSR)
@@ -93,14 +93,14 @@ def genparser(parser):
 	parser.add_argument("-d", "--validity-days", metavar = "days", type = int, default = 365, help = "Number of days that the newly created certificate will be valid for. Defaults to %(default)s days.")
 	parser.add_argument("-h", "--hashfnc", metavar = "alg", type = str, default = None, help = "Hash function to use for signing. Defaults to the default hash function specified in the CA config.")
 	parser.add_argument("-f", "--force", action = "store_true", help = "Overwrite the output certificate file if it already exists.")
-	parser.add_argument("-v", "--verbose", action = "store_true", help = "Increase verbosity level.")
+	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
 	parser.add_argument("capath", metavar = "capath", type = str, help = "Directory of the signing CA.")
 	parser.add_argument("csr_filename", metavar = "in_csr_filename", type = str, help = "Filename of the input certificate signing request.")
 	parser.add_argument("crt_filename", metavar = "out_crt_filename", type = str, help = "Filename of the output certificate.")
 mc.register("signcsr", "Make a certificate authority (CA) sign a crtificate signing request (CSR) and output the certificate", genparser, action = ActionSignCSR)
 
 def genparser(parser):
-	parser.add_argument("-v", "--verbose", action = "store_true", help = "Increase verbosity level.")
+	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
 	parser.add_argument("capath", metavar = "capath", type = str, help = "CA which created the certificate.")
 	parser.add_argument("crt_filename", metavar = "crt_filename", type = str, help = "Filename of the output certificate.")
 mc.register("revokecrt", "Revoke a specific certificate", genparser, action = ActionRevokeCRT)
