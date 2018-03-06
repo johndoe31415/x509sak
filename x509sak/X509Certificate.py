@@ -19,6 +19,7 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
+import re
 import datetime
 import logging
 import tempfile
@@ -33,6 +34,7 @@ _log = logging.getLogger("x509sak.X509Certificate")
 class X509Certificate(PEMDERObject):
 	_PEM_MARKER = "CERTIFICATE"
 	_ASN1_MODEL = rfc2459.Certificate()
+	_CERT_VERIFY_REGEX = re.compile("error (?P<error_code>\d+) at (?P<depth>\d+) depth lookup:(?P<reason>.*)")
 
 	@property
 	def subject(self):
@@ -51,19 +53,34 @@ class X509Certificate(PEMDERObject):
 		return ASN1Tools.parse_datetime(str(self._asn1["tbsCertificate"]["validity"]["notAfter"]["utcTime"])) or ASN1Tools.parse_datetime(str(self._asn1["tbsCertificate"]["validity"]["notAfter"]["generalTime"]))
 
 	def is_selfsigned(self):
-		return self.signed_by(self, partial_chain = False)
+		return self.signed_by(self)
 
-	def signed_by(self, potential_issuer, partial_chain = True):
+	def signed_by(self, potential_issuer):
 		with tempfile.NamedTemporaryFile(prefix = "subject_", suffix = ".crt") as subject, tempfile.NamedTemporaryFile(prefix = "issuer_", suffix = ".crt") as issuer:
 			self.write_pemfile(subject.name)
 			potential_issuer.write_pemfile(issuer.name)
 
-			cmd = [ "openssl", "verify", "-no-CAfile", "-no-CApath" ]
-			if partial_chain:
-				cmd += [ "-partial_chain" ]
+			cmd = [ "openssl", "verify", "-CApath", "/dev/null" ]
 			cmd += [ "-check_ss_sig", "-CAfile", issuer.name, subject.name ]
 			_log.debug("Executing: %s", CmdTools.cmdline(cmd))
-			return SubprocessExecutor.run(cmd, exception_on_failure = False)
+			(success, output) = SubprocessExecutor.run(cmd, exception_on_failure = False, return_output = True)
+			if success:
+				return True
+			else:
+				# Maybe the certificate signature was okay, but the complete
+				# chain couldn't be established. This would still count as a
+				# successful verification, however.
+				result = self._CERT_VERIFY_REGEX.search(output.decode())
+				if result:
+					result = result.groupdict()
+					(error_code, depth) = (int(result["error_code"]), int(result["depth"]))
+					if (error_code == 2) and (depth == 1):
+						return True
+					else:
+						return False
+				else:
+					# If in doubt, reject.
+					return False
 
 	def dump_pem(self, f = None):
 		print("# Subject : %s" % (self.subject.pretty_str), file = f)

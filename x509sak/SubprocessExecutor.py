@@ -27,7 +27,7 @@ class SubprocessExecutor(object):
 	_pause_after_failed_execution = False
 
 	@classmethod
-	def run(cls, cmd, success_retcodes = None, exception_on_failure = True):
+	def run(cls, cmd, success_retcodes = None, exception_on_failure = True, return_output = False):
 		if success_retcodes is None:
 			success_retcodes = [ 0 ]
 
@@ -57,4 +57,8 @@ class SubprocessExecutor(object):
 				print(text.decode())
 				input("Hit ENTER to continue...")
 			raise Exception("Execution of command failed: %s" % (CmdTools.cmdline(cmd)))
-		return success
+
+		if return_output:
+			return (success, text)
+		else:
+			return success
