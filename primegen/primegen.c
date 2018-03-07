@@ -60,6 +60,22 @@ static bool mpz_randomize_prime_candidate(mpz_t number, unsigned int bits) {
 	return true;
 }
 
+static void generate_odd_prime_product(mpz_t result, unsigned int bits) {
+	mpz_t prime;
+	mpz_init_set_ui(prime, 2);
+	mpz_set_ui(result, 1);
+	while (true) {
+		mpz_nextprime(prime, prime);
+		mpz_mul(result, result, prime);
+		if (mpz_sizeinbase(result, 2) >= bits) {
+			/* Stay under that amount of bits */
+			mpz_div(result, result, prime);
+			break;
+		}
+	}
+	mpz_clear(prime);
+}
+
 static bool export_prime(struct thread_data_t *thread_data, mpz_t prime) {
 	pthread_mutex_lock(&thread_data->shared->global_lock);
 	char filename[128];
@@ -84,19 +100,28 @@ static bool export_prime(struct thread_data_t *thread_data, mpz_t prime) {
 static void *find_primes_random(void *vthread_data) {
 	struct thread_data_t *thread_data = (struct thread_data_t*)vthread_data;
 
-	mpz_t candidate;
+	mpz_t candidate, oddprimes, gcd;
 	mpz_init(candidate);
+	mpz_init(oddprimes);
+	mpz_init(gcd);
+
+	//generate_odd_prime_product(oddprimes, pgmopts->prime_bits);
+	generate_odd_prime_product(oddprimes, 64);
 
 	mpz_randomize_prime_candidate(candidate, pgmopts->prime_bits);
 	while ((!thread_data->shared->quit) && (thread_data->shared->found_primes < pgmopts->prime_count)) {
 		thread_data->candidates++;
-		if (mpz_probab_prime_p(candidate, 10)) {
-			export_prime(thread_data, candidate);
-			mpz_randomize_prime_candidate(candidate, pgmopts->prime_bits);
+		mpz_gcd(gcd, candidate, oddprimes);
+		if (mpz_cmp_ui(gcd, 1) == 0) {
+			if (mpz_probab_prime_p(candidate, 10)) {
+				export_prime(thread_data, candidate);
+				mpz_randomize_prime_candidate(candidate, pgmopts->prime_bits);
+			}
 		}
 		mpz_add_ui(candidate, candidate, 2);
 	}
 
+	mpz_clear(oddprimes);
 	mpz_clear(candidate);
 
 	return NULL;
@@ -207,7 +232,7 @@ int main(int argc, char **argv) {
 	while (!shared.quit && (shared.found_primes < pgmopts->prime_count)) {
 		seconds++;
 		sleep(1);
-		if ((seconds % 60) == 0) {
+		if ((seconds % 10) == 0) {
 			pthread_mutex_lock(&shared.global_lock);
 			double tdiff = now() - thread_data->shared->start_time;
 			uint64_t total_candidates = 0;
