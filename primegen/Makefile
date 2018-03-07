@@ -1,12 +1,12 @@
 .PHONY: all test clean
 
 CFLAGS := $(CFLAGS) -std=c11
-CFLAGS += -Wall -Wmissing-prototypes -Wstrict-prototypes -Werror=implicit-function-declaration -Werror=format -Wimplicit-fallthrough -Wshadow
-CFLAGS += -O3 -g3 -pthread
-CFLAGS += -pie -fPIE -fsanitize=address -fsanitize=undefined -fsanitize=leak
+CFLAGS += -Wall -Wmissing-prototypes -Wstrict-prototypes -Werror=implicit-function-declaration -Werror=format -Wshadow
+CFLAGS += -O3 -pthread -g
+CFLAGS += -g3 -pie -fPIE -fsanitize=address -fsanitize=undefined -fsanitize=leak
 LDFLAGS := -lgmp
 
-OBJS := pgmopts.o primegen.o
+OBJS := pgmopts.o primegen.o argparse.o
 
 all: primegen
 
