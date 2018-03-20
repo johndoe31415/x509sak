@@ -47,12 +47,12 @@ the chain of trust that you can use to deploy on your webserver.
 
 [//]: # (Begin of cmd-buildchain -- auto-generated, do not edit!)
 ```
-Error: the following arguments are required: -o/--outfile, crtfile
+Error: the following arguments are required: crtfile
 
 usage: ./x509sak.py buildchain [-s path] [--inform {pem,der}]
                                [--order-leaf-to-root] [--allow-partial-chain]
                                [--outform {rootonly,intermediates,fullchain,all-except-root,multifile}]
-                               -o file [-v]
+                               [-o file] [-v]
                                crtfile
 
 Build a certificate chain
@@ -89,7 +89,7 @@ optional arguments:
                         the filename to serve as a template; typical printf-
                         style formatting can be used of course (e.g., %02d).
   -o file, --outfile file
-                        Specifies the output filename. Mandatory argument.
+                        Specifies the output filename. Defaults to stdout.
   -v, --verbose         Increase verbosity level. Can be specified multiple
                         times.
 ```

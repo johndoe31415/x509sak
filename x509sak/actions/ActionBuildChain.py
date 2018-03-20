@@ -68,9 +68,15 @@ class ActionBuildChain(BaseAction):
 				with open(filename, "w") as f:
 					print(cert.to_pem_data(), file = f)
 		else:
-			with open(self._args.outfile, "w") as f:
-				for cert in certs:
-					print(cert.to_pem_data(), file = f)
+			if self._args.outfile is not None:
+				with open(self._args.outfile, "w") as f:
+					self._print_certs(f, certs)
+			else:
+				self._print_certs(sys.stdout, certs)
+
+	def _print_certs(self, f, certs):
+		for cert in certs:
+			print(cert.to_pem_data(), file = f)
 
 	def _load_truststore(self):
 		self._pool.load_sources(self._args.ca_source)
