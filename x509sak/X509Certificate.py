@@ -33,7 +33,7 @@ _log = logging.getLogger("x509sak.X509Certificate")
 
 class X509Certificate(PEMDERObject):
 	_PEM_MARKER = "CERTIFICATE"
-	_ASN1_MODEL = rfc2459.Certificate()
+	_ASN1_MODEL = rfc2459.Certificate
 	_CERT_VERIFY_REGEX = re.compile("error (?P<error_code>\d+) at (?P<depth>\d+) depth lookup:(?P<reason>.*)")
 
 	@property

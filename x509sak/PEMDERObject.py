@@ -30,7 +30,7 @@ class PEMDERObject(object):
 	def __init__(self, der_data, source = None):
 		assert(isinstance(der_data, bytes))
 		self._der_data = der_data
-		(self._asn1, tail) = pyasn1.codec.der.decoder.decode(der_data, asn1Spec = self._ASN1_MODEL)
+		(self._asn1, tail) = pyasn1.codec.der.decoder.decode(der_data, asn1Spec = self._ASN1_MODEL())
 		if len(tail) > 0:
 			raise Exception("Trailing DER data found.")
 		self._hashval = hashlib.sha256(self._der_data).digest()

@@ -60,7 +60,20 @@ class NumberTheoryTests(unittest.TestCase):
 		# With reasonal probability, all will be hit
 		self.assertEqual(primes, set([ 53, 59, 61 ]))
 
-	def __test_gen_fastprime(self):
+	def test_crt(self):
+		moduli = { 2: 1, 3: 2, 5: 3, 7: 4, 11: 5, 13: 6, 17: 7 }
+		solution = NumberTheory.solve_crt(moduli)
+		for (modulus, remainder) in moduli.items():
+			self.assertEqual(solution % modulus, remainder)
+
+	def __test_gen_fastprime1(self):
+		cnt = 0
+		for i in range(10):
+			p = NumberTheory.gen_insecure_probable_fastprime(200)
+			if NumberTheory.is_probable_prime(p):
+				cnt += 1
+
+	def __test_gen_fastprime2(self):
 		for n in [ 20, 50, 100, 150, 200, 500 ]:
 			p = NumberTheory.gen_insecure_probable_fastprime(n)
 			self.assertTrue(NumberTheory.is_probable_prime(p))

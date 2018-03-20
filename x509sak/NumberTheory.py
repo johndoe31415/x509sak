@@ -26,6 +26,13 @@ class NumberTheory(object):
 	helpers."""
 
 	@classmethod
+	def gcd(cls, a, b):
+		"""Euclidian algorithm."""
+		while b != 0:
+			(a, b) = (b, a % b)
+		return a
+
+	@classmethod
 	def egcd(cls, a, b):
 		"""Extended Euclidian algorithm."""
 		(s, t, u, v) = (1, 0, 0, 1)
@@ -103,7 +110,8 @@ class NumberTheory(object):
 
 			rem_product = product // modulus
 			one_value = cls.modinv(rem_product, modulus)
-			solution += rem_product * one_value * moduli[modulus]
+			add_value = rem_product * one_value * moduli[modulus]
+			solution += add_value
 
 		return solution % product
 
@@ -117,11 +125,9 @@ class NumberTheory(object):
 			p += 2
 
 	@classmethod
-	def __gen_insecure_probable_fastprime(cls, nprimes):
+	def __gen_insecure_probable_fastprime1(cls, nprimes):
 		"""Generate a cryptographically INSECURE probabilistic fast prime
-		consisting of n CRT moduli. Must have at least nprimes >= 10 (otherwise
-		probability that generation fails and erroneously returns 1)."""
-		assert(nprimes >= 10)
+		consisting of n CRT moduli."""
 		i = 0
 		moduli = { }
 		for p in cls.iter_primes():
@@ -135,3 +141,32 @@ class NumberTheory(object):
 		assert(prime != 1)
 		return prime
 
+	@classmethod
+	def __gen_insecure_probable_fastprime2(cls, nprimes):
+		"""Pretty bad attempt on implementation of the fastprimes paper, with
+		only 1/10th of the understanding required to implment it. Surprise: It
+		doesn't work."""
+		P = 1
+		i = 0
+		for p in cls.iter_primes():
+			if p != 2:
+				P *= p
+				i += 1
+				if i == nprimes:
+					break
+
+		bmin = 100000000
+		bmax = 1000000000
+		v = 100000
+
+		l = v * P
+		k = random.randint(2, P - 1)
+		b = random.randint(bmin, bmax)
+		t = b * P
+		while True:
+			q = k + t + l
+			if (q % 2) == 0:
+				q = P - k + t + l
+			if cls.is_probable_prime(q):
+				return q
+			k = (2 * k) % P
