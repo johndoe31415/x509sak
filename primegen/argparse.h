@@ -1,3 +1,7 @@
+/* This file is AUTO-GENERATED       */
+/* Do not edit by hand.              */
+/* Your changes will be overwritten. */
+
 #ifndef __ARGPARSE_H__
 #define __ARGPARSE_H__
 

@@ -1,3 +1,7 @@
+/* This file is AUTO-GENERATED       */
+/* Do not edit by hand.              */
+/* Your changes will be overwritten. */
+
 #include <stdint.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -44,6 +48,8 @@ bool argparse_parse(int argc, char **argv, argparse_callback_t argument_callback
 				break;
 
 %endfor
+			default:
+				return false;
 		}
 	}
 
