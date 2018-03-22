@@ -75,6 +75,10 @@ class CertificatePool(object):
 	def add_certificate(self, cert):
 		self._pool[cert.subject].add(cert)
 
+	def add_certificates(self, certs):
+		for cert in certs:
+			self.add_certificate(cert)
+
 	def load_pemfile(self, filename):
 		certs = X509Certificate.read_pemfile(filename)
 		for cert in certs:

@@ -51,6 +51,7 @@ the chain of trust that you can use to deploy on your webserver.
 ```
 usage: ./x509sak.py buildchain [-s path] [--inform {pem,der}]
                                [--order-leaf-to-root] [--allow-partial-chain]
+                               [--dont-trust-crtfile]
                                [--outform {rootonly,intermediates,fullchain,all-except-root,multifile}]
                                [-o file] [-v] [--help]
                                crtfile
@@ -81,6 +82,11 @@ optional arguments:
                         this can have undesired side effects when no root
                         certificates are found at all (the partial chain will
                         then consist of only the leaf certificate itself).
+  --dont-trust-crtfile  When there's multiple certificates in the given
+                        crtfile in PEM format, they're by default all added to
+                        the truststore. With this option, only the leaf cert
+                        is taken from the crtfile and they're not added to the
+                        trusted pool.
   --outform {rootonly,intermediates,fullchain,all-except-root,multifile}
                         Specifies what to write into the output file. Possible
                         options are rootonly, intermediates, fullchain, all-

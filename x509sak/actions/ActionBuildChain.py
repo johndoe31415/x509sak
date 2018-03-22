@@ -30,7 +30,10 @@ class ActionBuildChain(BaseAction):
 		self._pool = CertificatePool()
 		self._load_truststore()
 		if self._args.inform == "pem":
-			cert = X509Certificate.read_pemfile(self._args.crtfile)[0]
+			certs = X509Certificate.read_pemfile(self._args.crtfile)
+			if not self._args.dont_trust_crtfile:
+				self._pool.add_certificates(certs)
+			cert = certs[0]
 		elif self._args.inform == "der":
 			cert = X509Certificate.read_derfile(self._args.crtfile)
 		else:
