@@ -31,10 +31,6 @@ class RSAPrivateKey(PEMDERObject):
 	_ASN1_MODEL = rfc2437.RSAPrivateKey
 
 	@classmethod
-	def serialize(cls, p, q, e, d):
-		pass
-
-	@classmethod
 	def create(cls, p, q, e = 0x10001, swap_e_d = False, valid_only = True):
 		n = p * q
 		phi_n = (p - 1) * (q - 1)
