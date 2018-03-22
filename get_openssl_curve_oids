@@ -1,0 +1,29 @@
+#!/usr/bin/python3
+import re
+import subprocess
+import pyasn1.codec.der.decoder
+import pyasn1.error
+from x509sak import OID
+
+curve_re = re.compile("^  (?P<name>[-a-zA-Z0-9]+)\s*: ")
+output = subprocess.check_output([ "openssl", "ecparam", "-list_curves" ]).decode().split("\n")
+curves = [ ]
+for line in output:
+	match = curve_re.match(line)
+	if match:
+		match = match.groupdict()
+		curves.append(match["name"])
+
+oid_curves = { }
+for curve in curves:
+	private_key = subprocess.check_output([ "openssl", "ecparam", "-name", curve, "-outform", "der" ])
+	try:
+		(asn1, tail) = pyasn1.codec.der.decoder.decode(private_key)
+		oid = OID.from_asn1(asn1)
+		oid_curves[oid] = curve
+	except pyasn1.error.PyAsn1Error:
+		# OpenSSL bug https://github.com/openssl/openssl/issues/5723
+		pass
+
+for (oid, curve) in sorted(oid_curves.items()):
+	print("		OID.from_str(\"%s\"): \"%s\"," % (oid, curve))

@@ -19,6 +19,7 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
+from .OID import OID
 from .X509Certificate import X509Certificate
 from .CertificatePool import CertificatePool
 from .CAManager import CAManager
