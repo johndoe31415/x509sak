@@ -22,6 +22,7 @@
 import enum
 import collections
 import pyasn1.codec.der.decoder
+import hashlib
 from pyasn1_modules import rfc2459, rfc2437
 from x509sak.OID import OID, OIDDB
 from x509sak.PEMDERObject import PEMDERObject
@@ -32,6 +33,12 @@ class PublicKey(PEMDERObject):
 	_PEM_MARKER = "PUBLIC KEY"
 	_ASN1_MODEL = rfc2459.SubjectPublicKeyInfo
 	_ECPoint = collections.namedtuple("ECPoint", [ "curve", "x", "y" ])
+
+	def keyid(self, hashfnc = "sha1"):
+		hashval = hashlib.new(hashfnc)
+		inner_key = ASN1Tools.bitstring2bytes(self.asn1["subjectPublicKey"])
+		hashval.update(inner_key)
+		return hashval.digest()
 
 	@property
 	def cryptosystem(self):

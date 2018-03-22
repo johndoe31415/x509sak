@@ -22,3 +22,4 @@
 from .X509CertificateTests import X509CertificateTests
 from .CertificatePoolTests import CertificatePoolTests
 from .NumberTheoryTests import NumberTheoryTests
+from .PublicKeyTests import PublicKeyTests

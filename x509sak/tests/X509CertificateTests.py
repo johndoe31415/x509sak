@@ -65,11 +65,3 @@ class X509CertificateTests(unittest.TestCase):
 		cert = self._load_crt("johannes-bauer-intermediate.crt")
 		self.assertEqual(cert.valid_not_before, datetime.datetime(2016, 3, 17, 16, 40, 46))
 		self.assertEqual(cert.valid_not_after, datetime.datetime(2021, 3, 17, 16, 40, 46))
-
-	def test_crt_pubkey(self):
-		cert = self._load_crt("johannes-bauer-intermediate.crt")
-		self.assertEqual(cert.pubkey.e, 65537)
-		self.assertEqual(cert.pubkey.n.bit_length(), 2048)
-
-		cert = self._load_crt("johannes-bauer.com.crt")
-		self.assertEqual(cert.pubkey.curve, "secp384r1")
