@@ -35,13 +35,15 @@ class RSAPrivateKey(PEMDERObject):
 		pass
 
 	@classmethod
-	def create(cls, p, q, e = 0x10001, valid_only = True):
+	def create(cls, p, q, e = 0x10001, swap_e_d = False, valid_only = True):
 		n = p * q
 		phi_n = (p - 1) * (q - 1)
 		gcd = NumberTheory.gcd(e, phi_n)
 		if (gcd != 1) and valid_only:
 			raise Exception("e = 0x%x isnt't relative prime to phi(n), gcd = 0x%x." % (e, gcd))
 		d = NumberTheory.modinv(e, phi_n)
+		if swap_e_d:
+			(e, d) = (d, e)
 
 		exp1 = d % (p - 1)
 		exp2 = d % (q - 1)

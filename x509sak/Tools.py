@@ -89,3 +89,26 @@ class ASN1Tools(object):
 		if result is not None:
 			result = { key: int(value) for (key, value) in result.groupdict().items() }
 			return datetime.datetime(result["year"], result["month"], result["day"], result["hour"], result["minute"], result["second"])
+
+	@classmethod
+	def bitstring2bytes(cls, bitstr):
+		if (len(bitstr) % 8) != 0:
+			raise Exception("Unable to decode ASN.1 BitString to bytes. Size not a multiple of 8: %d" % (len(bitstr)))
+		bytes_data = bytearray()
+		for i in range(0, len(bitstr), 8):
+			byte_data = bitstr[i : i + 8]
+			value = sum(bitval << bitpos for (bitpos, bitval) in enumerate(reversed(byte_data)))
+			bytes_data.append(value)
+		return bytes(bytes_data)
+
+class ECCTools(object):
+	@classmethod
+	def decode_enc_pubkey(cls, enc_pubkey):
+		if enc_pubkey[0] != 0x04:
+			raise Exception("Unable to decode compressed (0x%x) EC key." % (enc_pubkey[0]))
+		if (len(enc_pubkey) % 2) != 1:
+			raise Exception("Unable to determine correct splitting of %d-bytes inner EC key." % (len(enc_pubkey)))
+		bytelen = len(enc_pubkey) // 2
+		x = int.from_bytes(enc_pubkey[1 : 1 + bytelen], byteorder = "big")
+		y = int.from_bytes(enc_pubkey[1 + bytelen : ], byteorder = "big")
+		return (x, y)

@@ -72,6 +72,9 @@ class NumberTheoryTests(unittest.TestCase):
 			p = NumberTheory.gen_insecure_probable_fastprime(200)
 			if NumberTheory.is_probable_prime(p):
 				cnt += 1
+			else:
+				print("NOPRIME")
+		print(cnt)
 
 	def __test_gen_fastprime2(self):
 		for n in [ 20, 50, 100, 150, 200, 500 ]:

@@ -35,6 +35,10 @@ class PEMDERObject(object):
 			raise Exception("Trailing DER data found.")
 		self._hashval = hashlib.sha256(self._der_data).digest()
 		self._source = source
+		self._post_decode_hook()
+
+	def _post_decode_hook(self):
+		pass
 
 	@property
 	def source(self):

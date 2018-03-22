@@ -20,29 +20,7 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 import pyasn1.codec.der.decoder
-
-class OID(object):
-	def __init__(self, oid_value):
-		self._oid_value = tuple(oid_value)
-
-	def __eq__(self, other):
-		return (type(self) == type(other)) and (self._oid_value == other._oid_value)
-
-	def __neq__(self, other):
-		return not (self == other)
-
-	def __lt__(self, other):
-		return (type(self) == type(other)) and (self._oid_value < other._oid_value)
-
-	def __hash__(self):
-		return hash(self._oid_value)
-
-	@classmethod
-	def from_str(cls, oid_string):
-		return cls([ int(value) for value in oid_string.split(".") ])
-
-	def __repr__(self):
-		return ".".join(str(value) for value in self._oid_value)
+from x509sak.OID import OID
 
 _KnownOIDs = {
 	OID.from_str("2.5.4.0"):					"objectClass",

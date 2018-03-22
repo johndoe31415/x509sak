@@ -29,6 +29,8 @@ from x509sak.actions.ActionCreateCA import ActionCreateCA
 from x509sak.actions.ActionCreateCSR import ActionCreateCSR
 from x509sak.actions.ActionSignCSR import ActionSignCSR
 from x509sak.actions.ActionRevokeCRT import ActionRevokeCRT
+from x509sak.actions.ActionGenerateBrokenRSA import ActionGenerateBrokenRSA
+from x509sak.actions.ActionDumpKey import ActionDumpKey
 from x509sak.CmdLineArgs import KeySpec, KeyValue
 
 mc = MultiCommand()
@@ -104,5 +106,23 @@ def genparser(parser):
 	parser.add_argument("capath", metavar = "capath", type = str, help = "CA which created the certificate.")
 	parser.add_argument("crt_filename", metavar = "crt_filename", type = str, help = "Filename of the output certificate.")
 mc.register("revokecrt", "Revoke a specific certificate", genparser, action = ActionRevokeCRT)
+
+def genparser(parser):
+	parser.add_argument("-d", "--prime-db", metavar = "path", type = str, default = ".", help = "Prime database directory. Defaults to %(default)s and searches for files called primes_{bitlen}.txt in this directory.")
+	parser.add_argument("-b", "--bitlen", metavar = "bits", type = int, default = 2048, help = "Bitlength of primes p/q to choose. Note that the modulus bitlength will be twice of that because it is the product of two primes (n = pq). Defaults to %(default)d bits.")
+	parser.add_argument("-e", "--public-exponent", metavar = "exp", type = int, default = 0x10001, help = "Public exponent e (or d in case --switch-e-d is specified) to use. Defaults to 0x%(default)x. Will be randomly chosen from 2..n-1 if set to -1.")
+	parser.add_argument("--switch-e-d", action = "store_true", help = "Swtich e with d when generating keypair.")
+	parser.add_argument("--accept-unusable-key", action = "store_true", help = "Disregard integral checks, such as if gcd(e, phi(n)) == 1 before inverting e. Might lead to an unusable key or might fail altogether.")
+	parser.add_argument("-o", "--outfile", metavar = "file", type = str, default = "broken_rsa.key", help = "Output filename. Defaults to %(default)s.")
+	parser.add_argument("-f", "--force", action = "store_true", help = "Overwrite output file if it already exists instead of bailing out.")
+	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
+mc.register("genbrokenrsa", "Generate broken RSA keys for use in pentetration testing", genparser, action = ActionGenerateBrokenRSA)
+
+def genparser(parser):
+	parser.add_argument("-t", "--key-type", choices = [ "rsa", "ecc" ], default = "rsa", help = "Type of private key to import. Can be one of %(choices)s, defaults to %(default)s. Disregarded for public keys and determined automatically.")
+	parser.add_argument("-p", "--public-key", action = "store_true", help = "Input is a public key, not a private key.")
+	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
+	parser.add_argument("key_filename", metavar = "key_filename", type = str, help = "Filename of the input key file in PEM format.")
+mc.register("dumpkey", "Dump a key in text form", genparser, action = ActionDumpKey)
 
 mc.run(sys.argv[1:])
