@@ -21,7 +21,7 @@
 
 import enum
 from x509sak.OID import OID, OIDDB
-from x509sak.Exceptions import LazyDeveloperException, UnknownAlgorithmException
+from x509sak.Exceptions import LazyDeveloperException, UnknownAlgorithmException, InvalidInputException
 
 class Cryptosystem(enum.Enum):
 	RSA = "rsaEncryption"
@@ -39,6 +39,14 @@ class KeySpecification(object):
 			parameters = { }
 		self._cryptosystem = cryptosystem
 		self._parameters = dict(parameters)
+
+		missing_parameters = self._REQUIRED_PARAMETERS[self._cryptosystem] - self._parameters.keys()
+		if len(missing_parameters) > 0:
+			raise InvalidInputException("Keyspec for cryptosystem %s requires parameters: %s" % (self._cryptosystem.name, ", ".join(sorted(missing_parameters))))
+
+		excess_parameters = set(self._parameters.keys()) - self._REQUIRED_PARAMETERS[self._cryptosystem]
+		if len(excess_parameters) > 0:
+			raise InvalidInputException("Keyspec for cryptosystem %s does not understand parameters: %s" % (self._cryptosystem.name, ", ".join(sorted(excess_parameters))))
 
 	@property
 	def cryptosystem(self):
@@ -58,7 +66,9 @@ class KeySpecification(object):
 
 	def __str__(self):
 		if self._cryptosystem == Cryptosystem.RSA:
-			return "RSA-%d" % (self._parameters["bitlen"])
+			return "RSA-%d" % (self["bitlen"])
+		elif self._cryptosystem == Cryptosystem.ECC:
+			return "ECC-%s" % (self["curve"])
 		else:
 			return "%s-%s" % (self._cryptosystem, str(self._parameters))
 

@@ -32,15 +32,14 @@ class ActionDumpKey(BaseAction):
 		BaseAction.__init__(self, cmdname, args)
 		if self._args.public_key:
 			key = PublicKey.read_pemfile(self._args.key_filename)[0]
-			if key.keytype == Cryptosystem.RSA:
-				(n, e) = (int(key.key["modulus"]), int(key.key["publicExponent"]))
-				print ("# %d bit RSA public key" % (n.bit_length()))
-				print("n = 0x%x" % (n))
-				print("e = 0x%x" % (e))
-			elif key.keytype == Cryptosystem.ECC:
-				print("# ECC key on %s" % (key.key.curve))
-				print("curve_name = \"%s\"" % (key.key.curve))
-				print("(x, y) = (0x%x, 0x%x)" % (key.key.x, key.key.y))
+			if key.cryptosystem == Cryptosystem.RSA:
+				print ("# %d bit RSA public key" % (key.n.bit_length()))
+				print("n = 0x%x" % (key.n))
+				print("e = 0x%x" % (key.e))
+			elif key.cryptosystem == Cryptosystem.ECC:
+				print("# ECC key on %s" % (key.curve))
+				print("curve_name = \"%s\"" % (key.curve))
+				print("(x, y) = (0x%x, 0x%x)" % (key.x, key.y))
 			else:
 				raise Exception(NotImplemented)
 		else:

@@ -34,38 +34,50 @@ class PublicKey(PEMDERObject):
 	_ECPoint = collections.namedtuple("ECPoint", [ "curve", "x", "y" ])
 
 	@property
-	def keytype(self):
-		return self._keytype
-
-	@property
-	def key(self):
-		return self._key
+	def cryptosystem(self):
+		return self._cryptosystem
 
 	@property
 	def keyspec(self):
-		if self.keytype == Cryptosystem.RSA:
-			return KeySpecification(cryptosystem = self.keytype, parameters = { "bitlen": self.key.n.bit_length() })
-		elif self.keytype == Cryptosystem.ECC:
-			return KeySpecification(cryptosystem = self.keytype, parameters = { "curve": self.key.curve })
+		if self.cryptosystem == Cryptosystem.RSA:
+			return KeySpecification(cryptosystem = self.cryptosystem, parameters = { "bitlen": self.n.bit_length() })
+		elif self.cryptosystem == Cryptosystem.ECC:
+			return KeySpecification(cryptosystem = self.cryptosystem, parameters = { "curve": self.curve })
 		else:
-			raise LazyDeveloperException(NotImplemented, self.keytype)
+			raise LazyDeveloperException(NotImplemented, self.cryptosystem)
 
 	def _post_decode_hook(self):
 		alg_oid = OID.from_asn1(self.asn1["algorithm"]["algorithm"])
 		if alg_oid not in OIDDB.KeySpecificationAlgorithms:
 			raise UnknownAlgorithmException("Unable to determine public algorithm for OID %s." % (alg_oid))
 		alg_name = OIDDB.KeySpecificationAlgorithms[alg_oid]
-		self._keytype = Cryptosystem(alg_name)
+		self._cryptosystem = Cryptosystem(alg_name)
 
 		inner_key = ASN1Tools.bitstring2bytes(self.asn1["subjectPublicKey"])
-		if self.keytype == Cryptosystem.RSA:
-			(self._key, tail) = pyasn1.codec.der.decoder.decode(inner_key, asn1Spec = rfc2437.RSAPublicKey())
-		elif self.keytype == Cryptosystem.ECC:
+		if self.cryptosystem == Cryptosystem.RSA:
+			(key, tail) = pyasn1.codec.der.decoder.decode(inner_key, asn1Spec = rfc2437.RSAPublicKey())
+			self._key = {
+				"n":	int(key["modulus"]),
+				"e":	int(key["publicExponent"]),
+			}
+		elif self.cryptosystem == Cryptosystem.ECC:
 			(x, y) = ECCTools.decode_enc_pubkey(inner_key)
 			(alg_oid, tail) = pyasn1.codec.der.decoder.decode(self.asn1["algorithm"]["parameters"])
 			alg_oid = OID.from_asn1(alg_oid)
 			if alg_oid not in OIDDB.EllipticCurves:
 				raise UnknownAlgorithmException("Unable to determine curve name for curve OID %s." % (alg_oid))
-			self._key = self._ECPoint(curve = OIDDB.EllipticCurves[alg_oid], x = x, y = y)
+			self._key = {
+				"curve":	OIDDB.EllipticCurves[alg_oid],
+				"x":		x,
+				"y":		y
+			}
 		else:
-			raise LazyDeveloperException(NotImplemented, self.keytype)
+			raise LazyDeveloperException(NotImplemented, self.cryptosystem)
+
+	def __getattr__(self, key):
+		if key in self._key:
+			return self._key[key]
+		raise AttributeError("%s public key does not have a '%s' parameter." % (self.cryptosystem.name, key))
+
+	def __str__(self):
+		return "PublicKey<%s>" % (self.keyspec)
