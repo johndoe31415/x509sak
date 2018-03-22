@@ -52,7 +52,7 @@ class X509Certificate(PEMDERObject):
 
 	@property
 	def signee_cryptosystem(self):
-		pass
+		raise Exception(NotImplemented)
 
 	@property
 	def subject(self):
