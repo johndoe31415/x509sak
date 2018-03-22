@@ -24,6 +24,7 @@ from pyasn1.type import tag, namedtype, namedval, univ, constraint
 from x509sak.PEMDERObject import PEMDERObject
 from x509sak.Tools import ASN1Tools, ECCTools
 from x509sak.OID import OID, OIDDB
+from x509sak.Exceptions import InvalidInputException, UnknownAlgorithmException
 
 class _ECPrivateKey(univ.Sequence):
 	"""Minimalistic RFC5915 implementation."""
@@ -31,8 +32,8 @@ class _ECPrivateKey(univ.Sequence):
 	componentType = namedtype.NamedTypes(
 		namedtype.NamedType("version", univ.Integer()),
 		namedtype.NamedType("privateKey", univ.OctetString()),
-		namedtype.NamedType("parameters", univ.ObjectIdentifier().subtype(explicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatConstructed, 0))),
-		namedtype.NamedType("publicKey", univ.BitString().subtype(explicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatConstructed, 1))),
+		namedtype.NamedType("parameters", univ.ObjectIdentifier().subtype(explicitTag = tag.Tag(tag.tagClassContext, tag.tagFormatConstructed, 0))),
+		namedtype.NamedType("publicKey", univ.BitString().subtype(explicitTag = tag.Tag(tag.tagClassContext, tag.tagFormatConstructed, 1))),
 	)
 
 class ECPrivateKey(PEMDERObject):
@@ -41,13 +42,13 @@ class ECPrivateKey(PEMDERObject):
 
 	def _post_decode_hook(self):
 		if self._asn1["parameters"] is None:
-			raise Exception("ECC private key does not contain curve OID. Cannot proceed.")
+			raise InvalidInputException("ECC private key does not contain curve OID. Cannot proceed.")
 		if self._asn1["publicKey"] is None:
-			raise Exception("ECC private key does not contain public key. Cannot proceed.")
+			raise InvalidInputException("ECC private key does not contain public key. Cannot proceed.")
 
 		curve_oid = OID.from_asn1(self._asn1["parameters"])
 		if curve_oid not in OIDDB.EllipticCurves:
-			raise Exception("Unable to determine curve name for curve OID %s." % (curve_oid))
+			raise UnknownAlgorithmException("Unable to determine curve name for curve OID %s." % (curve_oid))
 		self._curve = OIDDB.EllipticCurves[curve_oid]
 
 		self._d = int.from_bytes(self._asn1["privateKey"], byteorder = "big")

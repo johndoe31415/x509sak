@@ -26,17 +26,37 @@ import shutil
 from x509sak.BaseAction import BaseAction
 from x509sak.OpenSSLTools import OpenSSLTools
 from x509sak import X509Certificate
+from x509sak.Tools import ASN1Tools
 
 class ActionForgeCert(BaseAction):
 	def __init__(self, cmdname, args):
 		BaseAction.__init__(self, cmdname, args)
 
 		certs = X509Certificate.read_pemfile(self._args.crt_filename)
-		self._log.debug("Read %d certificates to forge.", len(certs))
-		for cert in certs:
-			self._forge_cert(cert)
+		if not certs[0].is_selfsigned():
+			raise InvalidInputException("First certificate in chain (%s) is not self-signed." % (certs[0]))
+		for (cert_id, (issuer, subject)) in enumerate(zip(certs, certs[1:]), 1):
+			if not subject.signed_by(issuer):
+				raise InvalidInputException("Certificate %d in file (%s) is not issuer for certificate %d (%s)." % (cert_id, issuer, cert_id + 1, subject))
 
-	def _forge_cert(self, cert):
-		print(cert)
-		print(cert.signed_payload)
-		print(cert.signer_cryptosystem)
+		self._log.debug("Chain of %d certificates to forge.", len(certs))
+		self._forge_cert(0, certs[0], certs[0])
+		for (cert_id, (issuer, subject)) in enumerate(zip(certs, certs[1:]), 1):
+			self._forge_cert(cert_id, issuer, subject)
+
+	def _forge_cert(self, cert_id, issuer, subject):
+		self._log.debug("Forging chain element %d: %s -> %s", cert_id, issuer, subject)
+		key_filename = self._args.key_template % (cert_id)
+		crt_filename = self._args.cert_template % (cert_id)
+
+		sig_alg = subject.signature_algorithm
+		if (not os.path.isfile(key_filename)) or self._args.force:
+			OpenSSLTools.create_private_key(key_filename, sig_alg.cryptosystem)
+
+
+		signature = OpenSSLTools.sign_data(sig_alg, key_filename, subject.signed_payload)
+
+		forged_cert_asn1 = subject.asn1_clone
+		forged_cert_asn1["signatureValue"] = ASN1Tools.bytes2bitstring(signature)
+		forged_cert = X509Certificate.from_asn1(forged_cert_asn1)
+		forged_cert.write_pemfile(crt_filename)

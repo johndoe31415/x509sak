@@ -23,6 +23,7 @@ import re
 import base64
 import textwrap
 import datetime
+import pyasn1.type.univ
 
 class PEMDataTools(object):
 	@classmethod
@@ -100,6 +101,14 @@ class ASN1Tools(object):
 			value = sum(bitval << bitpos for (bitpos, bitval) in enumerate(reversed(byte_data)))
 			bytes_data.append(value)
 		return bytes(bytes_data)
+
+	@classmethod
+	def bytes2bitstring(cls, bytedata):
+		bitstring = [ ]
+		for bytevalue in bytedata:
+			for bit in range(8):
+				bitstring.append((bytevalue >> bit) & 1)
+		return pyasn1.type.univ.BitString(bitstring)
 
 class ECCTools(object):
 	@classmethod

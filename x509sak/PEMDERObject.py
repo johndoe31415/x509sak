@@ -21,6 +21,7 @@
 
 import hashlib
 import pyasn1.codec.der.decoder
+import pyasn1.codec.der.encoder
 from .Tools import PEMDataTools
 
 class PEMDERObject(object):
@@ -55,6 +56,16 @@ class PEMDERObject(object):
 	@property
 	def asn1(self):
 		return self._asn1
+
+	@property
+	def asn1_clone(self):
+		(asn1, tail) = pyasn1.codec.der.decoder.decode(self.der_data, asn1Spec = self._ASN1_MODEL())
+		return asn1
+
+	@classmethod
+	def from_asn1(cls, asn1):
+		derdata = pyasn1.codec.der.encoder.encode(asn1)
+		return cls(derdata)
 
 	@classmethod
 	def from_pem_data(cls, pem_data, source = None):

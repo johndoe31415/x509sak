@@ -27,17 +27,19 @@ class SubprocessExecutor(object):
 	_pause_after_failed_execution = False
 
 	@classmethod
-	def run(cls, cmd, success_retcodes = None, exception_on_failure = True, return_output = False):
+	def run(cls, cmd, success_retcodes = None, exception_on_failure = True, return_stdout = False, discard_stderr = False, stdin = None):
 		if success_retcodes is None:
 			success_retcodes = [ 0 ]
 
 		if cls._verbose:
 			print(CmdTools.cmdline(cmd))
 
-		proc = subprocess.Popen(cmd, stdout = subprocess.PIPE, stderr = subprocess.STDOUT)
-		proc.wait()
-		text = proc.stdout.read()
-		proc.stdout.close()
+		if discard_stderr:
+			stderr = subprocess.PIPE
+		else:
+			stderr = subprocess.STDOUT
+		proc = subprocess.Popen(cmd, stdout = subprocess.PIPE, stderr = stderr, stdin = subprocess.PIPE)
+		(stdout, stderr) = proc.communicate(stdin)
 
 		success = proc.returncode in success_retcodes
 		if cls._verbose:
@@ -45,21 +47,25 @@ class SubprocessExecutor(object):
 				print("Successful: %s" % (CmdTools.cmdline(cmd)))
 			else:
 				print("Failed: %s" % (CmdTools.cmdline(cmd)))
-				print(text.decode())
+				print(stdout.decode())
 				print()
 
 		# Execution failed.
 		if (not success) and exception_on_failure:
 			if cls._pause_after_failed_execution:
 				print("Execution failed: %s" % (CmdTools.cmdline(cmd)))
+				print("Input: %s" % (stdin))
 				print("Return code: %d (expected one of %s)." % (proc.returncode, str(success_retcodes)))
-				print("output was:")
-				print(text.decode())
+				print("stdout was:")
+				print(stdout.decode())
+				if (stderr is not None) and (len(stderr) > 0):
+					print("stderr was:")
+					print(stderr.decode())
 				input("Hit ENTER to continue...")
 			raise Exception("Execution of command failed: %s" % (CmdTools.cmdline(cmd)))
 
-		if return_output:
-			return (success, text)
+		if return_stdout:
+			return (success, stdout)
 		else:
 			return success
 

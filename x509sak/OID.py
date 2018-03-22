@@ -130,11 +130,19 @@ class OIDDB(object):
 		OID.from_str("2.23.43.1.4.12"): "wap-wsg-idm-ecid-wtls12",
 	}
 
-
-	"""Cryptosystem algorithm OIDs."""
-	CryptosystemAlgorithms = {
+	"""KeySpecification algorithm OIDs."""
+	KeySpecificationAlgorithms = {
 		OID.from_str("1.2.840.113549.1.1.1"):	"rsaEncryption",
 		OID.from_str("1.2.840.10045.2.1"):		"ecPublicKey",
+	}
+
+	"""Signature algorithm OIDs."""
+	SignatureAlgorithms = {
+		OID.from_str("1.2.840.113549.1.1.2"):	"md2WithRsaEncryption",
+		OID.from_str("1.2.840.113549.1.1.3"):	"md4WithRsaEncryption",
+		OID.from_str("1.2.840.113549.1.1.4"):	"md5WithRsaEncryption",
+		OID.from_str("1.2.840.113549.1.1.5"):	"sha1WithRsaEncryption",
+		OID.from_str("1.2.840.113549.1.1.11"):	"sha256WithRsaEncryption",
 	}
 
 	"""Relative Distinguished Name type component OIDs."""

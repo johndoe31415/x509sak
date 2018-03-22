@@ -32,7 +32,12 @@ from x509sak.actions.ActionRevokeCRT import ActionRevokeCRT
 from x509sak.actions.ActionGenerateBrokenRSA import ActionGenerateBrokenRSA
 from x509sak.actions.ActionDumpKey import ActionDumpKey
 from x509sak.actions.ActionForgeCert import ActionForgeCert
-from x509sak.CmdLineArgs import KeySpec, KeyValue
+from x509sak.CmdLineArgs import KeySpecArgument, KeyValue
+from x509sak.KeySpecification import KeySpecification
+
+def __keyspec(arg):
+	keyspec_arg = KeySpecArgument(arg)
+	return KeySpecification.from_keyspec_argument(keyspec_arg)
 
 mc = MultiCommand()
 
@@ -62,7 +67,7 @@ def genparser(parser):
 mc.register("findcrt", "Find a specific certificate", genparser, action = ActionFindCert)
 
 def genparser(parser):
-	parser.add_argument("-k", "--keytype", metavar = "keyspec", type = KeySpec, default = "ecc:secp384r1", help = "Private key type to generate for the new CA. Defaults to %(default)s.")
+	parser.add_argument("-k", "--keytype", metavar = "keyspec", type = __keyspec, default = "ecc:secp384r1", help = "Private key type to generate for the new CA. Defaults to %(default)s.")
 	parser.add_argument("-p", "--parent-ca", metavar = "capath", type = str, help = "Parent CA directory. If omitted, CA certificate will be self-signed.")
 	parser.add_argument("-s", "--subject-dn", metavar = "subject", type = str, default = "/CN=Root CA", help = "CA subject distinguished name. Defaults to %(default)s.")
 	parser.add_argument("-d", "--validity-days", metavar = "days", type = int, default = 365, help = "Number of days that the newly created CA will be valid for. Defaults to %(default)s days.")
@@ -74,7 +79,7 @@ def genparser(parser):
 mc.register("createca", "Create a new certificate authority (CA)", genparser, action = ActionCreateCA)
 
 def genparser(parser):
-	parser.add_argument("-k", "--keytype", metavar = "keyspec", type = KeySpec, help = "Private key type to generate for the certificate or CSR. By default, it is assumed the private key has created beforehand.")
+	parser.add_argument("-k", "--keytype", metavar = "keyspec", type = __keyspec, help = "Private key type to generate for the certificate or CSR. By default, it is assumed the private key has created beforehand.")
 	parser.add_argument("-t", "--template", choices = [ "rootca", "ca", "tls-server", "tls-client" ], help = "Template to use for determining X.509 certificate extensions. Can be one of %(choices)s. By default, no extensions are included except for SAN.")
 	parser.add_argument("-s", "--subject-dn", metavar = "subject", type = str, default = "/CN=New Cert", help = "Certificate/CSR subject distinguished name. Defaults to %(default)s.")
 	parser.add_argument("-d", "--validity-days", metavar = "days", type = int, default = 365, help = "When creating a certificate, number of days that the certificate will be valid for. Defaults to %(default)s days.")
@@ -128,8 +133,11 @@ def genparser(parser):
 mc.register("dumpkey", "Dump a key in text form", genparser, action = ActionDumpKey)
 
 def genparser(parser):
+	parser.add_argument("--key_template", metavar = "path", default = "forged_%02d.key", help = "Output template for key files. Should contain '%%d' to indicate element in chain. Defaults to '%(default)s'.")
+	parser.add_argument("--cert_template", metavar = "path", default = "forged_%02d.crt", help = "Output template for certificate files. Should contain '%%d' to indicate element in chain. Defaults to '%(default)s'.")
+	parser.add_argument("-f", "--force", action = "store_true", help = "Overwrite key/certificate files.")
 	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
 	parser.add_argument("crt_filename", metavar = "crt_filename", type = str, help = "Filename of the input certificate or certificates PEM format.")
-#mc.register("forgecert", "Forge an X.509 certificate", genparser, action = ActionForgeCert)
+mc.register("forgecert", "Forge an X.509 certificate", genparser, action = ActionForgeCert, visible = False)
 
 mc.run(sys.argv[1:])

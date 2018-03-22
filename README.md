@@ -30,6 +30,7 @@ Options vary from command to command. To receive further info, type
     revokecrt          Revoke a specific certificate
     genbrokenrsa       Generate broken RSA keys for use in pentetration testing
     dumpkey            Dump a key in text form
+    forgecert          Forge an X.509 certificate
 ```
 [//]: # (End of summary -- auto-generated, do not edit!)
 

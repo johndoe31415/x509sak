@@ -19,23 +19,12 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-import enum
+class X509SAKException(Exception): pass
 
-class CryptosystemType(enum.Enum):
-	RSA = "rsaEncryption"
-	ECC = "ecPublicKey"
+class UserErrorException(X509SAKException): pass
+class ProgrammerErrorException(X509SAKException): pass
 
-class Cryptosystem(object):
-	_REQUIRED_PARAMETERS = {
-		CryptosystemType.RSA:	set([ "bitlen" ]),
-		CryptosystemType.ECC:	set([ "curvename" ]),
-	}
+class InvalidInputException(UserErrorException): pass
 
-	def __init__(self, cryptosystem, parameters = None):
-		assert(isinstance(cryptosystem, CryptosystemType))
-		self._cryptosystem = cryptosystem
-		self._parameters = parameters
-
-	@classmethod
-	def from_alg_identifier_and_signature(self, algorithm_oid, algorithm_parameters, signature):
-		print()
+class LazyDeveloperException(ProgrammerErrorException): pass
+class UnknownAlgorithmException(ProgrammerErrorException): pass

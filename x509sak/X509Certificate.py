@@ -28,7 +28,8 @@ from x509sak.SubprocessExecutor import SubprocessExecutor
 from .PEMDERObject import PEMDERObject
 from .DistinguishedName import DistinguishedName
 from .Tools import CmdTools, ASN1Tools
-from x509sak.Cryptosystem import Cryptosystem
+from x509sak.KeySpecification import SignatureAlgorithm
+from x509sak.OID import OID
 from pyasn1_modules import rfc2459
 
 _log = logging.getLogger("x509sak.X509Certificate")
@@ -43,15 +44,14 @@ class X509Certificate(PEMDERObject):
 		return pyasn1.codec.der.encoder.encode(self._asn1["tbsCertificate"])
 
 	@property
-	def signer_cryptosystem(self):
-		print(self._asn1.prettyPrint())
-		algorithm_oid = str(self._asn1["signatureAlgorithm"]["algorithm"])
+	def signature_algorithm(self):
+		algorithm_oid = OID.from_asn1(self._asn1["signatureAlgorithm"]["algorithm"])
 		algorithm_parameter = self._asn1["signatureAlgorithm"]["parameters"]
 		signature = self._asn1["signatureValue"]
-		return Cryptosystem.from_alg_identifier_and_signature(algorithm_oid, algorithm_parameter, signature)
+		return SignatureAlgorithm.from_sigalg_identifier_and_signature(algorithm_oid, algorithm_parameter, signature)
 
 	@property
-	def signee_cryptosystem(self):
+	def pubkey_cryptosystem(self):
 		raise Exception(NotImplemented)
 
 	@property
@@ -81,7 +81,7 @@ class X509Certificate(PEMDERObject):
 			cmd = [ "openssl", "verify", "-CApath", "/dev/null" ]
 			cmd += [ "-check_ss_sig", "-CAfile", issuer.name, subject.name ]
 			_log.debug("Executing: %s", CmdTools.cmdline(cmd))
-			(success, output) = SubprocessExecutor.run(cmd, exception_on_failure = False, return_output = True)
+			(success, output) = SubprocessExecutor.run(cmd, exception_on_failure = False, return_stdout = True)
 			if success:
 				return True
 			else:

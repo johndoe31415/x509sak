@@ -22,8 +22,8 @@
 import argparse
 import enum
 
-class KeySpec(object):
-	class Cryptosystem(enum.IntEnum):
+class KeySpecArgument(object):
+	class KeySpecification(enum.IntEnum):
 		RSA = 1
 		ECC = 2
 
@@ -33,13 +33,13 @@ class KeySpec(object):
 			raise argparse.ArgumentTypeError("Keyspec needs to consist at least of two components, namely cryptosystem:params")
 
 		self._cryptosystem = {
-			"rsa":	self.Cryptosystem.RSA,
-			"ecc":	self.Cryptosystem.ECC,
+			"rsa":	self.KeySpecification.RSA,
+			"ecc":	self.KeySpecification.ECC,
 		}.get(keyspec[0].lower())
 		if self._cryptosystem is None:
 			raise argparse.ArgumentTypeError("Unknown cryptosystem: %s" % (keypsec[0]))
 
-		if self._cryptosystem == self.Cryptosystem.RSA:
+		if self._cryptosystem == self.KeySpecification.RSA:
 			self._bitlen = int(keyspec[1])
 		else:
 			self._curve = keyspec[1]
@@ -50,16 +50,16 @@ class KeySpec(object):
 
 	@property
 	def bitlen(self):
-		assert(self.cryptosystem == self.Cryptosystem.RSA)
+		assert(self.cryptosystem == self.KeySpecification.RSA)
 		return self._bitlen
 
 	@property
 	def curve(self):
-		assert(self.cryptosystem == self.Cryptosystem.ECC)
+		assert(self.cryptosystem == self.KeySpecification.ECC)
 		return self._curve
 
 	def __repr__(self):
-		if self.cryptosystem == self.Cryptosystem.RSA:
+		if self.cryptosystem == self.KeySpecification.RSA:
 			return "Keyspec(%s-%d)" % (self.cryptosystem.name, self.bitlen)
 		else:
 			return "Keyspec(%s on %s)" % (self.cryptosystem.name, self.curve)

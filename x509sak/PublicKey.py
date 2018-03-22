@@ -26,7 +26,7 @@ from pyasn1_modules import rfc2459, rfc2437
 from x509sak.OID import OID, OIDDB
 from x509sak.PEMDERObject import PEMDERObject
 from x509sak.Tools import ASN1Tools, ECCTools
-from x509sak.Cryptosystem import CryptosystemType
+from x509sak.KeySpecification import Cryptosystem
 
 class PublicKey(PEMDERObject):
 	_PEM_MARKER = "PUBLIC KEY"
@@ -43,15 +43,15 @@ class PublicKey(PEMDERObject):
 
 	def _post_decode_hook(self):
 		alg_oid = OID.from_asn1(self.asn1["algorithm"]["algorithm"])
-		if alg_oid not in OIDDB.CryptosystemAlgorithms:
+		if alg_oid not in OIDDB.KeySpecificationAlgorithms:
 			raise Exception("Unable to deterimne public algorithm for OID %s." % (alg_oid))
-		alg_name = OIDDB.CryptosystemAlgorithms[alg_oid]
-		self._keytype = CryptosystemType(alg_name)
+		alg_name = OIDDB.KeySpecificationAlgorithms[alg_oid]
+		self._keytype = Cryptosystem(alg_name)
 
 		inner_key = ASN1Tools.bitstring2bytes(self.asn1["subjectPublicKey"])
-		if self._keytype == CryptosystemType.RSA:
+		if self._keytype == Cryptosystem.RSA:
 			(self._key, tail) = pyasn1.codec.der.decoder.decode(inner_key, asn1Spec = rfc2437.RSAPublicKey())
-		elif self._keytype == CryptosystemType.ECC:
+		elif self._keytype == Cryptosystem.ECC:
 			(x, y) = ECCTools.decode_enc_pubkey(inner_key)
 			(alg_oid, tail) = pyasn1.codec.der.decoder.decode(self.asn1["algorithm"]["parameters"])
 			alg_oid = OID.from_asn1(alg_oid)

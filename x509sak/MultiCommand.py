@@ -31,7 +31,7 @@ from .FriendlyArgumentParser import FriendlyArgumentParser
 from .PrefixMatcher import PrefixMatcher
 
 class MultiCommand(object):
-	RegisteredCommand = collections.namedtuple("RegisteredCommand", [ "name", "description", "parsergenerator", "action", "aliases" ])
+	RegisteredCommand = collections.namedtuple("RegisteredCommand", [ "name", "description", "parsergenerator", "action", "aliases", "visible" ])
 	ParseResult = collections.namedtuple("ParseResults", [ "cmd", "args" ])
 
 	def __init__(self):
@@ -40,7 +40,7 @@ class MultiCommand(object):
 		self._cmdorder = [ ]
 
 	def register(self, commandname, description, parsergenerator, **kwargs):
-		supported_kwargs = set(("aliases", "action"))
+		supported_kwargs = set(("aliases", "action", "visible"))
 		if len(set(kwargs.keys()) - supported_kwargs) > 0:
 			raise Exception("Unsupported kwarg found. Supported: %s" % (", ".join(sorted(list(supported_kwargs)))))
 
@@ -54,7 +54,7 @@ class MultiCommand(object):
 				raise Exception("Alias '%s' already registered." % (alias))
 			self._aliases[alias] = commandname
 
-		cmd = self.RegisteredCommand(commandname, description, parsergenerator, action, aliases)
+		cmd = self.RegisteredCommand(commandname, description, parsergenerator, action, aliases, visible = kwargs.get("visible", True))
 		self._commands[commandname] = cmd
 		self._cmdorder.append(commandname)
 
@@ -66,6 +66,8 @@ class MultiCommand(object):
 		print("Available commands:", file = sys.stderr)
 		for commandname in self._cmdorder:
 			command = self._commands[commandname]
+			if not command.visible:
+				continue
 			commandname_line = command.name
 			for description_line in textwrap.wrap(command.description, width = 56):
 				print("    %-15s    %s" % (commandname_line, description_line))
