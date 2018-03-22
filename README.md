@@ -409,5 +409,39 @@ optional arguments:
 ```
 [//]: # (End of cmd-dumpkey -- auto-generated, do not edit!)
 
+## forgecert
+With the forgecert tool you can forge a certificate chain. The input PEM file
+must begin with a self-signed root certificate and each following certificate
+must descend from its predecessor. The functionality is rather simplistic
+currently. The purpose is to create certificates which look and feel like their
+"original" counterparts, but are obviously fakes. This is for white hat testing
+of implementations.
+
+[//]: # (Begin of cmd-forgecert -- auto-generated, do not edit!)
+```
+usage: ./x509sak.py forgecert [--key_template path] [--cert_template path]
+                              [-f] [-v] [--help]
+                              crt_filename
+
+Forge an X.509 certificate
+
+positional arguments:
+  crt_filename          Filename of the input certificate or certificates PEM
+                        format.
+
+optional arguments:
+  --key_template path   Output template for key files. Should contain '%d' to
+                        indicate element in chain. Defaults to
+                        'forged_%02d.key'.
+  --cert_template path  Output template for certificate files. Should contain
+                        '%d' to indicate element in chain. Defaults to
+                        'forged_%02d.crt'.
+  -f, --force           Overwrite key/certificate files.
+  -v, --verbose         Increase verbosity level. Can be specified multiple
+                        times.
+  --help                Show this help page.
+```
+[//]: # (End of cmd-forgecert -- auto-generated, do not edit!)
+
 # License
 GNU GPL-3.

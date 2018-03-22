@@ -138,6 +138,6 @@ def genparser(parser):
 	parser.add_argument("-f", "--force", action = "store_true", help = "Overwrite key/certificate files.")
 	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
 	parser.add_argument("crt_filename", metavar = "crt_filename", type = str, help = "Filename of the input certificate or certificates PEM format.")
-mc.register("forgecert", "Forge an X.509 certificate", genparser, action = ActionForgeCert, visible = False)
+mc.register("forgecert", "Forge an X.509 certificate", genparser, action = ActionForgeCert)
 
 mc.run(sys.argv[1:])

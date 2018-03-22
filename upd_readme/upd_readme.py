@@ -19,7 +19,7 @@ stdout = _get_output([ "./x509sak.py" ])
 text = "\n```\n$ ./x509sak.py\n%s\n```\n" % (stdout)
 patcher.patch("summary", text)
 
-commands = [ "buildchain", "graph", "findcrt", "createca", "createcsr", "signcsr", "revokecrt", "genbrokenrsa", "dumpkey" ]
+commands = [ "buildchain", "graph", "findcrt", "createca", "createcsr", "signcsr", "revokecrt", "genbrokenrsa", "dumpkey", "forgecert" ]
 for command in commands:
 	stdout = _get_output([ "./x509sak.py", command, "--help" ])
 	text = "\n```\n%s\n```\n" % (stdout)
