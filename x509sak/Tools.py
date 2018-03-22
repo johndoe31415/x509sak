@@ -106,7 +106,7 @@ class ASN1Tools(object):
 	def bytes2bitstring(cls, bytedata):
 		bitstring = [ ]
 		for bytevalue in bytedata:
-			for bit in range(8):
+			for bit in reversed(range(8)):
 				bitstring.append((bytevalue >> bit) & 1)
 		return pyasn1.type.univ.BitString(bitstring)
 

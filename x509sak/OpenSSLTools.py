@@ -20,7 +20,6 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 import tempfile
-import hashlib
 from x509sak.KeySpecification import Cryptosystem
 from x509sak.SubprocessExecutor import SubprocessExecutor
 
@@ -83,8 +82,15 @@ class OpenSSLTools(object):
 
 	@classmethod
 	def sign_data(cls, signing_algorithm, private_key_filename, payload):
-		digest = hashlib.new(signing_algorithm.hashfunction).digest()
 		cmd = [ "openssl", "dgst", "-sign", private_key_filename, "-%s" % (signing_algorithm.hashfunction) ]
-		(success, signature) = SubprocessExecutor.run(cmd, stdin = digest, discard_stderr = True, return_stdout = True)
+		(success, signature) = SubprocessExecutor.run(cmd, stdin = payload, discard_stderr = True, return_stdout = True)
 		return signature
+
+	@classmethod
+	def private_to_public(cls, private_key_filename, public_key_filename):
+		success = SubprocessExecutor.run([ "openssl", "rsa", "-in", private_key_filename, "-pubout", "-out", public_key_filename ], exception_on_failure = False)
+		if not success:
+			success = SubprocessExecutor.run([ "openssl", "ec", "-in", private_key_filename, "-pubout", "-out", public_key_filename ], exception_on_failure = False)
+		if not success:
+			raise InvalidInputException("File %s contained neither RSA nor ECC private key." % (private_key_filename))
 
