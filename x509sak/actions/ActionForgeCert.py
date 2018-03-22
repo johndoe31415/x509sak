@@ -41,14 +41,15 @@ class ActionForgeCert(BaseAction):
 				raise InvalidInputException("Certificate %d in file (%s) is not issuer for certificate %d (%s)." % (cert_id, issuer, cert_id + 1, subject))
 
 		self._log.debug("Chain of %d certificates to forge.", len(certs))
-		self._forge_cert(0, certs[0], certs[0])
-		for (cert_id, (issuer, subject)) in enumerate(zip(certs, certs[1:]), 1):
-			self._forge_cert(cert_id, issuer, subject)
+		self._forge_cert(0, certs[0], 0, certs[0])
+		for (cert_subject_id, (issuer, subject)) in enumerate(zip(certs, certs[1:]), 1):
+			self._forge_cert(cert_subject_id - 1, issuer, cert_subject_id, subject)
 
-	def _forge_cert(self, cert_id, issuer, subject):
-		self._log.debug("Forging chain element %d: %s -> %s", cert_id, issuer, subject)
-		key_filename = self._args.key_template % (cert_id)
-		crt_filename = self._args.cert_template % (cert_id)
+	def _forge_cert(self, cert_issuer_id, issuer, cert_subject_id, subject):
+		self._log.debug("Forging chain element %d -> %d: %s -> %s", cert_issuer_id, cert_subject_id, issuer, subject)
+		issuer_key_filename = self._args.key_template % (cert_issuer_id)
+		key_filename = self._args.key_template % (cert_subject_id)
+		crt_filename = self._args.cert_template % (cert_subject_id)
 
 		sig_alg = subject.signature_algorithm
 		if (not os.path.isfile(key_filename)) or self._args.force:
@@ -64,11 +65,9 @@ class ActionForgeCert(BaseAction):
 		forged_cert = X509Certificate.from_asn1(forged_cert_asn1)
 
 		# Then sign the modified certifiate
-		signature = OpenSSLTools.sign_data(sig_alg, key_filename, forged_cert.signed_payload)
+		signature = OpenSSLTools.sign_data(sig_alg, issuer_key_filename, forged_cert.signed_payload)
 
 		# Finally, place the signature into the certificate
-		forged_cert_asn1 = subject.asn1_clone
 		forged_cert_asn1["signatureValue"] = ASN1Tools.bytes2bitstring(signature)
 		forged_cert = X509Certificate.from_asn1(forged_cert_asn1)
 		forged_cert.write_pemfile(crt_filename)
-
