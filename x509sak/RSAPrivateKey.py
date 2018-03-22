@@ -23,6 +23,8 @@ import pyasn1.codec.der.encoder
 from pyasn1_modules import rfc2437
 from x509sak.NumberTheory import NumberTheory
 from x509sak.PEMDERObject import PEMDERObject
+from x509sak.KeySpecification import Cryptosystem
+from x509sak.PublicKey import PublicKey
 
 class RSAPrivateKey(PEMDERObject):
 	"""Class that allows generate deliberately broken or oddball RSA
@@ -56,6 +58,14 @@ class RSAPrivateKey(PEMDERObject):
 		asn1["coefficient"] = coeff
 		der = pyasn1.codec.der.encoder.encode(asn1)
 		return cls(der)
+
+	@property
+	def cryptosystem(self):
+		return Cryptosystem.RSA
+
+	@property
+	def pubkey(self):
+		return PublicKey.create(cryptosystem = self.cryptosystem, parameters = { "n": self.n, "e": self.e })
 
 	@property
 	def p(self):

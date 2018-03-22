@@ -28,6 +28,7 @@ from x509sak.OID import OID, OIDDB
 from x509sak.PEMDERObject import PEMDERObject
 from x509sak.Tools import ASN1Tools, ECCTools
 from x509sak.KeySpecification import KeySpecification, Cryptosystem
+from x509sak.Exceptions import UnknownAlgorithmException, LazyDeveloperException
 
 class PublicKey(PEMDERObject):
 	_PEM_MARKER = "PUBLIC KEY"
@@ -80,6 +81,26 @@ class PublicKey(PEMDERObject):
 			}
 		else:
 			raise LazyDeveloperException(NotImplemented, self.cryptosystem)
+
+	@classmethod
+	def create(cls, cryptosystem, parameters):
+		asn1 = cls._ASN1_MODEL()
+		asn1["algorithm"] = rfc2459.AlgorithmIdentifier()
+		if cryptosystem == Cryptosystem.RSA:
+			asn1["algorithm"]["algorithm"] = OIDDB.KeySpecificationAlgorithms.inverse("rsaEncryption").to_asn1()
+			inner_key = rfc2437.RSAPublicKey()
+			inner_key["modulus"] = pyasn1.type.univ.Integer(parameters["n"])
+			inner_key["publicExponent"] = pyasn1.type.univ.Integer(parameters["e"])
+			inner_key = pyasn1.codec.der.encoder.encode(inner_key)
+		elif cryptosystem == Cryptosystem.ECC:
+			asn1["algorithm"]["algorithm"] = OIDDB.KeySpecificationAlgorithms.inverse("ecPublicKey").to_asn1()
+			asn1["algorithm"]["parameters"] = pyasn1.codec.der.encoder.encode(OIDDB.EllipticCurves.inverse(parameters["curve"]).to_asn1())
+			length = (max(parameters["x"].bit_length(), parameters["y"].bit_length()) + 7) // 8
+			inner_key = b"\x04" + parameters["x"].to_bytes(length = length, byteorder = "big") + parameters["y"].to_bytes(length = length, byteorder = "big")
+		else:
+			raise LazyDeveloperException(NotImplemented, self.cryptosystem)
+		asn1["subjectPublicKey"] = ASN1Tools.bytes2bitstring(inner_key)
+		return cls.from_asn1(asn1)
 
 	def __getattr__(self, key):
 		if key in self._key:

@@ -19,6 +19,9 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
+import pyasn1.type.univ
+from x509sak.BijectiveDict import BijectiveDict
+
 class OID(object):
 	def __init__(self, oid_value):
 		self._oid_value = tuple(oid_value)
@@ -35,6 +38,9 @@ class OID(object):
 	def __hash__(self):
 		return hash(self._oid_value)
 
+	def to_asn1(self):
+		return pyasn1.type.univ.ObjectIdentifier(self._oid_value)
+
 	@classmethod
 	def from_str(cls, oid_string):
 		return cls([ int(value) for value in oid_string.split(".") ])
@@ -48,7 +54,7 @@ class OID(object):
 
 class OIDDB(object):
 	"""Elliptic curve OIDs."""
-	EllipticCurves = {
+	EllipticCurves = BijectiveDict({
 		OID.from_str("1.2.840.10045.3.0.1"): "c2pnb163v1",
 		OID.from_str("1.2.840.10045.3.0.2"): "c2pnb163v2",
 		OID.from_str("1.2.840.10045.3.0.3"): "c2pnb163v3",
@@ -128,16 +134,16 @@ class OIDDB(object):
 		OID.from_str("2.23.43.1.4.10"): "wap-wsg-idm-ecid-wtls10",
 		OID.from_str("2.23.43.1.4.11"): "wap-wsg-idm-ecid-wtls11",
 		OID.from_str("2.23.43.1.4.12"): "wap-wsg-idm-ecid-wtls12",
-	}
+	})
 
 	"""KeySpecification algorithm OIDs."""
-	KeySpecificationAlgorithms = {
+	KeySpecificationAlgorithms = BijectiveDict({
 		OID.from_str("1.2.840.113549.1.1.1"):	"rsaEncryption",
 		OID.from_str("1.2.840.10045.2.1"):		"ecPublicKey",
-	}
+	})
 
 	"""Signature algorithm OIDs."""
-	SignatureAlgorithms = {
+	SignatureAlgorithms = BijectiveDict({
 		OID.from_str("1.2.840.113549.1.1.2"):	"md2WithRsaEncryption",
 		OID.from_str("1.2.840.113549.1.1.3"):	"md4WithRsaEncryption",
 		OID.from_str("1.2.840.113549.1.1.4"):	"md5WithRsaEncryption",
@@ -148,10 +154,10 @@ class OIDDB(object):
 		OID.from_str("1.2.840.10045.4.3.2"):	"ecdsa-with-SHA256",
 		OID.from_str("1.2.840.10045.4.3.3"):	"ecdsa-with-SHA384",
 		OID.from_str("1.2.840.10045.4.3.4"):	"ecdsa-with-SHA512",
-	}
+	})
 
 	"""Relative Distinguished Name type component OIDs."""
-	RDNTypes = {
+	RDNTypes = BijectiveDict({
 		OID.from_str("2.5.4.0"):					"objectClass",
 		OID.from_str("2.5.4.1"):					"aliasedEntryName",
 		OID.from_str("2.5.4.2"):					"knowledgeinformation",
@@ -169,5 +175,4 @@ class OIDDB(object):
 		OID.from_str("1.2.840.113549.1.9.1"):		"emailAddress",
 		OID.from_str("0.9.2342.19200300.100.1.1"):	"UID",
 		OID.from_str("0.9.2342.19200300.100.1.25"):	"DC",
-	}
-
+	})

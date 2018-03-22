@@ -19,12 +19,13 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-#from pyasn1_modules import rfc2437
 from pyasn1.type import tag, namedtype, namedval, univ, constraint
 from x509sak.PEMDERObject import PEMDERObject
 from x509sak.Tools import ASN1Tools, ECCTools
 from x509sak.OID import OID, OIDDB
 from x509sak.Exceptions import InvalidInputException, UnknownAlgorithmException
+from x509sak.KeySpecification import Cryptosystem
+from x509sak.PublicKey import PublicKey
 
 class _ECPrivateKey(univ.Sequence):
 	"""Minimalistic RFC5915 implementation."""
@@ -53,6 +54,14 @@ class ECPrivateKey(PEMDERObject):
 
 		self._d = int.from_bytes(self._asn1["privateKey"], byteorder = "big")
 		(self._x, self._y) = ECCTools.decode_enc_pubkey(ASN1Tools.bitstring2bytes(self._asn1["publicKey"]))
+
+	@property
+	def cryptosystem(self):
+		return Cryptosystem.ECC
+
+	@property
+	def pubkey(self):
+		return PublicKey.create(cryptosystem = self.cryptosystem, parameters = { "curve": self.curve, "x": self.x, "y": self.y })
 
 	@property
 	def curve(self):
