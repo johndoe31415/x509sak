@@ -39,11 +39,44 @@ class OID(object):
 	def from_str(cls, oid_string):
 		return cls([ int(value) for value in oid_string.split(".") ])
 
+	@classmethod
+	def from_asn1(cls, oid_asn1):
+		return cls.from_str(str(oid_asn1))
+
 	def __repr__(self):
 		return ".".join(str(value) for value in self._oid_value)
 
 class OIDDB(object):
-	"""Elliptic curve OIDs"""
-	KnownCurveOIDs = {
-		"1.2.840.10045.3.1.7":		"secp256r1",
+	"""Elliptic curve OIDs."""
+	EllipticCurves = {
+		OID.from_str("1.2.840.10045.3.1.7"):	"secp256r1",
 	}
+
+
+	"""Cryptosystem algorithm OIDs."""
+	CryptosystemAlgorithms = {
+		OID.from_str("1.2.840.113549.1.1.1"):	"rsaEncryption",
+		OID.from_str("1.2.840.10045.2.1"):		"ecPublicKey",
+	}
+
+	"""Relative Distinguished Name type component OIDs."""
+	RDNTypes = {
+		OID.from_str("2.5.4.0"):					"objectClass",
+		OID.from_str("2.5.4.1"):					"aliasedEntryName",
+		OID.from_str("2.5.4.2"):					"knowledgeinformation",
+		OID.from_str("2.5.4.3"):					"CN",
+		OID.from_str("2.5.4.4"):					"surname",
+		OID.from_str("2.5.4.5"):					"serialNumber",
+		OID.from_str("2.5.4.6"):					"C",
+		OID.from_str("2.5.4.7"):					"L",
+		OID.from_str("2.5.4.8"):					"ST",
+		OID.from_str("2.5.4.9"):					"STREET",
+		OID.from_str("2.5.4.10"):					"O",
+		OID.from_str("2.5.4.11"):					"OU",
+		OID.from_str("2.5.4.12"):					"title",
+		OID.from_str("2.5.4.13"):					"description",
+		OID.from_str("1.2.840.113549.1.9.1"):		"emailAddress",
+		OID.from_str("0.9.2342.19200300.100.1.1"):	"UID",
+		OID.from_str("0.9.2342.19200300.100.1.25"):	"DC",
+	}
+

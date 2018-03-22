@@ -24,19 +24,20 @@ from x509sak.OpenSSLTools import OpenSSLTools
 from x509sak.BaseAction import BaseAction
 from x509sak.RSAPrivateKey import RSAPrivateKey
 from x509sak.ECPrivateKey import ECPrivateKey
-from x509sak.PublicKey import PublicKey, PublicKeyType
+from x509sak.PublicKey import PublicKey
+from x509sak.Cryptosystem import CryptosystemType
 
 class ActionDumpKey(BaseAction):
 	def __init__(self, cmdname, args):
 		BaseAction.__init__(self, cmdname, args)
 		if self._args.public_key:
 			key = PublicKey.read_pemfile(self._args.key_filename)[0]
-			if key.keytype == PublicKeyType.RSA:
+			if key.keytype == CryptosystemType.RSA:
 				(n, e) = (int(key.key["modulus"]), int(key.key["publicExponent"]))
 				print ("# %d bit RSA public key" % (n.bit_length()))
 				print("n = 0x%x" % (n))
 				print("e = 0x%x" % (e))
-			elif key.keytype == PublicKeyType.ECC:
+			elif key.keytype == CryptosystemType.ECC:
 				print("# ECC key on %s" % (key.key.curve))
 				print("curve_name = \"%s\"" % (key.key.curve))
 				print("(x, y) = (0x%x, 0x%x)" % (key.key.x, key.key.y))

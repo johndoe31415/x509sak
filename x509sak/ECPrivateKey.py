@@ -23,7 +23,7 @@
 from pyasn1.type import tag, namedtype, namedval, univ, constraint
 from x509sak.PEMDERObject import PEMDERObject
 from x509sak.Tools import ASN1Tools, ECCTools
-from x509sak.OID import OIDDB
+from x509sak.OID import OID, OIDDB
 
 class _ECPrivateKey(univ.Sequence):
 	"""Minimalistic RFC5915 implementation."""
@@ -45,10 +45,10 @@ class ECPrivateKey(PEMDERObject):
 		if self._asn1["publicKey"] is None:
 			raise Exception("ECC private key does not contain public key. Cannot proceed.")
 
-		curve_oid = str(self._asn1["parameters"])
-		if curve_oid not in OIDDB.KnownCurveOIDs:
+		curve_oid = OID.from_asn1(self._asn1["parameters"])
+		if curve_oid not in OIDDB.EllipticCurves:
 			raise Exception("Unable to determine curve name for curve OID %s." % (curve_oid))
-		self._curve = OIDDB.KnownCurveOIDs[curve_oid]
+		self._curve = OIDDB.EllipticCurves[curve_oid]
 
 		self._d = int.from_bytes(self._asn1["privateKey"], byteorder = "big")
 		(self._x, self._y) = ECCTools.decode_enc_pubkey(ASN1Tools.bitstring2bytes(self._asn1["publicKey"]))

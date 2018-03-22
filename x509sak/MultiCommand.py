@@ -101,6 +101,7 @@ class MultiCommand(object):
 		command = self._commands[supplied_cmd]
 		parser = FriendlyArgumentParser(prog = sys.argv[0] + " " + command.name, description = command.description, add_help = False)
 		command.parsergenerator(parser)
+		parser.add_argument("--help", action = "help", help = "Show this help page.")
 		parser.setsilenterror(silent)
 		args = parser.parse_args(cmdline[1:])
 		return self.ParseResult(command, args)

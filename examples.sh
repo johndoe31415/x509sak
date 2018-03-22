@@ -29,3 +29,15 @@ cd output
 
 # Revoke the last generated certificate
 ../x509sak.py revokecrt -vvv foo_ca client4.crt
+
+# Generate an example RSA key and dump its public/private key
+openssl genrsa -out key_rsa.key 512
+openssl rsa -in key_rsa.key -pubout -out pubkey_rsa.key
+../x509sak.py dumpkey key_rsa.key
+../x509sak.py dumpkey -p pubkey_rsa.key
+
+# Generate an example ECC key and dump its public/private key
+openssl ecparam -genkey -name secp256r1 -out key_ecc.key
+openssl ec -in key_ecc.key -pubout -out pubkey_ecc.key
+../x509sak.py dumpkey -t ecc key_ecc.key
+../x509sak.py dumpkey -p pubkey_ecc.key

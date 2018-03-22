@@ -23,10 +23,12 @@ import re
 import datetime
 import logging
 import tempfile
+import pyasn1.codec.der.encoder
 from x509sak.SubprocessExecutor import SubprocessExecutor
 from .PEMDERObject import PEMDERObject
 from .DistinguishedName import DistinguishedName
 from .Tools import CmdTools, ASN1Tools
+from x509sak.Cryptosystem import Cryptosystem
 from pyasn1_modules import rfc2459
 
 _log = logging.getLogger("x509sak.X509Certificate")
@@ -35,6 +37,22 @@ class X509Certificate(PEMDERObject):
 	_PEM_MARKER = "CERTIFICATE"
 	_ASN1_MODEL = rfc2459.Certificate
 	_CERT_VERIFY_REGEX = re.compile("error (?P<error_code>\d+) at (?P<depth>\d+) depth lookup:(?P<reason>.*)")
+
+	@property
+	def signed_payload(self):
+		return pyasn1.codec.der.encoder.encode(self._asn1["tbsCertificate"])
+
+	@property
+	def signer_cryptosystem(self):
+		print(self._asn1.prettyPrint())
+		algorithm_oid = str(self._asn1["signatureAlgorithm"]["algorithm"])
+		algorithm_parameter = self._asn1["signatureAlgorithm"]["parameters"]
+		signature = self._asn1["signatureValue"]
+		return Cryptosystem.from_alg_identifier_and_signature(algorithm_oid, algorithm_parameter, signature)
+
+	@property
+	def signee_cryptosystem(self):
+		pass
 
 	@property
 	def subject(self):

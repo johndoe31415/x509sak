@@ -28,6 +28,8 @@ Options vary from command to command. To receive further info, type
     signcsr            Make a certificate authority (CA) sign a crtificate
                        signing request (CSR) and output the certificate
     revokecrt          Revoke a specific certificate
+    genbrokenrsa       Generate broken RSA keys for use in pentetration testing
+    dumpkey            Dump a key in text form
 ```
 [//]: # (End of summary -- auto-generated, do not edit!)
 
@@ -47,12 +49,10 @@ the chain of trust that you can use to deploy on your webserver.
 
 [//]: # (Begin of cmd-buildchain -- auto-generated, do not edit!)
 ```
-Error: the following arguments are required: crtfile
-
 usage: ./x509sak.py buildchain [-s path] [--inform {pem,der}]
                                [--order-leaf-to-root] [--allow-partial-chain]
                                [--outform {rootonly,intermediates,fullchain,all-except-root,multifile}]
-                               [-o file] [-v]
+                               [-o file] [-v] [--help]
                                crtfile
 
 Build a certificate chain
@@ -92,6 +92,7 @@ optional arguments:
                         Specifies the output filename. Defaults to stdout.
   -v, --verbose         Increase verbosity level. Can be specified multiple
                         times.
+  --help                Show this help page.
 ```
 [//]: # (End of cmd-buildchain -- auto-generated, do not edit!)
 
@@ -104,9 +105,7 @@ Here's an example of some certificates that I've plotted:
 
 [//]: # (Begin of cmd-graph -- auto-generated, do not edit!)
 ```
-Error: the following arguments are required: -o/--outfile, crtsource
-
-usage: ./x509sak.py graph [-f {dot,png,ps,pdf}] -o file [-v]
+usage: ./x509sak.py graph [-f {dot,png,ps,pdf}] -o file [-v] [--help]
                           crtsource [crtsource ...]
 
 Graph a certificate pool
@@ -124,6 +123,7 @@ optional arguments:
                         Specifies the output filename. Mandatory argument.
   -v, --verbose         Increase verbosity level. Can be specified multiple
                         times.
+  --help                Show this help page.
 ```
 [//]: # (End of cmd-graph -- auto-generated, do not edit!)
 
@@ -136,9 +136,7 @@ you.
 
 [//]: # (Begin of cmd-findcrt -- auto-generated, do not edit!)
 ```
-Error: the following arguments are required: crtsource
-
-usage: ./x509sak.py findcrt [-h hash] [-v] crtsource [crtsource ...]
+usage: ./x509sak.py findcrt [-h hash] [-v] [--help] crtsource [crtsource ...]
 
 Find a specific certificate
 
@@ -152,6 +150,7 @@ optional arguments:
                         Find only certificates with a particular hash prefix.
   -v, --verbose         Increase verbosity level. Can be specified multiple
                         times.
+  --help                Show this help page.
 ```
 [//]: # (End of cmd-findcrt -- auto-generated, do not edit!)
 
@@ -166,10 +165,8 @@ as it can create root CAs.
 
 [//]: # (Begin of cmd-createca -- auto-generated, do not edit!)
 ```
-Error: the following arguments are required: capath
-
 usage: ./x509sak.py createca [-k keyspec] [-p capath] [-s subject] [-d days]
-                             [-h alg] [--serial serial] [-f] [-v]
+                             [-h alg] [--serial serial] [-f] [-v] [--help]
                              capath
 
 Create a new certificate authority (CA)
@@ -200,6 +197,7 @@ optional arguments:
                         new CA.
   -v, --verbose         Increase verbosity level. Can be specified multiple
                         times.
+  --help                Show this help page.
 ```
 [//]: # (End of cmd-createca -- auto-generated, do not edit!)
 
@@ -214,14 +212,11 @@ file configuration used by OpenSSL.
 
 [//]: # (Begin of cmd-createcsr -- auto-generated, do not edit!)
 ```
-Error: the following arguments are required: in_key_filename,
-  out_filename
-
 usage: ./x509sak.py createcsr [-k keyspec]
                               [-t {rootca,ca,tls-server,tls-client}]
                               [-s subject] [-d days] [-h alg] [--san-dns FQDN]
                               [--san-ip IP] [--extension key=value] [-f]
-                              [-c capath] [-v]
+                              [-c capath] [-v] [--help]
                               in_key_filename out_filename
 
 Create a new certificate signing request (CSR) or certificate
@@ -266,6 +261,7 @@ optional arguments:
                         the CA path that should issue the certificate.
   -v, --verbose         Increase verbosity level. Can be specified multiple
                         times.
+  --help                Show this help page.
 ```
 [//]: # (End of cmd-createcsr -- auto-generated, do not edit!)
 
@@ -275,12 +271,9 @@ by a CA private key.
 
 [//]: # (Begin of cmd-signcsr -- auto-generated, do not edit!)
 ```
-Error: the following arguments are required: capath, in_csr_filename,
-  out_crt_filename
-
 usage: ./x509sak.py signcsr [-t {rootca,ca,tls-server,tls-client}]
                             [-s subject] [--san-dns FQDN] [--san-ip IP]
-                            [-d days] [-h alg] [-f] [-v]
+                            [-d days] [-h alg] [-f] [-v] [--help]
                             capath in_csr_filename out_crt_filename
 
 Make a certificate authority (CA) sign a crtificate signing request (CSR) and
@@ -314,6 +307,7 @@ optional arguments:
                         exists.
   -v, --verbose         Increase verbosity level. Can be specified multiple
                         times.
+  --help                Show this help page.
 ```
 [//]: # (End of cmd-signcsr -- auto-generated, do not edit!)
 
@@ -324,9 +318,7 @@ revoke and you're set.
 
 [//]: # (Begin of cmd-revokecrt -- auto-generated, do not edit!)
 ```
-Error: the following arguments are required: capath, crt_filename
-
-usage: ./x509sak.py revokecrt [-v] capath crt_filename
+usage: ./x509sak.py revokecrt [-v] [--help] capath crt_filename
 
 Revoke a specific certificate
 
@@ -336,8 +328,79 @@ positional arguments:
 
 optional arguments:
   -v, --verbose  Increase verbosity level. Can be specified multiple times.
+  --help         Show this help page.
 ```
 [//]: # (End of cmd-revokecrt -- auto-generated, do not edit!)
+
+## genbrokenrsa
+With genbrokenrsa it is possible to generate deliberately malformed or odd RSA
+keys. For example, RSA keys with a custom value for the public exponent e, or
+RSA keys which have a very small exponent d (e.g, 3) and a correspondingly
+large exponent e. Note that keys generated by this tool are *exclusively for
+testing purposes* and may not, under any circumstances, be used for actual
+cryptographic applications. They are *not secure*.
+
+[//]: # (Begin of cmd-genbrokenrsa -- auto-generated, do not edit!)
+```
+usage: ./x509sak.py genbrokenrsa [-d path] [-b bits] [-e exp] [--switch-e-d]
+                                 [--accept-unusable-key] [-o file] [-f] [-v]
+                                 [--help]
+
+Generate broken RSA keys for use in pentetration testing
+
+optional arguments:
+  -d path, --prime-db path
+                        Prime database directory. Defaults to . and searches
+                        for files called primes_{bitlen}.txt in this
+                        directory.
+  -b bits, --bitlen bits
+                        Bitlength of primes p/q to choose. Note that the
+                        modulus bitlength will be twice of that because it is
+                        the product of two primes (n = pq). Defaults to 2048
+                        bits.
+  -e exp, --public-exponent exp
+                        Public exponent e (or d in case --switch-e-d is
+                        specified) to use. Defaults to 0x10001. Will be
+                        randomly chosen from 2..n-1 if set to -1.
+  --switch-e-d          Swtich e with d when generating keypair.
+  --accept-unusable-key
+                        Disregard integral checks, such as if gcd(e, phi(n))
+                        == 1 before inverting e. Might lead to an unusable key
+                        or might fail altogether.
+  -o file, --outfile file
+                        Output filename. Defaults to broken_rsa.key.
+  -f, --force           Overwrite output file if it already exists instead of
+                        bailing out.
+  -v, --verbose         Increase verbosity level. Can be specified multiple
+                        times.
+  --help                Show this help page.
+```
+[//]: # (End of cmd-genbrokenrsa -- auto-generated, do not edit!)
+
+## dumpkey
+The dumpkey facility can be used to dump the public/private key parameters of a
+given PEM keyfile into Python-code for further processing.
+
+[//]: # (Begin of cmd-dumpkey -- auto-generated, do not edit!)
+```
+usage: ./x509sak.py dumpkey [-t {rsa,ecc}] [-p] [-v] [--help] key_filename
+
+Dump a key in text form
+
+positional arguments:
+  key_filename          Filename of the input key file in PEM format.
+
+optional arguments:
+  -t {rsa,ecc}, --key-type {rsa,ecc}
+                        Type of private key to import. Can be one of rsa, ecc,
+                        defaults to rsa. Disregarded for public keys and
+                        determined automatically.
+  -p, --public-key      Input is a public key, not a private key.
+  -v, --verbose         Increase verbosity level. Can be specified multiple
+                        times.
+  --help                Show this help page.
+```
+[//]: # (End of cmd-dumpkey -- auto-generated, do not edit!)
 
 # License
 GNU GPL-3.

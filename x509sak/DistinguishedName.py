@@ -20,37 +20,19 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 import pyasn1.codec.der.decoder
-from x509sak.OID import OID
-
-_KnownOIDs = {
-	OID.from_str("2.5.4.0"):					"objectClass",
-	OID.from_str("2.5.4.1"):					"aliasedEntryName",
-	OID.from_str("2.5.4.2"):					"knowledgeinformation",
-	OID.from_str("2.5.4.3"):					"CN",
-	OID.from_str("2.5.4.4"):					"surname",
-	OID.from_str("2.5.4.5"):					"serialNumber",
-	OID.from_str("2.5.4.6"):					"C",
-	OID.from_str("2.5.4.7"):					"L",
-	OID.from_str("2.5.4.8"):					"ST",
-	OID.from_str("2.5.4.9"):					"STREET",
-	OID.from_str("2.5.4.10"):					"O",
-	OID.from_str("2.5.4.11"):					"OU",
-	OID.from_str("2.5.4.12"):					"title",
-	OID.from_str("2.5.4.13"):					"description",
-	OID.from_str("1.2.840.113549.1.9.1"):		"emailAddress",
-	OID.from_str("0.9.2342.19200300.100.1.1"):	"UID",
-	OID.from_str("0.9.2342.19200300.100.1.25"):	"DC",
-}
+from x509sak.OID import OID, OIDDB
 
 class DistinguishedName(object):
-	def __init__(self, key_value_list):
-		self._key_value_list = tuple(sorted((OID.from_str(key), value) for (key, value) in key_value_list))
+	def __init__(self, oid_value_list):
+		for (oid, value) in oid_value_list:
+			assert(isinstance(oid, OID))
+		self._oid_value_list = tuple(sorted(oid_value_list))
 
 	@classmethod
 	def from_asn1(cls, asn1):
 		key_values = [ ]
 		for element in asn1[0]:
-			oid = str(element[0]["type"])
+			oid = OID.from_asn1(element[0]["type"])
 			value = bytes(element[0]["value"])
 			(value, tail) = pyasn1.codec.der.decoder.decode(value)
 			value = str(value)
@@ -74,23 +56,23 @@ class DistinguishedName(object):
 				else:
 					escaped_text.append(char)
 			return "".join(escaped_text)
-		return ",".join("%s=%s" % (_KnownOIDs.get(key, key), escape(value)) for (key, value) in self._key_value_list)
+		return ",".join("%s=%s" % (OIDDB.RDNTypes.get(key, key), escape(value)) for (key, value) in self._oid_value_list)
 
 	@property
 	def pretty_str(self):
 		return self.rfc2253_str
 
 	def __eq__(self, other):
-		return self._key_value_list == other._key_value_list
+		return self._oid_value_list == other._oid_value_list
 
 	def __lt__(self, other):
-		return self._key_value_list < other._key_value_list
+		return self._oid_value_list < other._oid_value_list
 
 	def __neq__(self, other):
 		return not (self == other)
 
 	def __hash__(self):
-		return hash(self._key_value_list)
+		return hash(self._oid_value_list)
 
 	def __str__(self):
 		return "DN<%s>" % (self.rfc2253_str)

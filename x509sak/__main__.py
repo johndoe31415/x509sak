@@ -31,6 +31,7 @@ from x509sak.actions.ActionSignCSR import ActionSignCSR
 from x509sak.actions.ActionRevokeCRT import ActionRevokeCRT
 from x509sak.actions.ActionGenerateBrokenRSA import ActionGenerateBrokenRSA
 from x509sak.actions.ActionDumpKey import ActionDumpKey
+from x509sak.actions.ActionForgeCert import ActionForgeCert
 from x509sak.CmdLineArgs import KeySpec, KeyValue
 
 mc = MultiCommand()
@@ -124,5 +125,10 @@ def genparser(parser):
 	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
 	parser.add_argument("key_filename", metavar = "key_filename", type = str, help = "Filename of the input key file in PEM format.")
 mc.register("dumpkey", "Dump a key in text form", genparser, action = ActionDumpKey)
+
+def genparser(parser):
+	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
+	parser.add_argument("crt_filename", metavar = "crt_filename", type = str, help = "Filename of the input certificate or certificates PEM format.")
+#mc.register("forgecert", "Forge an X.509 certificate", genparser, action = ActionForgeCert)
 
 mc.run(sys.argv[1:])
