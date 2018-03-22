@@ -28,6 +28,7 @@ from x509sak.OpenSSLTools import OpenSSLTools
 from x509sak import X509Certificate
 from x509sak.Tools import ASN1Tools
 from x509sak.PublicKey import PublicKey
+from x509sak.Exceptions import InvalidInputException
 
 class ActionForgeCert(BaseAction):
 	def __init__(self, cmdname, args):
@@ -51,10 +52,10 @@ class ActionForgeCert(BaseAction):
 		key_filename = self._args.key_template % (cert_subject_id)
 		crt_filename = self._args.cert_template % (cert_subject_id)
 
-		sig_alg = subject.signature_algorithm
 		if (not os.path.isfile(key_filename)) or self._args.force:
-			OpenSSLTools.create_private_key(key_filename, sig_alg.cryptosystem)
+			OpenSSLTools.create_private_key(key_filename, subject.pubkey.keyspec)
 
+		# Read new private key and convert to public key
 		with tempfile.NamedTemporaryFile(prefix = "pubkey_", suffix = ".pem") as pubkey_file:
 			OpenSSLTools.private_to_public(key_filename, pubkey_file.name)
 			pubkey = PublicKey.read_pemfile(pubkey_file.name)[0]
@@ -65,7 +66,7 @@ class ActionForgeCert(BaseAction):
 		forged_cert = X509Certificate.from_asn1(forged_cert_asn1)
 
 		# Then sign the modified certifiate
-		signature = OpenSSLTools.sign_data(sig_alg, issuer_key_filename, forged_cert.signed_payload)
+		signature = OpenSSLTools.sign_data(subject.signature_algorithm, issuer_key_filename, forged_cert.signed_payload)
 
 		# Finally, place the signature into the certificate
 		forged_cert_asn1["signatureValue"] = ASN1Tools.bytes2bitstring(signature)

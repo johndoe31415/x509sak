@@ -26,7 +26,7 @@ from pyasn1_modules import rfc2459, rfc2437
 from x509sak.OID import OID, OIDDB
 from x509sak.PEMDERObject import PEMDERObject
 from x509sak.Tools import ASN1Tools, ECCTools
-from x509sak.KeySpecification import Cryptosystem
+from x509sak.KeySpecification import KeySpecification, Cryptosystem
 
 class PublicKey(PEMDERObject):
 	_PEM_MARKER = "PUBLIC KEY"
@@ -41,22 +41,31 @@ class PublicKey(PEMDERObject):
 	def key(self):
 		return self._key
 
+	@property
+	def keyspec(self):
+		if self.keytype == Cryptosystem.RSA:
+			return KeySpecification(cryptosystem = self.keytype, parameters = { "bitlen": self.key.n.bit_length() })
+		elif self.keytype == Cryptosystem.ECC:
+			return KeySpecification(cryptosystem = self.keytype, parameters = { "curve": self.key.curve })
+		else:
+			raise LazyDeveloperException(NotImplemented, self.keytype)
+
 	def _post_decode_hook(self):
 		alg_oid = OID.from_asn1(self.asn1["algorithm"]["algorithm"])
 		if alg_oid not in OIDDB.KeySpecificationAlgorithms:
-			raise Exception("Unable to deterimne public algorithm for OID %s." % (alg_oid))
+			raise UnknownAlgorithmException("Unable to determine public algorithm for OID %s." % (alg_oid))
 		alg_name = OIDDB.KeySpecificationAlgorithms[alg_oid]
 		self._keytype = Cryptosystem(alg_name)
 
 		inner_key = ASN1Tools.bitstring2bytes(self.asn1["subjectPublicKey"])
-		if self._keytype == Cryptosystem.RSA:
+		if self.keytype == Cryptosystem.RSA:
 			(self._key, tail) = pyasn1.codec.der.decoder.decode(inner_key, asn1Spec = rfc2437.RSAPublicKey())
-		elif self._keytype == Cryptosystem.ECC:
+		elif self.keytype == Cryptosystem.ECC:
 			(x, y) = ECCTools.decode_enc_pubkey(inner_key)
 			(alg_oid, tail) = pyasn1.codec.der.decoder.decode(self.asn1["algorithm"]["parameters"])
 			alg_oid = OID.from_asn1(alg_oid)
 			if alg_oid not in OIDDB.EllipticCurves:
-				raise Exception("Unable to determine curve name for curve OID %s." % (alg_oid))
+				raise UnknownAlgorithmException("Unable to determine curve name for curve OID %s." % (alg_oid))
 			self._key = self._ECPoint(curve = OIDDB.EllipticCurves[alg_oid], x = x, y = y)
 		else:
-			raise Exception(NotImplemented)
+			raise LazyDeveloperException(NotImplemented, self.keytype)

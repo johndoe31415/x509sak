@@ -30,6 +30,7 @@ from .DistinguishedName import DistinguishedName
 from .Tools import CmdTools, ASN1Tools
 from x509sak.KeySpecification import SignatureAlgorithm
 from x509sak.OID import OID
+from x509sak.PublicKey import PublicKey
 from pyasn1_modules import rfc2459
 
 _log = logging.getLogger("x509sak.X509Certificate")
@@ -46,13 +47,12 @@ class X509Certificate(PEMDERObject):
 	@property
 	def signature_algorithm(self):
 		algorithm_oid = OID.from_asn1(self._asn1["signatureAlgorithm"]["algorithm"])
-		algorithm_parameter = self._asn1["signatureAlgorithm"]["parameters"]
-		signature = self._asn1["signatureValue"]
-		return SignatureAlgorithm.from_sigalg_identifier_and_signature(algorithm_oid, algorithm_parameter, signature)
+		return SignatureAlgorithm.from_sigalg_oid(algorithm_oid)
 
 	@property
-	def pubkey_cryptosystem(self):
-		raise Exception(NotImplemented)
+	def pubkey(self):
+		pubkey_asn1 = self._asn1["tbsCertificate"]["subjectPublicKeyInfo"]
+		return PublicKey.from_asn1(pubkey_asn1)
 
 	@property
 	def subject(self):

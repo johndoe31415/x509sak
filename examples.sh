@@ -41,3 +41,8 @@ openssl ecparam -genkey -name secp256r1 -out key_ecc.key
 openssl ec -in key_ecc.key -pubout -out pubkey_ecc.key
 ../x509sak.py dumpkey -t ecc key_ecc.key
 ../x509sak.py dumpkey -p pubkey_ecc.key
+
+# Forge a chain of certificates
+cat root_ca/CA.crt foo_ca/CA.crt client3.crt >original.crt
+../x509sak.py forgecert original.crt
+../x509sak.py buildchain -s forged_00.crt -s forged_01.crt forged_02.crt

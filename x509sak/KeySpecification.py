@@ -69,6 +69,10 @@ class SignatureAlgorithm(object):
 		"md5WithRsaEncryption":		(Cryptosystem.RSA, "rsaEncryption", "md5"),
 		"sha1WithRsaEncryption":	(Cryptosystem.RSA, "rsaEncryption", "sha1"),
 		"sha256WithRsaEncryption":	(Cryptosystem.RSA, "rsaEncryption", "sha256"),
+		"ecdsa-with-SHA224":		(Cryptosystem.ECC, "ECDSA", "sha224"),
+		"ecdsa-with-SHA256":		(Cryptosystem.ECC, "ECDSA", "sha256"),
+		"ecdsa-with-SHA384":		(Cryptosystem.ECC, "ECDSA", "sha384"),
+		"ecdsa-with-SHA512":		(Cryptosystem.ECC, "ECDSA", "sha512"),
 	}
 
 	def __init__(self, cryptosystem, scheme, hashfunction):
@@ -89,7 +93,7 @@ class SignatureAlgorithm(object):
 		return self._hashfunction
 
 	@classmethod
-	def from_sigalg_identifier_and_signature(cls, sig_algorithm_oid, sig_algorithm_parameters, signature):
+	def from_sigalg_oid(cls, sig_algorithm_oid):
 		assert(isinstance(sig_algorithm_oid, OID))
 		if sig_algorithm_oid not in OIDDB.SignatureAlgorithms:
 			raise UnknownAlgorithmException("OID %s is not a known signature algorithm identifier." % (sig_algorithm_oid))
@@ -99,13 +103,7 @@ class SignatureAlgorithm(object):
 			raise UnknownAlgorithmException("Cannot determine signature scheme/hash function for %s." % (sig_algorithm))
 
 		(cryptosystem, scheme, hashfnc) = cls._KNOWN_CRYPTOSYSTEM_SCHEME_HASHES[sig_algorithm]
-		if cryptosystem == Cryptosystem.RSA:
-			bitlen = len(signature)
-			cryptosystem = KeySpecification(cryptosystem, { "bitlen": bitlen })
-		else:
-			raise LazyDeveloperException(NotImplemented, cryptosystem)
-
 		return cls(cryptosystem = cryptosystem, scheme = scheme, hashfunction = hashfnc)
 
 	def __str__(self):
-		return "Signature<%s, %s, %s>" % (self.cryptosystem, self.scheme, self.hashfunction)
+		return "SignatureAlg<%s, %s, %s>" % (self.cryptosystem, self.scheme, self.hashfunction)
