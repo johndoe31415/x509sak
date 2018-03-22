@@ -95,6 +95,11 @@ class PublicKey(PEMDERObject):
 		elif cryptosystem == Cryptosystem.ECC:
 			asn1["algorithm"]["algorithm"] = OIDDB.KeySpecificationAlgorithms.inverse("ecPublicKey").to_asn1()
 			asn1["algorithm"]["parameters"] = pyasn1.codec.der.encoder.encode(OIDDB.EllipticCurves.inverse(parameters["curve"]).to_asn1())
+
+			# TODO: Shame on me! This is not how length is computed. It needs
+			# to be looked up in the curve database, also see SEC1, ver 1.9,
+			# page 12 (2.3.5) for each field element: "Output: An octet string M
+			# of length mlen = ceil((log2 q)/8) octets."
 			length = (max(parameters["x"].bit_length(), parameters["y"].bit_length()) + 7) // 8
 			inner_key = b"\x04" + parameters["x"].to_bytes(length = length, byteorder = "big") + parameters["y"].to_bytes(length = length, byteorder = "big")
 		else:
