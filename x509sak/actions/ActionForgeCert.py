@@ -27,6 +27,8 @@ from x509sak import X509Certificate
 from x509sak.Tools import ASN1Tools
 from x509sak.PublicKey import PublicKey
 from x509sak.Exceptions import InvalidInputException
+from x509sak.OID import OIDDB
+from x509sak.X509Extensions import X509SubjectKeyIdentifierExtension, X509AuthorityKeyIdentifierExtension
 
 class ActionForgeCert(BaseAction):
 	def __init__(self, cmdname, args):
@@ -56,11 +58,35 @@ class ActionForgeCert(BaseAction):
 		# Read new private key and convert to public key
 		with tempfile.NamedTemporaryFile(prefix = "pubkey_", suffix = ".pem") as pubkey_file:
 			OpenSSLTools.private_to_public(key_filename, pubkey_file.name)
-			pubkey = PublicKey.read_pemfile(pubkey_file.name)[0]
+			subject_pubkey = PublicKey.read_pemfile(pubkey_file.name)[0]
+
+		# Do the same for the issuer key to get the issuer key ID
+		with tempfile.NamedTemporaryFile(prefix = "pubkey_", suffix = ".pem") as pubkey_file:
+			OpenSSLTools.private_to_public(issuer_key_filename, pubkey_file.name)
+			issuer_pubkey = PublicKey.read_pemfile(pubkey_file.name)[0]
 
 		# Replace public key first
 		forged_cert_asn1 = subject.asn1_clone
-		forged_cert_asn1["tbsCertificate"]["subjectPublicKeyInfo"] = pubkey.asn1
+		forged_cert_asn1["tbsCertificate"]["subjectPublicKeyInfo"] = subject_pubkey.asn1
+
+		# Do identifiers need to be recalculated?
+		if self._args.recalculate_keyids:
+			x509_extensions = subject.get_extensions()
+			if x509_extensions.has(OIDDB.X509Extensions.inverse("SubjectKeyIdentifier")):
+				# Replace subject key identifier
+				new_key_id = subject_pubkey.keyid()
+				replacement_extension = X509SubjectKeyIdentifierExtension.construct(new_key_id)
+				x509_extensions.filter(OIDDB.X509Extensions.inverse("SubjectKeyIdentifier"), replacement_extension)
+
+			if x509_extensions.has(OIDDB.X509Extensions.inverse("AuthorityKeyIdentifier")):
+				# Replace authority key identifier
+				new_key_id = issuer_pubkey.keyid()
+				replacement_extension = X509AuthorityKeyIdentifierExtension.construct(new_key_id)
+				x509_extensions.filter(OIDDB.X509Extensions.inverse("AuthorityKeyIdentifier"), replacement_extension)
+
+			forged_cert_asn1["tbsCertificate"]["extensions"] = x509_extensions.to_asn1()
+
+		# Re-serialize certificate
 		forged_cert = X509Certificate.from_asn1(forged_cert_asn1)
 
 		# Then sign the modified certifiate

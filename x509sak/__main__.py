@@ -135,6 +135,7 @@ mc.register("dumpkey", "Dump a key in text form", genparser, action = ActionDump
 def genparser(parser):
 	parser.add_argument("--key_template", metavar = "path", default = "forged_%02d.key", help = "Output template for key files. Should contain '%%d' to indicate element in chain. Defaults to '%(default)s'.")
 	parser.add_argument("--cert_template", metavar = "path", default = "forged_%02d.crt", help = "Output template for certificate files. Should contain '%%d' to indicate element in chain. Defaults to '%(default)s'.")
+	parser.add_argument("-r", "--recalculate-keyids", action = "store_true", help = "By default, Subject Key Identifier and Authority Key Identifier X.509 extensions are kept as-is in the forged certificates. Specifying this will recalculate the IDs to fit the forged keys.")
 	parser.add_argument("-f", "--force", action = "store_true", help = "Overwrite key/certificate files.")
 	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
 	parser.add_argument("crt_filename", metavar = "crt_filename", type = str, help = "Filename of the input certificate or certificates PEM format.")

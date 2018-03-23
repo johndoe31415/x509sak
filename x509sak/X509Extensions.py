@@ -21,6 +21,8 @@
 
 import pyasn1.codec.der.decoder
 import pyasn1.error
+import pyasn1.type.univ
+from pyasn1.type import tag
 from pyasn1_modules import rfc2459
 from x509sak.OID import OID, OIDDB
 
@@ -58,6 +60,15 @@ class X509Extensions(object):
 		print("%d X.509 extensions:" % (len(self)))
 		for ext in self:
 			print("    - %s" % (ext))
+
+	def to_asn1(self):
+		extension_list = [ extension.to_asn1() for extension in self ]
+		# TODO: OMG this is fugly. We cannot use Extensions(), because it's
+		# tag-incompatible with the instance used inside TBSCertificate. So, I
+		# guess we're doing this? No way, Jose.
+		extensions_asn1 = rfc2459.Extensions().subtype(explicitTag = tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 3))
+		extensions_asn1.setComponents(*extension_list)
+		return extensions_asn1
 
 	def __getitem__(self, index):
 		return self._exts[index]
@@ -112,6 +123,20 @@ class X509Extension(object):
 			pass
 		self._decode_hook()
 
+	def to_asn1(self):
+		extension = rfc2459.Extension()
+		extension["extnID"] = self.oid.to_asn1()
+		extension["critical"] = self.critical
+		extension["extnValue"] = self.data
+		return extension
+
+	@classmethod
+	def construct_from_asn1(cls, inner_asn1, critical = False):
+		inner_data = pyasn1.codec.der.encoder.encode(inner_asn1)
+		outer_asn1 = pyasn1.type.univ.OctetString(inner_data)
+		outer_data = pyasn1.codec.der.encoder.encode(outer_asn1)
+		return cls(oid = cls._HANDLER_OID, data = outer_data, critical = critical)
+
 	@classmethod
 	def get_handler_oid(cls):
 		return cls._HANDLER_OID
@@ -159,9 +184,7 @@ class X509SubjectKeyIdentifierExtension(X509Extension):
 	def construct(cls, keyid):
 		assert(isinstance(keyid, bytes))
 		assert(len(keyid) == 20)
-		asn1 = cls._ASN1_MODEL()
-		data = pyasn1.codec.der.encoder.encode(asn1)
-		return cls(oid = cls._HANDLER_OID, data = data, critical = False)
+		return cls.construct_from_asn1(cls._ASN1_MODEL(keyid), critical = False)
 
 	@property
 	def keyid(self):
@@ -178,6 +201,14 @@ X509ExtensionRegistry.set_handler_class(X509SubjectKeyIdentifierExtension)
 class X509AuthorityKeyIdentifierExtension(X509Extension):
 	_HANDLER_OID = OIDDB.X509Extensions.inverse("AuthorityKeyIdentifier")
 	_ASN1_MODEL = rfc2459.AuthorityKeyIdentifier
+
+	@classmethod
+	def construct(cls, keyid):
+		assert(isinstance(keyid, bytes))
+		assert(len(keyid) == 20)
+		asn1 = cls._ASN1_MODEL()
+		asn1["keyIdentifier"] = keyid
+		return cls.construct_from_asn1(asn1, critical = False)
 
 	@property
 	def keyid(self):
