@@ -20,7 +20,6 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 import random
-from x509sak import CAManager
 from x509sak.BaseAction import BaseAction
 from x509sak.PrimeDB import PrimeDB
 from x509sak.RSAPrivateKey import RSAPrivateKey

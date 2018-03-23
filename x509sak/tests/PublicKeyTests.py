@@ -19,10 +19,8 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-import os
 import unittest
 import pkgutil
-import datetime
 from x509sak import X509Certificate
 
 class PublicKeyTests(unittest.TestCase):

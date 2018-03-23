@@ -42,14 +42,14 @@ class NumberTheoryTests(unittest.TestCase):
 
 	def test_modinv(self):
 		p = 2003
-		for i in range(10):
+		for _ in range(10):
 			r = random.randint(2, p - 1)
 			inv = NumberTheory.modinv(r, p)
 			self.assertEqual(r * inv % p, 1)
 
 	def test_gen_prime(self):
 		primes = set()
-		for i in range(15):
+		for _ in range(15):
 			p = NumberTheory.gen_insecure_probable_prime(6)
 			q = NumberTheory.gen_insecure_probable_prime(6)
 			primes.add(p)
@@ -68,7 +68,7 @@ class NumberTheoryTests(unittest.TestCase):
 
 	def __test_gen_fastprime1(self):
 		cnt = 0
-		for i in range(10):
+		for _ in range(10):
 			p = NumberTheory.gen_insecure_probable_fastprime(200)
 			if NumberTheory.is_probable_prime(p):
 				cnt += 1
@@ -80,4 +80,3 @@ class NumberTheoryTests(unittest.TestCase):
 		for n in [ 20, 50, 100, 150, 200, 500 ]:
 			p = NumberTheory.gen_insecure_probable_fastprime(n)
 			self.assertTrue(NumberTheory.is_probable_prime(p))
-

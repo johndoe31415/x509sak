@@ -20,7 +20,6 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 import sys
-import os
 from x509sak import CertificatePool, X509Certificate
 from x509sak.BaseAction import BaseAction
 
@@ -77,7 +76,8 @@ class ActionBuildChain(BaseAction):
 			else:
 				self._print_certs(sys.stdout, certs)
 
-	def _print_certs(self, f, certs):
+	@staticmethod
+	def _print_certs(f, certs):
 		for cert in certs:
 			print(cert.to_pem_data(), file = f)
 

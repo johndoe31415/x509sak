@@ -175,6 +175,6 @@ class CAManager(object):
 
 	def revoke_crt(self, crt_filename):
 		crt_absfilename = os.path.realpath(crt_filename)
-		with WorkDir(self._capath), tempfile.NamedTemporaryFile("w", prefix = "ext_", suffix = ".cnf") as extfile:
+		with WorkDir(self._capath):
 			cmd = [ "openssl", "ca", "-config", self.config_filename, "-revoke", crt_absfilename ]
 			SubprocessExecutor.run(cmd)

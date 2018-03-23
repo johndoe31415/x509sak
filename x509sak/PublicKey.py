@@ -19,10 +19,9 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-import enum
+import hashlib
 import collections
 import pyasn1.codec.der.decoder
-import hashlib
 from pyasn1_modules import rfc2459, rfc2437
 from x509sak.OID import OID, OIDDB
 from x509sak.PEMDERObject import PEMDERObject
@@ -63,14 +62,14 @@ class PublicKey(PEMDERObject):
 
 		inner_key = ASN1Tools.bitstring2bytes(self.asn1["subjectPublicKey"])
 		if self.cryptosystem == Cryptosystem.RSA:
-			(key, tail) = pyasn1.codec.der.decoder.decode(inner_key, asn1Spec = rfc2437.RSAPublicKey())
+			(key, _) = pyasn1.codec.der.decoder.decode(inner_key, asn1Spec = rfc2437.RSAPublicKey())
 			self._key = {
 				"n":	int(key["modulus"]),
 				"e":	int(key["publicExponent"]),
 			}
 		elif self.cryptosystem == Cryptosystem.ECC:
 			(x, y) = ECCTools.decode_enc_pubkey(inner_key)
-			(alg_oid, tail) = pyasn1.codec.der.decoder.decode(self.asn1["algorithm"]["parameters"])
+			(alg_oid, _) = pyasn1.codec.der.decoder.decode(self.asn1["algorithm"]["parameters"])
 			alg_oid = OID.from_asn1(alg_oid)
 			if alg_oid not in OIDDB.EllipticCurves:
 				raise UnknownAlgorithmException("Unable to determine curve name for curve OID %s." % (alg_oid))
@@ -103,7 +102,7 @@ class PublicKey(PEMDERObject):
 			length = (max(parameters["x"].bit_length(), parameters["y"].bit_length()) + 7) // 8
 			inner_key = b"\x04" + parameters["x"].to_bytes(length = length, byteorder = "big") + parameters["y"].to_bytes(length = length, byteorder = "big")
 		else:
-			raise LazyDeveloperException(NotImplemented, self.cryptosystem)
+			raise LazyDeveloperException(NotImplemented, cryptosystem)
 		asn1["subjectPublicKey"] = ASN1Tools.bytes2bitstring(inner_key)
 		return cls.from_asn1(asn1)
 

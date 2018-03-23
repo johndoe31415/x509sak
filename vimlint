@@ -1,0 +1,4 @@
+#!/bin/bash
+pylint --reports=n --output-format=parseable x509sak >/tmp/lint
+vi -c ":set cmdheight=2" -c ":cf /tmp/lint"
+

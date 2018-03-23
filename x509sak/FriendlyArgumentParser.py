@@ -65,5 +65,3 @@ if __name__ == "__main__":
 	parser.add_argument("qids", metavar = "qid", type = int, nargs = "+", help = "Question ID(s) of the question(s) to be edited")
 	args = parser.parse_args(sys.argv[1:])
 	print(args)
-
-

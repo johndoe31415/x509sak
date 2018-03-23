@@ -38,13 +38,15 @@ class CertificatePool(object):
 	def find_chain(self, certificate):
 		leaf = certificate
 		chain = [ ]
-		for i in range(100):
+		for _ in range(100):
 			issuers = list(self.find_issuers(certificate))
 			if len(issuers) == 0:
 				issuer = None
 				break
 
-			issuer = issuers[0]		# TODO
+			# TODO: With multiple issuers, choose the correct (best) one
+			# instead of simply the first.
+			issuer = issuers[0]
 			if issuer == certificate:
 				break
 			chain.append(issuer)

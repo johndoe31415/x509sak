@@ -21,8 +21,6 @@
 
 import os
 import tempfile
-import subprocess
-import shutil
 from x509sak.OpenSSLTools import OpenSSLTools
 from x509sak.CAManager import CAManager
 from x509sak.BaseAction import BaseAction

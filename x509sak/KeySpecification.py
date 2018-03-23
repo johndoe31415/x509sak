@@ -59,7 +59,7 @@ class KeySpecification(object):
 		elif keyspec_arg.cryptosystem == keyspec_arg.KeySpecification.ECC:
 			return cls(cryptosystem = Cryptosystem.ECC, parameters = { "curve": keyspec_arg.curve })
 		else:
-			raise LazyDeveloperException(NotImplmented, keyspec_arg)
+			raise LazyDeveloperException(NotImplemented, keyspec_arg)
 
 	def __getitem__(self, key):
 		return self._parameters[key]
@@ -69,8 +69,7 @@ class KeySpecification(object):
 			return "RSA-%d" % (self["bitlen"])
 		elif self._cryptosystem == Cryptosystem.ECC:
 			return "ECC-%s" % (self["curve"])
-		else:
-			return "%s-%s" % (self._cryptosystem, str(self._parameters))
+		return "%s-%s" % (self._cryptosystem, str(self._parameters))
 
 class SignatureAlgorithm(object):
 	_KNOWN_CRYPTOSYSTEM_SCHEME_HASHES = {

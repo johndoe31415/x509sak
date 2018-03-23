@@ -21,9 +21,8 @@
 
 import os
 import tempfile
-import subprocess
 import shutil
-from x509sak import CertificatePool, CAManager
+from x509sak import CAManager
 from x509sak.BaseAction import BaseAction
 
 class ActionCreateCA(BaseAction):

@@ -85,4 +85,3 @@ class CertificatePoolTests(unittest.TestCase):
 		self.assertEqual(chain.chain, (intermediate_cert, ))
 		self.assertEqual(chain.leaf, server_cert)
 		self.assertEqual(chain.full_chain, (server_cert, intermediate_cert))
-

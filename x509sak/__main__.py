@@ -20,8 +20,6 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 import sys
-from .FriendlyArgumentParser import baseint
-from .MultiCommand import MultiCommand
 from x509sak.actions.ActionBuildChain import ActionBuildChain
 from x509sak.actions.ActionGraphPool import ActionGraphPool
 from x509sak.actions.ActionFindCert import ActionFindCert
@@ -34,6 +32,8 @@ from x509sak.actions.ActionDumpKey import ActionDumpKey
 from x509sak.actions.ActionForgeCert import ActionForgeCert
 from x509sak.CmdLineArgs import KeySpecArgument, KeyValue
 from x509sak.KeySpecification import KeySpecification
+from .FriendlyArgumentParser import baseint
+from .MultiCommand import MultiCommand
 
 def __keyspec(arg):
 	keyspec_arg = KeySpecArgument(arg)

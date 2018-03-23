@@ -37,7 +37,7 @@ class KeySpecArgument(object):
 			"ecc":	self.KeySpecification.ECC,
 		}.get(keyspec[0].lower())
 		if self._cryptosystem is None:
-			raise argparse.ArgumentTypeError("Unknown cryptosystem: %s" % (keypsec[0]))
+			raise argparse.ArgumentTypeError("Unknown cryptosystem: %s" % (keyspec[0]))
 
 		if self._cryptosystem == self.KeySpecification.RSA:
 			self._bitlen = int(keyspec[1])

@@ -59,7 +59,7 @@ class X509CertificateTests(unittest.TestCase):
 			if filename.endswith(".pem"):
 				fullfilename = dirname + filename
 				cert = X509Certificate.read_pemfile(fullfilename)[0]
-				temp = cert.issuer.rfc2253_str + cert.subject.rfc2253_str
+				_ = cert.issuer.rfc2253_str + cert.subject.rfc2253_str
 
 	def test_crt_dates(self):
 		cert = self._load_crt("johannes-bauer-intermediate.crt")

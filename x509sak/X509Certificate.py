@@ -20,25 +20,24 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 import re
-import datetime
 import logging
 import tempfile
 import pyasn1.codec.der.encoder
+from pyasn1_modules import rfc2459
 from x509sak.SubprocessExecutor import SubprocessExecutor
-from .PEMDERObject import PEMDERObject
-from .DistinguishedName import DistinguishedName
-from .Tools import CmdTools, ASN1Tools
+from x509sak.PEMDERObject import PEMDERObject
+from x509sak.DistinguishedName import DistinguishedName
+from x509sak.Tools import CmdTools, ASN1Tools
 from x509sak.KeySpecification import SignatureAlgorithm
 from x509sak.OID import OID
 from x509sak.PublicKey import PublicKey
-from pyasn1_modules import rfc2459
 
 _log = logging.getLogger("x509sak.X509Certificate")
 
 class X509Certificate(PEMDERObject):
 	_PEM_MARKER = "CERTIFICATE"
 	_ASN1_MODEL = rfc2459.Certificate
-	_CERT_VERIFY_REGEX = re.compile("error (?P<error_code>\d+) at (?P<depth>\d+) depth lookup:(?P<reason>.*)")
+	_CERT_VERIFY_REGEX = re.compile(r"error (?P<error_code>\d+) at (?P<depth>\d+) depth lookup:(?P<reason>.*)")
 
 	@property
 	def signed_payload(self):

@@ -19,8 +19,6 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-from x509sak import CAManager
-from x509sak.OpenSSLTools import OpenSSLTools
 from x509sak.BaseAction import BaseAction
 from x509sak.RSAPrivateKey import RSAPrivateKey
 from x509sak.ECPrivateKey import ECPrivateKey
@@ -60,5 +58,3 @@ class ActionDumpKey(BaseAction):
 
 			else:
 				raise Exception(NotImplemented)
-
-
