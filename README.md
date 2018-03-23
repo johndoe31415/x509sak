@@ -420,7 +420,7 @@ of implementations.
 [//]: # (Begin of cmd-forgecert -- auto-generated, do not edit!)
 ```
 usage: ./x509sak.py forgecert [--key_template path] [--cert_template path]
-                              [-f] [-v] [--help]
+                              [-r] [-f] [-v] [--help]
                               crt_filename
 
 Forge an X.509 certificate
@@ -436,6 +436,11 @@ optional arguments:
   --cert_template path  Output template for certificate files. Should contain
                         '%d' to indicate element in chain. Defaults to
                         'forged_%02d.crt'.
+  -r, --recalculate-keyids
+                        By default, Subject Key Identifier and Authority Key
+                        Identifier X.509 extensions are kept as-is in the
+                        forged certificates. Specifying this will recalculate
+                        the IDs to fit the forged keys.
   -f, --force           Overwrite key/certificate files.
   -v, --verbose         Increase verbosity level. Can be specified multiple
                         times.
