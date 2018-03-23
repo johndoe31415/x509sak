@@ -24,6 +24,7 @@ import unittest
 import pkgutil
 import datetime
 from x509sak import X509Certificate
+from x509sak.OID import OIDDB
 
 class X509CertificateTests(unittest.TestCase):
 	@staticmethod
@@ -65,3 +66,36 @@ class X509CertificateTests(unittest.TestCase):
 		cert = self._load_crt("johannes-bauer-intermediate.crt")
 		self.assertEqual(cert.valid_not_before, datetime.datetime(2016, 3, 17, 16, 40, 46))
 		self.assertEqual(cert.valid_not_after, datetime.datetime(2021, 3, 17, 16, 40, 46))
+
+	def test_extension_get(self):
+		cert = self._load_crt("johannes-bauer.com.crt")
+		exts = cert.get_extensions()
+		self.assertEqual(len(exts), 9)
+
+	def test_extension_has(self):
+		cert = self._load_crt("johannes-bauer.com.crt")
+		exts = cert.get_extensions()
+		self.assertTrue(exts.has(OIDDB.X509Extensions.inverse("ExtendedKeyUsage")))
+		self.assertTrue(exts.has(OIDDB.X509Extensions.inverse("SubjectKeyIdentifier")))
+		self.assertFalse(exts.has(OIDDB.X509Extensions.inverse("CertSRVCAVersion")))
+		self.assertEqual(len(exts), 9)
+		exts.remove_all(OIDDB.X509Extensions.inverse("ExtendedKeyUsage"))
+		self.assertEqual(len(exts), 8)
+		exts.remove_all(OIDDB.X509Extensions.inverse("CertSRVCAVersion"))
+		self.assertEqual(len(exts), 8)
+
+	def test_extension_ski(self):
+		cert = self._load_crt("johannes-bauer.com.crt")
+		exts = cert.get_extensions()
+		ext = exts.get_first(OIDDB.X509Extensions.inverse("CertSRVCAVersion"))
+		self.assertIsNone(ext)
+		ext = exts.get_first(OIDDB.X509Extensions.inverse("SubjectKeyIdentifier"))
+		self.assertIsNotNone(ext)
+		self.assertEqual(ext.keyid, bytes.fromhex("1A4AB011B05CFA57FB49028765169337F78D8EE6"))
+
+	def test_extension_aki(self):
+		cert = self._load_crt("johannes-bauer.com.crt")
+		exts = cert.get_extensions()
+		ext = exts.get_first(OIDDB.X509Extensions.inverse("AuthorityKeyIdentifier"))
+		self.assertIsNotNone(ext)
+		self.assertEqual(ext.keyid, bytes.fromhex("A84A6A63047DDDBAE6D139B7A64565EFF3A8ECA1"))

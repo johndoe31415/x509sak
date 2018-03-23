@@ -31,6 +31,7 @@ from x509sak.Tools import CmdTools, ASN1Tools
 from x509sak.KeySpecification import SignatureAlgorithm
 from x509sak.OID import OID
 from x509sak.PublicKey import PublicKey
+from x509sak.X509Extensions import X509ExtensionRegistry, X509Extensions
 
 _log = logging.getLogger("x509sak.X509Certificate")
 
@@ -68,6 +69,16 @@ class X509Certificate(PEMDERObject):
 	@property
 	def valid_not_after(self):
 		return ASN1Tools.parse_datetime(str(self._asn1["tbsCertificate"]["validity"]["notAfter"]["utcTime"])) or ASN1Tools.parse_datetime(str(self._asn1["tbsCertificate"]["validity"]["notAfter"]["generalTime"]))
+
+	def get_extensions(self):
+		result = [ ]
+		if self._asn1["tbsCertificate"]["extensions"] is not None:
+			for extension in self._asn1["tbsCertificate"]["extensions"]:
+				oid = OID.from_asn1(extension["extnID"])
+				critical = bool(extension["critical"])
+				value = bytes(extension["extnValue"])
+				result.append(X509ExtensionRegistry.create(oid, critical, value))
+		return X509Extensions(result)
 
 	def is_selfsigned(self):
 		return self.signed_by(self)

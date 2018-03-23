@@ -19,12 +19,16 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
+import collections
+
 class BijectiveDict(object):
 	def __init__(self, values):
 		self._dict = dict(values)
 		self._revdict = { value: key for (key, value) in self._dict.items() }
 		if len(self._dict) != len(self._revdict):
-			raise Exception("Dictionary not bijective.")
+			ctr = collections.Counter(self._dict.values())
+			dupes = [ element for (element, count) in ctr.items() if count > 1 ]
+			raise Exception("Dictionary not bijective: Duplicate values are %s." % (", ".join(dupes)))
 
 	def inverse(self, key):
 		return self._revdict[key]
