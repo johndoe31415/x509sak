@@ -114,13 +114,12 @@ class X509Extension(object):
 		self._critical = critical
 		self._data = data
 		self._asn1 = None
-		self._content = None
-		try:
-			(self._asn1, _) = pyasn1.codec.der.decoder.decode(self.data)
-			if self._ASN1_MODEL is not None:
-				(self._content, _) = pyasn1.codec.der.decoder.decode(self._asn1, asn1Spec = self._ASN1_MODEL())
-		except pyasn1.error.PyAsn1Error:
-			pass
+		if self._ASN1_MODEL is not None:
+			try:
+				(self._asn1, _) = pyasn1.codec.der.decoder.decode(self.data, asn1Spec = self._ASN1_MODEL())
+			except pyasn1.error.PyAsn1Error as e:
+#				print("Couldn't parse ASN.1 extension: %s" % (str(e)))
+				pass
 		self._decode_hook()
 
 	def to_asn1(self):
@@ -131,11 +130,9 @@ class X509Extension(object):
 		return extension
 
 	@classmethod
-	def construct_from_asn1(cls, inner_asn1, critical = False):
-		inner_data = pyasn1.codec.der.encoder.encode(inner_asn1)
-		outer_asn1 = pyasn1.type.univ.OctetString(inner_data)
-		outer_data = pyasn1.codec.der.encoder.encode(outer_asn1)
-		return cls(oid = cls._HANDLER_OID, data = outer_data, critical = critical)
+	def construct_from_asn1(cls, asn1, critical = False):
+		data = pyasn1.codec.der.encoder.encode(asn1)
+		return cls(oid = cls._HANDLER_OID, data = data, critical = critical)
 
 	@classmethod
 	def get_handler_oid(cls):
@@ -156,10 +153,6 @@ class X509Extension(object):
 	@property
 	def asn1(self):
 		return self._asn1
-
-	@property
-	def content(self):
-		return self._content
 
 	def _decode_hook(self):
 		pass
@@ -195,7 +188,7 @@ class X509SubjectKeyIdentifierExtension(X509Extension):
 		return "KeyID %s" % (self.keyid.hex())
 
 	def _decode_hook(self):
-		self._keyid = bytes(self.content)
+		self._keyid = bytes(self.asn1)
 X509ExtensionRegistry.set_handler_class(X509SubjectKeyIdentifierExtension)
 
 class X509AuthorityKeyIdentifierExtension(X509Extension):
@@ -219,5 +212,5 @@ class X509AuthorityKeyIdentifierExtension(X509Extension):
 		return "KeyID %s" % (self.keyid.hex())
 
 	def _decode_hook(self):
-		self._keyid = bytes(self._content["keyIdentifier"])
+		self._keyid = bytes(self.asn1["keyIdentifier"])
 X509ExtensionRegistry.set_handler_class(X509AuthorityKeyIdentifierExtension)

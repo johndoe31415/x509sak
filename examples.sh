@@ -44,5 +44,5 @@ openssl ec -in key_ecc.key -pubout -out pubkey_ecc.key
 
 # Forge a chain of certificates
 cat root_ca/CA.crt foo_ca/CA.crt client3.crt >original.crt
-../x509sak.py forgecert original.crt
+../x509sak.py forgecert -r original.crt
 ../x509sak.py buildchain -s forged_00.crt -s forged_01.crt forged_02.crt

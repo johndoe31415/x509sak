@@ -71,14 +71,12 @@ class X509Certificate(PEMDERObject):
 		return ASN1Tools.parse_datetime(str(self._asn1["tbsCertificate"]["validity"]["notAfter"]["utcTime"])) or ASN1Tools.parse_datetime(str(self._asn1["tbsCertificate"]["validity"]["notAfter"]["generalTime"]))
 
 	def get_extensions(self):
-		print("=" * 120)
 		result = [ ]
 		if self._asn1["tbsCertificate"]["extensions"] is not None:
 			for extension in self._asn1["tbsCertificate"]["extensions"]:
 				oid = OID.from_asn1(extension["extnID"])
 				critical = bool(extension["critical"])
 				value = bytes(extension["extnValue"])
-				print(oid, value.hex())
 				result.append(X509ExtensionRegistry.create(oid, critical, value))
 		return X509Extensions(result)
 
