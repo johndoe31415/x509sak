@@ -37,7 +37,9 @@ Options vary from command to command. To receive further info, type
 # Dependencies
 x509sak requires Python3, pyasn1 and pyasn1_modules support. It also relies on
 OpenSSL. If you want graph support, then you also need to install the Graphviz
-package as well.
+package as well. Note that pyasn1_modules inside the Ubuntu tree (as of 3'2018,
+Ubuntu Artful MATE, v0.0.7-0.1) is broken and you'll need to use the version
+that pip3 installs (0.2.1 in my case).
 
 ## buildchain
 The "buildchain" command is useful if you want to have a complete (or partial)
