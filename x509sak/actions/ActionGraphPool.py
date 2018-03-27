@@ -24,6 +24,7 @@ import tempfile
 import subprocess
 from x509sak import CertificatePool
 from x509sak.BaseAction import BaseAction
+from x509sak.Exceptions import UnknownFormatException
 
 class ActionGraphPool(BaseAction):
 	def __init__(self, cmdname, args):
@@ -46,7 +47,7 @@ class ActionGraphPool(BaseAction):
 				cmd = [ "dot", "-T%s" % (file_format), dotfile.name ]
 				subprocess.check_call(cmd, stdout = outfile)
 		else:
-			raise UnknownFormatException("Unknown file format: %s" % (file_format))
+			raise UnknownFormatException("Unknown file format: \"%s\"" % (file_format))
 
 	def _write_dotfile(self, dotfile):
 		def escape(text):
