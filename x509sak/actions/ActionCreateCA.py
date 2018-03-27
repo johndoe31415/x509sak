@@ -52,6 +52,10 @@ class ActionCreateCA(BaseAction):
 		if self._args.parent_ca is None:
 			# Self-signed root CA
 			camgr.create_selfsigned_ca_cert(subject_dn = self._args.subject_dn, validity_days = self._args.validity_days, signing_hash = self._args.hashfnc, serial = self._args.serial)
+
+			# Create certificate chain file that only consists of our
+			# self-signed certificate
+			shutil.copy(self._args.capath + "/CA.crt", self._args.capath + "/chain.crt")
 		else:
 			# Intermediate CA
 			if self._args.serial is not None:
@@ -60,3 +64,13 @@ class ActionCreateCA(BaseAction):
 				camgr.create_ca_csr(csr_filename = csr.name, subject_dn = self._args.subject_dn)
 				parent_ca = CAManager(self._args.parent_ca)
 				parent_ca.sign_csr(csr.name, camgr.root_crt_filename, subject_dn = self._args.subject_dn, validity_days = self._args.validity_days, extension_template = "ca", signing_hash = self._args.hashfnc)
+
+			# Create a certificate chain by appending the parent chain to our certificate
+			if os.path.isfile(self._args.parent_ca + "/chain.crt"):
+				with open(self._args.parent_ca + "/chain.crt") as parent_chainfile:
+					parent_chain = parent_chainfile.read()
+				with open(self._args.capath + "/CA.crt") as new_certificate_file:
+					new_certificate = new_certificate_file.read()
+				with open(self._args.capath + "/chain.crt", "w") as intermediate_chainfile:
+					intermediate_chainfile.write(parent_chain)
+					intermediate_chainfile.write(new_certificate)
