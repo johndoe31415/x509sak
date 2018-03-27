@@ -32,6 +32,7 @@ from x509sak.actions.ActionDumpKey import ActionDumpKey
 from x509sak.actions.ActionForgeCert import ActionForgeCert
 from x509sak.CmdLineArgs import KeySpecArgument, KeyValue
 from x509sak.KeySpecification import KeySpecification
+from x509sak.Exceptions import UserErrorException
 from .FriendlyArgumentParser import baseint
 from .MultiCommand import MultiCommand
 
@@ -141,4 +142,8 @@ def genparser(parser):
 	parser.add_argument("crt_filename", metavar = "crt_filename", type = str, help = "Filename of the input certificate or certificates PEM format.")
 mc.register("forgecert", "Forge an X.509 certificate", genparser, action = ActionForgeCert)
 
-mc.run(sys.argv[1:])
+try:
+	mc.run(sys.argv[1:])
+except UserErrorException as e:
+	print("%s: %s" % (e.__class__.__name__, str(e)))
+	sys.exit(1)
