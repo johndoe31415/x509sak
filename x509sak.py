@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
 #	Copyright (C) 2018-2018 Johannes Bauer
 #
