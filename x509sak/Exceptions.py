@@ -25,6 +25,7 @@ class UserErrorException(X509SAKException): pass
 class ProgrammerErrorException(X509SAKException): pass
 
 class InvalidInputException(UserErrorException): pass
+class UnknownFormatException(UserErrorException): pass
 
 class LazyDeveloperException(ProgrammerErrorException): pass
 class UnknownAlgorithmException(ProgrammerErrorException): pass

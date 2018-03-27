@@ -126,8 +126,10 @@ positional arguments:
 
 optional arguments:
   -f {dot,png,ps,pdf}, --format {dot,png,ps,pdf}
-                        Specifies the output format. Can be one of dot, png,
-                        ps, pdf, defaults to dot.
+                        Specifies the output file format. Can be one of dot,
+                        png, ps, pdf, defaults to None. When unspecified, the
+                        file extension out the output file is used to
+                        determine the file type.
   -o file, --outfile file
                         Specifies the output filename. Mandatory argument.
   -v, --verbose         Increase verbosity level. Can be specified multiple

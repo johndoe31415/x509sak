@@ -19,6 +19,7 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
+import os
 import tempfile
 import subprocess
 from x509sak import CertificatePool
@@ -31,16 +32,21 @@ class ActionGraphPool(BaseAction):
 		self._pool.load_sources(self._args.crtsource)
 		self._log.debug("Loaded a total of %d unique certificates in trust store.", self._pool.certificate_count)
 
-		if self._args.format == "dot":
+		if self._args.format is not None:
+			file_format = self._args.format
+		else:
+			file_format = os.path.splitext(self._args.outfile)[1].lstrip(".")
+
+		if file_format == "dot":
 			with open(self._args.outfile, "w") as dotfile:
 				self._write_dotfile(dotfile)
-		elif self._args.format in [ "ps", "png", "pdf" ]:
+		elif file_format in [ "ps", "png", "pdf" ]:
 			with tempfile.NamedTemporaryFile("w", prefix = "graph_", suffix = ".dot") as dotfile, open(self._args.outfile, "wb") as outfile:
 				self._write_dotfile(dotfile)
-				cmd = [ "dot", "-T%s" % (self._args.format), dotfile.name ]
+				cmd = [ "dot", "-T%s" % (file_format), dotfile.name ]
 				subprocess.check_call(cmd, stdout = outfile)
 		else:
-			raise Exception(NotImplemented)
+			raise UnknownFormatException("Unknown file format: %s" % (file_format))
 
 	def _write_dotfile(self, dotfile):
 		def escape(text):
