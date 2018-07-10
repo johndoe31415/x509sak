@@ -23,13 +23,25 @@ import random
 from x509sak.BaseAction import BaseAction
 from x509sak.PrimeDB import PrimeDB
 from x509sak.RSAPrivateKey import RSAPrivateKey
+from x509sak.NumberTheory import NumberTheory
 
 class ActionGenerateBrokenRSA(BaseAction):
 	def __init__(self, cmdname, args):
 		BaseAction.__init__(self, cmdname, args)
 
 		prime_db = PrimeDB(self._args.prime_db)
-		(p, q) = (prime_db[self._args.bitlen], prime_db[self._args.bitlen])
+		p = prime_db[self._args.bitlen]
+		if not self._args.close_q:
+			q = prime_db[self._args.bitlen]
+		else:
+			q = p
+			while True:
+				q += 2 * random.randint(1, 100)
+				if NumberTheory.is_probable_prime(q):
+					break
+			if self._args.verbose >= 1:
+				diff = q - p
+				print("q - p = %d (%d bit)" % (diff, diff.bit_length()))
 		n = p * q
 		e = self._args.public_exponent
 		if e == -1:
