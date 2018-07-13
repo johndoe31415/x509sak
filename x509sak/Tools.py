@@ -19,11 +19,13 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
+import os
 import re
 import base64
 import textwrap
 import datetime
 import pyasn1.type.univ
+from x509sak.Exceptions import InvalidInputException
 
 class PEMDataTools(object):
 	@classmethod
@@ -63,13 +65,19 @@ class PEMDataTools(object):
 
 class CmdTools(object):
 	@classmethod
-	def cmdline(cls, cmd):
+	def cmdline(cls, cmd, env = None):
 		def escape(text):
 			if (" " in text) or ("\"" in text):
 				return "\"%s\"" % (text.replace("\"", "\\\""))
 			else:
 				return text
-		return " ".join(escape(arg) for arg in cmd)
+		command = " ".join(escape(arg) for arg in cmd)
+
+		if env is None:
+			return command
+		else:
+			env_string = " ".join("%s=%s" % (key, escape(value)) for (key, value) in sorted(env.items()))
+			return env_string + " " + command
 
 class ASN1Tools(object):
 	_REGEX_UTCTime = re.compile(r"(?P<year>\d{2})(?P<month>\d{2})(?P<day>\d{2})(?P<hour>\d{2})(?P<minute>\d{2})(?P<second>\d{2})Z")
@@ -121,3 +129,29 @@ class ECCTools(object):
 		x = int.from_bytes(enc_pubkey[1 : 1 + bytelen], byteorder = "big")
 		y = int.from_bytes(enc_pubkey[1 + bytelen : ], byteorder = "big")
 		return (x, y)
+
+class PathTools(object):
+	@classmethod
+	def find(cls, search_path, filename):
+		directories = search_path.split(":")
+		for directory in directories:
+			if not directory.endswith("/"):
+				directory += "/"
+			full_filename = directory + filename
+			if os.path.isfile(directory + filename):
+				return full_filename
+		return None
+
+class MiscTools(object):
+	@classmethod
+	def verify_kwargs(cls, required_kwargs, given_kwargs, hint = "Method"):
+		assert(isinstance(required_kwargs, set))
+		assert(isinstance(given_kwargs, dict))
+
+		missing_parameters = required_kwargs - given_kwargs.keys()
+		if len(missing_parameters) > 0:
+			raise InvalidInputException("%s requires parameters: %s" % (hint, ", ".join(sorted(missing_parameters))))
+
+		excess_parameters = set(given_kwargs.keys()) - required_kwargs
+		if len(excess_parameters) > 0:
+			raise InvalidInputException("%s does not understand parameters: %s" % (hint, ", ".join(sorted(excess_parameters))))

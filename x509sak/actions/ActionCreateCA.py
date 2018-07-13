@@ -23,6 +23,7 @@ import os
 import tempfile
 import shutil
 from x509sak import CAManager
+from x509sak.OpenSSLTools import OpenSSLTools
 from x509sak.BaseAction import BaseAction
 
 class ActionCreateCA(BaseAction):

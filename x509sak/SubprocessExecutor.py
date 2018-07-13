@@ -19,6 +19,7 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
+import os
 import subprocess
 from x509sak.Tools import CmdTools
 
@@ -27,7 +28,13 @@ class SubprocessExecutor(object):
 	_pause_after_failed_execution = False
 
 	@classmethod
-	def run(cls, cmd, success_retcodes = None, exception_on_failure = True, return_stdout = False, discard_stderr = False, stdin = None):
+	def run(cls, cmd, success_retcodes = None, exception_on_failure = True, return_stdout = False, discard_stderr = False, stdin = None, env = None):
+		if env is not None:
+			full_env = dict(os.environ)
+			full_env.update(env)
+		else:
+			full_env = None
+
 		if success_retcodes is None:
 			success_retcodes = [ 0 ]
 
@@ -38,22 +45,22 @@ class SubprocessExecutor(object):
 			stderr = subprocess.PIPE
 		else:
 			stderr = subprocess.STDOUT
-		proc = subprocess.Popen(cmd, stdout = subprocess.PIPE, stderr = stderr, stdin = subprocess.PIPE)
+		proc = subprocess.Popen(cmd, stdout = subprocess.PIPE, stderr = stderr, stdin = subprocess.PIPE, env = full_env)
 		(stdout, stderr) = proc.communicate(stdin)
 
 		success = proc.returncode in success_retcodes
 		if cls._verbose:
 			if success:
-				print("Successful: %s" % (CmdTools.cmdline(cmd)))
+				print("Successful: %s" % (CmdTools.cmdline(cmd, env)))
 			else:
-				print("Failed: %s" % (CmdTools.cmdline(cmd)))
+				print("Failed: %s" % (CmdTools.cmdline(cmd, env)))
 				print(stdout.decode())
 				print()
 
 		# Execution failed.
 		if (not success) and exception_on_failure:
 			if cls._pause_after_failed_execution:
-				print("Execution failed: %s" % (CmdTools.cmdline(cmd)))
+				print("Execution failed: %s" % (CmdTools.cmdline(cmd, env)))
 				print("Input: %s" % (stdin))
 				print("Return code: %d (expected one of %s)." % (proc.returncode, str(success_retcodes)))
 				print("stdout was:")

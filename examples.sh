@@ -27,6 +27,9 @@ cd output
 # Directly create another certificate with a custom X.509 extension, signed by the intermediate CA, without creating a CSR first
 ../x509sak.py createcsr --create-crt foo_ca -k ecc:secp256r1 --san-dns foobar --san-ip 1.2.3.4 --extension "1.2.3.4.5=DER:00:11:22:33" -s "/CN=moo koo 4" -f client3.key client4.crt
 
+# Directly create another certificate with a template and custom X.509 extension, signed by the intermediate CA, without creating a CSR first
+../x509sak.py createcsr --create-crt foo_ca -k ecc:secp256r1 --template tls-server --san-dns foobar --san-ip 1.2.3.4 --extension "1.2.3.4.5=DER:00:11:22:33" -s "/CN=moo koo 5" -f client3.key client5.crt
+
 # Revoke the last generated certificate
 ../x509sak.py revokecrt -vvv foo_ca client4.crt
 

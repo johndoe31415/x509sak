@@ -27,13 +27,13 @@ class BaseAction(object):
 		self._cmdname = cmdname
 		self._args = args
 
-		logging.root.setLevel(logging.DEBUG)
+		logging.root.setLevel({
+			0:	logging.INFO,
+		}.get(self._args.verbose, logging.DEBUG))
 		formatter = logging.Formatter("{asctime} [{levelname:.1s}]: {name} {message}", style = "{")
 
 		handler = logging.StreamHandler()
-		handler.setLevel({
-			0:	logging.INFO,
-		}.get(self._args.verbose, logging.DEBUG))
+		handler.setLevel(logging.DEBUG)
 		handler.setFormatter(formatter)
 		logging.root.addHandler(handler)
 

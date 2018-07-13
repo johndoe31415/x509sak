@@ -24,6 +24,7 @@ import tempfile
 from x509sak.OpenSSLTools import OpenSSLTools
 from x509sak.CAManager import CAManager
 from x509sak.BaseAction import BaseAction
+from x509sak.PrivateKeyStorage import PrivateKeyStorage, PrivateKeyStorageForm
 
 class ActionCreateCSR(BaseAction):
 	def __init__(self, cmdname, args):
@@ -37,13 +38,14 @@ class ActionCreateCSR(BaseAction):
 		if self._args.keytype is not None:
 			OpenSSLTools.create_private_key(self._args.key_filename, self._args.keytype)
 
-		options = { option.key: option.value for option in self._args.extension }
+		custom_x509_extensions = { custom_x509_extension.key: custom_x509_extension.value for custom_x509_extension in self._args.extension }
+		private_key_storage = PrivateKeyStorage(PrivateKeyStorageForm.PEM_FILE, filename = self._args.key_filename)
 		if self._args.create_crt is None:
 			# Create CSR
-			OpenSSLTools.create_csr(self._args.key_filename, self._args.out_filename, self._args.subject_dn, options = options, subject_alternative_dns_names = self._args.san_dns, subject_alternative_ip_addresses = self._args.san_ip)
+			OpenSSLTools.create_csr(private_key_storage, self._args.out_filename, self._args.subject_dn, custom_x509_extensions = custom_x509_extensions, subject_alternative_dns_names = self._args.san_dns, subject_alternative_ip_addresses = self._args.san_ip)
 		else:
 			# Create certificate
 			with tempfile.NamedTemporaryFile(prefix = "csr_", suffix = ".pem") as csr:
-				OpenSSLTools.create_csr(self._args.key_filename, csr.name, subject_dn = "/CN=Discard")
+				OpenSSLTools.create_csr(private_key_storage, csr.name, subject_dn = "/CN=Discard")
 				ca = CAManager(self._args.create_crt)
-				ca.sign_csr(csr.name, self._args.out_filename, subject_dn = self._args.subject_dn, options = options, validity_days = self._args.validity_days, extension_template = self._args.template, subject_alternative_dns_names = self._args.san_dns, subject_alternative_ip_addresses = self._args.san_ip, signing_hash = self._args.hashfnc)
+				ca.sign_csr(csr.name, self._args.out_filename, subject_dn = self._args.subject_dn, custom_x509_extensions = custom_x509_extensions, validity_days = self._args.validity_days, extension_template = self._args.template, subject_alternative_dns_names = self._args.san_dns, subject_alternative_ip_addresses = self._args.san_ip, signing_hash = self._args.hashfnc)

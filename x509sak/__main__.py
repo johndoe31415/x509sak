@@ -19,7 +19,10 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
+import os
 import sys
+import logging
+import traceback
 from x509sak.actions.ActionBuildChain import ActionBuildChain
 from x509sak.actions.ActionGraphPool import ActionGraphPool
 from x509sak.actions.ActionFindCert import ActionFindCert
@@ -35,6 +38,12 @@ from x509sak.KeySpecification import KeySpecification
 from x509sak.Exceptions import UserErrorException
 from .FriendlyArgumentParser import baseint
 from .MultiCommand import MultiCommand
+from x509sak.SubprocessExecutor import SubprocessExecutor
+
+if "X509SAK_VERBOSE_EXECUTION" in os.environ:
+	SubprocessExecutor.set_verbose()
+if "X509SAK_PAUSE_FAILED_EXECUTION" in os.environ:
+	SubprocessExecutor.pause_after_failed_execution()
 
 def __keyspec(arg):
 	keyspec_arg = KeySpecArgument(arg)
@@ -146,5 +155,8 @@ mc.register("forgecert", "Forge an X.509 certificate", genparser, action = Actio
 try:
 	mc.run(sys.argv[1:])
 except UserErrorException as e:
+	if logging.root.level == logging.DEBUG:
+		traceback.print_exc()
+		print()
 	print("%s: %s" % (e.__class__.__name__, str(e)))
 	sys.exit(1)

@@ -19,10 +19,16 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
+import os
+import collections
 import tempfile
 from x509sak.KeySpecification import Cryptosystem
 from x509sak.SubprocessExecutor import SubprocessExecutor
-from x509sak.Exceptions import InvalidInputException
+from x509sak.Exceptions import InvalidInputException, LazyDeveloperException
+from x509sak.PrivateKeyStorage import PrivateKeyStorageForm
+from x509sak.Tools import PathTools
+from x509sak.WorkDir import WorkDir
+from x509sak.OpenSSLConfig import OpenSSLConfig
 
 class OpenSSLTools(object):
 	@classmethod
@@ -36,50 +42,92 @@ class OpenSSLTools(object):
 		SubprocessExecutor.run(cmd)
 
 	@classmethod
-	def write_extension_file(cls, f, options = None, subject_alternative_dns_names = None, subject_alternative_ip_addresses = None):
-		option_count = 0
-		print("[req]", file = f)
-		print("distinguished_name = default", file = f)
-		print(file = f)
-		print("[default]", file = f)
-		if options is not None:
-			for (key, value) in sorted(options.items()):
-				print("%s = %s" % (key, value), file = f)
-				option_count += 1
-
-		alt_names = [ ]
-		if subject_alternative_dns_names is not None:
-			alt_names += [ "DNS:%s" % (value) for value in sorted(subject_alternative_dns_names) ]
-		if subject_alternative_ip_addresses is not None:
-			alt_names += [ "IP:%s" % (value) for value in sorted(subject_alternative_ip_addresses) ]
-		if len(alt_names) > 0:
-			print("subjectAltName = %s" % (",".join(alt_names)), file = f)
-			option_count += 1
-		f.flush()
-		return option_count
+	def _privkey_option(cls, private_key_storage):
+		if private_key_storage.storage_form == PrivateKeyStorageForm.PEM_FILE:
+			cmd = [ "-key", private_key_storage.full_filename ]
+		elif private_key_storage.storage_form == PrivateKeyStorageForm.DER_FILE:
+			cmd = [ "-key", private_key_storage.full_filename, "-keyform", "der" ]
+		elif private_key_storage.storage_form == PrivateKeyStorageForm.HARDWARE_TOKEN:
+			cmd = [ "-keyform", "engine", "-engine", "pkcs11", "-key", "0:%d" % (private_key_storage.key_id) ]
+		else:
+			raise LazyDeveloperException(NotImplemented, private_key_storage.storage_form)
+		return cmd
 
 	@classmethod
-	def create_selfsigned_certificate(cls, private_key_filename, certificate_filename, subject_dn, validity_days, options = None, subject_alternative_dns_names = None, subject_alternative_ip_addresses = None, signing_hash = None, serial = None):
-		with tempfile.NamedTemporaryFile("w", prefix = "config_", suffix = ".cnf") as f:
-			cls.write_extension_file(f, options = options, subject_alternative_dns_names = subject_alternative_dns_names, subject_alternative_ip_addresses = subject_alternative_ip_addresses)
-			cmd = [ "openssl", "req", "-new", "-x509", "-key", private_key_filename, "-days", str(validity_days), "-subj", subject_dn, "-config", f.name, "-extensions", "default", "-out", certificate_filename ]
+	def __get_config(cls, private_key_storage, custom_x509_extensions = None, subject_alternative_dns_names = None, subject_alternative_ip_addresses = None):
+		openssl_config = OpenSSLConfig()
+		openssl_config.set_private_key_storage(private_key_storage)
+		openssl_config.set_custom_x509_extensions(custom_x509_extensions)
+		openssl_config.set_subject_alternative_dns_names(subject_alternative_dns_names)
+		openssl_config.set_subject_alternative_ip_addresses(subject_alternative_ip_addresses)
+		return openssl_config
+
+	@classmethod
+	def __create_csr_or_selfsigned_certificate(cls, private_key_storage, output_filename, subject_dn, validity_days, custom_x509_extensions = None, subject_alternative_dns_names = None, subject_alternative_ip_addresses = None, signing_hash = None, serial = None):
+		openssl_config = cls.__get_config(private_key_storage = private_key_storage, custom_x509_extensions = custom_x509_extensions, subject_alternative_dns_names = subject_alternative_dns_names, subject_alternative_ip_addresses = subject_alternative_ip_addresses)
+		with tempfile.NamedTemporaryFile("w", prefix = "config_", suffix = ".cnf") as config_file:
+			openssl_config.write_to(config_file.name)
+			cmd = [ "openssl", "req", "-new" ]
+			if validity_days is not None:
+				cmd += [ "-x509", "-days", str(validity_days) ]
 			if signing_hash is not None:
 				cmd += [ "-%s" % (signing_hash) ]
 			if serial is not None:
 				cmd += [ "-set_serial", "%d" % (serial) ]
-			SubprocessExecutor.run(cmd)
+			cmd += cls._privkey_option(private_key_storage)
+			cmd += [  "-subj", subject_dn, "-out", output_filename ]
+			SubprocessExecutor.run(cmd, env = { "OPENSSL_CONF": config_file.name })
 
 	@classmethod
-	def create_csr(cls, private_key_filename, csr_filename, subject_dn, options = None, subject_alternative_dns_names = None, subject_alternative_ip_addresses = None):
-		with tempfile.NamedTemporaryFile("w", prefix = "config_", suffix = ".cnf") as f:
-			option_count = cls.write_extension_file(f, options = options, subject_alternative_dns_names = subject_alternative_dns_names, subject_alternative_ip_addresses = subject_alternative_ip_addresses)
-			if option_count > 0:
-				cmd = [ "openssl", "req", "-new", "-key", private_key_filename, "-subj", subject_dn, "-config", f.name, "-reqexts", "default", "-out", csr_filename ]
-			else:
-				# If no options are present, OpenSSL will otherwise terminate
-				# with "Error Loading extension section default"
-				cmd = [ "openssl", "req", "-new", "-key", private_key_filename, "-subj", subject_dn, "-out", csr_filename ]
-			SubprocessExecutor.run(cmd)
+	def create_selfsigned_certificate(cls, private_key_storage, certificate_filename, subject_dn, validity_days, custom_x509_extensions = None, subject_alternative_dns_names = None, subject_alternative_ip_addresses = None, signing_hash = None, serial = None):
+		return cls.__create_csr_or_selfsigned_certificate(
+				private_key_storage = private_key_storage,
+				output_filename = certificate_filename,
+				subject_dn = subject_dn,
+				validity_days = validity_days,
+				custom_x509_extensions = custom_x509_extensions,
+				subject_alternative_dns_names = subject_alternative_dns_names,
+				subject_alternative_ip_addresses = subject_alternative_ip_addresses,
+				signing_hash = signing_hash,
+				serial = serial,
+		)
+
+	@classmethod
+	def create_csr(cls, private_key_storage, csr_filename, subject_dn, custom_x509_extensions = None, subject_alternative_dns_names = None, subject_alternative_ip_addresses = None):
+		return cls.__create_csr_or_selfsigned_certificate(
+				private_key_storage = private_key_storage,
+				output_filename = csr_filename,
+				subject_dn = subject_dn,
+				validity_days = None,
+				custom_x509_extensions = custom_x509_extensions,
+				subject_alternative_dns_names = subject_alternative_dns_names,
+				subject_alternative_ip_addresses = subject_alternative_ip_addresses,
+		)
+
+	@classmethod
+	def ca_sign_csr(cls, ca_manager, csr_filename, crt_filename, subject_dn, validity_days, custom_x509_extensions = None, subject_alternative_dns_names = None, subject_alternative_ip_addresses = None, signing_hash = None):
+		csr_absfilename = os.path.realpath(csr_filename)
+		crt_absfilename = os.path.realpath(crt_filename)
+		openssl_config = cls.__get_config(private_key_storage = ca_manager.private_key_storage, custom_x509_extensions = custom_x509_extensions, subject_alternative_dns_names = subject_alternative_dns_names, subject_alternative_ip_addresses = subject_alternative_ip_addresses)
+		with WorkDir(ca_manager.capath), tempfile.NamedTemporaryFile("w", prefix = "config_", suffix = ".cnf") as config_file:
+			openssl_config.write_to(config_file.name)
+			cmd = [ "openssl", "ca", "-in", csr_absfilename, "-batch", "-notext", "-out", crt_absfilename ]
+			if subject_dn is not None:
+				cmd += [ "-subj", subject_dn ]
+			if validity_days is not None:
+				cmd += [ "-days", str(validity_days) ]
+			if signing_hash is not None:
+				cmd += [ "-md", signing_hash ]
+			SubprocessExecutor.run(cmd, env = { "OPENSSL_CONF": config_file.name })
+
+	@classmethod
+	def ca_revoke_crt(cls, ca_manager, crt_filename):
+		crt_absfilename = os.path.realpath(crt_filename)
+		openssl_config = cls.__get_config(private_key_storage = ca_manager.private_key_storage)
+		with WorkDir(ca_manager.capath), tempfile.NamedTemporaryFile("w", prefix = "config_", suffix = ".cnf") as config_file:
+			openssl_config.write_to(config_file.name)
+			cmd = [ "openssl", "ca", "-revoke", crt_absfilename ]
+			SubprocessExecutor.run(cmd, env = { "OPENSSL_CONF": config_file.name })
 
 	@classmethod
 	def sign_data(cls, signing_algorithm, private_key_filename, payload):

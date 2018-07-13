@@ -20,11 +20,13 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 import os
+import json
 import tempfile
 from x509sak.SubprocessExecutor import SubprocessExecutor
 from x509sak.OpenSSLTools import OpenSSLTools
 from x509sak.OpenSSLConfig import OpenSSLConfig
 from x509sak.WorkDir import WorkDir
+from x509sak.PrivateKeyStorage import PrivateKeyStorage, PrivateKeyStorageForm
 
 class CAManager(object):
 	_EXTENSION_TEMPLATES = {
@@ -62,12 +64,42 @@ class CAManager(object):
 		if not self._capath.endswith("/"):
 			self._capath += "/"
 
+		if not os.path.isfile(self.metadata_filename):
+			# Create if does not exist for legacy CAs.
+			self._private_key_storage = PrivateKeyStorage(PrivateKeyStorageForm.PEM_FILE, filename = "CA.key")
+			self._save_metadata()
+		else:
+			# Load from metadata
+			self._load_metadata()
+		self._private_key_storage.update("search_path", self._capath)
+
+	@property
+	def capath(self):
+		return self._capath
+
+	def _load_metadata(self):
+		with open(self.metadata_filename) as f:
+			metadata = json.load(f)
+		self._private_key_storage = PrivateKeyStorage.from_dict(metadata["private_key_storage"])
+
+	def _save_metadata(self):
+		metadata = {
+			"version":				1,
+			"private_key_storage":	self._private_key_storage.to_dict(),
+		}
+		with open(self.metadata_filename, "w") as f:
+			json.dump(metadata, f)
+
 	def _file(self, filename):
 		return self._capath + filename
 
 	@property
-	def private_key_filename(self):
-		return self._file("CA.key")
+	def metadata_filename(self):
+		return self._file("metadata.json")
+
+	@property
+	def private_key_storage(self):
+		return self._private_key_storage
 
 	@property
 	def root_crt_filename(self):
@@ -97,18 +129,25 @@ class CAManager(object):
 	def newcerts_dirname(self):
 		return self._file("certs")
 
-	@property
-	def config_filename(self):
-		return self._file("ca.cnf")
-
 	def __create_ca_key(self, keyspec):
-		OpenSSLTools.create_private_key(self.private_key_filename, keyspec)
+		OpenSSLTools.create_private_key(self._file(self.private_key_storage.filename), keyspec)
 
 	def create_selfsigned_ca_cert(self, subject_dn, validity_days, signing_hash, serial):
-		OpenSSLTools.create_selfsigned_certificate(self.private_key_filename, self.root_crt_filename, subject_dn, validity_days, signing_hash = signing_hash, serial = serial, options = self._EXTENSION_TEMPLATES["rootca"])
+		OpenSSLTools.create_selfsigned_certificate(self.private_key_storage, self.root_crt_filename, subject_dn, validity_days, signing_hash = signing_hash, serial = serial, custom_x509_extensions = self._EXTENSION_TEMPLATES["rootca"])
 
 	def create_ca_csr(self, csr_filename, subject_dn):
-		OpenSSLTools.create_csr(self.private_key_filename, csr_filename, subject_dn)
+		OpenSSLTools.create_csr(self.private_key_storage, csr_filename, subject_dn)
+
+	def sign_csr(self, csr_filename, crt_filename, subject_dn, validity_days, extension_template = None, custom_x509_extensions = None, subject_alternative_dns_names = None, subject_alternative_ip_addresses = None, signing_hash = None):
+		extensions = { }
+		if extension_template is not None:
+			extensions.update(self._EXTENSION_TEMPLATES[extension_template])
+		if custom_x509_extensions is not None:
+			extensions.update(custom_x509_extensions)
+		OpenSSLTools.ca_sign_csr(self, csr_filename, crt_filename, subject_dn, validity_days, custom_x509_extensions = extensions, subject_alternative_dns_names = subject_alternative_dns_names, subject_alternative_ip_addresses = subject_alternative_ip_addresses, signing_hash = signing_hash)
+
+	def revoke_crt(self, crt_filename):
+		OpenSSLTools.ca_revoke_crt(self, crt_filename)
 
 	def __create_index_files(self):
 		with open(self.index_filename, "w") as f:
@@ -121,60 +160,12 @@ class CAManager(object):
 			print("01", file = f)
 		os.mkdir(self.newcerts_dirname)
 
-	def __create_config(self, signing_hash):
-		ca_name = "CA_default"
-
-		cfg = OpenSSLConfig()
-		cfg.new_section("ca")
-		cfg.add("default_ca", ca_name)
-
-		cfg.new_section(ca_name)
-		cfg.add("database", "index.txt")
-		cfg.add("new_certs_dir", "certs")
-		cfg.add("certificate", "CA.crt")
-		cfg.add("private_key", "CA.key")
-		cfg.add("serial", "serial")
-		cfg.add("crlnumber", "crlnumber")
-		cfg.add("crl", "CA.crl")
-		cfg.add("default_md", signing_hash)
-		cfg.add("default_days", "365")
-		cfg.add("default_crl_days", "30")
-		cfg.add("policy", "policy_onlyCN")
-
-		cfg.new_section("policy_onlyCN")
-		cfg.add("commonName", "supplied")
-
-		with open(self.config_filename, "w") as f:
-			cfg.write_file(f)
-
 	def create_ca_structure(self, keytype, signing_hash):
-		self.__create_ca_key(keytype)
+		if keytype.explicit:
+			self._private_key_storage = PrivateKeyStorage(PrivateKeyStorageForm.PEM_FILE, filename = "CA.key")
+			self._private_key_storage.update("search_path", self._capath)
+			self.__create_ca_key(keytype)
+		else:
+			self._private_key_storage = PrivateKeyStorage(PrivateKeyStorageForm.HARDWARE_TOKEN, key_id = keytype["key_id"], so_search_path = "/usr/local/lib:/usr/lib:/usr/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu/openssl-1.0.2/engines:/usr/lib/x86_64-linux-gnu/engines-1.1")
+		self._save_metadata()
 		self.__create_index_files()
-		self.__create_config(signing_hash)
-
-	def sign_csr(self, csr_filename, crt_filename, subject_dn = None, validity_days = None, extension_template = None, options = None, subject_alternative_dns_names = None, subject_alternative_ip_addresses = None, signing_hash = None):
-		csr_absfilename = os.path.realpath(csr_filename)
-		crt_absfilename = os.path.realpath(crt_filename)
-		with WorkDir(self._capath), tempfile.NamedTemporaryFile("w", prefix = "ext_", suffix = ".cnf") as extfile:
-			cmd = [ "openssl", "ca", "-config", self.config_filename, "-in", csr_absfilename, "-batch", "-notext", "-out", crt_absfilename ]
-			if subject_dn is not None:
-				cmd += [ "-subj", subject_dn ]
-			if validity_days is not None:
-				cmd += [ "-days", str(validity_days) ]
-			if signing_hash is not None:
-				cmd += [ "-md", signing_hash ]
-			effective_options = { }
-			if extension_template is not None:
-				effective_options.update(self._EXTENSION_TEMPLATES[extension_template])
-			if options is not None:
-				effective_options.update(options)
-			extension_count = OpenSSLTools.write_extension_file(extfile, options = effective_options, subject_alternative_dns_names = subject_alternative_dns_names, subject_alternative_ip_addresses = subject_alternative_ip_addresses)
-			if extension_count > 0:
-				cmd += [ "-extfile", extfile.name ]
-			SubprocessExecutor.run(cmd)
-
-	def revoke_crt(self, crt_filename):
-		crt_absfilename = os.path.realpath(crt_filename)
-		with WorkDir(self._capath):
-			cmd = [ "openssl", "ca", "-config", self.config_filename, "-revoke", crt_absfilename ]
-			SubprocessExecutor.run(cmd)

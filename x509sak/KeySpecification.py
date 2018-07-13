@@ -26,11 +26,13 @@ from x509sak.Exceptions import LazyDeveloperException, UnknownAlgorithmException
 class Cryptosystem(enum.Enum):
 	RSA = "rsaEncryption"
 	ECC = "ecPublicKey"
+	HARDWARE_TOKEN = "hardwareToken"
 
 class KeySpecification(object):
 	_REQUIRED_PARAMETERS = {
-		Cryptosystem.RSA:	set([ "bitlen" ]),
-		Cryptosystem.ECC:	set([ "curve" ]),
+		Cryptosystem.RSA:				set([ "bitlen" ]),
+		Cryptosystem.ECC:				set([ "curve" ]),
+		Cryptosystem.HARDWARE_TOKEN:	set([ "key_id" ]),
 	}
 
 	def __init__(self, cryptosystem, parameters = None):
@@ -49,6 +51,10 @@ class KeySpecification(object):
 			raise InvalidInputException("Keyspec for cryptosystem %s does not understand parameters: %s" % (self._cryptosystem.name, ", ".join(sorted(excess_parameters))))
 
 	@property
+	def explicit(self):
+		return self.cryptosystem != Cryptosystem.HARDWARE_TOKEN
+
+	@property
 	def cryptosystem(self):
 		return self._cryptosystem
 
@@ -58,6 +64,8 @@ class KeySpecification(object):
 			return cls(cryptosystem = Cryptosystem.RSA, parameters = { "bitlen": keyspec_arg.bitlen })
 		elif keyspec_arg.cryptosystem == keyspec_arg.KeySpecification.ECC:
 			return cls(cryptosystem = Cryptosystem.ECC, parameters = { "curve": keyspec_arg.curve })
+		elif keyspec_arg.cryptosystem == keyspec_arg.KeySpecification.HARDWARE_TOKEN:
+			return cls(cryptosystem = Cryptosystem.HARDWARE_TOKEN, parameters = { "key_id": keyspec_arg.key_id })
 		else:
 			raise LazyDeveloperException(NotImplemented, keyspec_arg)
 
@@ -69,6 +77,8 @@ class KeySpecification(object):
 			return "RSA-%d" % (self["bitlen"])
 		elif self._cryptosystem == Cryptosystem.ECC:
 			return "ECC-%s" % (self["curve"])
+		elif self._cryptosystem == Cryptosystem.HARDWARE_TOKEN:
+			return "HW-%d" % (self["key_id"])
 		return "%s-%s" % (self._cryptosystem, str(self._parameters))
 
 class SignatureAlgorithm(object):
