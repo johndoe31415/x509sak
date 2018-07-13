@@ -137,4 +137,3 @@ if __name__ == "__main__":
 	mc.register("export", "Export some file to somewhere", genparser, action = ExportAction)
 
 	mc.run(sys.argv[1:])
-

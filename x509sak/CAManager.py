@@ -21,11 +21,7 @@
 
 import os
 import json
-import tempfile
-from x509sak.SubprocessExecutor import SubprocessExecutor
 from x509sak.OpenSSLTools import OpenSSLTools
-from x509sak.OpenSSLConfig import OpenSSLConfig
-from x509sak.WorkDir import WorkDir
 from x509sak.PrivateKeyStorage import PrivateKeyStorage, PrivateKeyStorageForm
 
 class CAManager(object):
@@ -160,7 +156,7 @@ class CAManager(object):
 			print("01", file = f)
 		os.mkdir(self.newcerts_dirname)
 
-	def create_ca_structure(self, keytype, signing_hash):
+	def create_ca_structure(self, keytype):
 		if keytype.explicit:
 			self._private_key_storage = PrivateKeyStorage(PrivateKeyStorageForm.PEM_FILE, filename = "CA.key")
 			self._private_key_storage.update("search_path", self._capath)

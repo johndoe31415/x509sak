@@ -98,6 +98,7 @@ class ASN1Tools(object):
 		if result is not None:
 			result = { key: int(value) for (key, value) in result.groupdict().items() }
 			return datetime.datetime(result["year"], result["month"], result["day"], result["hour"], result["minute"], result["second"])
+		return None
 
 	@classmethod
 	def bitstring2bytes(cls, bitstr):

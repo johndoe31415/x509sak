@@ -23,7 +23,6 @@ import os
 import tempfile
 import shutil
 from x509sak import CAManager
-from x509sak.OpenSSLTools import OpenSSLTools
 from x509sak.BaseAction import BaseAction
 
 class ActionCreateCA(BaseAction):
@@ -49,7 +48,7 @@ class ActionCreateCA(BaseAction):
 		os.chmod(self._args.capath, 0o700)
 
 		camgr = CAManager(self._args.capath)
-		camgr.create_ca_structure(keytype = self._args.keytype, signing_hash = self._args.hashfnc)
+		camgr.create_ca_structure(keytype = self._args.keytype)
 		if self._args.parent_ca is None:
 			# Self-signed root CA
 			camgr.create_selfsigned_ca_cert(subject_dn = self._args.subject_dn, validity_days = self._args.validity_days, signing_hash = self._args.hashfnc, serial = self._args.serial)

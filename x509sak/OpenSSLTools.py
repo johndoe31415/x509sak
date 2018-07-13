@@ -20,13 +20,11 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 import os
-import collections
 import tempfile
 from x509sak.KeySpecification import Cryptosystem
 from x509sak.SubprocessExecutor import SubprocessExecutor
 from x509sak.Exceptions import InvalidInputException, LazyDeveloperException
 from x509sak.PrivateKeyStorage import PrivateKeyStorageForm
-from x509sak.Tools import PathTools
 from x509sak.WorkDir import WorkDir
 from x509sak.OpenSSLConfig import OpenSSLConfig
 
