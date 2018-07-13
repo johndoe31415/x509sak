@@ -42,13 +42,13 @@ class OpenSSLTools(object):
 		SubprocessExecutor.run(cmd)
 
 	@classmethod
-	def _privkey_option(cls, private_key_storage):
+	def _privkey_option(cls, private_key_storage, key_option = "key"):
 		if private_key_storage.storage_form == PrivateKeyStorageForm.PEM_FILE:
-			cmd = [ "-key", private_key_storage.full_filename ]
+			cmd = [ "-%s" % (key_option), private_key_storage.full_filename ]
 		elif private_key_storage.storage_form == PrivateKeyStorageForm.DER_FILE:
-			cmd = [ "-key", private_key_storage.full_filename, "-keyform", "der" ]
+			cmd = [ "-%s" % (key_option), private_key_storage.full_filename, "-keyform", "der" ]
 		elif private_key_storage.storage_form == PrivateKeyStorageForm.HARDWARE_TOKEN:
-			cmd = [ "-keyform", "engine", "-engine", "pkcs11", "-key", "0:%d" % (private_key_storage.key_id) ]
+			cmd = [ "-%s" % (key_option), "0:%d" % (private_key_storage.key_id), "-keyform", "engine", "-engine", "pkcs11" ]
 		else:
 			raise LazyDeveloperException(NotImplemented, private_key_storage.storage_form)
 		return cmd
@@ -112,6 +112,7 @@ class OpenSSLTools(object):
 		with WorkDir(ca_manager.capath), tempfile.NamedTemporaryFile("w", prefix = "config_", suffix = ".cnf") as config_file:
 			openssl_config.write_to(config_file.name)
 			cmd = [ "openssl", "ca", "-in", csr_absfilename, "-batch", "-notext", "-out", crt_absfilename ]
+			cmd += cls._privkey_option(ca_manager.private_key_storage, key_option = "keyfile")
 			if subject_dn is not None:
 				cmd += [ "-subj", subject_dn ]
 			if validity_days is not None:
