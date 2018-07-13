@@ -35,6 +35,8 @@ class OpenSSLTools(object):
 			cmd = [ "openssl", "genrsa", "-out", private_key_filename, str(keyspec["bitlen"]) ]
 		elif keyspec.cryptosystem == Cryptosystem.ECC:
 			cmd = [ "openssl", "ecparam", "-genkey", "-out", private_key_filename, "-name", keyspec["curve"] ]
+		elif keyspec.cryptosystem == Cryptosystem.HARDWARE_TOKEN:
+			raise InvalidInputException("x509sak cannot generate private keys on a hardware token; please do this with a different tool and use x509sak to then use the created key.")
 		else:
 			raise Exception(NotImplemented, keyspec.cryptosystem)
 		SubprocessExecutor.run(cmd)

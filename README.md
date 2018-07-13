@@ -188,7 +188,13 @@ positional arguments:
 optional arguments:
   -k keyspec, --keytype keyspec
                         Private key type to generate for the new CA. Defaults
-                        to ecc:secp384r1.
+                        to ecc:secp384r1. Keyspecs have the form
+                        cryptosystem:args, where cryptosystem can be any of
+                        rsa, ecc or hw and the args depend on the
+                        cryptosystem; for RSA, it's the bitlength, for ECC,
+                        it's the curve name and for HW it's the key ID of the
+                        hardware token key. Examples are rsa:1024,
+                        ecc:secp256r1 or hw:1.
   -p capath, --parent-ca capath
                         Parent CA directory. If omitted, CA certificate will
                         be self-signed.
@@ -241,7 +247,13 @@ optional arguments:
   -k keyspec, --keytype keyspec
                         Private key type to generate for the certificate or
                         CSR. By default, it is assumed the private key has
-                        created beforehand.
+                        created beforehand. Keyspecs have the form
+                        cryptosystem:args, where cryptosystem can be any of
+                        rsa, ecc or hw and the args depend on the
+                        cryptosystem; for RSA, it's the bitlength, for ECC,
+                        it's the curve name and for HW it's the key ID of the
+                        hardware token key. Examples are rsa:1024,
+                        ecc:secp256r1 or hw:1.
   -t {rootca,ca,tls-server,tls-client}, --template {rootca,ca,tls-server,tls-client}
                         Template to use for determining X.509 certificate
                         extensions. Can be one of rootca, ca, tls-server, tls-
@@ -354,8 +366,8 @@ cryptographic applications. They are *not secure*.
 [//]: # (Begin of cmd-genbrokenrsa -- auto-generated, do not edit!)
 ```
 usage: ./x509sak.py genbrokenrsa [-d path] [-b bits] [-e exp] [--switch-e-d]
-                                 [--accept-unusable-key] [-o file] [-f] [-v]
-                                 [--help]
+                                 [--accept-unusable-key] [--close-q] [-o file]
+                                 [-f] [-v] [--help]
 
 Generate broken RSA keys for use in pentetration testing
 
@@ -378,6 +390,9 @@ optional arguments:
                         Disregard integral checks, such as if gcd(e, phi(n))
                         == 1 before inverting e. Might lead to an unusable key
                         or might fail altogether.
+  --close-q             Use a value for q that is very close to the value of p
+                        so that search starting from sqrt(n) is
+                        computationally feasible to factor the modulus.
   -o file, --outfile file
                         Output filename. Defaults to broken_rsa.key.
   -f, --force           Overwrite output file if it already exists instead of

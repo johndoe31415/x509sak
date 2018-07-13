@@ -77,7 +77,7 @@ def genparser(parser):
 mc.register("findcrt", "Find a specific certificate", genparser, action = ActionFindCert)
 
 def genparser(parser):
-	parser.add_argument("-k", "--keytype", metavar = "keyspec", type = __keyspec, default = "ecc:secp384r1", help = "Private key type to generate for the new CA. Defaults to %(default)s.")
+	parser.add_argument("-k", "--keytype", metavar = "keyspec", type = __keyspec, default = "ecc:secp384r1", help = "Private key type to generate for the new CA. Defaults to %(default)s. Keyspecs have the form cryptosystem:args, where cryptosystem can be any of rsa, ecc or hw and the args depend on the cryptosystem; for RSA, it's the bitlength, for ECC, it's the curve name and for HW it's the key ID of the hardware token key. Examples are rsa:1024, ecc:secp256r1 or hw:1.")
 	parser.add_argument("-p", "--parent-ca", metavar = "capath", type = str, help = "Parent CA directory. If omitted, CA certificate will be self-signed.")
 	parser.add_argument("-s", "--subject-dn", metavar = "subject", type = str, default = "/CN=Root CA", help = "CA subject distinguished name. Defaults to %(default)s.")
 	parser.add_argument("-d", "--validity-days", metavar = "days", type = int, default = 365, help = "Number of days that the newly created CA will be valid for. Defaults to %(default)s days.")
@@ -89,7 +89,7 @@ def genparser(parser):
 mc.register("createca", "Create a new certificate authority (CA)", genparser, action = ActionCreateCA)
 
 def genparser(parser):
-	parser.add_argument("-k", "--keytype", metavar = "keyspec", type = __keyspec, help = "Private key type to generate for the certificate or CSR. By default, it is assumed the private key has created beforehand.")
+	parser.add_argument("-k", "--keytype", metavar = "keyspec", type = __keyspec, help = "Private key type to generate for the certificate or CSR. By default, it is assumed the private key has created beforehand. Keyspecs have the form cryptosystem:args, where cryptosystem can be any of rsa, ecc or hw and the args depend on the cryptosystem; for RSA, it's the bitlength, for ECC, it's the curve name and for HW it's the key ID of the hardware token key. Examples are rsa:1024, ecc:secp256r1 or hw:1.")
 	parser.add_argument("-t", "--template", choices = [ "rootca", "ca", "tls-server", "tls-client" ], help = "Template to use for determining X.509 certificate extensions. Can be one of %(choices)s. By default, no extensions are included except for SAN.")
 	parser.add_argument("-s", "--subject-dn", metavar = "subject", type = str, default = "/CN=New Cert", help = "Certificate/CSR subject distinguished name. Defaults to %(default)s.")
 	parser.add_argument("-d", "--validity-days", metavar = "days", type = int, default = 365, help = "When creating a certificate, number of days that the certificate will be valid for. Defaults to %(default)s days.")
