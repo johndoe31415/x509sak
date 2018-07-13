@@ -24,7 +24,6 @@ from x509sak.Tools import PathTools
 
 class OpenSSLConfig(object):
 	def __init__(self):
-		self._so_search_path = "/usr/local/lib:/usr/lib:/usr/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu/openssl-1.0.2/engines:/usr/lib/x86_64-linux-gnu/engines-1.1"
 		self._engine_dynamic_path = None
 		self._engine_module_path = None
 		self._custom_x509_extensions = { }
@@ -49,8 +48,8 @@ class OpenSSLConfig(object):
 
 	def set_private_key_storage(self, private_key_storage):
 		if private_key_storage.storage_form == PrivateKeyStorageForm.HARDWARE_TOKEN:
-			self._engine_dynamic_path = PathTools.find(so_search_path, "libpkcs11.so")
-			self._engine_module_path = PathTools.find(so_search_path, "opensc-pkcs11.so")
+			self._engine_dynamic_path = PathTools.find(private_key_storage.so_search_path, "libpkcs11.so")
+			self._engine_module_path = PathTools.find(private_key_storage.so_search_path, "opensc-pkcs11.so")
 
 	def set_custom_x509_extensions(self, custom_x509_extensions):
 		if custom_x509_extensions is None:
