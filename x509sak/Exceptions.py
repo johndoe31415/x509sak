@@ -21,12 +21,17 @@
 
 class X509SAKException(Exception): pass
 
+# InvisibleUserException by default is not shown to the user. By default, the
+# command line isn't very helpful, even though it might be the fault of the
+# user.
+class InvisibleUserErrorException(X509SAKException): pass
 class UserErrorException(X509SAKException): pass
 class ProgrammerErrorException(X509SAKException): pass
 
 class InvalidInputException(UserErrorException): pass
 class UnknownFormatException(UserErrorException): pass
-class CmdExecutionFailedException(UserErrorException): pass
+
+class CmdExecutionFailedException(InvisibleUserErrorException): pass
 
 class LazyDeveloperException(ProgrammerErrorException): pass
 class UnknownAlgorithmException(ProgrammerErrorException): pass

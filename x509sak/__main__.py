@@ -35,7 +35,7 @@ from x509sak.actions.ActionDumpKey import ActionDumpKey
 from x509sak.actions.ActionForgeCert import ActionForgeCert
 from x509sak.CmdLineArgs import KeySpecArgument, KeyValue
 from x509sak.KeySpecification import KeySpecification
-from x509sak.Exceptions import UserErrorException
+from x509sak.Exceptions import UserErrorException, InvisibleUserErrorException
 from .FriendlyArgumentParser import baseint
 from .MultiCommand import MultiCommand
 from x509sak.SubprocessExecutor import SubprocessExecutor
@@ -154,9 +154,10 @@ mc.register("forgecert", "Forge an X.509 certificate", genparser, action = Actio
 
 try:
 	mc.run(sys.argv[1:])
-except UserErrorException as e:
+except (UserErrorException, InvisibleUserErrorException) as e:
 	if logging.root.level == logging.DEBUG:
 		traceback.print_exc()
 		print()
-	print("%s: %s" % (e.__class__.__name__, str(e)))
+	if isinstance(e, UserErrorException) or (logging.root.level == logging.DEBUG):
+		print("%s: %s" % (e.__class__.__name__, str(e)))
 	sys.exit(1)

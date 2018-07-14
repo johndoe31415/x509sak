@@ -73,7 +73,7 @@ class SubprocessExecutor(object):
 						print("stderr was:")
 						print(stderr.decode())
 					input("Hit ENTER to continue...")
-				raise CmdExcecutionFailedException("Execution of command failed: %s" % (cmd_str))
+				raise CmdExecutionFailedException("Execution of command failed: %s" % (cmd_str))
 
 		if return_stdout:
 			return (success, stdout)

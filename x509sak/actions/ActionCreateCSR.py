@@ -25,6 +25,7 @@ from x509sak.OpenSSLTools import OpenSSLTools
 from x509sak.CAManager import CAManager
 from x509sak.BaseAction import BaseAction
 from x509sak.PrivateKeyStorage import PrivateKeyStorage, PrivateKeyStorageForm
+from x509sak.Exceptions import CmdExecutionFailedException
 
 class ActionCreateCSR(BaseAction):
 	def __init__(self, cmdname, args):
@@ -48,4 +49,8 @@ class ActionCreateCSR(BaseAction):
 			with tempfile.NamedTemporaryFile(prefix = "csr_", suffix = ".pem") as csr:
 				OpenSSLTools.create_csr(private_key_storage, csr.name, subject_dn = "/CN=Discard")
 				ca = CAManager(self._args.create_crt)
-				ca.sign_csr(csr.name, self._args.out_filename, subject_dn = self._args.subject_dn, custom_x509_extensions = custom_x509_extensions, validity_days = self._args.validity_days, extension_template = self._args.template, subject_alternative_dns_names = self._args.san_dns, subject_alternative_ip_addresses = self._args.san_ip, signing_hash = self._args.hashfnc)
+				try:
+					ca.sign_csr(csr.name, self._args.out_filename, subject_dn = self._args.subject_dn, custom_x509_extensions = custom_x509_extensions, validity_days = self._args.validity_days, extension_template = self._args.template, subject_alternative_dns_names = self._args.san_dns, subject_alternative_ip_addresses = self._args.san_ip, signing_hash = self._args.hashfnc)
+				except CmdExecutionFailedException:
+					self._log.error("Error creating certificate; is the common name you requested maybe already in use in the CA's database?")
+					raise
