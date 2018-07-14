@@ -25,22 +25,24 @@ from x509sak.OpenSSLTools import OpenSSLTools
 from x509sak.CAManager import CAManager
 from x509sak.BaseAction import BaseAction
 from x509sak.PrivateKeyStorage import PrivateKeyStorage, PrivateKeyStorageForm
-from x509sak.Exceptions import CmdExecutionFailedException
+from x509sak.Exceptions import CmdExecutionFailedException, UnfulfilledPrerequisitesException
+from x509sak.KeySpecification import KeySpecification
+from x509sak.CmdLineArgs import KeySpecArgument
 
 class ActionCreateCSR(BaseAction):
 	def __init__(self, cmdname, args):
 		BaseAction.__init__(self, cmdname, args)
-
 		if os.path.exists(self._args.out_filename) and (not self._args.force):
-			raise Exception("File/directory %s already exists. Remove it first or use --force." % (self._args.out_filename))
-		if os.path.exists(self._args.key_filename) and (self._args.keytype is not None) and (not self._args.force):
-			raise Exception("File/directory %s already exists. Remove it first or use --force." % (self._args.key_filename))
+			raise UnfulfilledPrerequisitesException("File/directory %s already exists. Remove it first or use --force." % (self._args.out_filename))
+		if (self._args.gen_keyspec is not None) and (self._args.keytype == "hw"):
+			raise InvalidInputException("x509sak cannot generate private keys on a hardware token; please do this with a different tool and use x509sak to then use the created key.")
 
-		if self._args.keytype is not None:
-			OpenSSLTools.create_private_key(self._args.key_filename, self._args.keytype)
+		private_key_storage = PrivateKeyStorage.from_str(self._args.keytype, self._args.key_filename)
+		gen_keyspec = self._args.gen_keyspec or KeySpecification.from_keyspec_argument(KeySpecArgument("ecc:secp384r1"))
+		if (private_key_storage.is_file_based) and (not os.path.exists(private_key_storage.filename)):
+			OpenSSLTools.create_private_key(private_key_storage, gen_keyspec)
 
 		custom_x509_extensions = { custom_x509_extension.key: custom_x509_extension.value for custom_x509_extension in self._args.extension }
-		private_key_storage = PrivateKeyStorage(PrivateKeyStorageForm.PEM_FILE, filename = self._args.key_filename)
 		if self._args.create_crt is None:
 			# Create CSR
 			OpenSSLTools.create_csr(private_key_storage, self._args.out_filename, self._args.subject_dn, custom_x509_extensions = custom_x509_extensions, subject_alternative_dns_names = self._args.san_dns, subject_alternative_ip_addresses = self._args.san_ip)

@@ -47,7 +47,7 @@ class OpenSSLToolsTests(unittest.TestCase):
 
 		for (input_data, output_data) in input_output_data:
 			with tempfile.NamedTemporaryFile(prefix = "privkey_", suffix = ".pem") as f:
-				OpenSSLTools.create_private_key(private_key_filename = f.name, keyspec = KeySpecification(cryptosystem = Cryptosystem.RSA, parameters = input_data))
+				OpenSSLTools.create_private_key(PrivateKeyStorage(storage_form = PrivateKeyStorageForm.PEM_FILE, filename = f.name), keyspec = KeySpecification(cryptosystem = Cryptosystem.RSA, parameters = input_data))
 				content = self._read_file(f.name)
 				self.assertIn(b"BEGIN RSA PRIVATE KEY", content)
 				self.assertIn(b"END RSA PRIVATE KEY", content)
@@ -68,10 +68,10 @@ class OpenSSLToolsTests(unittest.TestCase):
 
 		for (input_data, output_data) in input_output_data:
 			with tempfile.NamedTemporaryFile(prefix = "privkey_", suffix = ".pem") as f:
-				OpenSSLTools.create_private_key(private_key_filename = f.name, keyspec = KeySpecification(cryptosystem = Cryptosystem.ECC, parameters = input_data))
+				OpenSSLTools.create_private_key(PrivateKeyStorage(storage_form = PrivateKeyStorageForm.PEM_FILE, filename = f.name), keyspec = KeySpecification(cryptosystem = Cryptosystem.ECC, parameters = input_data))
 				content = self._read_file(f.name)
-				self.assertIn(b"BEGIN EC PARAMETERS", content)
-				self.assertIn(b"END EC PARAMETERS", content)
+				self.assertNotIn(b"BEGIN EC PARAMETERS", content)
+				self.assertNotIn(b"END EC PARAMETERS", content)
 				self.assertIn(b"BEGIN EC PRIVATE KEY", content)
 				self.assertIn(b"END EC PRIVATE KEY", content)
 				(success, output) = SubprocessExecutor.run([ "openssl", "ec", "-text" ], stdin = content, return_stdout = True)
@@ -80,7 +80,7 @@ class OpenSSLToolsTests(unittest.TestCase):
 
 	def test_gen_csr(self):
 		with tempfile.NamedTemporaryFile(prefix = "privkey_", suffix = ".pem") as privkey_file, tempfile.NamedTemporaryFile(prefix = "csr_", suffix = ".pem") as csr_file:
-			OpenSSLTools.create_private_key(private_key_filename = privkey_file.name, keyspec = KeySpecification(cryptosystem = Cryptosystem.ECC, parameters = { "curve": "secp256r1" }))
+			OpenSSLTools.create_private_key(PrivateKeyStorage(storage_form = PrivateKeyStorageForm.PEM_FILE, filename = privkey_file.name), keyspec = KeySpecification(cryptosystem = Cryptosystem.ECC, parameters = { "curve": "secp256r1" }))
 			private_key_storage = PrivateKeyStorage(storage_form = PrivateKeyStorageForm.PEM_FILE, filename = privkey_file.name)
 
 			OpenSSLTools.create_csr(private_key_storage = private_key_storage, csr_filename = csr_file.name, subject_dn = "/CN=Foobar")
@@ -138,7 +138,7 @@ class OpenSSLToolsTests(unittest.TestCase):
 
 	def test_gen_selfsigned_cert(self):
 		with tempfile.NamedTemporaryFile(prefix = "privkey_", suffix = ".pem") as privkey_file, tempfile.NamedTemporaryFile(prefix = "crt_", suffix = ".pem") as certificate_file:
-			OpenSSLTools.create_private_key(private_key_filename = privkey_file.name, keyspec = KeySpecification(cryptosystem = Cryptosystem.ECC, parameters = { "curve": "secp256r1" }))
+			OpenSSLTools.create_private_key(PrivateKeyStorage(storage_form = PrivateKeyStorageForm.PEM_FILE, filename = privkey_file.name), keyspec = KeySpecification(cryptosystem = Cryptosystem.ECC, parameters = { "curve": "secp256r1" }))
 			private_key_storage = PrivateKeyStorage(storage_form = PrivateKeyStorageForm.PEM_FILE, filename = privkey_file.name)
 
 			OpenSSLTools.create_selfsigned_certificate(private_key_storage = private_key_storage, certificate_filename = certificate_file.name, subject_dn = "/CN=Foobar", validity_days = 365)

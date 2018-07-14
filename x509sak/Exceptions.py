@@ -28,6 +28,7 @@ class InvisibleUserErrorException(X509SAKException): pass
 class UserErrorException(X509SAKException): pass
 class ProgrammerErrorException(X509SAKException): pass
 
+class UnfulfilledPrerequisitesException(UserErrorException): pass
 class InvalidInputException(UserErrorException): pass
 class UnknownFormatException(UserErrorException): pass
 

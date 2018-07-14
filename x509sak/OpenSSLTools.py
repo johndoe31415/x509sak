@@ -30,16 +30,36 @@ from x509sak.OpenSSLConfig import OpenSSLConfig
 
 class OpenSSLTools(object):
 	@classmethod
-	def create_private_key(cls, private_key_filename, keyspec):
+	def __create_pem_private_key(cls, private_key_filename, keyspec):
 		if keyspec.cryptosystem == Cryptosystem.RSA:
 			cmd = [ "openssl", "genrsa", "-out", private_key_filename, str(keyspec["bitlen"]) ]
 		elif keyspec.cryptosystem == Cryptosystem.ECC:
 			cmd = [ "openssl", "ecparam", "-genkey", "-out", private_key_filename, "-name", keyspec["curve"] ]
-		elif keyspec.cryptosystem == Cryptosystem.HARDWARE_TOKEN:
-			raise InvalidInputException("x509sak cannot generate private keys on a hardware token; please do this with a different tool and use x509sak to then use the created key.")
 		else:
-			raise Exception(NotImplemented, keyspec.cryptosystem)
+			raise LazyDeveloperException(NotImplemented, keyspec.cryptosystem)
 		SubprocessExecutor.run(cmd)
+
+	@classmethod
+	def create_private_key(cls, private_key_storage, keyspec):
+		with tempfile.NamedTemporaryFile(prefix = "privkey_", suffix = ".pem") as pem_file:
+			cls.__create_pem_private_key(pem_file.name, keyspec)
+
+			# Then convert to the desired result format in a second step
+			cmd = [ "openssl" ]
+			if keyspec.cryptosystem == Cryptosystem.RSA:
+				cmd += [ "rsa" ]
+			elif keyspec.cryptosystem == Cryptosystem.ECC:
+				cmd += [ "ec" ]
+			else:
+				raise LazyDeveloperException(NotImplemented, keyspec.cryptosystem)
+			if private_key_storage.storage_form == PrivateKeyStorageForm.PEM_FILE:
+				cmd += [ "-outform", "pem" ]
+			elif private_key_storage.storage_form == PrivateKeyStorageForm.DER_FILE:
+				cmd += [ "-outform", "der" ]
+			else:
+				raise LazyDeveloperException(NotImplemented, private_key_storage.storage_form)
+			cmd += [ "-in", pem_file.name, "-out", private_key_storage.full_filename ]
+			SubprocessExecutor.run(cmd)
 
 	@classmethod
 	def _privkey_option(cls, private_key_storage, key_option = "key"):

@@ -21,6 +21,7 @@
 
 import enum
 from x509sak.KwargsChecker import KwargsChecker
+from x509sak.Exceptions import LazyDeveloperException
 
 class PrivateKeyStorageForm(enum.IntEnum):
 	PEM_FILE = 1
@@ -29,8 +30,8 @@ class PrivateKeyStorageForm(enum.IntEnum):
 
 class PrivateKeyStorage(object):
 	_PARAMETER_CONSTRAINTS = {
-		PrivateKeyStorageForm.PEM_FILE:			KwargsChecker(required_arguments = set([ "filename" ])),
-		PrivateKeyStorageForm.DER_FILE:			KwargsChecker(required_arguments = set([ "filename" ])),
+		PrivateKeyStorageForm.PEM_FILE:			KwargsChecker(required_arguments = set([ "filename" ]), optional_arguments = set([ "search_path" ])),
+		PrivateKeyStorageForm.DER_FILE:			KwargsChecker(required_arguments = set([ "filename" ]), optional_arguments = set([ "search_path" ])),
 		PrivateKeyStorageForm.HARDWARE_TOKEN:	KwargsChecker(required_arguments = set([ "key_id", "so_search_path" ])),
 	}
 
@@ -39,15 +40,16 @@ class PrivateKeyStorage(object):
 		self._storage_form = storage_form
 		self._PARAMETER_CONSTRAINTS[storage_form].check(kwargs, hint = "PrivateKeyStorage using %s" % (storage_form.name))
 		self._parameters = kwargs
-		self._parameters["search_path"] = ""
-
-	def update(self, field, value):
-		assert(field == "search_path")
-		self._parameters[field] = value
+		if "search_path" not in self._parameters:
+			self._parameters["search_path"] = ""
 
 	@property
 	def storage_form(self):
 		return self._storage_form
+
+	@property
+	def is_file_based(self):
+		return self.storage_form in [ PrivateKeyStorageForm.PEM_FILE, PrivateKeyStorageForm.DER_FILE ]
 
 	@property
 	def filename(self):
@@ -76,9 +78,22 @@ class PrivateKeyStorage(object):
 		}
 
 	@classmethod
-	def from_dict(cls, serialized_dict):
+	def from_dict(cls, serialized_dict, **kwargs):
 		storage_form = getattr(PrivateKeyStorageForm, serialized_dict["storage_form"])
-		return cls(storage_form = storage_form, **serialized_dict["parameters"])
+		parameters = serialized_dict["parameters"]
+		parameters.update(kwargs)
+		return cls(storage_form = storage_form, **parameters)
+
+	@classmethod
+	def from_str(cls, key_type, key_value):
+		if key_type == "pem":
+			return cls(PrivateKeyStorageForm.PEM_FILE, filename = key_value)
+		elif key_type == "der":
+			return cls(PrivateKeyStorageForm.DER_FILE, filename = key_value)
+		elif key_type == "hw":
+			return cls(PrivateKeyStorageForm.HARDWARE_TOKEN, pkcs11uri = key_value)
+		else:
+			raise LazyDeveloperException(NotImplemented, key_type)
 
 	def __str__(self):
 		if self.storage_form in [ PrivateKeyStorageForm.PEM_FILE, PrivateKeyStorageForm.DER_FILE ]:

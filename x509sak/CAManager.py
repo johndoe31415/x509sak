@@ -62,21 +62,20 @@ class CAManager(object):
 
 		if not os.path.isfile(self.metadata_filename):
 			# Create if does not exist for legacy CAs.
-			self._private_key_storage = PrivateKeyStorage(PrivateKeyStorageForm.PEM_FILE, filename = "CA.key")
+			self._private_key_storage = PrivateKeyStorage(PrivateKeyStorageForm.PEM_FILE, filename = "CA.key", search_path = self._capath)
 			self._save_metadata()
 		else:
 			# Load from metadata
-			self._load_metadata()
-		self._private_key_storage.update("search_path", self._capath)
+			self._load_metadata(search_path = self._capath)
 
 	@property
 	def capath(self):
 		return self._capath
 
-	def _load_metadata(self):
+	def _load_metadata(self, **kwargs):
 		with open(self.metadata_filename) as f:
 			metadata = json.load(f)
-		self._private_key_storage = PrivateKeyStorage.from_dict(metadata["private_key_storage"])
+		self._private_key_storage = PrivateKeyStorage.from_dict(metadata["private_key_storage"], **kwargs)
 
 	def _save_metadata(self):
 		metadata = {
@@ -156,12 +155,7 @@ class CAManager(object):
 			print("01", file = f)
 		os.mkdir(self.newcerts_dirname)
 
-	def create_ca_structure(self, keytype):
-		if keytype.explicit:
-			self._private_key_storage = PrivateKeyStorage(PrivateKeyStorageForm.PEM_FILE, filename = "CA.key")
-			self._private_key_storage.update("search_path", self._capath)
-			self.__create_ca_key(keytype)
-		else:
-			self._private_key_storage = PrivateKeyStorage(PrivateKeyStorageForm.HARDWARE_TOKEN, key_id = keytype["key_id"], so_search_path = "/usr/local/lib:/usr/lib:/usr/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu/openssl-1.0.2/engines:/usr/lib/x86_64-linux-gnu/engines-1.1")
+	def create_ca_structure(self, private_key_storage):
+		self._private_key_storage = private_key_storage
 		self._save_metadata()
 		self.__create_index_files()

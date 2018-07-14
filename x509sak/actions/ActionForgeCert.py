@@ -27,6 +27,7 @@ from x509sak import X509Certificate
 from x509sak.Tools import ASN1Tools
 from x509sak.PublicKey import PublicKey
 from x509sak.Exceptions import InvalidInputException
+from x509sak.PrivateKeyStorage import PrivateKeyStorage, PrivateKeyStorageForm
 from x509sak.OID import OIDDB
 from x509sak.X509Extensions import X509SubjectKeyIdentifierExtension, X509AuthorityKeyIdentifierExtension
 
@@ -53,7 +54,7 @@ class ActionForgeCert(BaseAction):
 		crt_filename = self._args.cert_template % (cert_subject_id)
 
 		if (not os.path.isfile(key_filename)) or self._args.force:
-			OpenSSLTools.create_private_key(key_filename, subject.pubkey.keyspec)
+			OpenSSLTools.create_private_key(PrivateKeyStorage(storage_form = PrivateKeyStorageForm.PEM_FILE, filename = key_filename), subject.pubkey.keyspec)
 
 		# Read new private key and convert to public key
 		with tempfile.NamedTemporaryFile(prefix = "pubkey_", suffix = ".pem") as pubkey_file:

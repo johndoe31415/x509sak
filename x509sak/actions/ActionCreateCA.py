@@ -24,6 +24,10 @@ import tempfile
 import shutil
 from x509sak import CAManager
 from x509sak.BaseAction import BaseAction
+from x509sak.PrivateKeyStorage import PrivateKeyStorage, PrivateKeyStorageForm
+from x509sak.KeySpecification import KeySpecification
+from x509sak.CmdLineArgs import KeySpecArgument
+from x509sak.OpenSSLTools import OpenSSLTools
 
 class ActionCreateCA(BaseAction):
 	def __init__(self, cmdname, args):
@@ -47,8 +51,24 @@ class ActionCreateCA(BaseAction):
 			pass
 		os.chmod(self._args.capath, 0o700)
 
+
 		camgr = CAManager(self._args.capath)
-		camgr.create_ca_structure(keytype = self._args.keytype)
+
+		if (self._args.gen_keyspec is not None) or ((self._args.gen_keyspec is None) and (self._args.hardware_key is None)):
+			# We need to generate a key.
+			if self._args.gen_keyspec is not None:
+				keyspec = self._args.gen_keyspec
+			else:
+				# Cannot default to this in argparse because it's part of a
+				# mutually exclusive group with hardware_key
+				keyspec = KeySpecification.from_keyspec_argument(KeySpecArgument("ecc:secp384r1"))
+			private_key_storage = PrivateKeyStorage(PrivateKeyStorageForm.PEM_FILE, filename = "CA.key", search_path = camgr.capath)
+			OpenSSLTools.create_private_key(private_key_storage, keyspec = keyspec)
+		else:
+			# The key is stored in hardware.
+			private_key_storage = PrivateKeyStorage(PrivateKeyStorageForm.HARDWARE_TOKEN, pkcs11uri = self._args.hardware_key)
+
+		camgr.create_ca_structure(private_key_storage = private_key_storage)
 		if self._args.parent_ca is None:
 			# Self-signed root CA
 			camgr.create_selfsigned_ca_cert(subject_dn = self._args.subject_dn, validity_days = self._args.validity_days, signing_hash = self._args.hashfnc, serial = self._args.serial)

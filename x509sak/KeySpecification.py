@@ -27,13 +27,11 @@ from x509sak.KwargsChecker import KwargsChecker
 class Cryptosystem(enum.Enum):
 	RSA = "rsaEncryption"
 	ECC = "ecPublicKey"
-	HARDWARE_TOKEN = "hardwareToken"
 
 class KeySpecification(object):
 	_PARAMETER_CONSTRAINTS = {
-		Cryptosystem.RSA:				KwargsChecker(required_arguments = set([ "bitlen" ])),
-		Cryptosystem.ECC:				KwargsChecker(required_arguments = set([ "curve" ])),
-		Cryptosystem.HARDWARE_TOKEN:	KwargsChecker(required_arguments = set([ "key_id" ])),
+		Cryptosystem.RSA:	KwargsChecker(required_arguments = set([ "bitlen" ])),
+		Cryptosystem.ECC:	KwargsChecker(required_arguments = set([ "curve" ])),
 	}
 
 	def __init__(self, cryptosystem, parameters = None):
@@ -45,10 +43,6 @@ class KeySpecification(object):
 		self._PARAMETER_CONSTRAINTS[self._cryptosystem].check(parameters, hint = "keyspec for cryptosystem %s" % (self._cryptosystem.name))
 
 	@property
-	def explicit(self):
-		return self.cryptosystem != Cryptosystem.HARDWARE_TOKEN
-
-	@property
 	def cryptosystem(self):
 		return self._cryptosystem
 
@@ -58,8 +52,6 @@ class KeySpecification(object):
 			return cls(cryptosystem = Cryptosystem.RSA, parameters = { "bitlen": keyspec_arg.bitlen })
 		elif keyspec_arg.cryptosystem == keyspec_arg.KeySpecification.ECC:
 			return cls(cryptosystem = Cryptosystem.ECC, parameters = { "curve": keyspec_arg.curve })
-		elif keyspec_arg.cryptosystem == keyspec_arg.KeySpecification.HARDWARE_TOKEN:
-			return cls(cryptosystem = Cryptosystem.HARDWARE_TOKEN, parameters = { "key_id": keyspec_arg.key_id })
 		else:
 			raise LazyDeveloperException(NotImplemented, keyspec_arg)
 
@@ -71,8 +63,6 @@ class KeySpecification(object):
 			return "RSA-%d" % (self["bitlen"])
 		elif self._cryptosystem == Cryptosystem.ECC:
 			return "ECC-%s" % (self["curve"])
-		elif self._cryptosystem == Cryptosystem.HARDWARE_TOKEN:
-			return "HW-%d" % (self["key_id"])
 		return "%s-%s" % (self._cryptosystem, str(self._parameters))
 
 class SignatureAlgorithm(object):
