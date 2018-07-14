@@ -44,6 +44,8 @@ if "X509SAK_VERBOSE_EXECUTION" in os.environ:
 	SubprocessExecutor.set_verbose()
 if "X509SAK_PAUSE_FAILED_EXECUTION" in os.environ:
 	SubprocessExecutor.pause_after_failed_execution()
+if "X509SAK_PAUSE_BEFORE_EXECUTION" in os.environ:
+	SubprocessExecutor.pause_before_execution()
 
 def __keyspec(arg):
 	keyspec_arg = KeySpecArgument(arg)

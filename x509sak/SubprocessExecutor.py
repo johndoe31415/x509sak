@@ -27,6 +27,7 @@ from x509sak.Exceptions import CmdExecutionFailedException
 class SubprocessExecutor(object):
 	_verbose = False
 	_pause_after_failed_execution = False
+	_pause_before_execution = False
 
 	@classmethod
 	def run(cls, cmd, success_retcodes = None, on_failure = "exception", return_stdout = False, discard_stderr = False, stdin = None, env = None):
@@ -41,8 +42,10 @@ class SubprocessExecutor(object):
 		if success_retcodes is None:
 			success_retcodes = [ 0 ]
 
-		if cls._verbose:
+		if cls._verbose or cls._pause_before_execution:
 			print(cmd_str)
+		if cls._pause_before_execution:
+			input("About to execute above command, press RETURN to continue...")
 
 		if discard_stderr:
 			stderr = subprocess.PIPE
@@ -87,3 +90,7 @@ class SubprocessExecutor(object):
 	@classmethod
 	def pause_after_failed_execution(cls):
 		cls._pause_after_failed_execution = True
+
+	@classmethod
+	def pause_before_execution(cls):
+		cls._pause_before_execution = True
