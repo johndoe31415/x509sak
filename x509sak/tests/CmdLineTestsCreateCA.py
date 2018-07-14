@@ -21,24 +21,13 @@
 
 import os
 import unittest
-import pkgutil
 import tempfile
 from x509sak.WorkDir import WorkDir
 from x509sak.SubprocessExecutor import SubprocessExecutor
 
 class CmdLineTestsCreateCA(unittest.TestCase):
-	@staticmethod
-	def _load_crt(crtname):
-		x509_text = pkgutil.get_data("x509sak.tests.data", crtname).decode("ascii")
-		cert = X509Certificate.from_pem_data(x509_text)[0]
-		return cert
-
 	def setUp(self):
 		self._x509sak = os.path.realpath("x509sak.py")
-
-	def assertOcurrences(self, haystack, needle, expected_count):
-		count = haystack.count(needle)
-		self.assertEqual(count, expected_count)
 
 	def test_create_simple_ca(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
@@ -87,3 +76,23 @@ class CmdLineTestsCreateCA(unittest.TestCase):
 			self.assertIn(b"--END CERTIFICATE--", output)
 			self.assertIn(b"id-ecPublicKey", output)
 			SubprocessExecutor.run([ "openssl", "ec", "-in", "this/is/a/root_ca/CA.key" ])
+
+	def test_create_intermediate_ca(self):
+		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
+			SubprocessExecutor.run([ self._x509sak, "createca", "-s", "/CN=PARENT", "root_ca" ])
+			(success, output) = SubprocessExecutor.run([ "openssl", "x509", "-text", "-in", "root_ca/CA.crt" ], return_stdout = True)
+			self.assertIn(b"--BEGIN CERTIFICATE--", output)
+			self.assertIn(b"--END CERTIFICATE--", output)
+			self.assertTrue((b"Issuer: CN=PARENT" in output) or (b"Issuer: CN = PARENT" in output))
+			self.assertTrue((b"Subject: CN=PARENT" in output) or (b"Subject: CN = PARENT" in output))
+			self.assertIn(b"id-ecPublicKey", output)
+			SubprocessExecutor.run([ "openssl", "ec", "-in", "root_ca/CA.key" ])
+
+			SubprocessExecutor.run([ self._x509sak, "createca", "-p", "root_ca", "-s", "/CN=INTERMEDIATE", "intermediate_ca" ])
+			(success, output) = SubprocessExecutor.run([ "openssl", "x509", "-text", "-in", "intermediate_ca/CA.crt" ], return_stdout = True)
+			self.assertIn(b"--BEGIN CERTIFICATE--", output)
+			self.assertIn(b"--END CERTIFICATE--", output)
+			self.assertTrue((b"Issuer: CN=PARENT" in output) or (b"Issuer: CN = PARENT" in output))
+			self.assertTrue((b"Subject: CN=INTERMEDIATE" in output) or (b"Subject: CN = INTERMEDIATE" in output))
+			self.assertIn(b"id-ecPublicKey", output)
+			SubprocessExecutor.run([ "openssl", "ec", "-in", "intermediate_ca/CA.key" ])
