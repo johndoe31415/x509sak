@@ -72,7 +72,7 @@ class CmdLineTestsCreateCA(unittest.TestCase):
 			self.assertIn(b"--END CERTIFICATE--", output)
 			self.assertIn(b"rsaEncryption", output)
 			self.assertIn(b"sha1WithRSAEncryption", output)
-			self.assertIn(b"Public-Key: (1024 bit)" in output)
+			self.assertTrue(b"Public-Key: (1024 bit)" in output)
 			self.assertTrue((b"CN=YepThats!TheCN" in output) or (b"CN = YepThats!TheCN" in output))
 			self.assertIn(b"X509v3 extensions", output)
 			self.assertIn(b"CA:TRUE", output)
