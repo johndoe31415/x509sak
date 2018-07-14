@@ -24,3 +24,4 @@ from .CertificatePoolTests import CertificatePoolTests
 from .NumberTheoryTests import NumberTheoryTests
 from .PublicKeyTests import PublicKeyTests
 from .OpenSSLToolsTests import OpenSSLToolsTests
+from .CmdLineTestsBuildChain import CmdLineTestsBuildChain
