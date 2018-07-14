@@ -47,6 +47,7 @@ class CmdLineTestsCreateCA(unittest.TestCase):
 			self.assertIn(b"--BEGIN CERTIFICATE--", output)
 			self.assertIn(b"--END CERTIFICATE--", output)
 			self.assertIn(b"id-ecPublicKey", output)
+			SubprocessExecutor.run([ "openssl", "ec", "-in", "root_ca/CA.key" ])
 
 	def test_create_simple_ca_2(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
@@ -61,6 +62,7 @@ class CmdLineTestsCreateCA(unittest.TestCase):
 			self.assertIn(b"X509v3 extensions", output)
 			self.assertIn(b"CA:TRUE", output)
 			self.assertIn(b"X509v3 Subject Key Identifier", output)
+			SubprocessExecutor.run([ "openssl", "ec", "-in", "root_ca/CA.key" ])
 
 	def test_create_simple_ca_3(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
@@ -75,3 +77,4 @@ class CmdLineTestsCreateCA(unittest.TestCase):
 			self.assertIn(b"X509v3 extensions", output)
 			self.assertIn(b"CA:TRUE", output)
 			self.assertIn(b"X509v3 Subject Key Identifier", output)
+			SubprocessExecutor.run([ "openssl", "rsa", "-in", "root_ca/CA.key" ])
