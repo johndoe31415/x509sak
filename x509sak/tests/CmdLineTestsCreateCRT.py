@@ -102,7 +102,7 @@ class CmdLineTestsCreateCRT(unittest.TestCase):
 
 			# Try to reuse same CN for other certificate -- must fail!
 			with self.assertRaises(CmdExecutionFailedException):
-				SubprocessExecutor.run([ self._x509sak, "createcsr", "-s" "/CN=CHILD1", "-t", "tls-client", "-c", "root_ca", "client2.key", "client2.crt" ])
+				SubprocessExecutor.run([ self._x509sak, "createcsr", "-s" "/CN=CHILD1", "-t", "tls-client", "-c", "root_ca", "client2.key", "client2.crt" ], on_failure = "exception-nopause")
 
 	def test_create_simple_csr(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
@@ -139,3 +139,17 @@ class CmdLineTestsCreateCRT(unittest.TestCase):
 			self.assertIn(b"DNS:foodns", output)
 			self.assertIn(b"DNS:bardns", output)
 			self.assertIn(b"IP Address:111.222.33.44", output)
+
+			SubprocessExecutor.run([ self._x509sak, "createcsr", "-s", "/CN=Request5", "--san-dns", "foodns", "--san-dns", "bardns", "--san-ip", "111.222.33.55", "--extension", "extendedKeyUsage=1.2.3.4.5.6.7,1.1.1.2.2.2.3.3.3,codeSigning", "request5.key", "request5.csr" ])
+			(success, output) = SubprocessExecutor.run([ "openssl", "req", "-text", "-in", "request5.csr" ], return_stdout = True)
+			self.assertIn(b"--BEGIN CERTIFICATE REQUEST--", output)
+			self.assertIn(b"--END CERTIFICATE REQUEST--", output)
+			self.assertTrue((b"Subject: CN=Request5" in output) or (b"Subject: CN = Request5" in output))
+			self.assertIn(b"Requested Extensions:", output)
+			self.assertIn(b"DNS:foodns", output)
+			self.assertIn(b"DNS:bardns", output)
+			self.assertIn(b"IP Address:111.222.33.55", output)
+			self.assertIn(b"X509v3 Extended Key Usage:", output)
+			self.assertIn(b"1.2.3.4.5.6.7", output)
+			self.assertIn(b"1.1.1.2.2.2.3.3.3", output)
+			self.assertIn(b"Code Signing", output)

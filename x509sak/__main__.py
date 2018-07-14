@@ -165,4 +165,6 @@ except (UserErrorException, InvisibleUserErrorException) as e:
 		print()
 	if isinstance(e, UserErrorException) or (logging.root.level == logging.DEBUG):
 		print("%s: %s" % (e.__class__.__name__, str(e)))
+	else:
+		print("Failure while processing this request: %s" % (e.__class__.__name__))
 	sys.exit(1)
