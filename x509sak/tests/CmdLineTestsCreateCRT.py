@@ -95,6 +95,20 @@ class CmdLineTestsCreateCRT(unittest.TestCase):
 			self.assertIn(b"SSL Server", output)
 			SubprocessExecutor.run([ "openssl", "ec", "-in", "client6.key" ])
 
+			output = self._gencert(7, [ "-t", "tls-client", "--san-dns", "foodns", "--san-dns", "bardns", "--san-ip", "111.222.33.55", "--extension", "extendedKeyUsage=1.2.3.4.5.6.7,1.1.1.2.2.2.3.3.3,codeSigning" ])
+			self.assertIn(b"id-ecPublicKey", output)
+			self.assertIn(b"X509v3 extensions", output)
+			self.assertIn(b"CA:FALSE", output)
+			self.assertIn(b"SSL Client", output)
+			self.assertIn(b"DNS:foodns", output)
+			self.assertIn(b"DNS:bardns", output)
+			self.assertIn(b"IP Address:111.222.33.55", output)
+			self.assertIn(b"X509v3 Extended Key Usage:", output)
+			self.assertIn(b"1.2.3.4.5.6.7", output)
+			self.assertIn(b"1.1.1.2.2.2.3.3.3", output)
+			self.assertIn(b"Code Signing", output)
+			SubprocessExecutor.run([ "openssl", "ec", "-in", "client7.key" ])
+
 	def test_duplicate_cn(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
 			SubprocessExecutor.run([ self._x509sak, "createca", "-s", "/CN=PARENT", "root_ca" ])
