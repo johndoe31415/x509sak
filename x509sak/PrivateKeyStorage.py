@@ -32,7 +32,7 @@ class PrivateKeyStorage(object):
 	_PARAMETER_CONSTRAINTS = {
 		PrivateKeyStorageForm.PEM_FILE:			KwargsChecker(required_arguments = set([ "filename" ]), optional_arguments = set([ "search_path" ])),
 		PrivateKeyStorageForm.DER_FILE:			KwargsChecker(required_arguments = set([ "filename" ]), optional_arguments = set([ "search_path" ])),
-		PrivateKeyStorageForm.HARDWARE_TOKEN:	KwargsChecker(required_arguments = set([ "key_id", "so_search_path" ])),
+		PrivateKeyStorageForm.HARDWARE_TOKEN:	KwargsChecker(required_arguments = set([ "pkcs11uri" ]), optional_arguments = set([ "so_search_path", "dynamic_so", "module_so" ])),
 	}
 
 	def __init__(self, storage_form, **kwargs):
@@ -42,6 +42,10 @@ class PrivateKeyStorage(object):
 		self._parameters = kwargs
 		if "search_path" not in self._parameters:
 			self._parameters["search_path"] = ""
+
+	def update(self, key, value):
+		self._PARAMETER_CONSTRAINTS[self._storage_form].check_single(key)
+		self._parameters[key] = value
 
 	@property
 	def storage_form(self):
@@ -62,14 +66,14 @@ class PrivateKeyStorage(object):
 		return self._parameters["search_path"] + self._parameters["filename"]
 
 	@property
-	def key_id(self):
+	def pkcs11uri(self):
 		assert(self.storage_form == PrivateKeyStorageForm.HARDWARE_TOKEN)
-		return self._parameters["key_id"]
+		return self._parameters["pkcs11uri"]
 
 	@property
 	def so_search_path(self):
 		assert(self.storage_form == PrivateKeyStorageForm.HARDWARE_TOKEN)
-		return self._parameters["so_search_path"]
+		return self._parameters.get("so_search_path", "/usr/local/lib:/usr/lib:/usr/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu/openssl-1.0.2/engines:/usr/lib/x86_64-linux-gnu/engines-1.1")
 
 	def to_dict(self):
 		return {
@@ -99,6 +103,6 @@ class PrivateKeyStorage(object):
 		if self.storage_form in [ PrivateKeyStorageForm.PEM_FILE, PrivateKeyStorageForm.DER_FILE ]:
 			return "PrivateKeyStorage<%s: %s>" % (self.storage_form.name, self.filename)
 		elif self.storage_form == PrivateKeyStorageForm.HARDWARE_TOKEN:
-			return "PrivateKeyStorage<%s ID %d>" % (self.storage_form.name, self.key_id)
+			return "PrivateKeyStorage<%s %s>" % (self.storage_form.name, self.pkcs11uri)
 		else:
 			return "PrivateKeyStorage<%s: %s>" % (self.storage_form.name, str(self._parameters))

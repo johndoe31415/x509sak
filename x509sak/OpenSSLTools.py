@@ -68,7 +68,8 @@ class OpenSSLTools(object):
 		elif private_key_storage.storage_form == PrivateKeyStorageForm.DER_FILE:
 			cmd = [ "-%s" % (key_option), private_key_storage.full_filename, "-keyform", "der" ]
 		elif private_key_storage.storage_form == PrivateKeyStorageForm.HARDWARE_TOKEN:
-			cmd = [ "-%s" % (key_option), "0:%d" % (private_key_storage.key_id), "-keyform", "engine", "-engine", "pkcs11" ]
+			cmd = [ "-%s" % (key_option), private_key_storage.pkcs11uri, "-keyform", "engine", "-engine", "pkcs11" ]
+			#cmd = [ "-%s" % (key_option), "0:%d" % (private_key_storage.key_id), "-keyform", "engine", "-engine", "pkcs11" ]
 		else:
 			raise LazyDeveloperException(NotImplemented, private_key_storage.storage_form)
 		return cmd

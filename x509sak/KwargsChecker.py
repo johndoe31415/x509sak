@@ -29,6 +29,10 @@ class KwargsChecker(object):
 		self._optional_arguments = optional_arguments or set()
 		self._allowed_arguments = self._required_arguments | self._optional_arguments
 
+	def check_single(self, arg, hint = None):
+		if arg not in self._allowed_arguments:
+			raise InvalidInputExeception("%s is not a valid argument." % (arg))
+
 	def check(self, args, hint = None):
 		assert(isinstance(args, dict))
 
@@ -43,10 +47,12 @@ class KwargsChecker(object):
 
 		if len(errors) > 0:
 			msg = "There were %d error(s) with the arguments" % (len(errors))
-			if msg is not Noneelse:
+			if hint is not None:
 				msg += " supplied to %s" % (hint)
 			msg += ": "
 			msg += " / ".join(errors)
-			msg += " -- required are: %s -- optionally allowed are: %s" % (", ".join(sorted(self._required_arguments)), ", ".join(sorted(self._optional_arguments)))
-
+			if len(self._required_arguments) > 0:
+				msg += " -- required are: %s" % (", ".join(sorted(self._required_arguments)))
+			if len(self._optional_arguments) > 0:
+				msg += " -- optionally allowed are: %s" % (", ".join(sorted(self._optional_arguments)))
 			raise InvalidInputException(msg)

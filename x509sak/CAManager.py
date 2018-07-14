@@ -66,16 +66,18 @@ class CAManager(object):
 			self._save_metadata()
 		else:
 			# Load from metadata
-			self._load_metadata(search_path = self._capath)
+			self._load_metadata()
+		if self._private_key_storage.is_file_based:
+			self._private_key_storage.update("search_path", self._capath)
 
 	@property
 	def capath(self):
 		return self._capath
 
-	def _load_metadata(self, **kwargs):
+	def _load_metadata(self):
 		with open(self.metadata_filename) as f:
 			metadata = json.load(f)
-		self._private_key_storage = PrivateKeyStorage.from_dict(metadata["private_key_storage"], **kwargs)
+		self._private_key_storage = PrivateKeyStorage.from_dict(metadata["private_key_storage"])
 
 	def _save_metadata(self):
 		metadata = {

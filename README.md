@@ -34,12 +34,120 @@ Options vary from command to command. To receive further info, type
 ```
 [//]: # (End of summary -- auto-generated, do not edit!)
 
-# Dependencies
+## Dependencies
 x509sak requires Python3, pyasn1 and pyasn1_modules support. It also relies on
 OpenSSL. If you want graph support, then you also need to install the Graphviz
 package as well. Note that pyasn1_modules inside the Ubuntu tree (as of 3'2018,
 Ubuntu Artful MATE, v0.0.7-0.1) is broken and you'll need to use the version
 that pip3 installs (0.2.1 in my case).
+
+## Using x509sak with hardware tokens
+x509sak works nicely with hardware tokens such as the NitroKey HSM. It does not
+allow key generation for these devices, but can use the pre-generated keys for
+CA management. For example, let's say you used a [tool like
+nitrotool](https://github.com/johndoe31415/nitrotool) to generate an ECC
+keypair that is called "my_secure_key". You now want a CA that's based off that
+key.  Quite an easy task:
+
+```
+$ ./x509sak.py createca -w "pkcs11:object=my_secure_key;type=private" -s "/CN=My Secure CA" my_secure_ca
+Enter PKCS#11 token PIN for UserPIN (SmartCard-HSM): 123456
+```
+
+You enter your Pin, hit return and it's done! The CA has been created:
+
+```
+$ openssl x509 -in my_secure_ca/CA.crt -text -noout
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number:
+            c3:86:c2:43:4b:2d:62:12
+        Signature Algorithm: ecdsa-with-SHA256
+        Issuer: CN = My Secure CA
+        Validity
+            Not Before: Jul 14 10:47:49 2018 GMT
+            Not After : Jul 14 10:47:49 2019 GMT
+        Subject: CN = My Secure CA
+        Subject Public Key Info:
+            Public Key Algorithm: id-ecPublicKey
+                Public-Key: (256 bit)
+                pub:
+                    04:8a:8f:c7:99:3b:b1:cf:63:5f:c7:c8:87:50:80:
+                    26:4d:22:96:9f:2f:67:f8:ea:f6:f2:1b:96:e4:e2:
+                    4b:af:15:fe:79:77:52:50:d1:f6:a3:20:7b:ca:ce:
+                    5e:bc:25:5e:30:2d:1a:71:cb:8f:ff:79:46:4f:ec:
+                    58:04:e1:f7:f0
+                ASN1 OID: prime256v1
+                NIST CURVE: P-256
+        X509v3 extensions:
+            X509v3 Basic Constraints: critical
+                CA:TRUE
+            X509v3 Key Usage: critical
+                Digital Signature, Certificate Sign, CRL Sign
+            X509v3 Subject Key Identifier: 
+                9B:4E:14:4E:0D:C5:23:D9:06:06:06:7D:39:8F:3C:88:1D:66:35:55
+    Signature Algorithm: ecdsa-with-SHA256
+         30:45:02:20:79:a2:91:1e:ca:2d:18:5b:26:59:14:b1:f1:0c:
+         2f:0f:41:d8:ab:bc:02:2f:e9:c2:dc:97:c1:19:67:9e:c7:8d:
+         02:21:00:ef:73:02:6a:a4:ad:e8:f0:ef:49:02:cf:34:08:b7:
+         2e:fa:82:16:47:8c:44:7f:bb:ad:f0:c0:be:7a:e6:e1:81
+```
+
+It's similarly easy to create certificates off this hardware-backed CA:
+
+```
+$ ./x509sak.py createcsr -s "/CN=Software Key Client" -t tls-client -c my_secure_ca client.key client.crt
+Enter PKCS#11 token PIN for UserPIN (SmartCard-HSM):
+```
+
+Again, with one command you've created the client certificate:
+
+```
+$ openssl x509 -in client.crt -text -noout
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number: 1 (0x1)
+        Signature Algorithm: ecdsa-with-SHA256
+        Issuer: CN = My Secure CA
+        Validity
+            Not Before: Jul 14 10:50:19 2018 GMT
+            Not After : Jul 14 10:50:19 2019 GMT
+        Subject: CN = Software Key Client
+        Subject Public Key Info:
+            Public Key Algorithm: id-ecPublicKey
+                Public-Key: (384 bit)
+                pub:
+                    04:5a:68:1b:f2:ea:29:71:23:39:66:bd:b7:6a:9c:
+                    0c:69:8d:a9:e8:7f:93:a8:32:21:d7:f2:93:e8:52:
+                    c5:83:65:7b:13:62:04:9f:64:c6:54:fd:24:8a:64:
+                    d2:49:cd:8d:27:61:b3:41:44:d3:89:51:39:78:29:
+                    b2:ff:1a:3a:b6:e0:74:c6:15:92:26:f9:42:2b:0d:
+                    04:74:1b:3d:13:f8:78:53:a5:be:6f:13:04:01:05:
+                    f7:40:4b:6a:89:4c:54
+                ASN1 OID: secp384r1
+                NIST CURVE: P-384
+        X509v3 extensions:
+            X509v3 Authority Key Identifier: 
+                keyid:9B:4E:14:4E:0D:C5:23:D9:06:06:06:7D:39:8F:3C:88:1D:66:35:55
+
+            X509v3 Basic Constraints: critical
+                CA:FALSE
+            X509v3 Extended Key Usage: 
+                TLS Web Client Authentication
+            X509v3 Key Usage: critical
+                Digital Signature, Key Encipherment, Key Agreement
+            Netscape Cert Type: 
+                SSL Client
+            X509v3 Subject Key Identifier: 
+                0C:1F:31:4C:BA:E2:C6:33:65:9D:ED:DA:FC:16:29:27:E0:95:AF:E2
+    Signature Algorithm: ecdsa-with-SHA256
+         30:44:02:20:3f:84:40:bb:50:2e:7c:8c:3b:2f:51:80:f9:20:
+         a7:bb:7d:17:58:c6:44:70:20:eb:74:46:5a:ae:95:4e:9e:81:
+         02:20:0c:98:35:63:8d:2f:1b:ad:32:d4:06:2f:c8:e7:2c:8a:
+         79:b7:5a:e0:21:51:63:0b:39:82:9f:ff:8d:ee:c3:e2
+```
 
 ## buildchain
 The "buildchain" command is useful if you want to have a complete (or partial)
@@ -176,8 +284,9 @@ as it can create root CAs.
 
 [//]: # (Begin of cmd-createca -- auto-generated, do not edit!)
 ```
-usage: ./x509sak.py createca [-k keyspec] [-p capath] [-s subject] [-d days]
-                             [-h alg] [--serial serial] [-f] [-v] [--help]
+usage: ./x509sak.py createca [-g keyspec | -w pkcs11uri] [-p capath]
+                             [-s subject] [-d days] [-h alg] [--serial serial]
+                             [-f] [-v] [--help]
                              capath
 
 Create a new certificate authority (CA)
@@ -186,15 +295,13 @@ positional arguments:
   capath                Directory to create the new CA in.
 
 optional arguments:
-  -k keyspec, --keytype keyspec
-                        Private key type to generate for the new CA. Defaults
-                        to ecc:secp384r1. Keyspecs have the form
-                        cryptosystem:args, where cryptosystem can be any of
-                        rsa, ecc or hw and the args depend on the
-                        cryptosystem; for RSA, it's the bitlength, for ECC,
-                        it's the curve name and for HW it's the key ID of the
-                        hardware token key. Examples are rsa:1024,
-                        ecc:secp256r1 or hw:1.
+  -g keyspec, --gen-keyspec keyspec
+                        Private key specification to generate. Examples are
+                        rsa:1024 or ecc:secp256r1. Defaults to ecc:secp384r1.
+  -w pkcs11uri, --hardware-key pkcs11uri
+                        Use a hardware token which stores the private key. The
+                        parameter gives the pkcs11 URI, e.g.,
+                        'pkcs11:object=mykey;type=private'
   -p capath, --parent-ca capath
                         Parent CA directory. If omitted, CA certificate will
                         be self-signed.
@@ -229,7 +336,7 @@ file configuration used by OpenSSL.
 
 [//]: # (Begin of cmd-createcsr -- auto-generated, do not edit!)
 ```
-usage: ./x509sak.py createcsr [-k keyspec]
+usage: ./x509sak.py createcsr [-g keyspec] [-k {pem,der,hw}]
                               [-t {rootca,ca,tls-server,tls-client}]
                               [-s subject] [-d days] [-h alg] [--san-dns FQDN]
                               [--san-ip IP] [--extension key=value] [-f]
@@ -239,21 +346,19 @@ usage: ./x509sak.py createcsr [-k keyspec]
 Create a new certificate signing request (CSR) or certificate
 
 positional arguments:
-  in_key_filename       Filename of the input private key.
+  in_key_filename       Filename of the input private key or PKCS#11 URI (as
+                        specified in RFC7512 in case of a hardware key type.
   out_filename          Filename of the output certificate signing request or
                         certificate.
 
 optional arguments:
-  -k keyspec, --keytype keyspec
-                        Private key type to generate for the certificate or
-                        CSR. By default, it is assumed the private key has
-                        created beforehand. Keyspecs have the form
-                        cryptosystem:args, where cryptosystem can be any of
-                        rsa, ecc or hw and the args depend on the
-                        cryptosystem; for RSA, it's the bitlength, for ECC,
-                        it's the curve name and for HW it's the key ID of the
-                        hardware token key. Examples are rsa:1024,
-                        ecc:secp256r1 or hw:1.
+  -g keyspec, --gen-keyspec keyspec
+                        Private key specification to generate for the
+                        certificate or CSR when it doesn't exist. Examples are
+                        rsa:1024 or ecc:secp256r1.
+  -k {pem,der,hw}, --keytype {pem,der,hw}
+                        Private key type. Can be any of pem, der, hw. Defaults
+                        to pem.
   -t {rootca,ca,tls-server,tls-client}, --template {rootca,ca,tls-server,tls-client}
                         Template to use for determining X.509 certificate
                         extensions. Can be one of rootca, ca, tls-server, tls-
