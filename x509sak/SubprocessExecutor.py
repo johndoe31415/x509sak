@@ -31,7 +31,7 @@ class SubprocessExecutor(object):
 
 	@classmethod
 	def run(cls, cmd, success_retcodes = None, on_failure = "exception", return_stdout = False, discard_stderr = False, stdin = None, env = None):
-		assert(on_failure in [ "exception", "pass" ])
+		assert(on_failure in [ "exception", "pass", "exception-nopause" ])
 		cmd_str = CmdTools.cmdline(cmd, env)
 		if env is not None:
 			full_env = dict(os.environ)
@@ -76,6 +76,7 @@ class SubprocessExecutor(object):
 						print("stderr was:")
 						print(stderr.decode())
 					input("Hit ENTER to continue...")
+			if on_failure in [ "exception", "exception-nopause" ]:
 				raise CmdExecutionFailedException("Execution of command failed: %s" % (cmd_str))
 
 		if return_stdout:
