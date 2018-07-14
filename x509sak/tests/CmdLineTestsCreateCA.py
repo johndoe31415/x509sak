@@ -72,9 +72,18 @@ class CmdLineTestsCreateCA(unittest.TestCase):
 			self.assertIn(b"--END CERTIFICATE--", output)
 			self.assertIn(b"rsaEncryption", output)
 			self.assertIn(b"sha1WithRSAEncryption", output)
-			self.assertIn(b"RSA Public-Key: (1024 bit)", output)
+			self.assertIn(b"Public-Key: (1024 bit)" in output)
 			self.assertTrue((b"CN=YepThats!TheCN" in output) or (b"CN = YepThats!TheCN" in output))
 			self.assertIn(b"X509v3 extensions", output)
 			self.assertIn(b"CA:TRUE", output)
 			self.assertIn(b"X509v3 Subject Key Identifier", output)
 			SubprocessExecutor.run([ "openssl", "rsa", "-in", "root_ca/CA.key" ])
+
+	def test_create_nested_ca(self):
+		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
+			SubprocessExecutor.run([ self._x509sak, "createca", "this/is/a/root_ca" ])
+			(success, output) = SubprocessExecutor.run([ "openssl", "x509", "-text", "-in", "this/is/a/root_ca/CA.crt" ], return_stdout = True)
+			self.assertIn(b"--BEGIN CERTIFICATE--", output)
+			self.assertIn(b"--END CERTIFICATE--", output)
+			self.assertIn(b"id-ecPublicKey", output)
+			SubprocessExecutor.run([ "openssl", "ec", "-in", "this/is/a/root_ca/CA.key" ])
