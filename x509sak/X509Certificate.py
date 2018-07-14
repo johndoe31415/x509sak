@@ -91,7 +91,7 @@ class X509Certificate(PEMDERObject):
 			cmd = [ "openssl", "verify", "-CApath", "/dev/null" ]
 			cmd += [ "-check_ss_sig", "-CAfile", issuer.name, subject.name ]
 			_log.debug("Executing: %s", CmdTools.cmdline(cmd))
-			(success, output) = SubprocessExecutor.run(cmd, exception_on_failure = False, return_stdout = True)
+			(success, output) = SubprocessExecutor.run(cmd, on_failure = "pass", return_stdout = True)
 			if success:
 				return True
 			else:

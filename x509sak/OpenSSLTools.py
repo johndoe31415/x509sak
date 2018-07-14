@@ -138,8 +138,8 @@ class OpenSSLTools(object):
 
 	@classmethod
 	def private_to_public(cls, private_key_filename, public_key_filename):
-		success = SubprocessExecutor.run([ "openssl", "rsa", "-in", private_key_filename, "-pubout", "-out", public_key_filename ], exception_on_failure = False)
+		success = SubprocessExecutor.run([ "openssl", "rsa", "-in", private_key_filename, "-pubout", "-out", public_key_filename ], on_failure = "pass")
 		if not success:
-			success = SubprocessExecutor.run([ "openssl", "ec", "-in", private_key_filename, "-pubout", "-out", public_key_filename ], exception_on_failure = False)
+			success = SubprocessExecutor.run([ "openssl", "ec", "-in", private_key_filename, "-pubout", "-out", public_key_filename ], on_failure = "pass")
 		if not success:
 			raise InvalidInputException("File %s contained neither RSA nor ECC private key." % (private_key_filename))

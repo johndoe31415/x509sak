@@ -22,13 +22,15 @@
 import os
 import subprocess
 from x509sak.Tools import CmdTools
+from x509sak.Exceptions import CmdExecutionFailedException
 
 class SubprocessExecutor(object):
 	_verbose = False
 	_pause_after_failed_execution = False
 
 	@classmethod
-	def run(cls, cmd, success_retcodes = None, exception_on_failure = True, return_stdout = False, discard_stderr = False, stdin = None, env = None):
+	def run(cls, cmd, success_retcodes = None, on_failure = "exception", return_stdout = False, discard_stderr = False, stdin = None, env = None):
+		assert(on_failure in [ "exception", "pass" ])
 		cmd_str = CmdTools.cmdline(cmd, env)
 		if env is not None:
 			full_env = dict(os.environ)
@@ -59,18 +61,19 @@ class SubprocessExecutor(object):
 				print()
 
 		# Execution failed.
-		if (not success) and exception_on_failure:
-			if cls._pause_after_failed_execution:
-				print("Execution failed: %s" % (cmd_str))
-				print("Input: %s" % (stdin))
-				print("Return code: %d (expected one of %s)." % (proc.returncode, str(success_retcodes)))
-				print("stdout was:")
-				print(stdout.decode())
-				if (stderr is not None) and (len(stderr) > 0):
-					print("stderr was:")
-					print(stderr.decode())
-				input("Hit ENTER to continue...")
-			raise Exception("Execution of command failed: %s" % (cmd_str))
+		if (not success):
+			if on_failure == "exception":
+				if cls._pause_after_failed_execution:
+					print("Execution failed: %s" % (cmd_str))
+					print("Input: %s" % (stdin))
+					print("Return code: %d (expected one of %s)." % (proc.returncode, str(success_retcodes)))
+					print("stdout was:")
+					print(stdout.decode())
+					if (stderr is not None) and (len(stderr) > 0):
+						print("stderr was:")
+						print(stderr.decode())
+					input("Hit ENTER to continue...")
+				raise CmdExcecutionFailedException("Execution of command failed: %s" % (cmd_str))
 
 		if return_stdout:
 			return (success, stdout)
