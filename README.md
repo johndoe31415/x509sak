@@ -149,6 +149,21 @@ Certificate:
          79:b7:5a:e0:21:51:63:0b:39:82:9f:ff:8d:ee:c3:e2
 ```
 
+For simplicity, you can specify either a full pkcs11-URI according to RFC7512
+or you can use certain abbreviations that make it easier. All of the following
+work for a key that's named 'my key' and that has ID 0xabcd:
+
+```
+pkcs11:object=my%20key;type=private
+pkcs11:id=%ab%cd;type=private
+label=my key
+id=0xabcd
+id=43981
+```
+
+The latter variants (label=..., id=...) will automatically be converted to
+pkcs11 URIs internally.
+
 ## buildchain
 The "buildchain" command is useful if you want to have a complete (or partial)
 certificate chain from a given leaf certfificate and a bundle of CAs. x509sak

@@ -20,8 +20,10 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 import enum
+import urllib.parse
 from x509sak.KwargsChecker import KwargsChecker
-from x509sak.Exceptions import LazyDeveloperException
+from x509sak.Exceptions import InvalidInputException, LazyDeveloperException
+from x509sak.FriendlyArgumentParser import baseint
 
 class PrivateKeyStorageForm(enum.IntEnum):
 	PEM_FILE = 1
@@ -42,6 +44,30 @@ class PrivateKeyStorage(object):
 		self._parameters = kwargs
 		if "search_path" not in self._parameters:
 			self._parameters["search_path"] = ""
+		if self._storage_form == PrivateKeyStorageForm.HARDWARE_TOKEN:
+			self._verify_pkcs11_uri()
+
+	def _verify_pkcs11_uri(self):
+		uri = self._parameters["pkcs11uri"]
+		if uri.startswith("pkcs11:"):
+			# Literal PKCS#11 URI, leave as-is.
+			pass
+		elif uri.startswith("label="):
+			# Replace with encoded version
+			label = uri[6 : ]
+			self._parameters["pkcs11uri"] = "pkcs11:object=%s;type=private" % (urllib.parse.quote(label))
+		elif uri.startswith("id="):
+			# Replace with encoded version
+			key_id_str = uri[3 : ]
+			try:
+				key_id = baseint(key_id_str)
+				key_bytes = key_id.to_bytes(length = 16, byteorder = "big").lstrip(bytes(1))
+			except (ValueError, OverflowError) as e:
+				raise InvalidInputException("Key ID '%s' is not a valid hex value or is too large: %s" % (key_id_str, e.__class__.__name__))
+			key_id_quoted = "".join("%%%02x" % (c) for c in key_bytes)
+			self._parameters["pkcs11uri"] = "pkcs11:id=%s;type=private" % (key_id_quoted)
+		else:
+			raise InvalidInputException("For hardware keys, you need to either give a RFC7512-compliant pkcs11-scheme URI (starts with 'pkcs11:'), a key label in the form 'label=foobar' or a key id in the hex form like 'id=0xabc123' or in decimal form like 'id=11256099'. The supplied value '%s' is neither." % (uri))
 
 	def update(self, key, value):
 		self._PARAMETER_CONSTRAINTS[self._storage_form].check_single(key)
