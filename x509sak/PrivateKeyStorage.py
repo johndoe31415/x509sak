@@ -21,7 +21,7 @@
 
 import enum
 from x509sak.Exceptions import InvalidInputException
-from x509sak.Tools import MiscTools
+from x509sak.KwargsChecker import KwargsChecker
 
 class PrivateKeyStorageForm(enum.IntEnum):
 	PEM_FILE = 1
@@ -29,16 +29,16 @@ class PrivateKeyStorageForm(enum.IntEnum):
 	HARDWARE_TOKEN = 3
 
 class PrivateKeyStorage(object):
-	_REQUIRED_PARAMETERS = {
-		PrivateKeyStorageForm.PEM_FILE:			set([ "filename" ]),
-		PrivateKeyStorageForm.DER_FILE:			set([ "filename" ]),
-		PrivateKeyStorageForm.HARDWARE_TOKEN:	set([ "key_id", "so_search_path" ]),
+	_PARAMETER_CONSTRAINTS = {
+		PrivateKeyStorageForm.PEM_FILE:			KwargsChecker(required_arguments = set([ "filename" ])),
+		PrivateKeyStorageForm.DER_FILE:			KwargsChecker(required_arguments = set([ "filename" ])),
+		PrivateKeyStorageForm.HARDWARE_TOKEN:	KwargsChecker(required_arguments = set([ "key_id", "so_search_path" ])),
 	}
 
 	def __init__(self, storage_form, **kwargs):
 		assert(isinstance(storage_form, PrivateKeyStorageForm))
 		self._storage_form = storage_form
-		MiscTools.verify_kwargs(self._REQUIRED_PARAMETERS[storage_form], kwargs, hint = "PrivateKeyStorage using %s" % (storage_form.name))
+		self._PARAMETER_CONSTRAINTS[storage_form].check(kwargs, hint = "PrivateKeyStorage using %s" % (storage_form.name))
 		self._parameters = kwargs
 		self._parameters["search_path"] = ""
 

@@ -142,17 +142,3 @@ class PathTools(object):
 			if os.path.isfile(directory + filename):
 				return full_filename
 		return None
-
-class MiscTools(object):
-	@classmethod
-	def verify_kwargs(cls, required_kwargs, given_kwargs, hint = "Method"):
-		assert(isinstance(required_kwargs, set))
-		assert(isinstance(given_kwargs, dict))
-
-		missing_parameters = required_kwargs - given_kwargs.keys()
-		if len(missing_parameters) > 0:
-			raise InvalidInputException("%s requires parameters: %s" % (hint, ", ".join(sorted(missing_parameters))))
-
-		excess_parameters = set(given_kwargs.keys()) - required_kwargs
-		if len(excess_parameters) > 0:
-			raise InvalidInputException("%s does not understand parameters: %s" % (hint, ", ".join(sorted(excess_parameters))))
