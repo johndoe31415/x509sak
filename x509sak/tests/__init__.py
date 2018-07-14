@@ -26,3 +26,4 @@ from .PublicKeyTests import PublicKeyTests
 from .OpenSSLToolsTests import OpenSSLToolsTests
 from .CmdLineTestsBuildChain import CmdLineTestsBuildChain
 from .CmdLineTestsCreateCA import CmdLineTestsCreateCA
+from .CmdLineTestsCreateCRT import CmdLineTestsCreateCRT
