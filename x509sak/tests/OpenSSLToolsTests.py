@@ -29,12 +29,6 @@ from x509sak.SubprocessExecutor import SubprocessExecutor
 
 class OpenSSLToolsTests(unittest.TestCase):
 	@staticmethod
-	def _load_pubkey(crtname):
-		x509_text = pkgutil.get_data("x509sak.tests.data", crtname).decode("ascii")
-		cert = X509Certificate.from_pem_data(x509_text)[0]
-		return cert.pubkey
-
-	@staticmethod
 	def _read_file(filename):
 		with open(filename, "rb") as f:
 			return f.read()
