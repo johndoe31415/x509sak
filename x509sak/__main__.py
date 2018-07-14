@@ -94,7 +94,7 @@ mc.register("createca", "Create a new certificate authority (CA)", genparser, ac
 
 def genparser(parser):
 	parser.add_argument("-g", "--gen-keyspec", metavar = "keyspec", type = __keyspec, help = "Private key specification to generate for the certificate or CSR when it doesn't exist. Examples are rsa:1024 or ecc:secp256r1.")
-	parser.add_argument("-k", "--keytype", choices = [ "pem", "der", "hw" ], default = "pem", help = "Private key type. Can be any of %(choices)s, defaults to %(default)s.")
+	parser.add_argument("-k", "--keytype", choices = [ "pem", "der", "hw" ], default = "pem", help = "Private key type. Can be any of %(choices)s. Defaults to %(default)s.")
 	parser.add_argument("-t", "--template", choices = [ "rootca", "ca", "tls-server", "tls-client" ], help = "Template to use for determining X.509 certificate extensions. Can be one of %(choices)s. By default, no extensions are included except for SAN.")
 	parser.add_argument("-s", "--subject-dn", metavar = "subject", type = str, default = "/CN=New Cert", help = "Certificate/CSR subject distinguished name. Defaults to %(default)s.")
 	parser.add_argument("-d", "--validity-days", metavar = "days", type = int, default = 365, help = "When creating a certificate, number of days that the certificate will be valid for. Defaults to %(default)s days.")
@@ -105,7 +105,7 @@ def genparser(parser):
 	parser.add_argument("-f", "--force", action = "store_true", help = "Overwrite the output file if it already exists.")
 	parser.add_argument("-c", "--create-crt", metavar = "capath", help = "Instead of creating a certificate signing request, directly create a certificate instead. Needs to supply the CA path that should issue the certificate.")
 	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
-	parser.add_argument("key_filename", metavar = "in_key_filename", type = str, help = "Filename of the input private key or key ID/label for hardware tokens.")
+	parser.add_argument("key_filename", metavar = "in_key_filename", type = str, help = "Filename of the input private key or PKCS#11 URI (as specified in RFC7512 in case of a hardware key type.")
 	parser.add_argument("out_filename", metavar = "out_filename", type = str, help = "Filename of the output certificate signing request or certificate.")
 mc.register("createcsr", "Create a new certificate signing request (CSR) or certificate", genparser, action = ActionCreateCSR)
 
