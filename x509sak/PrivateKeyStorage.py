@@ -20,7 +20,6 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 import enum
-from x509sak.Exceptions import InvalidInputException
 from x509sak.KwargsChecker import KwargsChecker
 
 class PrivateKeyStorageForm(enum.IntEnum):

@@ -21,7 +21,8 @@
 
 import enum
 from x509sak.OID import OID, OIDDB
-from x509sak.Exceptions import LazyDeveloperException, UnknownAlgorithmException, InvalidInputException
+from x509sak.Exceptions import LazyDeveloperException, UnknownAlgorithmException
+from x509sak.KwargsChecker import KwargsChecker
 
 class Cryptosystem(enum.Enum):
 	RSA = "rsaEncryption"
@@ -29,10 +30,10 @@ class Cryptosystem(enum.Enum):
 	HARDWARE_TOKEN = "hardwareToken"
 
 class KeySpecification(object):
-	_REQUIRED_PARAMETERS = {
-		Cryptosystem.RSA:				set([ "bitlen" ]),
-		Cryptosystem.ECC:				set([ "curve" ]),
-		Cryptosystem.HARDWARE_TOKEN:	set([ "key_id" ]),
+	_PARAMETER_CONSTRAINTS = {
+		Cryptosystem.RSA:				KwargsChecker(required_arguments = set([ "bitlen" ])),
+		Cryptosystem.ECC:				KwargsChecker(required_arguments = set([ "curve" ])),
+		Cryptosystem.HARDWARE_TOKEN:	KwargsChecker(required_arguments = set([ "key_id" ])),
 	}
 
 	def __init__(self, cryptosystem, parameters = None):
@@ -41,14 +42,7 @@ class KeySpecification(object):
 			parameters = { }
 		self._cryptosystem = cryptosystem
 		self._parameters = dict(parameters)
-
-		missing_parameters = self._REQUIRED_PARAMETERS[self._cryptosystem] - self._parameters.keys()
-		if len(missing_parameters) > 0:
-			raise InvalidInputException("Keyspec for cryptosystem %s requires parameters: %s" % (self._cryptosystem.name, ", ".join(sorted(missing_parameters))))
-
-		excess_parameters = set(self._parameters.keys()) - self._REQUIRED_PARAMETERS[self._cryptosystem]
-		if len(excess_parameters) > 0:
-			raise InvalidInputException("Keyspec for cryptosystem %s does not understand parameters: %s" % (self._cryptosystem.name, ", ".join(sorted(excess_parameters))))
+		self._PARAMETER_CONSTRAINTS[self._cryptosystem].check(parameters, hint = "keyspec for cryptosystem %s" % (self._cryptosystem.name))
 
 	@property
 	def explicit(self):
