@@ -29,6 +29,7 @@ class SubprocessExecutor(object):
 
 	@classmethod
 	def run(cls, cmd, success_retcodes = None, exception_on_failure = True, return_stdout = False, discard_stderr = False, stdin = None, env = None):
+		cmd_str = CmdTools.cmdline(cmd, env)
 		if env is not None:
 			full_env = dict(os.environ)
 			full_env.update(env)
@@ -39,7 +40,7 @@ class SubprocessExecutor(object):
 			success_retcodes = [ 0 ]
 
 		if cls._verbose:
-			print(CmdTools.cmdline(cmd))
+			print(cmd_str)
 
 		if discard_stderr:
 			stderr = subprocess.PIPE
@@ -51,16 +52,16 @@ class SubprocessExecutor(object):
 		success = proc.returncode in success_retcodes
 		if cls._verbose:
 			if success:
-				print("Successful: %s" % (CmdTools.cmdline(cmd, env)))
+				print("Successful: %s" % (cmd_str))
 			else:
-				print("Failed: %s" % (CmdTools.cmdline(cmd, env)))
+				print("Failed: %s" % (cmd_str))
 				print(stdout.decode())
 				print()
 
 		# Execution failed.
 		if (not success) and exception_on_failure:
 			if cls._pause_after_failed_execution:
-				print("Execution failed: %s" % (CmdTools.cmdline(cmd, env)))
+				print("Execution failed: %s" % (cmd_str))
 				print("Input: %s" % (stdin))
 				print("Return code: %d (expected one of %s)." % (proc.returncode, str(success_retcodes)))
 				print("stdout was:")
@@ -69,7 +70,7 @@ class SubprocessExecutor(object):
 					print("stderr was:")
 					print(stderr.decode())
 				input("Hit ENTER to continue...")
-			raise Exception("Execution of command failed: %s" % (CmdTools.cmdline(cmd)))
+			raise Exception("Execution of command failed: %s" % (cmd_str))
 
 		if return_stdout:
 			return (success, stdout)
