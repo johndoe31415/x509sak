@@ -64,11 +64,21 @@ class PEMDataTools(object):
 		return "\n".join(lines)
 
 class CmdTools(object):
+	_ENV_ALWAYS_EXPORT = [ "SOFTHSM2_CONF" ]
+
 	@classmethod
 	def cmdline(cls, cmd, env = None):
+		if env is None:
+			env = { }
+		else:
+			env = dict(env)
+		for varname in cls._ENV_ALWAYS_EXPORT:
+			if (varname in os.environ) and (varname not in env):
+				env[varname] = os.environ[varname]
+
 		def escape(text):
-			if (" " in text) or ("\"" in text):
-				return "\"%s\"" % (text.replace("\"", "\\\""))
+			if (" " in text) or ("\"" in text) or ("'" in text) or (";" in text) or ("&" in text):
+				return "'%s'" % (text.replace("'", "\'"))
 			else:
 				return text
 		command = " ".join(escape(arg) for arg in cmd)

@@ -40,6 +40,8 @@ from .FriendlyArgumentParser import baseint
 from .MultiCommand import MultiCommand
 from x509sak.SubprocessExecutor import SubprocessExecutor
 
+_default_so_search_path = "/usr/local/lib:/usr/lib:/usr/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu/openssl-1.0.2/engines:/usr/lib/x86_64-linux-gnu/engines-1.1"
+
 if "X509SAK_VERBOSE_EXECUTION" in os.environ:
 	SubprocessExecutor.set_verbose()
 if "X509SAK_PAUSE_FAILED_EXECUTION" in os.environ:
@@ -82,6 +84,8 @@ def genparser(parser):
 	group = parser.add_mutually_exclusive_group()
 	group.add_argument("-g", "--gen-keyspec", metavar = "keyspec", type = __keyspec, help = "Private key specification to generate. Examples are rsa:1024 or ecc:secp256r1. Defaults to ecc:secp384r1.")
 	group.add_argument("-w", "--hardware-key", metavar = "pkcs11uri", type = str, help = "Use a hardware token which stores the private key. The parameter gives the pkcs11 URI, e.g., 'pkcs11:object=mykey;type=private'")
+	parser.add_argument("--pkcs11-so-search", metavar = "path", type = str, default = _default_so_search_path, help = "Gives the path that will be searched for the \"dynamic\" and \"module\" shared objects. The \"dynamic\" shared object is libpkcs11.so, the \"module\" shared object can be changed by the --pkcs11-module option. The search path defaults to %(default)s.")
+	parser.add_argument("--pkcs11-module", metavar = "sofile", type = str, default = "opensc-pkcs11.so", help = "Name of the \"module\" shared object when using PKCS#11 keys. Defaults to %(default)s.")
 	parser.add_argument("-p", "--parent-ca", metavar = "capath", type = str, help = "Parent CA directory. If omitted, CA certificate will be self-signed.")
 	parser.add_argument("-s", "--subject-dn", metavar = "subject", type = str, default = "/CN=Root CA", help = "CA subject distinguished name. Defaults to %(default)s.")
 	parser.add_argument("-d", "--validity-days", metavar = "days", type = int, default = 365, help = "Number of days that the newly created CA will be valid for. Defaults to %(default)s days.")

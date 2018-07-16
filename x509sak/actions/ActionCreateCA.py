@@ -66,7 +66,7 @@ class ActionCreateCA(BaseAction):
 			OpenSSLTools.create_private_key(private_key_storage, keyspec = keyspec)
 		else:
 			# The key is stored in hardware.
-			private_key_storage = PrivateKeyStorage(PrivateKeyStorageForm.HARDWARE_TOKEN, pkcs11uri = self._args.hardware_key)
+			private_key_storage = PrivateKeyStorage(PrivateKeyStorageForm.HARDWARE_TOKEN, pkcs11uri = self._args.hardware_key, so_search_path = self._args.pkcs11_so_search, module_so = self._args.pkcs11_module)
 
 		camgr.create_ca_structure(private_key_storage = private_key_storage)
 		if self._args.parent_ca is None:

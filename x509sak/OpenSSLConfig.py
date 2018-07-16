@@ -48,8 +48,8 @@ class OpenSSLConfig(object):
 
 	def set_private_key_storage(self, private_key_storage):
 		if private_key_storage.storage_form == PrivateKeyStorageForm.HARDWARE_TOKEN:
-			self._engine_dynamic_path = PathTools.find(private_key_storage.so_search_path, "libpkcs11.so")
-			self._engine_module_path = PathTools.find(private_key_storage.so_search_path, "opensc-pkcs11.so")
+			self._engine_dynamic_path = PathTools.find(private_key_storage.so_search_path, private_key_storage.dynamic_so)
+			self._engine_module_path = PathTools.find(private_key_storage.so_search_path, private_key_storage.module_so)
 
 	def set_custom_x509_extensions(self, custom_x509_extensions):
 		if custom_x509_extensions is None:

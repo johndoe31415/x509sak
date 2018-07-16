@@ -34,7 +34,7 @@ class PrivateKeyStorage(object):
 	_PARAMETER_CONSTRAINTS = {
 		PrivateKeyStorageForm.PEM_FILE:			KwargsChecker(required_arguments = set([ "filename" ]), optional_arguments = set([ "search_path" ])),
 		PrivateKeyStorageForm.DER_FILE:			KwargsChecker(required_arguments = set([ "filename" ]), optional_arguments = set([ "search_path" ])),
-		PrivateKeyStorageForm.HARDWARE_TOKEN:	KwargsChecker(required_arguments = set([ "pkcs11uri" ]), optional_arguments = set([ "so_search_path", "dynamic_so", "module_so" ])),
+		PrivateKeyStorageForm.HARDWARE_TOKEN:	KwargsChecker(required_arguments = set([ "pkcs11uri", "so_search_path" ]), optional_arguments = set([ "dynamic_so", "module_so" ])),
 	}
 
 	def __init__(self, storage_form, **kwargs):
@@ -99,7 +99,17 @@ class PrivateKeyStorage(object):
 	@property
 	def so_search_path(self):
 		assert(self.storage_form == PrivateKeyStorageForm.HARDWARE_TOKEN)
-		return self._parameters.get("so_search_path", "/usr/local/lib:/usr/lib:/usr/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu/openssl-1.0.2/engines:/usr/lib/x86_64-linux-gnu/engines-1.1")
+		return self._parameters["so_search_path"]
+
+	@property
+	def dynamic_so(self):
+		assert(self.storage_form == PrivateKeyStorageForm.HARDWARE_TOKEN)
+		return self._parameters.get("dynamic_so", "libpkcs11.so")
+
+	@property
+	def module_so(self):
+		assert(self.storage_form == PrivateKeyStorageForm.HARDWARE_TOKEN)
+		return self._parameters.get("module_so", "opensc-pkcs11.so")
 
 	def to_dict(self):
 		return {
