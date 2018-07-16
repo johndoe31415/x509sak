@@ -7,6 +7,7 @@ from x509sak.SubprocessExecutor import SubprocessExecutor
 from x509sak.FriendlyArgumentParser import FriendlyArgumentParser
 
 parser = FriendlyArgumentParser()
+parser.add_argument("--exclude", metavar = "class_name", action = "append", default = [ ], help = "Exclude specific test case class(es).")
 parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity.")
 parser.add_argument("target", metavar = "classname", type = str, nargs = "*", help = "Target for testing")
 args = parser.parse_args(sys.argv[1:])
@@ -17,10 +18,13 @@ if args.verbose >= 2:
 	SubprocessExecutor.pause_after_failed_execution()
 
 test_class_names = args.target or sorted(dir(x509sak.tests))
+excluded = set(args.exclude)
 
 test_classes = [ ]
 for test_class_name in test_class_names:
 	if test_class_name.startswith("_"):
+		continue
+	if test_class_name in excluded:
 		continue
 	test_class = getattr(x509sak.tests, test_class_name)
 	test_classes.append(test_class)
