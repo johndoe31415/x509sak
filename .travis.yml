@@ -15,4 +15,5 @@ before_install:
     - pip3 install pyasn1 pyasn1_modules
 
 script: 
-    - python3 -m unittest x509sak.tests
+    - ./run_tests.py -vv
+#   - python3 -m unittest x509sak.tests
