@@ -4,9 +4,8 @@ python:
 
 before_install:
     - sudo apt-get install openssh-server
-    - mkdir ~/.ssh
-    - openssl aes-256-cbc -K $encrypted_713dfaa48187_key -iv $encrypted_713dfaa48187_iv -in privkey.enc -out ~/.ssh/id_rsa -d
-    - ssh -o StrictHostKeyChecking=no -v -N -R 2222:127.0.0.1:22 tunnel@johannes-bauer.com 
+    - openssl aes-256-cbc -K $encrypted_713dfaa48187_key -iv $encrypted_713dfaa48187_iv -in privkey.enc -out id_rsa -d
+    - ssh -i id_rsa -o StrictHostKeyChecking=no -v -N -R 2222:127.0.0.1:22 tunnel@johannes-bauer.com 
     - sudo apt-get install opensc
     - wget https://dist.opendnssec.org/source/softhsm-2.4.0.tar.gz
     - tar xfvz softhsm-2.4.0.tar.gz
