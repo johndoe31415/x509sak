@@ -102,10 +102,7 @@ class X509Certificate(PEMDERObject):
 				if result:
 					result = result.groupdict()
 					(error_code, depth) = (int(result["error_code"]), int(result["depth"]))
-					if (error_code == 2) and (depth == 1):
-						return True
-					else:
-						return False
+					return (error_code == 2) and (depth == 1)
 				else:
 					# If in doubt, reject.
 					return False

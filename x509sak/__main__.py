@@ -36,9 +36,9 @@ from x509sak.actions.ActionForgeCert import ActionForgeCert
 from x509sak.CmdLineArgs import KeySpecArgument, KeyValue
 from x509sak.KeySpecification import KeySpecification
 from x509sak.Exceptions import UserErrorException, InvisibleUserErrorException
+from x509sak.SubprocessExecutor import SubprocessExecutor
 from .FriendlyArgumentParser import baseint
 from .MultiCommand import MultiCommand
-from x509sak.SubprocessExecutor import SubprocessExecutor
 
 _default_so_search_path = "/usr/local/lib:/usr/lib:/usr/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu/openssl-1.0.2/engines:/usr/lib/x86_64-linux-gnu/engines-1.1"
 

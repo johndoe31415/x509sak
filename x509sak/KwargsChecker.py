@@ -31,7 +31,10 @@ class KwargsChecker(object):
 
 	def check_single(self, arg, hint = None):
 		if arg not in self._allowed_arguments:
-			raise InvalidInputExeception("%s is not a valid argument." % (arg))
+			if hint is None:
+				raise InvalidInputException("%s is not a valid argument." % (arg))
+			else:
+				raise InvalidInputException("%s is not a valid argument for %s." % (arg, hint))
 
 	def check(self, args, hint = None):
 		assert(isinstance(args, dict))

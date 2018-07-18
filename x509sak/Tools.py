@@ -25,7 +25,6 @@ import base64
 import textwrap
 import datetime
 import pyasn1.type.univ
-from x509sak.Exceptions import InvalidInputException
 
 class PEMDataTools(object):
 	@classmethod

@@ -20,7 +20,6 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 import unittest
-import pkgutil
 import tempfile
 from x509sak.OpenSSLTools import OpenSSLTools
 from x509sak.KeySpecification import KeySpecification, Cryptosystem

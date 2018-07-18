@@ -19,7 +19,7 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-from pyasn1.type import tag, namedtype, namedval, univ, constraint
+from pyasn1.type import tag, namedtype, univ
 from x509sak.PEMDERObject import PEMDERObject
 from x509sak.Tools import ASN1Tools, ECCTools
 from x509sak.OID import OID, OIDDB

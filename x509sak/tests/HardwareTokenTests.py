@@ -21,7 +21,6 @@
 
 import os
 import unittest
-import pkgutil
 import tempfile
 import urllib
 from x509sak.SubprocessExecutor import SubprocessExecutor
@@ -31,6 +30,12 @@ from x509sak.Exceptions import CmdExecutionFailedException
 
 class SoftHSMInstance(object):
 	_SO_SEARCH_PATH = "/usr/local/lib/softhsm:/usr/lib/softhsm:/usr/local/lib:/usr/lib:/usr/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu/openssl-1.0.2/engines:/usr/lib/x86_64-linux-gnu/engines-1.1"
+
+	def __init__(self):
+		self._softhsm_config_file = None
+		self._softhsm_storage_dir = None
+		self._module_so = None
+		self._env = None
 
 	@property
 	def so_search_path(self):

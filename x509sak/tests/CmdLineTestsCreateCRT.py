@@ -112,7 +112,7 @@ class CmdLineTestsCreateCRT(unittest.TestCase):
 	def test_duplicate_cn(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
 			SubprocessExecutor.run([ self._x509sak, "createca", "-s", "/CN=PARENT", "root_ca" ])
-			output = self._gencert(1)
+			self._gencert(1)
 
 			# Try to reuse same CN for other certificate -- must fail!
 			with self.assertRaises(CmdExecutionFailedException):

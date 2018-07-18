@@ -20,16 +20,9 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 import unittest
-import pkgutil
 import subprocess
 
 class CmdLineTestsBuildChain(unittest.TestCase):
-	@staticmethod
-	def _load_crt(crtname):
-		x509_text = pkgutil.get_data("x509sak.tests.data", crtname).decode("ascii")
-		cert = X509Certificate.from_pem_data(x509_text)[0]
-		return cert
-
 	def assertOcurrences(self, haystack, needle, expected_count):
 		count = haystack.count(needle)
 		self.assertEqual(count, expected_count)

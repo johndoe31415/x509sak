@@ -75,7 +75,7 @@ class NumberTheory(object):
 		'trials' Miller-Rabin rounds."""
 		if p in [ 2, 3 ]:
 			return True
-		for i in range(trials):
+		for _ in range(trials):
 			if not cls._miller_rabin_isprime_round(p):
 				return False
 		return True
