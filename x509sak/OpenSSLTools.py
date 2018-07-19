@@ -152,6 +152,19 @@ class OpenSSLTools(object):
 			SubprocessExecutor.run(cmd, env = { "OPENSSL_CONF": config_file.name })
 
 	@classmethod
+	def ca_create_crl(cls, ca_manager, crl_filename, signing_hash = None, validity_days = None):
+		crl_absfilename = os.path.realpath(crl_filename)
+		openssl_config = cls.__get_config(private_key_storage = ca_manager.private_key_storage)
+		with WorkDir(ca_manager.capath), tempfile.NamedTemporaryFile("w", prefix = "config_", suffix = ".cnf") as config_file:
+			openssl_config.write_to(config_file.name)
+			cmd = [ "openssl", "ca", "-gencrl", "-out", crl_absfilename ]
+			if validity_days is not None:
+				cmd += [ "-crldays", str(validity_days) ]
+			if signing_hash is not None:
+				cmd += [ "-md", signing_hash ]
+			SubprocessExecutor.run(cmd, env = { "OPENSSL_CONF": config_file.name })
+
+	@classmethod
 	def sign_data(cls, signing_algorithm, private_key_filename, payload):
 		cmd = [ "openssl", "dgst", "-sign", private_key_filename, "-%s" % (signing_algorithm.hashfunction) ]
 		(_, signature) = SubprocessExecutor.run(cmd, stdin = payload, discard_stderr = True, return_stdout = True)

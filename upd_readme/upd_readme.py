@@ -2,6 +2,7 @@
 #
 #
 import os
+import re
 import subprocess
 from Patcher import Patcher
 
@@ -19,7 +20,12 @@ stdout = _get_output([ "./x509sak.py" ])
 text = "\n```\n$ ./x509sak.py\n%s\n```\n" % (stdout)
 patcher.patch("summary", text)
 
-commands = [ "buildchain", "graph", "findcrt", "createca", "createcsr", "signcsr", "revokecrt", "genbrokenrsa", "dumpkey", "forgecert" ]
+commands = [ ]
+command_re = re.compile("Begin of cmd-(?P<cmdname>[a-z]+)")
+for match in command_re.finditer(patcher.read()):
+	cmdname = match.groupdict()["cmdname"]
+	commands.append(cmdname)
+
 for command in commands:
 	stdout = _get_output([ "./x509sak.py", command, "--help" ])
 	text = "\n```\n%s\n```\n" % (stdout)

@@ -28,6 +28,7 @@ Options vary from command to command. To receive further info, type
     signcsr            Make a certificate authority (CA) sign a crtificate
                        signing request (CSR) and output the certificate
     revokecrt          Revoke a specific certificate
+    createcrl          Generate a certificate revocation list (CRL)
     genbrokenrsa       Generate broken RSA keys for use in pentetration testing
     dumpkey            Dump a key in text form
     forgecert          Forge an X.509 certificate
@@ -299,9 +300,11 @@ as it can create root CAs.
 
 [//]: # (Begin of cmd-createca -- auto-generated, do not edit!)
 ```
-usage: ./x509sak.py createca [-g keyspec | -w pkcs11uri] [-p capath]
-                             [-s subject] [-d days] [-h alg] [--serial serial]
-                             [-f] [-v] [--help]
+usage: ./x509sak.py createca [-g keyspec | -w pkcs11uri]
+                             [--pkcs11-so-search path]
+                             [--pkcs11-module sofile] [-p capath] [-s subject]
+                             [-d days] [-h alg] [--serial serial] [-f] [-v]
+                             [--help]
                              capath
 
 Create a new certificate authority (CA)
@@ -317,6 +320,19 @@ optional arguments:
                         Use a hardware token which stores the private key. The
                         parameter gives the pkcs11 URI, e.g.,
                         'pkcs11:object=mykey;type=private'
+  --pkcs11-so-search path
+                        Gives the path that will be searched for the "dynamic"
+                        and "module" shared objects. The "dynamic" shared
+                        object is libpkcs11.so, the "module" shared object can
+                        be changed by the --pkcs11-module option. The search
+                        path defaults to
+                        /usr/local/lib:/usr/lib:/usr/lib/x86_64-linux-
+                        gnu:/usr/lib/x86_64-linux-
+                        gnu/openssl-1.0.2/engines:/usr/lib/x86_64-linux-
+                        gnu/engines-1.1.
+  --pkcs11-module sofile
+                        Name of the "module" shared object when using PKCS#11
+                        keys. Defaults to opensc-pkcs11.so.
   -p capath, --parent-ca capath
                         Parent CA directory. If omitted, CA certificate will
                         be self-signed.
@@ -327,7 +343,8 @@ optional arguments:
                         Number of days that the newly created CA will be valid
                         for. Defaults to 365 days.
   -h alg, --hashfnc alg
-                        Hash function to use for signing. Defaults to sha256.
+                        Hash function to use for signing the CA certificate.
+                        Defaults to sha256.
   --serial serial       Serial number to use for root CA certificate.
                         Randomized by default.
   -f, --force           By default, the capath will not be overwritten if it
@@ -474,6 +491,35 @@ optional arguments:
   --help         Show this help page.
 ```
 [//]: # (End of cmd-revokecrt -- auto-generated, do not edit!)
+
+## createcrl
+The createcrl command does what it suggests: It creates a CRL for a given CA
+that is valid for a specified duration and that's signed with a given hash
+function.
+
+[//]: # (Begin of cmd-createcrl -- auto-generated, do not edit!)
+```
+usage: ./x509sak.py createcrl [-d days] [-h alg] [-v] [--help]
+                              capath crt_filename
+
+Generate a certificate revocation list (CRL)
+
+positional arguments:
+  capath                CA which should generate the CRL.
+  crt_filename          Filename of the output CRL.
+
+optional arguments:
+  -d days, --validity-days days
+                        Number of days until the CRLs 'nextUpdate' field will
+                        expire. Defaults to 30 days.
+  -h alg, --hashfnc alg
+                        Hash function to use for signing the CRL. Defaults to
+                        sha256.
+  -v, --verbose         Increase verbosity level. Can be specified multiple
+                        times.
+  --help                Show this help page.
+```
+[//]: # (End of cmd-createcrl -- auto-generated, do not edit!)
 
 ## genbrokenrsa
 With genbrokenrsa it is possible to generate deliberately malformed or odd RSA

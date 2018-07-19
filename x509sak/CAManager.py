@@ -144,8 +144,11 @@ class CAManager(object):
 			extensions.update(custom_x509_extensions)
 		OpenSSLTools.ca_sign_csr(self, csr_filename, crt_filename, subject_dn, validity_days, custom_x509_extensions = extensions, subject_alternative_dns_names = subject_alternative_dns_names, subject_alternative_ip_addresses = subject_alternative_ip_addresses, signing_hash = signing_hash)
 
-	def revoke_crt(self, crt_filename):
-		OpenSSLTools.ca_revoke_crt(self, crt_filename)
+	def revoke_crt(self, *args, **kwargs):
+		OpenSSLTools.ca_revoke_crt(self, *args, **kwargs)
+
+	def create_crl(self, *args, **kwargs):
+		OpenSSLTools.ca_create_crl(self, *args, **kwargs)
 
 	def __create_index_files(self):
 		with open(self.index_filename, "w") as f:

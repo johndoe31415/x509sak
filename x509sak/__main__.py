@@ -30,6 +30,7 @@ from x509sak.actions.ActionCreateCA import ActionCreateCA
 from x509sak.actions.ActionCreateCSR import ActionCreateCSR
 from x509sak.actions.ActionSignCSR import ActionSignCSR
 from x509sak.actions.ActionRevokeCRT import ActionRevokeCRT
+from x509sak.actions.ActionCreateCRL import ActionCreateCRL
 from x509sak.actions.ActionGenerateBrokenRSA import ActionGenerateBrokenRSA
 from x509sak.actions.ActionDumpKey import ActionDumpKey
 from x509sak.actions.ActionForgeCert import ActionForgeCert
@@ -89,7 +90,7 @@ def genparser(parser):
 	parser.add_argument("-p", "--parent-ca", metavar = "capath", type = str, help = "Parent CA directory. If omitted, CA certificate will be self-signed.")
 	parser.add_argument("-s", "--subject-dn", metavar = "subject", type = str, default = "/CN=Root CA", help = "CA subject distinguished name. Defaults to %(default)s.")
 	parser.add_argument("-d", "--validity-days", metavar = "days", type = int, default = 365, help = "Number of days that the newly created CA will be valid for. Defaults to %(default)s days.")
-	parser.add_argument("-h", "--hashfnc", metavar = "alg", type = str, default = "sha256", help = "Hash function to use for signing. Defaults to %(default)s.")
+	parser.add_argument("-h", "--hashfnc", metavar = "alg", type = str, default = "sha256", help = "Hash function to use for signing the CA certificate. Defaults to %(default)s.")
 	parser.add_argument("--serial", metavar = "serial", type = baseint, help = "Serial number to use for root CA certificate. Randomized by default.")
 	parser.add_argument("-f", "--force", action = "store_true", help = "By default, the capath will not be overwritten if it already exists. When this option is specified the complete directory will be erased before creating the new CA.")
 	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
@@ -132,6 +133,14 @@ def genparser(parser):
 	parser.add_argument("capath", metavar = "capath", type = str, help = "CA which created the certificate.")
 	parser.add_argument("crt_filename", metavar = "crt_filename", type = str, help = "Filename of the output certificate.")
 mc.register("revokecrt", "Revoke a specific certificate", genparser, action = ActionRevokeCRT)
+
+def genparser(parser):
+	parser.add_argument("-d", "--validity-days", metavar = "days", type = int, default = 30, help = "Number of days until the CRLs 'nextUpdate' field will expire. Defaults to %(default)s days.")
+	parser.add_argument("-h", "--hashfnc", metavar = "alg", type = str, default = "sha256", help = "Hash function to use for signing the CRL. Defaults to %(default)s.")
+	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
+	parser.add_argument("capath", metavar = "capath", type = str, help = "CA which should generate the CRL.")
+	parser.add_argument("crl_filename", metavar = "crt_filename", type = str, help = "Filename of the output CRL.")
+mc.register("createcrl", "Generate a certificate revocation list (CRL)", genparser, action = ActionCreateCRL, aliases = [ "gencrl" ])
 
 def genparser(parser):
 	parser.add_argument("-d", "--prime-db", metavar = "path", type = str, default = ".", help = "Prime database directory. Defaults to %(default)s and searches for files called primes_{bitlen}.txt in this directory.")

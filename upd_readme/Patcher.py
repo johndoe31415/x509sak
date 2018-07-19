@@ -44,8 +44,7 @@ class Patcher(object):
 		return regex
 
 	def patch(self, key, value):
-		with open(self._filename) as f:
-			text = f.read()
+		text = self.read()
 		regex = self.regex(key)
 		def substitute(match):
 			groups = match.groupdict()
@@ -54,3 +53,7 @@ class Patcher(object):
 		with open(self._filename, "w") as f:
 			f.write(text)
 
+	def read(self):
+		with open(self._filename) as f:
+			text = f.read()
+		return text
