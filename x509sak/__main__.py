@@ -94,7 +94,7 @@ def genparser(parser):
 	parser.add_argument("-f", "--force", action = "store_true", help = "By default, the capath will not be overwritten if it already exists. When this option is specified the complete directory will be erased before creating the new CA.")
 	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
 	parser.add_argument("capath", metavar = "capath", type = str, help = "Directory to create the new CA in.")
-mc.register("createca", "Create a new certificate authority (CA)", genparser, action = ActionCreateCA)
+mc.register("createca", "Create a new certificate authority (CA)", genparser, aliases = [ "genca" ], action = ActionCreateCA)
 
 def genparser(parser):
 	parser.add_argument("-g", "--gen-keyspec", metavar = "keyspec", type = __keyspec, help = "Private key specification to generate for the certificate or CSR when it doesn't exist. Examples are rsa:1024 or ecc:secp256r1.")
@@ -111,7 +111,7 @@ def genparser(parser):
 	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
 	parser.add_argument("key_filename", metavar = "in_key_filename", type = str, help = "Filename of the input private key or PKCS#11 URI (as specified in RFC7512 in case of a hardware key type.")
 	parser.add_argument("out_filename", metavar = "out_filename", type = str, help = "Filename of the output certificate signing request or certificate.")
-mc.register("createcsr", "Create a new certificate signing request (CSR) or certificate", genparser, action = ActionCreateCSR)
+mc.register("createcsr", "Create a new certificate signing request (CSR) or certificate", genparser, aliases = [ "gencsr" ], action = ActionCreateCSR)
 
 def genparser(parser):
 	parser.add_argument("-t", "--template", choices = [ "rootca", "ca", "tls-server", "tls-client" ], help = "Template to use for determining X.509 certificate extensions. Can be one of %(choices)s. By default, no extensions are included except for SAN.")
