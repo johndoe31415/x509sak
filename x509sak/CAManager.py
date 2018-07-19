@@ -85,7 +85,8 @@ class CAManager(object):
 			"private_key_storage":	self._private_key_storage.to_dict(),
 		}
 		with open(self.metadata_filename, "w") as f:
-			json.dump(metadata, f)
+			json.dump(metadata, f, sort_keys = True, indent = 4)
+			f.write("\n")
 
 	def _file(self, filename):
 		return self._capath + filename
