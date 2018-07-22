@@ -118,7 +118,7 @@ def genparser(parser):
 	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
 	parser.add_argument("key_filename", metavar = "in_key_filename", type = str, help = "Filename of the input private key or PKCS#11 URI (as specified in RFC7512 in case of a hardware key type.")
 	parser.add_argument("out_filename", metavar = "out_filename", type = str, help = "Filename of the output certificate signing request or certificate.")
-mc.register("createcsr", "Create a new certificate signing request (CSR) or certificate", genparser, aliases = [ "gencsr" ], action = ActionCreateCSR)
+mc.register("createcsr", "Create a new certificate signing request (CSR) or certificate", genparser, aliases = [ "gencsr", "createcrt", "gencrt" ], action = ActionCreateCSR)
 
 def genparser(parser):
 	parser.add_argument("-t", "--template", choices = [ "rootca", "ca", "tls-server", "tls-client" ], help = "Template to use for determining X.509 certificate extensions. Can be one of %(choices)s. By default, no extensions are included except for SAN.")
