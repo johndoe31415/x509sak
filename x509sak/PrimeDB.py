@@ -51,5 +51,5 @@ class PrimeDB(object):
 			except FileNotFoundError:
 				pass
 		if (bitlen not in self._primes) or (len(self._primes[bitlen]) == 0):
-			raise Exception("Primes of bitlength %d exhausted in databse. Generate new primes and save them to %s." % (bitlen, self._get_filename(bitlen)))
+			raise Exception("Primes of bitlength %d exhausted in database. Generate new primes and save them to %s." % (bitlen, self._get_filename(bitlen)))
 		return self._primes[bitlen].pop()
