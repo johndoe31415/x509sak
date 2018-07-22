@@ -68,7 +68,7 @@ class ActionCreateCA(BaseAction):
 			# The key is stored in hardware.
 			private_key_storage = PrivateKeyStorage(PrivateKeyStorageForm.HARDWARE_TOKEN, pkcs11uri = self._args.hardware_key, so_search_path = self._args.pkcs11_so_search, module_so = self._args.pkcs11_module)
 
-		camgr.create_ca_structure(private_key_storage = private_key_storage)
+		camgr.create_ca_structure(private_key_storage = private_key_storage, unique_subject = not self._args.allow_duplicate_subjects)
 		if self._args.parent_ca is None:
 			# Self-signed root CA
 			camgr.create_selfsigned_ca_cert(subject_dn = self._args.subject_dn, validity_days = self._args.validity_days, signing_hash = self._args.hashfnc, serial = self._args.serial)

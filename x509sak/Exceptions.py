@@ -31,6 +31,7 @@ class ProgrammerErrorException(X509SAKException): pass
 class UnfulfilledPrerequisitesException(UserErrorException): pass
 class InvalidInputException(UserErrorException): pass
 class UnknownFormatException(UserErrorException): pass
+class InvalidCAIndexFileEntry(UserErrorException): pass
 
 class CmdExecutionFailedException(InvisibleUserErrorException): pass
 

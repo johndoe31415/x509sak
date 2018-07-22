@@ -150,18 +150,18 @@ class CAManager(object):
 	def create_crl(self, *args, **kwargs):
 		OpenSSLTools.ca_create_crl(self, *args, **kwargs)
 
-	def __create_index_files(self):
+	def __create_management_files(self, unique_subject = True):
 		with open(self.index_filename, "w") as f:
 			pass
 		with open(self.index_attr_filename, "w") as f:
-			pass
+			print("unique_subject = %s" % ("yes" if unique_subject else "no"), file = f)
 		with open(self.serial_filename, "w") as f:
 			print("01", file = f)
 		with open(self.crlnumber_filename, "w") as f:
 			print("01", file = f)
 		os.mkdir(self.newcerts_dirname)
 
-	def create_ca_structure(self, private_key_storage):
+	def create_ca_structure(self, private_key_storage, unique_subject = True):
 		self._private_key_storage = private_key_storage
 		self._save_metadata()
-		self.__create_index_files()
+		self.__create_management_files(unique_subject = unique_subject)
