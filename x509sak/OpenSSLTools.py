@@ -27,6 +27,7 @@ from x509sak.Exceptions import InvalidInputException, LazyDeveloperException
 from x509sak.PrivateKeyStorage import PrivateKeyStorageForm
 from x509sak.WorkDir import WorkDir
 from x509sak.OpenSSLConfig import OpenSSLConfig
+from x509sak.TempUMask import TempUMask
 
 class OpenSSLTools(object):
 	@classmethod
@@ -177,3 +178,28 @@ class OpenSSLTools(object):
 			success = SubprocessExecutor.run([ "openssl", "ec", "-in", private_key_filename, "-pubout", "-out", public_key_filename ], on_failure = "pass")
 		if not success:
 			raise InvalidInputException("File %s contained neither RSA nor ECC private key." % (private_key_filename))
+
+	@classmethod
+	def create_pkcs12(cls, certificates, private_key_storage = None, modern_crypto = True, passphrase = None):
+		with TempUMask(), tempfile.NamedTemporaryFile("w", prefix = "pkcs_pass_", suffix = ".txt") as pass_file:
+			if passphrase is not None:
+				print(passphrase, file = pass_file)
+			else:
+				print(file = pass_file)
+			pass_file.flush()
+
+			cmd = [ "openssl", "pkcs12", "-export" ]
+			if private_key_storage is None:
+				cmd += [ "-nokeys" ]
+			else:
+				assert(private_key_storage.is_file_based)
+				if private_key_storage.storage_form == PrivateKeyStorageForm.PEM_FILE:
+					cmd += [ "-inkey", private_key_storage.filename ]
+				else:
+					raise LazyDeveloperException(NotImplemented, private_key_storage.storage_form)
+			cmd += [ "-passout", "file:%s" % (pass_file.name) ]
+			if modern_crypto:
+				cmd += [ "-macalg", "sha384", "-maciter", "-keypbe", "aes-128-cbc" ]
+			pem_certificates = "\n".join(certificate.to_pem_data() for certificate in certificates)
+			(success, output) = SubprocessExecutor.run(cmd, stdin = pem_certificates.encode("ascii"), return_stdout = True)
+			return output

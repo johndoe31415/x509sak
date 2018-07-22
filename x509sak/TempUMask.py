@@ -19,22 +19,16 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-class X509SAKException(Exception): pass
+import os
 
-# InvisibleUserException by default is not shown to the user. By default, the
-# command line isn't very helpful, even though it might be the fault of the
-# user.
-class InvisibleUserErrorException(X509SAKException): pass
-class UserErrorException(X509SAKException): pass
-class ProgrammerErrorException(X509SAKException): pass
+class TempUMask(object):
+	def __init__(self, new_umask = 0o077):
+		self._prevmask = None
+		self._newmask = new_umask
 
-class UnfulfilledPrerequisitesException(UserErrorException): pass
-class InvalidUsageException(UserErrorException): pass
-class InvalidInputException(UserErrorException): pass
-class UnknownFormatException(UserErrorException): pass
-class InvalidCAIndexFileEntry(UserErrorException): pass
+	def __enter__(self):
+		self._prevmask = os.umask(self._newmask)
+		return self
 
-class CmdExecutionFailedException(InvisibleUserErrorException): pass
-
-class LazyDeveloperException(ProgrammerErrorException): pass
-class UnknownAlgorithmException(ProgrammerErrorException): pass
+	def __exit__(self, *args):
+		os.umask(self._prevmask)

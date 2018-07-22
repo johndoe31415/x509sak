@@ -29,3 +29,4 @@ from .CmdLineTestsCreateCA import CmdLineTestsCreateCA
 from .CmdLineTestsCreateCRT import CmdLineTestsCreateCRT
 from .HardwareTokenTests import HardwareTokenTests
 from .OpenSSLCAIndexFileTests import OpenSSLCAIndexFileTests
+from .PassphraseGeneratorTests import PassphraseGeneratorTests

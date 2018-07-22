@@ -179,7 +179,10 @@ the chain of trust that you can use to deploy on your webserver.
 usage: ./x509sak.py buildchain [-s path] [--inform {pem,der}]
                                [--order-leaf-to-root] [--allow-partial-chain]
                                [--dont-trust-crtfile]
-                               [--outform {rootonly,intermediates,fullchain,all-except-root,multifile}]
+                               [--outform {rootonly,intermediates,fullchain,all-except-root,multifile,pkcs12}]
+                               [--private-key filename]
+                               [--pkcs12-legacy-crypto]
+                               [--pkcs12-no-passphrase | --pkcs12-passphrase-file filename]
                                [-o file] [-v] [--help]
                                crtfile
 
@@ -214,13 +217,28 @@ optional arguments:
                         the truststore. With this option, only the leaf cert
                         is taken from the crtfile and they're not added to the
                         trusted pool.
-  --outform {rootonly,intermediates,fullchain,all-except-root,multifile}
+  --outform {rootonly,intermediates,fullchain,all-except-root,multifile,pkcs12}
                         Specifies what to write into the output file. Possible
                         options are rootonly, intermediates, fullchain, all-
-                        except-root, multifile. Default is fullchain. When
-                        specifying multifile, a %d format must be included in
-                        the filename to serve as a template; typical printf-
-                        style formatting can be used of course (e.g., %02d).
+                        except-root, multifile, pkcs12. Default is fullchain.
+                        When specifying multifile, a %d format must be
+                        included in the filename to serve as a template;
+                        typical printf-style formatting can be used of course
+                        (e.g., %02d).
+  --private-key filename
+                        When creating a PKCS#12 output file, this private key
+                        can also be included. By default, only the
+                        certificates are exported.
+  --pkcs12-legacy-crypto
+                        Use crappy crypto to encrypt a PKCS#12 exported
+                        private key.
+  --pkcs12-no-passphrase
+                        Do not use any passphrase to protect the PKCS#12
+                        private key.
+  --pkcs12-passphrase-file filename
+                        Read the PKCS#12 passphrase from the first line of the
+                        given file. If omitted, by default a random passphrase
+                        will be generated and printed on stderr.
   -o file, --outfile file
                         Specifies the output filename. Defaults to stdout.
   -v, --verbose         Increase verbosity level. Can be specified multiple
@@ -303,8 +321,8 @@ as it can create root CAs.
 usage: ./x509sak.py createca [-g keyspec | -w pkcs11uri]
                              [--pkcs11-so-search path]
                              [--pkcs11-module sofile] [-p capath] [-s subject]
-                             [-d days] [-h alg] [--serial serial] [-f] [-v]
-                             [--help]
+                             [-d days] [-h alg] [--serial serial]
+                             [--allow-duplicate-subjects] [-f] [-v] [--help]
                              capath
 
 Create a new certificate authority (CA)
@@ -347,6 +365,11 @@ optional arguments:
                         Defaults to sha256.
   --serial serial       Serial number to use for root CA certificate.
                         Randomized by default.
+  --allow-duplicate-subjects
+                        By default, subject distinguished names of all valid
+                        certificates below one CA must be unique. This option
+                        allows the CA to have duplicate distinguished names
+                        for certificate subjects.
   -f, --force           By default, the capath will not be overwritten if it
                         already exists. When this option is specified the
                         complete directory will be erased before creating the
