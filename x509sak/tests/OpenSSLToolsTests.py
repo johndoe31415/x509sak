@@ -121,7 +121,7 @@ class OpenSSLToolsTests(unittest.TestCase):
 			self.assertIn(b"IP Address:99.88.77.66", output)
 			self.assertIn(b"IP Address:ABCD:0:0:0:0:0:0:9876", output)
 
-			OpenSSLTools.create_csr(private_key_storage = private_key_storage, csr_filename = csr_file.name, subject_dn = "/CN=Foobar", subject_alternative_dns_names = [ "muhkuh", "kruckelmuckel" ], subject_alternative_ip_addresses = [ "11.22.33.44", "99.88.77.66", "abcd::9876" ], custom_x509_extensions = { "2.3.4.5.6.7": "ASN1:UTF8String:Never gonna give you up" })
+			OpenSSLTools.create_csr(private_key_storage = private_key_storage, csr_filename = csr_file.name, subject_dn = "/CN=Foobar", subject_alternative_dns_names = [ "muhkuh", "kruckelmuckel" ], subject_alternative_ip_addresses = [ "11.22.33.44", "99.88.77.66", "abcd::9876" ], x509_extensions = { "2.3.4.5.6.7": "ASN1:UTF8String:Never gonna give you up" })
 			(success, output) = SubprocessExecutor.run([ "openssl", "req", "-text" ], stdin = self._read_file(csr_file.name), return_stdout = True)
 			self.assertIn(b"BEGIN CERTIFICATE REQUEST", output)
 			self.assertIn(b"END CERTIFICATE REQUEST", output)
@@ -179,7 +179,7 @@ class OpenSSLToolsTests(unittest.TestCase):
 			self.assertIn(b"IP Address:99.88.77.66", output)
 			self.assertIn(b"IP Address:ABCD:0:0:0:0:0:0:9876", output)
 
-			OpenSSLTools.create_selfsigned_certificate(private_key_storage = private_key_storage, certificate_filename = certificate_file.name, subject_dn = "/CN=Foobar", subject_alternative_dns_names = [ "muhkuh", "kruckelmuckel" ], subject_alternative_ip_addresses = [ "11.22.33.44", "99.88.77.66", "abcd::9876" ], custom_x509_extensions = { "2.3.4.5.6.7": "ASN1:UTF8String:Never gonna give you up" }, validity_days = 365)
+			OpenSSLTools.create_selfsigned_certificate(private_key_storage = private_key_storage, certificate_filename = certificate_file.name, subject_dn = "/CN=Foobar", subject_alternative_dns_names = [ "muhkuh", "kruckelmuckel" ], subject_alternative_ip_addresses = [ "11.22.33.44", "99.88.77.66", "abcd::9876" ], x509_extensions = { "2.3.4.5.6.7": "ASN1:UTF8String:Never gonna give you up" }, validity_days = 365)
 			(success, output) = SubprocessExecutor.run([ "openssl", "x509", "-text" ], stdin = self._read_file(certificate_file.name), return_stdout = True)
 			self.assertIn(b"BEGIN CERTIFICATE--", output)
 			self.assertIn(b"END CERTIFICATE--", output)

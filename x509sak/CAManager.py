@@ -25,6 +25,7 @@ from x509sak.OpenSSLTools import OpenSSLTools
 from x509sak.PrivateKeyStorage import PrivateKeyStorage, PrivateKeyStorageForm
 
 class CAManager(object):
+	_FILTER_EXTENSIONS_FOR_CSR = set([ "authorityKeyIdentifier" ])
 	_EXTENSION_TEMPLATES = {
 		"rootca": {
 			"basicConstraints":			"critical,CA:TRUE",
@@ -131,18 +132,29 @@ class CAManager(object):
 		OpenSSLTools.create_private_key(self._file(self.private_key_storage.filename), keyspec)
 
 	def create_selfsigned_ca_cert(self, subject_dn, validity_days, signing_hash, serial):
-		OpenSSLTools.create_selfsigned_certificate(self.private_key_storage, self.root_crt_filename, subject_dn, validity_days, signing_hash = signing_hash, serial = serial, custom_x509_extensions = self._EXTENSION_TEMPLATES["rootca"])
+		OpenSSLTools.create_selfsigned_certificate(self.private_key_storage, self.root_crt_filename, subject_dn, validity_days, signing_hash = signing_hash, serial = serial, x509_extensions = self._EXTENSION_TEMPLATES["rootca"])
 
 	def create_ca_csr(self, csr_filename, subject_dn):
 		OpenSSLTools.create_csr(self.private_key_storage, csr_filename, subject_dn)
 
-	def sign_csr(self, csr_filename, crt_filename, subject_dn, validity_days, extension_template = None, custom_x509_extensions = None, subject_alternative_dns_names = None, subject_alternative_ip_addresses = None, signing_hash = None):
+	@classmethod
+	def expand_extensions(cls, extension_template = None, custom_x509_extensions = None):
 		extensions = { }
 		if extension_template is not None:
-			extensions.update(self._EXTENSION_TEMPLATES[extension_template])
+			extensions.update(cls._EXTENSION_TEMPLATES[extension_template])
 		if custom_x509_extensions is not None:
 			extensions.update(custom_x509_extensions)
-		OpenSSLTools.ca_sign_csr(self, csr_filename, crt_filename, subject_dn, validity_days, custom_x509_extensions = extensions, subject_alternative_dns_names = subject_alternative_dns_names, subject_alternative_ip_addresses = subject_alternative_ip_addresses, signing_hash = signing_hash)
+		return extensions
+
+	@classmethod
+	def create_csr(cls, private_key_storage, csr_filename, subject_dn, extension_template = None, custom_x509_extensions = None, subject_alternative_dns_names = None, subject_alternative_ip_addresses = None, signing_hash = None):
+		extensions = cls.expand_extensions(extension_template, custom_x509_extensions)
+		extensions = { key: value for (key, value) in extensions.items() if key not in cls._FILTER_EXTENSIONS_FOR_CSR }
+		OpenSSLTools.create_csr(private_key_storage, csr_filename, subject_dn, x509_extensions = extensions, subject_alternative_dns_names = subject_alternative_dns_names, subject_alternative_ip_addresses = subject_alternative_ip_addresses, signing_hash = signing_hash)
+
+	def sign_csr(self, csr_filename, crt_filename, subject_dn, validity_days, extension_template = None, custom_x509_extensions = None, subject_alternative_dns_names = None, subject_alternative_ip_addresses = None, signing_hash = None):
+		extensions = self.expand_extensions(extension_template, custom_x509_extensions)
+		OpenSSLTools.ca_sign_csr(self, csr_filename, crt_filename, subject_dn, validity_days, x509_extensions = extensions, subject_alternative_dns_names = subject_alternative_dns_names, subject_alternative_ip_addresses = subject_alternative_ip_addresses, signing_hash = signing_hash)
 
 	def revoke_crt(self, *args, **kwargs):
 		OpenSSLTools.ca_revoke_crt(self, *args, **kwargs)

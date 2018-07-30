@@ -26,19 +26,19 @@ class OpenSSLConfig(object):
 	def __init__(self):
 		self._engine_dynamic_path = None
 		self._engine_module_path = None
-		self._custom_x509_extensions = { }
+		self._x509_extensions = { }
 		self._subject_alternative_dns_names = [ ]
 		self._subject_alternative_ip_addresses = [ ]
 
 	@property
 	def extension_count(self):
-		return len(self._custom_x509_extensions) + len(self._subject_alternative_dns_names) + len(self._subject_alternative_ip_addresses)
+		return len(self._x509_extensions) + len(self._subject_alternative_dns_names) + len(self._subject_alternative_ip_addresses)
 
 	def dump(self):
 		print("OpenSSL config:")
 		print("    Engine dynamic path : %s" % (self._engine_dynamic_path))
 		print("    Engine MODULE path  : %s" % (self._engine_module_path))
-		print("    X.509 extensions    : %s" % (str(self._custom_x509_extensions)))
+		print("    X.509 extensions    : %s" % (str(self._x509_extensions)))
 		print("    Subj alternative DNS: %s" % (str(self._subject_alternative_dns_names)))
 		print("    Subj alternative IP : %s" % (str(self._subject_alternative_ip_addresses)))
 
@@ -51,10 +51,10 @@ class OpenSSLConfig(object):
 			self._engine_dynamic_path = PathTools.find(private_key_storage.so_search_path, private_key_storage.dynamic_so)
 			self._engine_module_path = PathTools.find(private_key_storage.so_search_path, private_key_storage.module_so)
 
-	def set_custom_x509_extensions(self, custom_x509_extensions):
-		if custom_x509_extensions is None:
-			custom_x509_extensions = { }
-		self._custom_x509_extensions = custom_x509_extensions
+	def set_x509_extensions(self, x509_extensions):
+		if x509_extensions is None:
+			x509_extensions = { }
+		self._x509_extensions = x509_extensions
 
 	def set_subject_alternative_dns_names(self, subject_alternative_dns_names):
 		if subject_alternative_dns_names is None:
@@ -111,7 +111,7 @@ class OpenSSLConfig(object):
 			print("req_extensions = extensions", file = f)
 		print(file = f)
 		print("[extensions]", file = f)
-		for (key, value) in sorted(self._custom_x509_extensions.items()):
+		for (key, value) in sorted(self._x509_extensions.items()):
 			print("%s = %s" % (key, value), file = f)
 
 		alt_names = [ ]

@@ -45,7 +45,7 @@ class ActionCreateCSR(BaseAction):
 		custom_x509_extensions = { custom_x509_extension.key: custom_x509_extension.value for custom_x509_extension in self._args.extension }
 		if self._args.create_crt is None:
 			# Create CSR
-			OpenSSLTools.create_csr(private_key_storage, self._args.out_filename, self._args.subject_dn, custom_x509_extensions = custom_x509_extensions, subject_alternative_dns_names = self._args.san_dns, subject_alternative_ip_addresses = self._args.san_ip)
+			CAManager.create_csr(private_key_storage, self._args.out_filename, self._args.subject_dn, custom_x509_extensions = custom_x509_extensions, extension_template = self._args.template, subject_alternative_dns_names = self._args.san_dns, subject_alternative_ip_addresses = self._args.san_ip, signing_hash = self._args.hashfnc)
 		else:
 			# Create certificate
 			with tempfile.NamedTemporaryFile(prefix = "csr_", suffix = ".pem") as csr:
