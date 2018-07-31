@@ -105,3 +105,15 @@ class CmdLineTestsCreateCA(unittest.TestCase):
 			for eid in range(9):
 				element = ("Elem%02d" % (eid)).encode("ascii")
 				self.assertIn(element, output)
+
+	def test_x509_extension(self):
+		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
+			SubprocessExecutor.run([ self._x509sak, "createca", "--extension", "nameConstraints=critical,permitted;DNS:foo.bar.com", "root_ca" ])
+			(success, output) = SubprocessExecutor.run([ "openssl", "x509", "-text", "-noout", "-in", "root_ca/CA.crt" ], return_stdout = True)
+			self.assertIn(b"DNS:foo.bar.com", output)
+			self.assertNotIn(b"pathlen", output)
+
+			SubprocessExecutor.run([ self._x509sak, "createca", "--extension", "nameConstraints=critical,permitted;DNS:foo.bar.com", "--extension", "basicConstraints=critical,CA:TRUE,pathlen:123", "root_ca2" ])
+			(success, output) = SubprocessExecutor.run([ "openssl", "x509", "-text", "-noout", "-in", "root_ca2/CA.crt" ], return_stdout = True)
+			self.assertIn(b"DNS:foo.bar.com", output)
+			self.assertIn(b"pathlen:123", output)
