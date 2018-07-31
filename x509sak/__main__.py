@@ -183,9 +183,9 @@ try:
 except (UserErrorException, InvisibleUserErrorException) as e:
 	if logging.root.level == logging.DEBUG:
 		traceback.print_exc()
-		print()
+		print(flie = sys.stderr)
 	if isinstance(e, UserErrorException) or (logging.root.level == logging.DEBUG):
-		print("%s: %s" % (e.__class__.__name__, str(e)))
+		print("%s: %s" % (e.__class__.__name__, str(e)), file = sys.stderr)
 	else:
-		print("Failure while processing this request: %s" % (e.__class__.__name__))
+		print("Failure while processing this request: %s" % (e.__class__.__name__), file = sys.stderr)
 	sys.exit(1)
