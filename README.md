@@ -38,9 +38,14 @@ Options vary from command to command. To receive further info, type
 ## Dependencies
 x509sak requires Python3, pyasn1 and pyasn1_modules support. It also relies on
 OpenSSL. If you want graph support, then you also need to install the Graphviz
-package as well. Note that pyasn1_modules inside the Ubuntu tree (as of 3'2018,
-Ubuntu Artful MATE, v0.0.7-0.1) is broken and you'll need to use the version
-that pip3 installs (0.2.1 in my case).
+package as well. Note that pyasn1_modules inside the Ubuntu tree (up until
+3'2018, Ubuntu Artful MATE, v0.0.7-0.1) is broken and you'll need to use a
+newer version (0.2.1 works). In later Ubuntu versions (Bionic) this is already
+included by default.
+
+If you want to run the tests, you should also have SoftHSM2 and opensc
+installed to be able to do PKCS#11 testing (apt-get install opensc softhsm2).
+
 
 ## Using x509sak with hardware tokens
 x509sak works nicely with hardware tokens such as the NitroKey HSM. It does not
