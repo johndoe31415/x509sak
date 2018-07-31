@@ -96,3 +96,12 @@ class CmdLineTestsCreateCA(unittest.TestCase):
 			self.assertTrue((b"Subject: CN=INTERMEDIATE" in output) or (b"Subject: CN = INTERMEDIATE" in output))
 			self.assertIn(b"id-ecPublicKey", output)
 			SubprocessExecutor.run([ "openssl", "ec", "-in", "intermediate_ca/CA.key" ])
+
+	def test_subject_info(self):
+		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
+			SubprocessExecutor.run([ self._x509sak, "createca", "-s", "/CN=Elem00/OU=Elem01/C=DE/SN=Elem02/GN=Elem03/emailAddress=Elem04/title=Elem05/L=Elem06/stateOrProvinceName=Elem07/pseudonym=Elem08", "root_ca" ])
+			(success, output) = SubprocessExecutor.run([ "openssl", "x509", "-subject", "-noout", "-in", "root_ca/CA.crt" ], return_stdout = True)
+			self.assertIn(b"DE", output)
+			for eid in range(9):
+				element = ("Elem%02d" % (eid)).encode("ascii")
+				self.assertIn(element, output)
