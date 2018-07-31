@@ -95,7 +95,7 @@ def genparser(parser):
 	parser.add_argument("-p", "--parent-ca", metavar = "capath", type = str, help = "Parent CA directory. If omitted, CA certificate will be self-signed.")
 	parser.add_argument("-s", "--subject-dn", metavar = "subject", type = str, default = "/CN=Root CA", help = "CA subject distinguished name. Defaults to %(default)s.")
 	parser.add_argument("-d", "--validity-days", metavar = "days", type = int, default = 365, help = "Number of days that the newly created CA will be valid for. Defaults to %(default)s days.")
-	parser.add_argument("-h", "--hashfnc", metavar = "alg", type = str, default = "sha256", help = "Hash function to use for signing the CA certificate. Defaults to %(default)s.")
+	parser.add_argument("-h", "--hashfnc", metavar = "alg", type = str, default = "sha384", help = "Hash function to use for signing the CA certificate. Defaults to %(default)s.")
 	parser.add_argument("--serial", metavar = "serial", type = baseint, help = "Serial number to use for root CA certificate. Randomized by default.")
 	parser.add_argument("--allow-duplicate-subjects", action = "store_true", help = "By default, subject distinguished names of all valid certificates below one CA must be unique. This option allows the CA to have duplicate distinguished names for certificate subjects.")
 	parser.add_argument("-f", "--force", action = "store_true", help = "By default, the capath will not be overwritten if it already exists. When this option is specified the complete directory will be erased before creating the new CA.")
