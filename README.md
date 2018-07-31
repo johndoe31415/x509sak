@@ -41,10 +41,18 @@ OpenSSL. If you want graph support, then you also need to install the Graphviz
 package as well. Note that pyasn1_modules inside the Ubuntu tree (up until
 3'2018, Ubuntu Artful MATE, v0.0.7-0.1) is broken and you'll need to use a
 newer version (0.2.1 works). In later Ubuntu versions (Bionic) this is already
-included by default.
+included by default:
 
-If you want to run the tests, you should also have SoftHSM2 and opensc
-installed to be able to do PKCS#11 testing (apt-get install opensc softhsm2).
+```
+# apt-get install openssl python3-pyasn1 python3-pyasn1-modules graphviz
+```
+
+If you want to run all the tests, you should also have SoftHSM2, OpenSC and the
+PKCS#11 OpenSSL engine driver installed to be able to do PKCS#11 testing:
+
+```
+# apt-get install opensc softhsm2 libengine-pkcs11-openssl
+```
 
 
 ## Using x509sak with hardware tokens
