@@ -31,4 +31,5 @@ class ActionSignCSR(BaseAction):
 			raise Exception("File/directory %s already exists. Remove it first or use --force." % (self._args.crt_filename))
 
 		camgr = CAManager(self._args.capath)
-		camgr.sign_csr(self._args.csr_filename, self._args.crt_filename, extension_template = self._args.template, subject_dn = self._args.subject_dn, validity_days = self._args.validity_days, signing_hash = self._args.hashfnc)
+		custom_x509_extensions = { custom_x509_extension.key: custom_x509_extension.value for custom_x509_extension in self._args.extension }
+		camgr.sign_csr(self._args.csr_filename, self._args.crt_filename, extension_template = self._args.template, custom_x509_extensions = custom_x509_extensions, subject_dn = self._args.subject_dn, validity_days = self._args.validity_days, signing_hash = self._args.hashfnc)

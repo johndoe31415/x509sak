@@ -391,11 +391,12 @@ file configuration used by OpenSSL.
 
 [//]: # (Begin of cmd-createcsr -- auto-generated, do not edit!)
 ```
-usage: ./x509sak.py createcsr [-g keyspec] [-k {pem,der,hw}]
+usage: ./x509sak.py createcsr [-g keyspec] [-k {pem,der,hw}] [-s subject]
+                              [-d days] [-h alg]
                               [-t {rootca,ca,tls-server,tls-client}]
-                              [-s subject] [-d days] [-h alg] [--san-dns FQDN]
-                              [--san-ip IP] [--extension key=value] [-f]
-                              [-c capath] [-v] [--help]
+                              [--san-dns FQDN] [--san-ip IP]
+                              [--extension key=value] [-f] [-c capath] [-v]
+                              [--help]
                               in_key_filename out_filename
 
 Create a new certificate signing request (CSR) or certificate
@@ -414,11 +415,6 @@ optional arguments:
   -k {pem,der,hw}, --keytype {pem,der,hw}
                         Private key type. Can be any of pem, der, hw. Defaults
                         to pem.
-  -t {rootca,ca,tls-server,tls-client}, --template {rootca,ca,tls-server,tls-client}
-                        Template to use for determining X.509 certificate
-                        extensions. Can be one of rootca, ca, tls-server, tls-
-                        client. By default, no extensions are included except
-                        for SAN.
   -s subject, --subject-dn subject
                         Certificate/CSR subject distinguished name. Defaults
                         to /CN=New Cert.
@@ -429,6 +425,11 @@ optional arguments:
                         Hash function to use for signing when creating a
                         certificate. Defaults to the default hash function
                         specified in the CA config.
+  -t {rootca,ca,tls-server,tls-client}, --template {rootca,ca,tls-server,tls-client}
+                        Template to use for determining X.509 certificate
+                        extensions. Can be one of rootca, ca, tls-server, tls-
+                        client. By default, no extensions are included except
+                        for SAN.
   --san-dns FQDN        Subject Alternative DNS name to include in the
                         certificate or CSR. Can be specified multiple times.
   --san-ip IP           Subject Alternative IP address to include in the
@@ -454,9 +455,10 @@ by a CA private key.
 
 [//]: # (Begin of cmd-signcsr -- auto-generated, do not edit!)
 ```
-usage: ./x509sak.py signcsr [-t {rootca,ca,tls-server,tls-client}]
-                            [-s subject] [--san-dns FQDN] [--san-ip IP]
-                            [-d days] [-h alg] [-f] [-v] [--help]
+usage: ./x509sak.py signcsr [-s subject] [-d days] [-h alg]
+                            [-t {rootca,ca,tls-server,tls-client}]
+                            [--san-dns FQDN] [--san-ip IP]
+                            [--extension key=value] [-f] [-v] [--help]
                             capath in_csr_filename out_crt_filename
 
 Make a certificate authority (CA) sign a crtificate signing request (CSR) and
@@ -468,24 +470,28 @@ positional arguments:
   out_crt_filename      Filename of the output certificate.
 
 optional arguments:
-  -t {rootca,ca,tls-server,tls-client}, --template {rootca,ca,tls-server,tls-client}
-                        Template to use for determining X.509 certificate
-                        extensions. Can be one of rootca, ca, tls-server, tls-
-                        client. By default, no extensions are included except
-                        for SAN.
   -s subject, --subject-dn subject
                         Certificate's subject distinguished name. Defaults to
                         the subject given in the CSR.
-  --san-dns FQDN        Subject Alternative DNS name to include in the
-                        certificate. Can be specified multiple times.
-  --san-ip IP           Subject Alternative IP address to include in the CRT.
-                        Can be specified multiple times.
   -d days, --validity-days days
                         Number of days that the newly created certificate will
                         be valid for. Defaults to 365 days.
   -h alg, --hashfnc alg
                         Hash function to use for signing. Defaults to the
                         default hash function specified in the CA config.
+  -t {rootca,ca,tls-server,tls-client}, --template {rootca,ca,tls-server,tls-client}
+                        Template to use for determining X.509 certificate
+                        extensions. Can be one of rootca, ca, tls-server, tls-
+                        client. By default, no extensions are included except
+                        for SAN.
+  --san-dns FQDN        Subject Alternative DNS name to include in the
+                        certificate. Can be specified multiple times.
+  --san-ip IP           Subject Alternative IP address to include in the CRT.
+                        Can be specified multiple times.
+  --extension key=value
+                        Additional certificate X.509 extension to include on
+                        top of the extensions in the template and by the SAN
+                        parameters. Can be specified multiple times.
   -f, --force           Overwrite the output certificate file if it already
                         exists.
   -v, --verbose         Increase verbosity level. Can be specified multiple

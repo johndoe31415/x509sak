@@ -106,10 +106,10 @@ mc.register("createca", "Create a new certificate authority (CA)", genparser, al
 def genparser(parser):
 	parser.add_argument("-g", "--gen-keyspec", metavar = "keyspec", type = __keyspec, help = "Private key specification to generate for the certificate or CSR when it doesn't exist. Examples are rsa:1024 or ecc:secp256r1.")
 	parser.add_argument("-k", "--keytype", choices = [ "pem", "der", "hw" ], default = "pem", help = "Private key type. Can be any of %(choices)s. Defaults to %(default)s.")
-	parser.add_argument("-t", "--template", choices = [ "rootca", "ca", "tls-server", "tls-client" ], help = "Template to use for determining X.509 certificate extensions. Can be one of %(choices)s. By default, no extensions are included except for SAN.")
 	parser.add_argument("-s", "--subject-dn", metavar = "subject", type = str, default = "/CN=New Cert", help = "Certificate/CSR subject distinguished name. Defaults to %(default)s.")
 	parser.add_argument("-d", "--validity-days", metavar = "days", type = int, default = 365, help = "When creating a certificate, number of days that the certificate will be valid for. Defaults to %(default)s days.")
 	parser.add_argument("-h", "--hashfnc", metavar = "alg", type = str, default = None, help = "Hash function to use for signing when creating a certificate. Defaults to the default hash function specified in the CA config.")
+	parser.add_argument("-t", "--template", choices = [ "rootca", "ca", "tls-server", "tls-client" ], help = "Template to use for determining X.509 certificate extensions. Can be one of %(choices)s. By default, no extensions are included except for SAN.")
 	parser.add_argument("--san-dns", metavar = "FQDN", type = str, action = "append", default = [ ], help = "Subject Alternative DNS name to include in the certificate or CSR. Can be specified multiple times.")
 	parser.add_argument("--san-ip", metavar = "IP", type = str, action = "append", default = [ ], help = "Subject Alternative IP address to include in the certificate or CSR. Can be specified multiple times.")
 	parser.add_argument("--extension", metavar = "key=value", type = KeyValue, action = "append", default = [ ], help = "Additional certificate X.509 extension to include on top of the extensions in the template and by the SAN parameters. Can be specified multiple times.")
@@ -121,12 +121,13 @@ def genparser(parser):
 mc.register("createcsr", "Create a new certificate signing request (CSR) or certificate", genparser, aliases = [ "gencsr", "createcrt", "gencrt" ], action = ActionCreateCSR)
 
 def genparser(parser):
-	parser.add_argument("-t", "--template", choices = [ "rootca", "ca", "tls-server", "tls-client" ], help = "Template to use for determining X.509 certificate extensions. Can be one of %(choices)s. By default, no extensions are included except for SAN.")
 	parser.add_argument("-s", "--subject-dn", metavar = "subject", type = str, help = "Certificate's subject distinguished name. Defaults to the subject given in the CSR.")
-	parser.add_argument("--san-dns", metavar = "FQDN", type = str, action = "append", default = [ ], help = "Subject Alternative DNS name to include in the certificate. Can be specified multiple times.")
-	parser.add_argument("--san-ip", metavar = "IP", type = str, action = "append", default = [ ], help = "Subject Alternative IP address to include in the CRT. Can be specified multiple times.")
 	parser.add_argument("-d", "--validity-days", metavar = "days", type = int, default = 365, help = "Number of days that the newly created certificate will be valid for. Defaults to %(default)s days.")
 	parser.add_argument("-h", "--hashfnc", metavar = "alg", type = str, default = None, help = "Hash function to use for signing. Defaults to the default hash function specified in the CA config.")
+	parser.add_argument("-t", "--template", choices = [ "rootca", "ca", "tls-server", "tls-client" ], help = "Template to use for determining X.509 certificate extensions. Can be one of %(choices)s. By default, no extensions are included except for SAN.")
+	parser.add_argument("--san-dns", metavar = "FQDN", type = str, action = "append", default = [ ], help = "Subject Alternative DNS name to include in the certificate. Can be specified multiple times.")
+	parser.add_argument("--san-ip", metavar = "IP", type = str, action = "append", default = [ ], help = "Subject Alternative IP address to include in the CRT. Can be specified multiple times.")
+	parser.add_argument("--extension", metavar = "key=value", type = KeyValue, action = "append", default = [ ], help = "Additional certificate X.509 extension to include on top of the extensions in the template and by the SAN parameters. Can be specified multiple times.")
 	parser.add_argument("-f", "--force", action = "store_true", help = "Overwrite the output certificate file if it already exists.")
 	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
 	parser.add_argument("capath", metavar = "capath", type = str, help = "Directory of the signing CA.")
