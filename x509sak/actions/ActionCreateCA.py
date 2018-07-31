@@ -53,7 +53,7 @@ class ActionCreateCA(BaseAction):
 
 
 		camgr = CAManager(self._args.capath)
-
+		custom_x509_extensions = { custom_x509_extension.key: custom_x509_extension.value for custom_x509_extension in self._args.extension }
 		if (self._args.gen_keyspec is not None) or ((self._args.gen_keyspec is None) and (self._args.hardware_key is None)):
 			# We need to generate a key.
 			if self._args.gen_keyspec is not None:
@@ -71,7 +71,7 @@ class ActionCreateCA(BaseAction):
 		camgr.create_ca_structure(private_key_storage = private_key_storage, unique_subject = not self._args.allow_duplicate_subjects)
 		if self._args.parent_ca is None:
 			# Self-signed root CA
-			camgr.create_selfsigned_ca_cert(subject_dn = self._args.subject_dn, validity_days = self._args.validity_days, signing_hash = self._args.hashfnc, serial = self._args.serial)
+			camgr.create_selfsigned_ca_cert(subject_dn = self._args.subject_dn, validity_days = self._args.validity_days, custom_x509_extensions = custom_x509_extensions, signing_hash = self._args.hashfnc, serial = self._args.serial)
 
 			# Create certificate chain file that only consists of our
 			# self-signed certificate
@@ -83,7 +83,7 @@ class ActionCreateCA(BaseAction):
 			with tempfile.NamedTemporaryFile("w", prefix = "ca_", suffix = ".csr") as csr:
 				camgr.create_ca_csr(csr_filename = csr.name, subject_dn = self._args.subject_dn)
 				parent_ca = CAManager(self._args.parent_ca)
-				parent_ca.sign_csr(csr.name, camgr.root_crt_filename, subject_dn = self._args.subject_dn, validity_days = self._args.validity_days, extension_template = "ca", signing_hash = self._args.hashfnc)
+				parent_ca.sign_csr(csr.name, camgr.root_crt_filename, subject_dn = self._args.subject_dn, validity_days = self._args.validity_days, custom_x509_extensions = custom_x509_extensions, extension_template = "ca", signing_hash = self._args.hashfnc)
 
 			# Create a certificate chain by appending the parent chain to our certificate
 			if os.path.isfile(self._args.parent_ca + "/chain.crt"):

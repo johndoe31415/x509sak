@@ -98,6 +98,7 @@ def genparser(parser):
 	parser.add_argument("-h", "--hashfnc", metavar = "alg", type = str, default = "sha384", help = "Hash function to use for signing the CA certificate. Defaults to %(default)s.")
 	parser.add_argument("--serial", metavar = "serial", type = baseint, help = "Serial number to use for root CA certificate. Randomized by default.")
 	parser.add_argument("--allow-duplicate-subjects", action = "store_true", help = "By default, subject distinguished names of all valid certificates below one CA must be unique. This option allows the CA to have duplicate distinguished names for certificate subjects.")
+	parser.add_argument("--extension", metavar = "key=value", type = KeyValue, action = "append", default = [ ], help = "Additional certificate X.509 extension to include on top of the default CA extensions. Can be specified multiple times.")
 	parser.add_argument("-f", "--force", action = "store_true", help = "By default, the capath will not be overwritten if it already exists. When this option is specified the complete directory will be erased before creating the new CA.")
 	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
 	parser.add_argument("capath", metavar = "capath", type = str, help = "Directory to create the new CA in.")

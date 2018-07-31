@@ -131,12 +131,6 @@ class CAManager(object):
 	def __create_ca_key(self, keyspec):
 		OpenSSLTools.create_private_key(self._file(self.private_key_storage.filename), keyspec)
 
-	def create_selfsigned_ca_cert(self, subject_dn, validity_days, signing_hash, serial):
-		OpenSSLTools.create_selfsigned_certificate(self.private_key_storage, self.root_crt_filename, subject_dn, validity_days, signing_hash = signing_hash, serial = serial, x509_extensions = self._EXTENSION_TEMPLATES["rootca"])
-
-	def create_ca_csr(self, csr_filename, subject_dn):
-		OpenSSLTools.create_csr(self.private_key_storage, csr_filename, subject_dn)
-
 	@classmethod
 	def expand_extensions(cls, extension_template = None, custom_x509_extensions = None):
 		extensions = { }
@@ -145,6 +139,13 @@ class CAManager(object):
 		if custom_x509_extensions is not None:
 			extensions.update(custom_x509_extensions)
 		return extensions
+
+	def create_selfsigned_ca_cert(self, subject_dn, validity_days, signing_hash, serial, custom_x509_extensions = None):
+		x509_extensions = self.expand_extensions(extension_template = "rootca", custom_x509_extensions = custom_x509_extensions)
+		OpenSSLTools.create_selfsigned_certificate(self.private_key_storage, self.root_crt_filename, subject_dn, validity_days, signing_hash = signing_hash, serial = serial, x509_extensions = x509_extensions)
+
+	def create_ca_csr(self, csr_filename, subject_dn):
+		OpenSSLTools.create_csr(self.private_key_storage, csr_filename, subject_dn)
 
 	@classmethod
 	def create_csr(cls, private_key_storage, csr_filename, subject_dn, extension_template = None, custom_x509_extensions = None, subject_alternative_dns_names = None, subject_alternative_ip_addresses = None, signing_hash = None):
