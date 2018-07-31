@@ -15,8 +15,8 @@ class SelectiveTestRunner(object):
 		self._args = args
 		self._root_modules = [ root_module ]
 		self._suite = unittest.TestSuite()
-		self._include_regexes = [ re.compile(text) for text in self._args.target ]
-		self._exclude_regexes = [ re.compile(text) for text in self._args.exclude ]
+		self._include_regexes = [ re.compile(text, flags = re.IGNORECASE) for text in self._args.target ]
+		self._exclude_regexes = [ re.compile(text, flags = re.IGNORECASE) for text in self._args.exclude ]
 		self._testcases = self._enumerate_all()
 
 	def _test_included(self, test):
