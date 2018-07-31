@@ -27,6 +27,7 @@ from .OpenSSLToolsTests import OpenSSLToolsTests
 from .CmdLineTestsBuildChain import CmdLineTestsBuildChain
 from .CmdLineTestsCreateCA import CmdLineTestsCreateCA
 from .CmdLineTestsCreateCRT import CmdLineTestsCreateCRT
+from .CmdLineTestsSignCSR import CmdLineTestsSignCSR
 from .HardwareTokenTests import HardwareTokenTests
 from .OpenSSLCAIndexFileTests import OpenSSLCAIndexFileTests
 from .PassphraseGeneratorTests import PassphraseGeneratorTests
