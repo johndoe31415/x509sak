@@ -35,6 +35,7 @@ from x509sak.actions.ActionGenerateBrokenRSA import ActionGenerateBrokenRSA
 from x509sak.actions.ActionDumpKey import ActionDumpKey
 from x509sak.actions.ActionExamineCert import ActionExamineCert
 from x509sak.actions.ActionForgeCert import ActionForgeCert
+from x509sak.actions.ActionScrape import ActionScrape
 from x509sak.CmdLineArgs import KeySpecArgument, KeyValue
 from x509sak.KeySpecification import KeySpecification
 from x509sak.Exceptions import UserErrorException, InvisibleUserErrorException
@@ -184,6 +185,14 @@ def genparser(parser):
 	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
 	parser.add_argument("crt_filename", metavar = "crt_filename", type = str, help = "Filename of the input certificate or certificates PEM format.")
 mc.register("forgecert", "Forge an X.509 certificate", genparser, action = ActionForgeCert)
+
+def genparser(parser):
+	parser.add_argument("--outmask", metavar = "mask", default = "scrape_%(offset)06x_%(type)s.%(ext)s", help = "Filename mask that's used for output. Defaults to %(default)s and can use printf-style substitutions offset, type and ext.")
+	parser.add_argument("-o", "--outdir", metavar = "path", type = str, default = "scrape", help = "Output directory. Defaults to %(default)s.")
+	parser.add_argument("-f", "--force", action = "store_true", help = "Overwrite key/certificate files and proceed even if outdir already exists.")
+	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
+	parser.add_argument("filename", metavar = "filename", type = str, help = "File that should be scraped for certificates or keys.")
+mc.register("scrape", "Scrape file for certificates or keys", genparser, action = ActionScrape, visible = False)
 
 try:
 	mc.run(sys.argv[1:])
