@@ -1,0 +1,21 @@
+#!/usr/bin/python3
+#
+#
+import math
+
+# 1024 = 80
+# 2048 = 112
+# 3k = 128
+# 7680 = 192
+# 15360 = 256
+
+def gnfs_complexity_bits(n_bits):
+	# exp((log(n)^1/3) * log(log(n))^2/3)
+	log_n = n_bits * math.log(2)
+	#return 2.5579 * (log_n ** (1/3)) * (math.log(log_n) ** (2/3))
+	return 2.5596 * (log_n ** (1/3)) * (math.log(log_n) ** (2/3))
+	#return 2.183 * (n_bits ** (1/3)) * (math.log(n_bits) ** (2/3))
+	#return 1.70997 * (n_bits ** (1/3)) * (math.log(n_bits, 2) ** (2/3))
+
+for i in [ 1024, 2048, 3072, 7680, 15360 ]:
+	print("%5d %f" % (i, gnfs_complexity_bits(i)))

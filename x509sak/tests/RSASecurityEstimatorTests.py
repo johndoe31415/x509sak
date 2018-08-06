@@ -19,16 +19,21 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-from .X509CertificateTests import X509CertificateTests
-from .CertificatePoolTests import CertificatePoolTests
-from .NumberTheoryTests import NumberTheoryTests
-from .PublicKeyTests import PublicKeyTests
-from .OpenSSLToolsTests import OpenSSLToolsTests
-from .CmdLineTestsBuildChain import CmdLineTestsBuildChain
-from .CmdLineTestsCreateCA import CmdLineTestsCreateCA
-from .CmdLineTestsCreateCRT import CmdLineTestsCreateCRT
-from .CmdLineTestsSignCSR import CmdLineTestsSignCSR
-from .HardwareTokenTests import HardwareTokenTests
-from .OpenSSLCAIndexFileTests import OpenSSLCAIndexFileTests
-from .PassphraseGeneratorTests import PassphraseGeneratorTests
-from .RSASecurityEstimatorTests import RSASecurityEstimatorTests
+import unittest
+from x509sak.SecurityEstimator import RSASecurityEstimator
+
+class RSASecurityEstimatorTests(unittest.TestCase):
+	def test_rsa_modulus_bitlength(self):
+		# NIST SP800-57 Part 1 revision 4 (January 2016)
+		expected_rsa_security = {
+			1024:	80,
+			2048:	112,
+			3072:	128,
+			7680:	192,
+			15360:	256,
+		}
+		for (modulus_bitlength, expected_security) in expected_rsa_security.items():
+			n = 2 ** modulus_bitlength
+			analysis = RSASecurityEstimator().analyze_n(n)
+			deviation = analysis["bits"] - expected_security
+			self.assertLessEqual(abs(deviation), 8)

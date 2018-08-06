@@ -19,16 +19,30 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-from .X509CertificateTests import X509CertificateTests
-from .CertificatePoolTests import CertificatePoolTests
-from .NumberTheoryTests import NumberTheoryTests
-from .PublicKeyTests import PublicKeyTests
-from .OpenSSLToolsTests import OpenSSLToolsTests
-from .CmdLineTestsBuildChain import CmdLineTestsBuildChain
-from .CmdLineTestsCreateCA import CmdLineTestsCreateCA
-from .CmdLineTestsCreateCRT import CmdLineTestsCreateCRT
-from .CmdLineTestsSignCSR import CmdLineTestsSignCSR
-from .HardwareTokenTests import HardwareTokenTests
-from .OpenSSLCAIndexFileTests import OpenSSLCAIndexFileTests
-from .PassphraseGeneratorTests import PassphraseGeneratorTests
-from .RSASecurityEstimatorTests import RSASecurityEstimatorTests
+import sys
+from x509sak.BaseAction import BaseAction
+from x509sak import CertificatePool, X509Certificate
+from x509sak.Exceptions import InvalidInputException
+
+class ActionExamineCert(BaseAction):
+	def __init__(self, cmdname, args):
+		BaseAction.__init__(self, cmdname, args)
+
+		crts = X509Certificate.read_pemfile(args.crt_filename)
+		if len(crts) == 0:
+			raise InvalidInputException("No certificates found inside %s." % (args.crt_filename))
+		for (crtno, crt) in enumerate(crts, 1):
+			if len(crts) > 1:
+				print("Certificate #%d:" % (crtno))
+			self._analyze_crt(crt)
+
+	def _analyze_crt(self, crt):
+		analysis = crt.analyze()
+		print(analysis)
+		print("Subject   : %s" % (analysis["subject"]["pretty"]))
+		print("Issuer    : %s" % (analysis["issuer"]["pretty"]))
+		print("Public key: %s" % (analysis["pubkey"]["pretty"]))
+
+#		print(crt.signature_algorithm)
+#		print(crt.extensions)
+#		print(crt)

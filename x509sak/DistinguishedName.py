@@ -62,6 +62,12 @@ class DistinguishedName(object):
 	def pretty_str(self):
 		return self.rfc2253_str
 
+	def analyze(self):
+		return {
+			"rfc2253":	self.rfc2253_str,
+			"pretty":	self.pretty_str,
+		}
+
 	def __eq__(self, other):
 		return self._oid_value_list == other._oid_value_list
 

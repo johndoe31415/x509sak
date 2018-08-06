@@ -33,6 +33,7 @@ from x509sak.actions.ActionRevokeCRT import ActionRevokeCRT
 from x509sak.actions.ActionCreateCRL import ActionCreateCRL
 from x509sak.actions.ActionGenerateBrokenRSA import ActionGenerateBrokenRSA
 from x509sak.actions.ActionDumpKey import ActionDumpKey
+from x509sak.actions.ActionExamineCert import ActionExamineCert
 from x509sak.actions.ActionForgeCert import ActionForgeCert
 from x509sak.CmdLineArgs import KeySpecArgument, KeyValue
 from x509sak.KeySpecification import KeySpecification
@@ -168,6 +169,12 @@ def genparser(parser):
 	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
 	parser.add_argument("key_filename", metavar = "key_filename", type = str, help = "Filename of the input key file in PEM format.")
 mc.register("dumpkey", "Dump a key in text form", genparser, action = ActionDumpKey)
+
+def genparser(parser):
+	parser.add_argument("-n", "--server-name", metavar = "fqdn", type = str, help = "Check if the certificate is valid for the given hostname.")
+	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
+	parser.add_argument("crt_filename", metavar = "crt_filename", type = str, help = "Filename of the input certificate or certificates in PEM format.")
+mc.register("examinecert", "Examine an X.509 certificate", genparser, action = ActionExamineCert, aliases = [ "analyze" ], visible = False)
 
 def genparser(parser):
 	parser.add_argument("--key_template", metavar = "path", default = "forged_%02d.key", help = "Output template for key files. Should contain '%%d' to indicate element in chain. Defaults to '%(default)s'.")

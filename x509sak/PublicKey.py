@@ -28,6 +28,7 @@ from x509sak.PEMDERObject import PEMDERObject
 from x509sak.Tools import ASN1Tools, ECCTools
 from x509sak.KeySpecification import KeySpecification, Cryptosystem
 from x509sak.Exceptions import UnknownAlgorithmException, LazyDeveloperException
+from x509sak.SecurityEstimator import SecurityEstimator
 
 class PublicKey(PEMDERObject):
 	_PEM_MARKER = "PUBLIC KEY"
@@ -105,6 +106,24 @@ class PublicKey(PEMDERObject):
 			raise LazyDeveloperException(NotImplemented, cryptosystem)
 		asn1["subjectPublicKey"] = ASN1Tools.bytes2bitstring(inner_key)
 		return cls.from_asn1(asn1)
+
+	def analyze(self):
+		result = {
+			"cryptosystem":	self.cryptosystem.name,
+			"specific": { },
+		}
+		if self.cryptosystem == Cryptosystem.RSA:
+			result["pretty"] = "RSA with %d bit modulus" % (self.n.bit_length())
+			result["specific"]["security"] = SecurityEstimator.algorithm("rsa").analyze(self.n, self.e)
+			result["specific"]["bits"] = self.n.bit_length()
+			result["specific"]["n"] = self.n
+			result["specific"]["e"] = self.e
+		elif self.cryptosystem == Cryptosystem.ECC:
+			result["pretty"] = "ECC on %s" % ("TODO")
+			result["specific"]["security"] = SecurityEstimator.algorithm("ecc").analyze(self.n, self.e)
+		else:
+			raise LazyDeveloperException(NotImplemented, self.cryptosystem)
+		return result
 
 	def __getattr__(self, key):
 		if key in self._key:

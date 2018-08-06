@@ -22,6 +22,7 @@
 import re
 import logging
 import tempfile
+import base64
 import pyasn1.codec.der.encoder
 from pyasn1_modules import rfc2459
 from x509sak.SubprocessExecutor import SubprocessExecutor
@@ -114,6 +115,14 @@ class X509Certificate(PEMDERObject):
 		print("# Hash    : %s" % (self.hashval.hex()), file = f)
 		print(self.to_pem_data(), file = f)
 		print(file = f)
+
+	def analyze(self):
+		return {
+			"subject":	self.subject.analyze(),
+			"issuer":	self.issuer.analyze(),
+			"pubkey":	self.pubkey.analyze(),
+			"raw":		base64.b64encode(self.der_data).decode("ascii"),
+		}
 
 	def __str__(self):
 		return "X509Certificate<subject = %s, issuer = %s>" % (self.subject.rfc2253_str, self.issuer.rfc2253_str)
