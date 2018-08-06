@@ -335,7 +335,8 @@ usage: ./x509sak.py createca [-g keyspec | -w pkcs11uri]
                              [--pkcs11-so-search path]
                              [--pkcs11-module sofile] [-p capath] [-s subject]
                              [-d days] [-h alg] [--serial serial]
-                             [--allow-duplicate-subjects] [-f] [-v] [--help]
+                             [--allow-duplicate-subjects]
+                             [--extension key=value] [-f] [-v] [--help]
                              capath
 
 Create a new certificate authority (CA)
@@ -375,7 +376,7 @@ optional arguments:
                         for. Defaults to 365 days.
   -h alg, --hashfnc alg
                         Hash function to use for signing the CA certificate.
-                        Defaults to sha256.
+                        Defaults to sha384.
   --serial serial       Serial number to use for root CA certificate.
                         Randomized by default.
   --allow-duplicate-subjects
@@ -383,6 +384,10 @@ optional arguments:
                         certificates below one CA must be unique. This option
                         allows the CA to have duplicate distinguished names
                         for certificate subjects.
+  --extension key=value
+                        Additional certificate X.509 extension to include on
+                        top of the default CA extensions. Can be specified
+                        multiple times.
   -f, --force           By default, the capath will not be overwritten if it
                         already exists. When this option is specified the
                         complete directory will be erased before creating the
