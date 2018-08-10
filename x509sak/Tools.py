@@ -151,3 +151,13 @@ class PathTools(object):
 			if os.path.isfile(directory + filename):
 				return full_filename
 		return None
+
+class JSONTools(object):
+	@classmethod
+	def encoder_default(cls, obj):
+		if isinstance(obj, datetime.datetime):
+			return obj.strftime("%Y-%m-%d %H:%M:%S")
+		elif isinstance(obj, set):
+			return sorted(list(obj))
+		else:
+			raise TypeError("Unable to JSON encode: %s" % (type(obj)))

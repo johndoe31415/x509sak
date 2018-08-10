@@ -32,6 +32,7 @@ Options vary from command to command. To receive further info, type
     genbrokenrsa       Generate broken RSA keys for use in pentetration testing
     dumpkey            Dump a key in text form
     forgecert          Forge an X.509 certificate
+    scrape             Scrape input file for certificates, keys or signatures
 ```
 [//]: # (End of summary -- auto-generated, do not edit!)
 
@@ -679,6 +680,94 @@ optional arguments:
   --help                Show this help page.
 ```
 [//]: # (End of cmd-forgecert -- auto-generated, do not edit!)
+
+## scrape
+With the scrape tool you can analyze binary blobs or whole disks and search
+them for PEM or DER-encoded blobs. This is interesting if, for example, you're
+doing firmware analysis. DER analysis is quite slow because for every potential
+sequence beginning (0x30), decoding of all supported schema is attempted. It
+can be sped up if you're only looking for a particular data type instead of all
+of them. In contrast, scanning for PEM data is much faster because PEM markers
+have a much smaller false positive rate. For every occurrence that is found
+inside the analyzed file, the contents are written to a own file in the output
+directory.
+
+[//]: # (Begin of cmd-scrape -- auto-generated, do not edit!)
+```
+usage: ./x509sak.py scrape [--no-pem] [--no-der] [-i class] [-e class]
+                           [--extract-nested] [--keep-original-der]
+                           [--allow-non-unique-blobs]
+                           [--disable-der-sanity-checks] [--outmask mask]
+                           [--write-json filename] [-o path] [-f] [-s offset]
+                           [-l length] [-v] [--help]
+                           filename
+
+Scrape input file for certificates, keys or signatures
+
+positional arguments:
+  filename              File that should be scraped for certificates or keys.
+
+optional arguments:
+  --no-pem              Do not search for any PEM encoded blobs.
+  --no-der              Do not search for any DER encoded blobs.
+  -i class, --include-dertype class
+                        Include the specified DER handler class in the search.
+                        Defaults to all known classes if omitted. Can be
+                        specified multiple times and must be one of crt,
+                        dsa_key, dsa_sig, ec_key, pkcs12, pubkey, rsa_key.
+  -e class, --exclude-dertype class
+                        Exclude the specified DER handler class in the search.
+                        Can be specified multiple times and must be one of
+                        crt, dsa_key, dsa_sig, ec_key, pkcs12, pubkey,
+                        rsa_key.
+  --extract-nested      By default, fully overlapping blobs will not be
+                        extracted. For example, every X.509 certificate also
+                        contains a public key inside that would otherwise be
+                        found as well. When this option is given, any blobs
+                        are extracted regardless if they're fully contained in
+                        another blob or not.
+  --keep-original-der   When finding DER blobs, do not convert them to PEM
+                        format, but leave them as-is.
+  --allow-non-unique-blobs
+                        For all matches, the SHA256 hash is used to determine
+                        if the data is unique and findings are by default only
+                        written to disk once. With this option, blobs that
+                        very likely are duplicates are written to disk for
+                        every ocurrence.
+  --disable-der-sanity-checks
+                        For DER serialization, not only is it checked that
+                        deserialization is possible, but additional checks are
+                        performed for some data types to ensure a low false-
+                        positive rate. For example, DSA signatures with short
+                        r/s pairs are discarded by default or implausible
+                        version numbers for EC keys. With this option, these
+                        sanity checks will be disabled and therefore
+                        structurally correct (but implausible) false-positives
+                        are also written.
+  --outmask mask        Filename mask that's used for output. Defaults to
+                        scrape_%(offset)07x_%(type)s.%(ext)s and can use
+                        printf-style substitutions offset, type and ext.
+  --write-json filename
+                        Write the stats with detailed information about
+                        matches into the given filename.
+  -o path, --outdir path
+                        Output directory. Defaults to scrape.
+  -f, --force           Overwrite key/certificate files and proceed even if
+                        outdir already exists.
+  -s offset, --seek-offset offset
+                        Offset to seek into file. Supports hex/octal/binary
+                        prefixes and SI/binary SI (k, ki, M, Mi, etc.)
+                        suffixes. Defaults to 0.
+  -l length, --analysis-length length
+                        Amount of data to inspect at max. Supports
+                        hex/octal/binary prefixes and SI/binary SI (k, ki, M,
+                        Mi, etc.) suffixes. Defaults to everything until EOF
+                        is hit.
+  -v, --verbose         Increase verbosity level. Can be specified multiple
+                        times.
+  --help                Show this help page.
+```
+[//]: # (End of cmd-scrape -- auto-generated, do not edit!)
 
 # License
 GNU GPL-3.

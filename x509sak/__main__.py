@@ -40,7 +40,7 @@ from x509sak.CmdLineArgs import KeySpecArgument, KeyValue
 from x509sak.KeySpecification import KeySpecification
 from x509sak.Exceptions import UserErrorException, InvisibleUserErrorException
 from x509sak.SubprocessExecutor import SubprocessExecutor
-from .FriendlyArgumentParser import baseint
+from .FriendlyArgumentParser import baseint, baseint_unit
 from .MultiCommand import MultiCommand
 
 _default_so_search_path = "/usr/local/lib:/usr/lib:/usr/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu/openssl-1.0.2/engines:/usr/lib/x86_64-linux-gnu/engines-1.1"
@@ -187,12 +187,23 @@ def genparser(parser):
 mc.register("forgecert", "Forge an X.509 certificate", genparser, action = ActionForgeCert)
 
 def genparser(parser):
-	parser.add_argument("--outmask", metavar = "mask", default = "scrape_%(offset)06x_%(type)s.%(ext)s", help = "Filename mask that's used for output. Defaults to %(default)s and can use printf-style substitutions offset, type and ext.")
+	parser.add_argument("--no-pem", action = "store_true", help = "Do not search for any PEM encoded blobs.")
+	parser.add_argument("--no-der", action = "store_true", help = "Do not search for any DER encoded blobs.")
+	parser.add_argument("-i", "--include-dertype", metavar = "class", action = "append", default = [ ], help = "Include the specified DER handler class in the search. Defaults to all known classes if omitted. Can be specified multiple times and must be one of %s." % (", ".join(sorted(ActionScrape.handler_classes))))
+	parser.add_argument("-e", "--exclude-dertype", metavar = "class", action = "append", default = [ ], help = "Exclude the specified DER handler class in the search. Can be specified multiple times and must be one of %s." % (", ".join(sorted(ActionScrape.handler_classes))))
+	parser.add_argument("--extract-nested", action = "store_true", help = "By default, fully overlapping blobs will not be extracted. For example, every X.509 certificate also contains a public key inside that would otherwise be found as well. When this option is given, any blobs are extracted regardless if they're fully contained in another blob or not.")
+	parser.add_argument("--keep-original-der", action = "store_true", help = "When finding DER blobs, do not convert them to PEM format, but leave them as-is.")
+	parser.add_argument("--allow-non-unique-blobs", action = "store_true", help = "For all matches, the SHA256 hash is used to determine if the data is unique and findings are by default only written to disk once. With this option, blobs that very likely are duplicates are written to disk for every ocurrence.")
+	parser.add_argument("--disable-der-sanity-checks", action = "store_true", help = "For DER serialization, not only is it checked that deserialization is possible, but additional checks are performed for some data types to ensure a low false-positive rate. For example, DSA signatures with short r/s pairs are discarded by default or implausible version numbers for EC keys. With this option, these sanity checks will be disabled and therefore structurally correct (but implausible) false-positives are also written.")
+	parser.add_argument("--outmask", metavar = "mask", default = "scrape_%(offset)07x_%(type)s.%(ext)s", help = "Filename mask that's used for output. Defaults to %(default)s and can use printf-style substitutions offset, type and ext.")
+	parser.add_argument("--write-json", metavar = "filename", type = str, help = "Write the stats with detailed information about matches into the given filename.")
 	parser.add_argument("-o", "--outdir", metavar = "path", type = str, default = "scrape", help = "Output directory. Defaults to %(default)s.")
 	parser.add_argument("-f", "--force", action = "store_true", help = "Overwrite key/certificate files and proceed even if outdir already exists.")
+	parser.add_argument("-s", "--seek-offset", metavar = "offset", type = baseint_unit, default = "0", help = "Offset to seek into file. Supports hex/octal/binary prefixes and SI/binary SI (k, ki, M, Mi, etc.) suffixes. Defaults to %(default)s.")
+	parser.add_argument("-l", "--analysis-length", metavar = "length", type = baseint_unit, default = None, help = "Amount of data to inspect at max. Supports hex/octal/binary prefixes and SI/binary SI (k, ki, M, Mi, etc.) suffixes. Defaults to everything until EOF is hit.")
 	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
 	parser.add_argument("filename", metavar = "filename", type = str, help = "File that should be scraped for certificates or keys.")
-mc.register("scrape", "Scrape file for certificates or keys", genparser, action = ActionScrape, visible = False)
+mc.register("scrape", "Scrape input file for certificates, keys or signatures", genparser, action = ActionScrape)
 
 try:
 	mc.run(sys.argv[1:])

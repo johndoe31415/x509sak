@@ -37,19 +37,24 @@ class KwargsChecker(object):
 				raise InvalidInputException("%s is not a valid argument for %s." % (arg, hint))
 
 	def check(self, args, hint = None):
-		assert(isinstance(args, dict))
-
-		unknown_arguments = set(args.keys()) - self._allowed_arguments
-		missing_arguments = self._required_arguments - args.keys()
+		args = set(args)
+		unknown_arguments = args - self._allowed_arguments
+		missing_arguments = self._required_arguments - args
 
 		errors = [ ]
 		if len(unknown_arguments) > 0:
-			errors.append("unknown arguments supplied: %s" % (", ".join(sorted(unknown_arguments))))
+			if len(unknown_arguments) == 1:
+				errors.append("unknown argument: %s" % (list(unknown_arguments)[0]))
+			else:
+				errors.append("%d unknown arguments: %s" % (len(unknown_arguments), ", ".join(sorted(unknown_arguments))))
 		if len(missing_arguments) > 0:
-			errors.append("required arguments missing: %s" % (", ".join(sorted(missing_arguments))))
+			errors.append("required argument(s) missing: %s" % (", ".join(sorted(missing_arguments))))
 
 		if len(errors) > 0:
-			msg = "There were %d error(s) with the arguments" % (len(errors))
+			if len(errors) == 1:
+				msg = "There was an error with the arguments"
+			else:
+				msg = "There were %d error(s) with the arguments" % (len(errors))
 			if hint is not None:
 				msg += " supplied to %s" % (hint)
 			msg += ": "
@@ -57,5 +62,5 @@ class KwargsChecker(object):
 			if len(self._required_arguments) > 0:
 				msg += " -- required are: %s" % (", ".join(sorted(self._required_arguments)))
 			if len(self._optional_arguments) > 0:
-				msg += " -- optionally allowed are: %s" % (", ".join(sorted(self._optional_arguments)))
+				msg += " -- allowed are: %s" % (", ".join(sorted(self._optional_arguments)))
 			raise InvalidInputException(msg)

@@ -32,3 +32,4 @@ from .HardwareTokenTests import HardwareTokenTests
 from .OpenSSLCAIndexFileTests import OpenSSLCAIndexFileTests
 from .PassphraseGeneratorTests import PassphraseGeneratorTests
 from .RSASecurityEstimatorTests import RSASecurityEstimatorTests
+from .IntervalTests import IntervalTests

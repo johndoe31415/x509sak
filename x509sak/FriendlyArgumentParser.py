@@ -57,6 +57,22 @@ def baseint(value, default_base = 10):
 	else:
 		return int(value, default_base)
 
+def baseint_unit(value, default_base = 10):
+	units = (
+		("k",	1000),
+		("ki",	1024),
+		("M",	1000 * 1000),
+		("Mi",	1024 * 1024),
+		("G",	1000 * 1000 * 1000),
+		("Gi",	1024 * 1024 * 1024),
+		("T",	1000 * 1000 * 1000 * 1000),
+		("Ti",	1024 * 1024 * 1024 * 1024),
+	)
+	for (suffix, coefficient) in units:
+		if value.endswith(suffix):
+			return coefficient * baseint(value[:-len(suffix)], default_base = default_base)
+	return baseint(value, default_base = default_base)
+
 if __name__ == "__main__":
 	parser = FriendlyArgumentParser()
 	parser.add_argument("-d", "--dbfile", metavar = "filename", type = str, default = "mydb.sqlite", help = "Specifies database file to use. Defaults to %(default)s.")
