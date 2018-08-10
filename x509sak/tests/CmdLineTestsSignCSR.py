@@ -19,26 +19,22 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-import os
 import tempfile
 from x509sak.tests import BaseTest
 from x509sak.WorkDir import WorkDir
 from x509sak.SubprocessExecutor import SubprocessExecutor
 
 class CmdLineTestsSignCSR(BaseTest):
-	def setUp(self):
-		self._x509sak = os.path.realpath("x509sak.py")
-
 	def test_sign_pubkey(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
 			# Creata a CA
-			SubprocessExecutor.run([ self._x509sak, "createca", "myCA" ])
+			SubprocessExecutor.run(self._x509sak + [ "createca", "myCA" ])
 
 			# Create a default CSR
-			SubprocessExecutor.run([ self._x509sak, "createcsr", "client.key", "client.csr" ])
+			SubprocessExecutor.run(self._x509sak + [ "createcsr", "client.key", "client.csr" ])
 
 			# Sign the CSR
-			SubprocessExecutor.run([ self._x509sak, "signcsr", "myCA", "client.csr", "client.crt" ])
+			SubprocessExecutor.run(self._x509sak + [ "signcsr", "myCA", "client.csr", "client.crt" ])
 
 			# Extract public key from private key
 			(success, pubkey_in) = SubprocessExecutor.run([ "openssl", "ec", "-pubout", "-in", "client.key" ], return_stdout = True, discard_stderr = True)
@@ -51,16 +47,16 @@ class CmdLineTestsSignCSR(BaseTest):
 	def test_take_override_subject(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
 			# Creata a CA
-			SubprocessExecutor.run([ self._x509sak, "createca", "myCA" ])
+			SubprocessExecutor.run(self._x509sak + [ "createca", "myCA" ])
 
 			# Create a CSR with a specific CN/OU
-			SubprocessExecutor.run([ self._x509sak, "createcsr", "-s", "/CN=CSR_CN_Subject/OU=CSR_OU_Subject", "client.key", "client.csr" ])
+			SubprocessExecutor.run(self._x509sak + [ "createcsr", "-s", "/CN=CSR_CN_Subject/OU=CSR_OU_Subject", "client.key", "client.csr" ])
 
 			# Sign the CSR and take original subject
-			SubprocessExecutor.run([ self._x509sak, "signcsr", "myCA", "client.csr", "client_original.crt" ])
+			SubprocessExecutor.run(self._x509sak + [ "signcsr", "myCA", "client.csr", "client_original.crt" ])
 
 			# Sign the CSR and override subject
-			SubprocessExecutor.run([ self._x509sak, "signcsr", "-s", "/CN=Foobar", "myCA", "client.csr", "client_override.crt" ])
+			SubprocessExecutor.run(self._x509sak + [ "signcsr", "-s", "/CN=Foobar", "myCA", "client.csr", "client_override.crt" ])
 
 			# Get text representation of CSR and CRT
 			(success, csr_text) = SubprocessExecutor.run([ "openssl", "req", "-noout", "-text", "-in", "client.csr" ], return_stdout = True)
@@ -79,13 +75,13 @@ class CmdLineTestsSignCSR(BaseTest):
 	def test_san_included(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
 			# Creata a CA
-			SubprocessExecutor.run([ self._x509sak, "createca", "myCA" ])
+			SubprocessExecutor.run(self._x509sak + [ "createca", "myCA" ])
 
 			# Create a CSR
-			SubprocessExecutor.run([ self._x509sak, "createcsr", "client.key", "client.csr" ])
+			SubprocessExecutor.run(self._x509sak + [ "createcsr", "client.key", "client.csr" ])
 
 			# Sign the CSR with a SAN
-			SubprocessExecutor.run([ self._x509sak, "signcsr", "--san-dns", "foobar.com", "--san-dns", "barfoo.com", "--san-ip", "11.22.33.44", "myCA", "client.csr", "client.crt" ])
+			SubprocessExecutor.run(self._x509sak + [ "signcsr", "--san-dns", "foobar.com", "--san-dns", "barfoo.com", "--san-ip", "11.22.33.44", "myCA", "client.csr", "client.crt" ])
 
 			# Check that SAN ended up in the CRT
 			(success, crt_text) = SubprocessExecutor.run([ "openssl", "x509", "-noout", "-text", "-in", "client.crt" ], return_stdout = True)
@@ -96,19 +92,19 @@ class CmdLineTestsSignCSR(BaseTest):
 	def test_override_extensions(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
 			# Creata a CA
-			SubprocessExecutor.run([ self._x509sak, "createca", "myCA" ])
+			SubprocessExecutor.run(self._x509sak + [ "createca", "myCA" ])
 
 			# Create a CSR and pack it full of extensions
-			SubprocessExecutor.run([ self._x509sak, "createcsr", "-t", "tls-client", "--san-dns", "fooname.com", "--san-ip", "11.22.33.44", "client.key", "client.csr" ])
+			SubprocessExecutor.run(self._x509sak + [ "createcsr", "-t", "tls-client", "--san-dns", "fooname.com", "--san-ip", "11.22.33.44", "client.key", "client.csr" ])
 
 			# Sign the CSR but don't put any extensions in the CRT
-			SubprocessExecutor.run([ self._x509sak, "signcsr", "myCA", "client.csr", "client_none.crt" ])
+			SubprocessExecutor.run(self._x509sak + [ "signcsr", "myCA", "client.csr", "client_none.crt" ])
 
 			# Sign the CSR a second time and override extensions
-			SubprocessExecutor.run([ self._x509sak, "signcsr", "-s", "/CN=Server", "-t", "tls-server", "myCA", "client.csr", "client_server.crt" ])
+			SubprocessExecutor.run(self._x509sak + [ "signcsr", "-s", "/CN=Server", "-t", "tls-server", "myCA", "client.csr", "client_server.crt" ])
 
 			# Sign the CSR a third time and override extensions and add a SAN
-			SubprocessExecutor.run([ self._x509sak, "signcsr", "-s", "/CN=Server with SAN DNS", "-t", "tls-server", "--san-dns", "newdns.com", "myCA", "client.csr", "client_server_dns.crt" ])
+			SubprocessExecutor.run(self._x509sak + [ "signcsr", "-s", "/CN=Server with SAN DNS", "-t", "tls-server", "--san-dns", "newdns.com", "myCA", "client.csr", "client_server_dns.crt" ])
 
 			# Get text representation of CSR and CRT
 			(success, csr_text) = SubprocessExecutor.run([ "openssl", "req", "-noout", "-text", "-in", "client.csr" ], return_stdout = True)
