@@ -108,5 +108,3 @@ class PassphraseGenerator(object):
 			passphrase.append(alphabet[charno])
 		assert(intvalue == 0)
 		return "".join(passphrase)
-
-

@@ -1,4 +1,17 @@
 #!/bin/bash
+
+suppress() {
+	PATTERN="$1"
+	grep -vE "$PATTERN" /tmp/lint >/tmp/lint2
+	mv /tmp/lint2 /tmp/lint
+}
+
 pylint --reports=n --output-format=parseable x509sak >/tmp/lint
+suppress "W0612\(unused-variable\).*Unused variable 'success'"
+suppress "W0612\(unused-variable\).*Unused variable 'tail'"
+suppress "E1102\(not-callable\).*self._ASN1_MODEL is not callable"
+suppress "E0102\(function-redefined\), genparser"
+suppress "W0613\(unused-argument\).*Unused argument 'args'"
+suppress "W0613\(unused-argument\).*Unused argument 'kwargs'"
 vi -c ":set cmdheight=2" -c ":cf /tmp/lint"
 

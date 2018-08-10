@@ -19,9 +19,8 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-import sys
 from x509sak.BaseAction import BaseAction
-from x509sak import CertificatePool, X509Certificate
+from x509sak import X509Certificate
 from x509sak.Exceptions import InvalidInputException
 
 class ActionExamineCert(BaseAction):

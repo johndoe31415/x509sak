@@ -40,7 +40,7 @@ class ActionBuildChain(BaseAction):
 			if self._args.pkcs12_passphrase_file is not None:
 				raise InvalidUsageException("Specifying a PKCS#12 passphrase while not using PKCS#12 output format has no effect.")
 		else:
-			if (self._args.pkcs12_legacy_crypto or self._args.pkcs12_no_passphrase or self._args.pkcs12_passphrase_file is not None) and (self._args.private-key is None):
+			if (self._args.pkcs12_legacy_crypto or self._args.pkcs12_no_passphrase or self._args.pkcs12_passphrase_file is not None) and (self._args.private_key is None):
 				raise InvalidUsageException("Specifying any PKCS#12 passphrase/crypto options when not including a private key makes no sense.")
 
 		self._pool = CertificatePool()

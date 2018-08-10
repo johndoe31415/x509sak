@@ -26,7 +26,7 @@ class PassphraseGeneratorTests(unittest.TestCase):
 	def test_passphrase_integers(self):
 		for bits in range(1, 10):
 			maxvalue = 2 ** bits
-			for iteration in range(100):
+			for i in range(100):
 				intvalue = PassphraseGenerator.rand_int(bits)
 				self.assertGreaterEqual(intvalue, 0)
 				self.assertLess(intvalue, maxvalue)

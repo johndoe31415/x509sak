@@ -27,15 +27,14 @@ import hashlib
 import sys
 import datetime
 import json
+import pyasn1.codec.der.decoder
+from pyasn1_modules import rfc2459, rfc2437
+import x509sak.ASN1Models
 from x509sak.BaseAction import BaseAction
 from x509sak.ScrapeEngine import ScrapeEngine
 from x509sak.Tools import PEMDataTools, JSONTools
-import pyasn1.codec.der.decoder
-from pyasn1_modules import rfc2459, rfc2437
-from x509sak.Exceptions import LazyDeveloperException
 from x509sak.KwargsChecker import KwargsChecker
 from x509sak.Intervals import Intervals, Interval
-import x509sak.ASN1Models
 
 class _DERSanityCheck(object):
 	class SanityCheckFailedException(Exception): pass
@@ -83,6 +82,7 @@ class ActionScrapeStats(object):
 		self._der_attempted_decode = 0
 		self._der_successful_decode = 0
 		self._der_passed_plausibility = 0
+		self._der_failed_plausibility = 0
 
 	def set_active_der_types(self, active_der_types):
 		self._active_der_types = active_der_types
@@ -104,6 +104,9 @@ class ActionScrapeStats(object):
 
 	def der_passed_plausibility(self):
 		self._der_passed_plausibility += 1
+
+	def der_failed_plausibility(self):
+		self._der_failed_plausibility += 1
 
 	def record_finding(self, offset, length, data_type, extension, action, filename = None):
 		self._findings.append(self._Finding(offset = offset, length = length, data_type = data_type, extension = extension, action = action, filename = filename))
@@ -133,6 +136,7 @@ class ActionScrapeStats(object):
 					"attempted_decode":		self._der_attempted_decode,
 					"successful_decode":	self._der_successful_decode,
 					"passed_plausibility":	self._der_passed_plausibility,
+					"failed_plausibility":	self._der_failed_plausibility,
 				},
 			},
 			"findings": [ {
@@ -232,7 +236,7 @@ class ActionScrape(BaseAction):
 		if not self._args.no_pem:
 			engine.search(self._find_pem, b"-----BEGIN ", min_length = 52, max_length = 4096)
 		if (not self._args.no_der) and (len(self._active_der_types) > 0):
-			self._log.debug("Looking for %d DER type(s): %s" % (len(self._active_der_types), ", ".join(sorted(self._active_der_types))))
+			self._log.debug("Looking for %d DER type(s): %s", len(self._active_der_types), ", ".join(sorted(self._active_der_types)))
 			engine.search(self._find_der, bytes.fromhex("30"), min_length = 2, max_length = 32 * 1024)
 		end_offset = engine.commence(start_offset = self._args.seek_offset, length = self._args.analysis_length, progress_callback = self._progress_callback)
 		self._stats.finish(end_offset)
@@ -241,7 +245,7 @@ class ActionScrape(BaseAction):
 			self._stats.write_json(self._args.write_json)
 
 	def _progress_callback(self, position, total_length, elapsed_secs):
-		self._log.debug("Scan at %.0f MiB of %.0f MiB, %.1f%%. Average speed %.1f MiB/sec" % (position / 1024 / 1024, total_length / 1024 / 1024, position / total_length * 100, position / 1024 / 1024 / elapsed_secs))
+		self._log.debug("Scan at %.0f MiB of %.0f MiB, %.1f%%. Average speed %.1f MiB/sec", position / 1024 / 1024, total_length / 1024 / 1024, position / total_length * 100, position / 1024 / 1024 / elapsed_secs)
 
 	def _is_nested_match(self, offset, length):
 		if self._args.extract_nested:
@@ -253,6 +257,7 @@ class ActionScrape(BaseAction):
 			return True
 		else:
 			self._matches.add(interval)
+			return False
 
 	def _is_known_blob(self, data):
 		if self._args.allow_non_unique_blobs:
@@ -263,6 +268,7 @@ class ActionScrape(BaseAction):
 			return True
 		else:
 			self._hashes.add(blob_hash)
+			return False
 
 	def _record_finding(self, offset, data_type, extension, data, encode_pem_marker = None, orig_extension = None):
 		if orig_extension is None:
@@ -274,12 +280,12 @@ class ActionScrape(BaseAction):
 
 		if self._is_nested_match(offset, len(data)):
 			self._stats.record_finding(offset, len(data), data_type, orig_extension, "discard:nested")
-			self._log.debug("Found %s/%s at offset 0x%x, length %d bytes, not recording nested match." % (data_type, orig_extension, offset, len(data)))
+			self._log.debug("Found %s/%s at offset 0x%x, length %d bytes, not recording nested match.", data_type, orig_extension, offset, len(data))
 			return
 
 		if self._is_known_blob(data):
 			self._stats.record_finding(offset, len(data), data_type, orig_extension, "discard:non-unique")
-			self._log.debug("Found %s/%s at offset 0x%x, length %d bytes, not recording non-unique match." % (data_type, orig_extension, offset, len(data)))
+			self._log.debug("Found %s/%s at offset 0x%x, length %d bytes, not recording non-unique match.", data_type, orig_extension, offset, len(data))
 			return
 
 		filename_args = {
@@ -290,7 +296,7 @@ class ActionScrape(BaseAction):
 		}
 		filename = self._args.outdir + "/" + (self._args.outmask % filename_args)
 		self._stats.record_finding(offset, len(data), data_type, orig_extension, "written", filename)
-		self._log.info("Found %s/%s at offset 0x%x, length %d bytes, saved as %s" % (data_type, orig_extension, offset, len(data), filename))
+		self._log.info("Found %s/%s at offset 0x%x, length %d bytes, saved as %s", data_type, orig_extension, offset, len(data), filename)
 
 		if encode_pem_marker is not None:
 			output_data = (PEMDataTools.data2pem(data, encode_pem_marker) + "\n").encode()
@@ -356,4 +362,4 @@ class ActionScrape(BaseAction):
 				pass
 			except _DERSanityCheck.SanityCheckFailedException as e:
 				self._log.debug("Potential %s blob encountered at offset 0x%x, but failed sanity check: %s", der_candidate.data_type, offset, str(e))
-				self._stats.der_failed_sanity_check()
+				self._stats.der_failed_plausibility()

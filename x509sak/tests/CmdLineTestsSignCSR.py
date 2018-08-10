@@ -24,7 +24,6 @@ import unittest
 import tempfile
 from x509sak.WorkDir import WorkDir
 from x509sak.SubprocessExecutor import SubprocessExecutor
-from x509sak.Exceptions import CmdExecutionFailedException
 
 class CmdLineTestsSignCSR(unittest.TestCase):
 	def setUp(self):
