@@ -19,17 +19,10 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-import unittest
-import pkgutil
-from x509sak import CertificatePool, X509Certificate
+from x509sak import CertificatePool
+from x509sak.tests import BaseTest
 
-class CertificatePoolTests(unittest.TestCase):
-	@staticmethod
-	def _load_crt(crtname):
-		x509_text = pkgutil.get_data("x509sak.tests.data", crtname).decode("ascii")
-		cert = X509Certificate.from_pem_data(x509_text)[0]
-		return cert
-
+class CertificatePoolTests(BaseTest):
 	def test_empty_pool(self):
 		pool = CertificatePool()
 		server_cert = self._load_crt("johannes-bauer.com.crt")

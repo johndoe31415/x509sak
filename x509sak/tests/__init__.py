@@ -19,6 +19,7 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
+from .BaseTest import BaseTest
 from .X509CertificateTests import X509CertificateTests
 from .CertificatePoolTests import CertificatePoolTests
 from .NumberTheoryTests import NumberTheoryTests
