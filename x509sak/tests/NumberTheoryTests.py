@@ -20,10 +20,10 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 import random
-import unittest
+from x509sak.tests import BaseTest
 from x509sak.NumberTheory import NumberTheory
 
-class NumberTheoryTests(unittest.TestCase):
+class NumberTheoryTests(BaseTest):
 	def test_egcd(self):
 		(g, s, t) = NumberTheory.egcd(4567, 123)
 		self.assertEqual(g, 1)

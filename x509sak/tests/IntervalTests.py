@@ -19,10 +19,10 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-import unittest
+from x509sak.tests import BaseTest
 from x509sak.Intervals import IntervalConstraintException, IntervalRelation, Interval, Intervals
 
-class IntervalTests(unittest.TestCase):
+class IntervalTests(BaseTest):
 	def test_interval_comparison(self):
 		self.assertLess(Interval(0, 1), Interval(0, 2))
 		self.assertLess(Interval(0, 1), Interval(1, 2))

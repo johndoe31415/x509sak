@@ -19,10 +19,10 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-import unittest
 import subprocess
+from x509sak.tests import BaseTest
 
-class CmdLineTestsBuildChain(unittest.TestCase):
+class CmdLineTestsBuildChain(BaseTest):
 	def assertOcurrences(self, haystack, needle, expected_count):
 		count = haystack.count(needle)
 		self.assertEqual(count, expected_count)

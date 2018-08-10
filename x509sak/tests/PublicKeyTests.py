@@ -19,17 +19,9 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-import unittest
-import pkgutil
-from x509sak import X509Certificate
+from x509sak.tests import BaseTest
 
-class PublicKeyTests(unittest.TestCase):
-	@staticmethod
-	def _load_pubkey(crtname):
-		x509_text = pkgutil.get_data("x509sak.tests.data", crtname).decode("ascii")
-		cert = X509Certificate.from_pem_data(x509_text)[0]
-		return cert.pubkey
-
+class PublicKeyTests(BaseTest):
 	def test_rsa_pubkey(self):
 		pubkey = self._load_pubkey("johannes-bauer-intermediate.crt")
 		self.assertEqual(pubkey.e, 65537)

@@ -19,15 +19,12 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-import unittest
 import tempfile
 import pkgutil
-#from x509sak.SubprocessExecutor import SubprocessExecutor
-#from x509sak.Tools import PathTools
-#from x509sak.WorkDir import WorkDir
+from x509sak.tests import BaseTest
 from x509sak.OpenSSLCAIndexFile import OpenSSLCAIndexFile
 
-class OpenSSLCAIndexFileTests(unittest.TestCase):
+class OpenSSLCAIndexFileTests(BaseTest):
 	def test_index_file(self):
 		with tempfile.NamedTemporaryFile(prefix = "index_", suffix = ".txt") as infile, tempfile.NamedTemporaryFile(prefix = "new_index_", suffix = ".txt") as outfile:
 			indata = pkgutil.get_data("x509sak.tests.data", "index.txt")

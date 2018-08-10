@@ -20,19 +20,13 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 import os
-import unittest
 import pkgutil
 import datetime
+from x509sak.tests import BaseTest
 from x509sak import X509Certificate
 from x509sak.OID import OIDDB
 
-class X509CertificateTests(unittest.TestCase):
-	@staticmethod
-	def _load_crt(crtname):
-		x509_text = pkgutil.get_data("x509sak.tests.data", crtname).decode("ascii")
-		cert = X509Certificate.from_pem_data(x509_text)[0]
-		return cert
-
+class X509CertificateTests(BaseTest):
 	def test_pem_load(self):
 		x509_text = pkgutil.get_data("x509sak.tests.data", "johannes-bauer.com.crt").decode("ascii")
 		cert = X509Certificate.from_pem_data(x509_text)

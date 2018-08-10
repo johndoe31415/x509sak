@@ -20,13 +20,13 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 import os
-import unittest
 import tempfile
+from x509sak.tests import BaseTest
 from x509sak.WorkDir import WorkDir
 from x509sak.SubprocessExecutor import SubprocessExecutor
 from x509sak.Exceptions import CmdExecutionFailedException
 
-class CmdLineTestsCreateCRT(unittest.TestCase):
+class CmdLineTestsCreateCRT(BaseTest):
 	def setUp(self):
 		self._x509sak = os.path.realpath("x509sak.py")
 

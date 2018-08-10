@@ -19,14 +19,14 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-import unittest
+from x509sak.tests import BaseTest
 from x509sak.PassphraseGenerator import PassphraseGenerator
 
-class PassphraseGeneratorTests(unittest.TestCase):
+class PassphraseGeneratorTests(BaseTest):
 	def test_passphrase_integers(self):
 		for bits in range(1, 10):
 			maxvalue = 2 ** bits
-			for i in range(100):
+			for _ in range(100):
 				intvalue = PassphraseGenerator.rand_int(bits)
 				self.assertGreaterEqual(intvalue, 0)
 				self.assertLess(intvalue, maxvalue)
@@ -54,6 +54,6 @@ class PassphraseGeneratorTests(unittest.TestCase):
 	def test_passphrase_gen(self):
 		for ppg in [ PassphraseGenerator.all_ascii(), PassphraseGenerator.non_ambiguous(), PassphraseGenerator.pronouncible() ]:
 			passphrase = ppg.gen_passphrase(20)
-			for i in range(100):
+			for _ in range(100):
 				new_passphrase = ppg.gen_passphrase(20)
 				self.assertEqual(len(passphrase), len(new_passphrase))

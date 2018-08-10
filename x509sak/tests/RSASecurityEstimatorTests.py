@@ -19,10 +19,10 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-import unittest
+from x509sak.tests import BaseTest
 from x509sak.SecurityEstimator import RSASecurityEstimator
 
-class RSASecurityEstimatorTests(unittest.TestCase):
+class RSASecurityEstimatorTests(BaseTest):
 	def test_rsa_modulus_bitlength(self):
 		# NIST SP800-57 Part 1 revision 4 (January 2016)
 		expected_rsa_security = {

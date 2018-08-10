@@ -20,9 +20,9 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 import os
-import unittest
 import tempfile
 import urllib
+from x509sak.tests import BaseTest
 from x509sak.SubprocessExecutor import SubprocessExecutor
 from x509sak.Tools import PathTools
 from x509sak.WorkDir import WorkDir
@@ -96,7 +96,7 @@ class SoftHSMInstance(object):
 	def __exit__(self, *args):
 		self.__cleanup()
 
-class HardwareTokenTests(unittest.TestCase):
+class HardwareTokenTests(BaseTest):
 	def setUp(self):
 		self._x509sak = os.path.realpath("x509sak.py")
 

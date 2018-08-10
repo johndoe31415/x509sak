@@ -19,14 +19,14 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-import unittest
 import tempfile
+from x509sak.tests import BaseTest
 from x509sak.OpenSSLTools import OpenSSLTools
 from x509sak.KeySpecification import KeySpecification, Cryptosystem
 from x509sak.PrivateKeyStorage import PrivateKeyStorage, PrivateKeyStorageForm
 from x509sak.SubprocessExecutor import SubprocessExecutor
 
-class OpenSSLToolsTests(unittest.TestCase):
+class OpenSSLToolsTests(BaseTest):
 	@staticmethod
 	def _read_file(filename):
 		with open(filename, "rb") as f:
