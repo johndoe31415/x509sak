@@ -38,3 +38,4 @@ class CmdExecutionFailedException(InvisibleUserErrorException): pass
 
 class LazyDeveloperException(ProgrammerErrorException): pass
 class UnknownAlgorithmException(ProgrammerErrorException): pass
+class InvalidInternalDataException(ProgrammerErrorException): pass

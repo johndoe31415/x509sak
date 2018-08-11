@@ -80,3 +80,20 @@ class NumberTheoryTests(BaseTest):
 		for n in [ 20, 50, 100, 150, 200, 500 ]:
 			p = NumberTheory.gen_insecure_probable_fastprime(n)
 			self.assertTrue(NumberTheory.is_probable_prime(p))
+
+	def test_pollard_rho_prime(self):
+		p = 2003
+		self.assertIsNone(NumberTheory.pollard_rho(p), None)
+
+	def test_pollard_rho_success(self):
+		p = 3513360553
+		q = 2841366767
+		n = p * q
+		self.assertIn(NumberTheory.pollard_rho(n), [ p, q ])
+
+	def test_pollard_rho_give_up(self):
+		# There's a small chance this test may fail. :-)
+		p = 95749913370328252241446208736506188314802113993127662348226135040475696867509
+		q = 99274458486037483860318981815348157562287354834427068777154647405331367500099
+		n = p * q
+		self.assertIsNone(NumberTheory.pollard_rho(n, max_iterations = 10))

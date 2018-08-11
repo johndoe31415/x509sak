@@ -170,3 +170,25 @@ class NumberTheory(object):
 			if cls.is_probable_prime(q):
 				return q
 			k = (2 * k) % P
+
+	@classmethod
+	def pollard_rho(cls, n, max_iterations = None):
+		"""Calculate Pollards Rho for a given number n. Returns either a prime
+		factor of n or None."""
+		def f(x, n):
+			return ((x * x) + 1) % n
+
+		(x, y, d) = (2, 2, 1)
+		iterations = 0
+		while d == 1:
+			if (max_iterations is not None) and (iterations == max_iterations):
+				return None
+			x = f(x, n)
+			y = f(f(y, n), n)
+			d = cls.gcd(abs(x - y), n)
+			iterations += 1
+		if 1 < d < n:
+			return d
+		else:
+			assert(d == n)
+			return None

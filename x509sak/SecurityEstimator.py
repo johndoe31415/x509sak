@@ -21,6 +21,8 @@
 
 import enum
 import math
+from x509sak.NumberTheory import NumberTheory
+from x509sak.ModulusDB import ModulusDB
 
 class Verdict(enum.IntEnum):
 	NO_SECURITY = 0
@@ -31,10 +33,10 @@ class Verdict(enum.IntEnum):
 	BEST_IN_CLASS = 5
 
 class Commonness(enum.IntEnum):
-	COMMON = 0
-	FAIRLY_COMMON = 1
-	UNUSUAL = 2
-	HIGHLY_UNUSUAL = 3
+	HIGHLY_UNUSUAL = 0
+	UNUSUAL = 1
+	FAIRLY_COMMON = 2
+	COMMON = 3
 
 class SecurityEstimator(object):
 	_KNOWN_ALGORITHMS = { }
@@ -67,40 +69,40 @@ class BitsSecurityEstimator(SecurityEstimator):
 			result = {
 				"verdict":		Verdict.NO_SECURITY,
 				"common":		Commonness.HIGHLY_UNUSUAL,
-				"text":			"Breakable with little effort (commercial-off-the-shelf hardware)",
+				"text":			"Breakable with little effort (commercial-off-the-shelf hardware).",
 			}
 		elif bits < 80:
 			result = {
 				"verdict":		Verdict.WEAK,
 				"common":		Commonness.UNUSUAL,
-				"text":			"Probably breakable with specialized hardware (limited purpose computers)",
+				"text":			"Probably breakable with specialized hardware (limited purpose computers).",
 			}
 		elif bits < 104:
 			result = {
 				"verdict":		Verdict.WEAK,
 				"common":		Commonness.UNUSUAL,
-				"text":			"Nontrivial to break, but comparatively weak",
+				"text":			"Nontrivial to break, but comparatively weak.",
 			}
 		elif bits < 160:
 			# 128 Bit security level
 			result = {
 				"verdict":		Verdict.HIGH,
 				"common":		Commonness.COMMON,
-				"text":			"High level of security",
+				"text":			"High level of security.",
 			}
 		elif bits < 224:
 			# 192 Bit security level
 			result = {
 				"verdict":		Verdict.HIGH,
 				"common":		Commonness.COMMON,
-				"text":			"Very high level of security",
+				"text":			"Very high level of security.",
 			}
 		else:
 			# 256 bit security level
 			result = {
 				"verdict":		Verdict.BEST_IN_CLASS,
 				"common":		Commonness.COMMON,
-				"text":			"Exceptionally high level of security",
+				"text":			"Exceptionally high level of security.",
 			}
 		result["bits"] = bits
 		return result
@@ -145,6 +147,34 @@ class RSASecurityEstimator(SecurityEstimator):
 			}
 
 	def analyze_n(self, n):
+		if NumberTheory.is_probable_prime(n):
+			return {
+				"bits":			0,
+				"verdict":		Verdict.NO_SECURITY,
+				"common":		Commonness.HIGHLY_UNUSUAL,
+				"text":			"Modulus is prime, not a compound integer as we would expect for RSA.",
+			}
+
+		small_factor = NumberTheory.pollard_rho(n, max_iterations = 10000)
+		if small_factor is not None:
+			return {
+				"bits":			0,
+				"verdict":		Verdict.NO_SECURITY,
+				"common":		Commonness.HIGHLY_UNUSUAL,
+				"text":			"Modulus has small factors (%d), is trivially factorable." % (small_factor),
+			}
+
+		match = ModulusDB().find(n)
+		if match is not None:
+			return {
+				"bits":			0,
+				"verdict":		Verdict.NO_SECURITY,
+				"common":		Commonness.HIGHLY_UNUSUAL,
+				"text":			"Modulus found in public modulus database: %s" % (match.text),
+			}
+
+		# We estimate the complexity of factoring the modulus by the asymptotic
+		# complexity of the GNFS.
 		log2_n = n.bit_length()
 		log_n = log2_n * math.log(2)
 		bits_security = 2.5596 * (log_n ** (1/3)) * (math.log(log_n) ** (2/3))
