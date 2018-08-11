@@ -698,7 +698,7 @@ usage: ./x509sak.py scrape [--no-pem] [--no-der] [-i class] [-e class]
                            [--extract-nested] [--keep-original-der]
                            [--allow-non-unique-blobs]
                            [--disable-der-sanity-checks] [--outmask mask]
-                           [--write-json filename] [-o path] [-f] [-s offset]
+                           [-w filename] [-o path] [-f] [-s offset]
                            [-l length] [-v] [--help]
                            filename
 
@@ -747,7 +747,7 @@ optional arguments:
   --outmask mask        Filename mask that's used for output. Defaults to
                         scrape_%(offset)07x_%(type)s.%(ext)s and can use
                         printf-style substitutions offset, type and ext.
-  --write-json filename
+  -w filename, --write-json filename
                         Write the stats with detailed information about
                         matches into the given filename.
   -o path, --outdir path
