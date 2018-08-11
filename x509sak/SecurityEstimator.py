@@ -112,6 +112,10 @@ SecurityEstimator.register(BitsSecurityEstimator)
 class RSASecurityEstimator(SecurityEstimator):
 	_ALG_NAME = "rsa"
 
+	def __init__(self, test_probable_prime = True, pollards_rho_iterations = 10000):
+		self._test_probable_prime = test_probable_prime
+		self._pollards_rho_iterations = pollards_rho_iterations
+
 	@staticmethod
 	def analyze_e(e):
 		if e == 1:
@@ -147,22 +151,24 @@ class RSASecurityEstimator(SecurityEstimator):
 			}
 
 	def analyze_n(self, n):
-		if NumberTheory.is_probable_prime(n):
-			return {
-				"bits":			0,
-				"verdict":		Verdict.NO_SECURITY,
-				"common":		Commonness.HIGHLY_UNUSUAL,
-				"text":			"Modulus is prime, not a compound integer as we would expect for RSA.",
-			}
+		if self._test_probable_prime:
+			if NumberTheory.is_probable_prime(n):
+				return {
+					"bits":			0,
+					"verdict":		Verdict.NO_SECURITY,
+					"common":		Commonness.HIGHLY_UNUSUAL,
+					"text":			"Modulus is prime, not a compound integer as we would expect for RSA.",
+				}
 
-		small_factor = NumberTheory.pollard_rho(n, max_iterations = 10000)
-		if small_factor is not None:
-			return {
-				"bits":			0,
-				"verdict":		Verdict.NO_SECURITY,
-				"common":		Commonness.HIGHLY_UNUSUAL,
-				"text":			"Modulus has small factors (%d), is trivially factorable." % (small_factor),
-			}
+		if self._pollards_rho_iterations > 0:
+			small_factor = NumberTheory.pollard_rho(n, max_iterations = self._pollards_rho_iterations)
+			if small_factor is not None:
+				return {
+					"bits":			0,
+					"verdict":		Verdict.NO_SECURITY,
+					"common":		Commonness.HIGHLY_UNUSUAL,
+					"text":			"Modulus has small factors (%d), is trivially factorable." % (small_factor),
+				}
 
 		match = ModulusDB().find(n)
 		if match is not None:
