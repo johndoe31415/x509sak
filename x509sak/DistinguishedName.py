@@ -60,7 +60,12 @@ class DistinguishedName(object):
 
 	@property
 	def pretty_str(self):
-		return self.rfc2253_str
+		def escape(text):
+			if (" " in text) or ("\"" in text) or ("," in text):
+				return "\"%s\"" % (text.replace("\"", "\\\""))
+			else:
+				return text
+		return ", ".join("%s = %s" % (OIDDB.RDNTypes.get(key, key), escape(value)) for (key, value) in self._oid_value_list)
 
 	def analyze(self):
 		return {
