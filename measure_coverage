@@ -21,7 +21,6 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 import os
-import uuid
 import shutil
 import subprocess
 
@@ -33,22 +32,7 @@ try:
 	shutil.rmtree("htmlcov")
 except FileNotFoundError:
 	pass
-try:
-	shutil.rmtree(".coverage_files")
-except FileNotFoundError:
-	pass
-os.mkdir(".coverage_files")
 
-cwd = os.path.realpath(".")
-os.environ["COVERAGE_FILE"] = cwd + "/.coverage_files/" + str(uuid.uuid4())
-subprocess.check_call([ "coverage", "run", "--omit", "/usr/*", "./run_tests.py", "--coverage" ])
-
-files = [ ".coverage_files/%s" % (filename) for filename in os.listdir(".coverage_files") ]
-
-os.environ["COVERAGE_FILE"] = cwd + "/.coverage"
-subprocess.check_call([ "coverage", "combine" ] + files)
-shutil.rmtree(".coverage_files")
-
+subprocess.check_call([ "coverage", "run", "--append", "--omit", "/usr/*", "./run_tests.py", "--coverage" ])
 subprocess.check_call([ "coverage", "html" ])
 subprocess.check_call([ "chromium-browser", "htmlcov/index.html" ])
-

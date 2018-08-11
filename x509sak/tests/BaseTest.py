@@ -22,7 +22,6 @@
 import os
 import unittest
 import pkgutil
-import uuid
 from x509sak import X509Certificate
 
 class BaseTest(unittest.TestCase):
@@ -31,7 +30,6 @@ class BaseTest(unittest.TestCase):
 		if "X509SAK_COVERAGE" not in os.environ:
 			self._x509sak = [ os.path.realpath("x509sak.py") ]
 		else:
-			os.environ["COVERAGE_FILE"] = os.path.realpath(".") + "/.coverage_files/" + str(uuid.uuid4())
 			self._x509sak = [ "coverage", "run", "--append", "--omit", "/usr/*", os.path.realpath("x509sak.py") ]
 
 	@staticmethod
