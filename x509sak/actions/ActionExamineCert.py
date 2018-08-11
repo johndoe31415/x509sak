@@ -22,6 +22,7 @@
 from x509sak.BaseAction import BaseAction
 from x509sak import X509Certificate
 from x509sak.Exceptions import InvalidInputException
+from x509sak.Tools import JSONTools
 
 class ActionExamineCert(BaseAction):
 	def __init__(self, cmdname, args):
@@ -30,10 +31,16 @@ class ActionExamineCert(BaseAction):
 		crts = X509Certificate.read_pemfile(args.crt_filename)
 		if len(crts) == 0:
 			raise InvalidInputException("No certificates found inside %s." % (args.crt_filename))
+
+		analyses = [ ]
 		for (crtno, crt) in enumerate(crts, 1):
 			if len(crts) > 1:
 				print("Certificate #%d:" % (crtno))
-			self._analyze_crt(crt)
+			analysis = self._analyze_crt(crt)
+			analyses.append(analysis)
+
+		if self._args.write_json:
+			JSONTools.write_to_file(analyses, self._args.write_json)
 
 	def _analyze_crt(self, crt):
 		analysis = crt.analyze()
@@ -41,7 +48,7 @@ class ActionExamineCert(BaseAction):
 		print("Subject   : %s" % (analysis["subject"]["pretty"]))
 		print("Issuer    : %s" % (analysis["issuer"]["pretty"]))
 		print("Public key: %s" % (analysis["pubkey"]["pretty"]))
-
+		return analysis
 #		print(crt.signature_algorithm)
 #		print(crt.extensions)
 #		print(crt)

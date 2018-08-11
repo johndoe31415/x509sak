@@ -173,6 +173,7 @@ mc.register("dumpkey", "Dump a key in text form", genparser, action = ActionDump
 
 def genparser(parser):
 	parser.add_argument("-n", "--server-name", metavar = "fqdn", type = str, help = "Check if the certificate is valid for the given hostname.")
+	parser.add_argument("-w", "--write-json", metavar = "filename", type = str, help = "Write a JSON output document with detailed information about the checked certificate in the filename.")
 	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
 	parser.add_argument("crt_filename", metavar = "crt_filename", type = str, help = "Filename of the input certificate or certificates in PEM format.")
 mc.register("examinecert", "Examine an X.509 certificate", genparser, action = ActionExamineCert, aliases = [ "analyze" ], visible = False)
@@ -196,7 +197,7 @@ def genparser(parser):
 	parser.add_argument("--allow-non-unique-blobs", action = "store_true", help = "For all matches, the SHA256 hash is used to determine if the data is unique and findings are by default only written to disk once. With this option, blobs that very likely are duplicates are written to disk for every ocurrence.")
 	parser.add_argument("--disable-der-sanity-checks", action = "store_true", help = "For DER serialization, not only is it checked that deserialization is possible, but additional checks are performed for some data types to ensure a low false-positive rate. For example, DSA signatures with short r/s pairs are discarded by default or implausible version numbers for EC keys. With this option, these sanity checks will be disabled and therefore structurally correct (but implausible) false-positives are also written.")
 	parser.add_argument("--outmask", metavar = "mask", default = "scrape_%(offset)07x_%(type)s.%(ext)s", help = "Filename mask that's used for output. Defaults to %(default)s and can use printf-style substitutions offset, type and ext.")
-	parser.add_argument("--write-json", metavar = "filename", type = str, help = "Write the stats with detailed information about matches into the given filename.")
+	parser.add_argument("-w", "--write-json", metavar = "filename", type = str, help = "Write the stats with detailed information about matches into the given filename.")
 	parser.add_argument("-o", "--outdir", metavar = "path", type = str, default = "scrape", help = "Output directory. Defaults to %(default)s.")
 	parser.add_argument("-f", "--force", action = "store_true", help = "Overwrite key/certificate files and proceed even if outdir already exists.")
 	parser.add_argument("-s", "--seek-offset", metavar = "offset", type = baseint_unit, default = "0", help = "Offset to seek into file. Supports hex/octal/binary prefixes and SI/binary SI (k, ki, M, Mi, etc.) suffixes. Defaults to %(default)s.")

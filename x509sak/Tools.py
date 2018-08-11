@@ -22,6 +22,8 @@
 import os
 import re
 import base64
+import json
+import enum
 import textwrap
 import datetime
 import pyasn1.type.univ
@@ -153,11 +155,37 @@ class PathTools(object):
 		return None
 
 class JSONTools(object):
+	class Encoder(json.JSONEncoder):
+		def _translate(self, obj):
+			if isinstance(obj, dict):
+				return { key: self._translate(value) for (key, value) in obj.items() }
+			elif isinstance(obj, (list, tuple)):
+				return [ self._translate(value) for value in obj ]
+			elif isinstance(obj, enum.IntEnum):
+				return {
+					"name":		obj.name,
+					"value":	obj.value,
+				}
+			else:
+				return obj
+
+		def iterencode(self, obj, _one_shot = False):
+			# We need to have a pre-translate step because the stupid Python
+			# standard encoder supplies no way of intercepting known data types
+			# such as int. IntEnum is an instance of int, unfortunately,
+			# therefore it's always encoded as a number.
+			obj = self._translate(obj)
+			return super().iterencode(obj, _one_shot)
+
+		def default(cls, obj):
+			if isinstance(obj, datetime.datetime):
+				return obj.strftime("%Y-%m-%d %H:%M:%S")
+			elif isinstance(obj, set):
+				return sorted(list(obj))
+			else:
+				raise TypeError("Unable to encode type as JSON: %s" % (type(obj)))
+
 	@classmethod
-	def encoder_default(cls, obj):
-		if isinstance(obj, datetime.datetime):
-			return obj.strftime("%Y-%m-%d %H:%M:%S")
-		elif isinstance(obj, set):
-			return sorted(list(obj))
-		else:
-			raise TypeError("Unable to JSON encode: %s" % (type(obj)))
+	def write_to_file(cls, data, filename):
+		with open(filename, "w") as f:
+			json.dump(data, fp = f, indent = 4, sort_keys = True, cls = cls.Encoder)

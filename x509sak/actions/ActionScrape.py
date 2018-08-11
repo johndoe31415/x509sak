@@ -26,7 +26,6 @@ import collections
 import hashlib
 import sys
 import datetime
-import json
 import pyasn1.codec.der.decoder
 from pyasn1_modules import rfc2459, rfc2437
 import x509sak.ASN1Models
@@ -148,10 +147,6 @@ class ActionScrapeStats(object):
 			} for finding in self._findings	],
 		}
 
-	def write_json(self, filename):
-		with open(filename, "w") as f:
-			json.dump(self.as_dict(), fp = f, indent = 4, sort_keys = True, default = JSONTools.encoder_default)
-
 	def dump(self, f = None):
 		if f is None:
 			f = sys.stderr
@@ -242,7 +237,7 @@ class ActionScrape(BaseAction):
 		self._stats.finish(end_offset)
 		self._stats.dump()
 		if self._args.write_json is not None:
-			self._stats.write_json(self._args.write_json)
+			JSONTools.write_to_file(self.as_dict(), self._args.write_json)
 
 	def _progress_callback(self, position, total_length, elapsed_secs):
 		self._log.debug("Scan at %.0f MiB of %.0f MiB, %.1f%%. Average speed %.1f MiB/sec", position / 1024 / 1024, total_length / 1024 / 1024, position / total_length * 100, position / 1024 / 1024 / elapsed_secs)
