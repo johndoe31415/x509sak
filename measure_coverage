@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
 #	Copyright (C) 2018-2018 Johannes Bauer
 #
@@ -20,26 +21,34 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 import os
-import unittest
-import pkgutil
 import uuid
-from x509sak import X509Certificate
+import shutil
+import subprocess
 
-class BaseTest(unittest.TestCase):
-	def __init__(self, *args, **kwargs):
-		unittest.TestCase.__init__(self, *args, **kwargs)
-		if "X509SAK_COVERAGE" not in os.environ:
-			self._x509sak = [ os.path.realpath("x509sak.py") ]
-		else:
-			os.environ["COVERAGE_FILE"] = os.path.realpath(".") + "/.coverage_files/" + str(uuid.uuid4())
-			self._x509sak = [ "coverage", "run", "--append", "--omit", "/usr/*", os.path.realpath("x509sak.py") ]
+try:
+	os.unlink(".coverage")
+except FileNotFoundError:
+	pass
+try:
+	shutil.rmtree("htmlcov")
+except FileNotFoundError:
+	pass
+try:
+	shutil.rmtree(".coverage_files")
+except FileNotFoundError:
+	pass
+os.mkdir(".coverage_files")
 
-	@staticmethod
-	def _load_crt(crtname):
-		x509_text = pkgutil.get_data("x509sak.tests.data", crtname).decode("ascii")
-		cert = X509Certificate.from_pem_data(x509_text)[0]
-		return cert
+cwd = os.path.realpath(".")
+os.environ["COVERAGE_FILE"] = cwd + "/.coverage_files/" + str(uuid.uuid4())
+subprocess.check_call([ "coverage", "run", "--omit", "/usr/*", "./run_tests.py", "--coverage" ])
 
-	@staticmethod
-	def _load_pubkey(crtname):
-		return BaseTest._load_crt(crtname).pubkey
+files = [ ".coverage_files/%s" % (filename) for filename in os.listdir(".coverage_files") ]
+
+os.environ["COVERAGE_FILE"] = cwd + "/.coverage"
+subprocess.check_call([ "coverage", "combine" ] + files)
+shutil.rmtree(".coverage_files")
+
+subprocess.check_call([ "coverage", "html" ])
+subprocess.check_call([ "chromium-browser", "htmlcov/index.html" ])
+

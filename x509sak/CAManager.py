@@ -128,9 +128,6 @@ class CAManager(object):
 	def newcerts_dirname(self):
 		return self._file("certs")
 
-	def __create_ca_key(self, keyspec):
-		OpenSSLTools.create_private_key(self._file(self.private_key_storage.filename), keyspec)
-
 	@classmethod
 	def expand_extensions(cls, extension_template = None, custom_x509_extensions = None):
 		extensions = { }
