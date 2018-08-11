@@ -39,6 +39,9 @@ class ModulusDB(object):
 		data = pkgutil.get_data(pkgname, filename)
 		if filename.endswith(".gz"):
 			data = gzip.decompress(data)
+		# Older Python versions (3.5, running on Travis-CI) require this to be
+		# str, not bytes.
+		data = data.decode("ascii")
 		return json.loads(data)
 
 	@staticmethod
