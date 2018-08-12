@@ -192,3 +192,14 @@ class NumberTheory(object):
 		else:
 			assert(d == n)
 			return None
+
+	@classmethod
+	def cl_mul(cls, x, y):
+		"""Carryless multiplication of x * y."""
+		if x > y:
+			(x, y) = (y, x)
+		result = 0
+		for bit in range(x.bit_length()):
+			if x & (1 << bit):
+				result ^= (y << bit)
+		return result

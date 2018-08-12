@@ -97,3 +97,18 @@ class NumberTheoryTests(BaseTest):
 		q = 99274458486037483860318981815348157562287354834427068777154647405331367500099
 		n = p * q
 		self.assertIsNone(NumberTheory.pollard_rho(n, max_iterations = 10))
+
+	def test_carryless_multiplication(self):
+		for x in [ 0, 1, 2, 3, 4, 5, 123, 267, 498327849327 ]:
+			self.assertEqual(NumberTheory.cl_mul(0, x), 0)
+			self.assertEqual(NumberTheory.cl_mul(x, 0), 0)
+			self.assertEqual(NumberTheory.cl_mul(1, x), x)
+			self.assertEqual(NumberTheory.cl_mul(x, 1), x)
+			self.assertEqual(NumberTheory.cl_mul(2, x), 2 * x)
+			self.assertEqual(NumberTheory.cl_mul(x, 2), 2 * x)
+			self.assertEqual(NumberTheory.cl_mul(x, 1024), 1024 * x)
+			self.assertEqual(NumberTheory.cl_mul(1024, x), 1024 * x)
+
+			self.assertEqual(NumberTheory.cl_mul(x, 1 | 2 | 8 | 256), (1 * x) ^ (2 * x) ^ (8 * x) ^ (256 * x))
+			self.assertEqual(NumberTheory.cl_mul(1 | 2 | 8 | 256, x), (1 * x) ^ (2 * x) ^ (8 * x) ^ (256 * x))
+
