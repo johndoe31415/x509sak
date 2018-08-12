@@ -36,4 +36,4 @@ class CurveDB(object):
 
 	def lookup_by_oid(self, oid):
 		assert(isinstance(oid, OID))
-		return self._DB_DATA[oid]
+		return self._DB_DATA.get(oid)
