@@ -199,8 +199,17 @@ SecurityEstimator.register(RSASecurityEstimator)
 class ECCSecurityEstimator(SecurityEstimator):
 	_ALG_NAME = "ecc"
 	def analyze(self, pubkey):
-		curve = CurveDB().lookup(oid = pubkey.curve_oid)
-		print(curve)
+		curve = CurveDB().instanciate(oid = pubkey.curve_oid)
+
+		# Check that the encoded public key point is on curve first
+		Q = curve.point(pubkey.x, pubkey.y)
+		if not Q.on_curve():
+			return {
+				"bits":			0,
+				"verdict":		Verdict.NO_SECURITY,
+				"common":		Commonness.HIGHLY_UNUSUAL,
+				"text":			"Public key point Q is not on the underlying curve %s." % (pubkey.curve),
+			}
 
 		# We assume, completely out-of-the-blue and worst-case estimate, 32
 		# automorphisms that could be present for any curve (see Duursma et
@@ -209,7 +218,7 @@ class ECCSecurityEstimator(SecurityEstimator):
 		# complexity in bits as:
 		#
 		# b = log2(sqrt(n / 32)) = (log2(n) / 2) - 2.5
-		approx_curve_order_bits = math.log(curve["domain"]["n"], 2)
+		approx_curve_order_bits = math.log(curve.n, 2)
 		bits_security = (approx_curve_order_bits / 2) - 2.5
 		bits_security = math.floor(bits_security)
 		return self.algorithm("bits").analyze(bits_security)

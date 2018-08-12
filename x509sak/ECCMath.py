@@ -62,9 +62,12 @@ class EllipticCurve(object):
 	def field_bits(self):
 		raise Exception(NotImplemented)
 
+	def point(self, x, y):
+		return EllipticCurvePoint(self, x, y)
+
 	@property
 	def G(self):
-		return EllipticCurvePoint(self, self.Gx, self.Gy)
+		return self.point(self.Gx, self.Gy)
 
 	def on_curve(self, point):
 		raise Exception(NotImplemented)
