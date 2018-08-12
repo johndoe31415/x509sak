@@ -24,6 +24,8 @@ import re
 import base64
 import json
 import enum
+import pkgutil
+import gzip
 import textwrap
 import datetime
 import pyasn1.type.univ
@@ -189,3 +191,13 @@ class JSONTools(object):
 	def write_to_file(cls, data, filename):
 		with open(filename, "w") as f:
 			json.dump(data, fp = f, indent = 4, sort_keys = True, cls = cls.Encoder)
+
+	@classmethod
+	def load_internal(cls, pkgname, filename):
+		data = pkgutil.get_data(pkgname, filename)
+		if filename.endswith(".gz"):
+			data = gzip.decompress(data)
+		# Older Python versions (3.5, running on Travis-CI) require this to be
+		# str, not bytes.
+		data = data.decode("ascii")
+		return json.loads(data)

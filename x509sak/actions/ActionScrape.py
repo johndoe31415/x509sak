@@ -237,7 +237,7 @@ class ActionScrape(BaseAction):
 		self._stats.finish(end_offset)
 		self._stats.dump()
 		if self._args.write_json is not None:
-			JSONTools.write_to_file(self.as_dict(), self._args.write_json)
+			JSONTools.write_to_file(self._stats.as_dict(), self._args.write_json)
 
 	def _progress_callback(self, position, total_length, elapsed_secs):
 		self._log.debug("Scan at %.0f MiB of %.0f MiB, %.1f%%. Average speed %.1f MiB/sec", position / 1024 / 1024, total_length / 1024 / 1024, position / total_length * 100, position / 1024 / 1024 / elapsed_secs)

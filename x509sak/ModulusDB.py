@@ -19,12 +19,10 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-import pkgutil
 import hashlib
 import collections
-import gzip
 import base64
-import json
+from x509sak.Tools import JSONTools
 from x509sak.Exceptions import InvalidInternalDataException
 
 class ModulusDB(object):
@@ -34,15 +32,6 @@ class ModulusDB(object):
 	def __init__(self):
 		if self._DB_DATA is None:
 			self._DB_DATA = self._load_db_data()
-
-	def _load_json(self, pkgname, filename):
-		data = pkgutil.get_data(pkgname, filename)
-		if filename.endswith(".gz"):
-			data = gzip.decompress(data)
-		# Older Python versions (3.5, running on Travis-CI) require this to be
-		# str, not bytes.
-		data = data.decode("ascii")
-		return json.loads(data)
 
 	@staticmethod
 	def _hash_int(n):
@@ -57,7 +46,7 @@ class ModulusDB(object):
 	def _load_db_data(self):
 		db_data = { }
 		for filename in [ "rsa.json", "debian.json.gz" ]:
-			data = self._load_json("x509sak.data.moduli", filename)
+			data = JSONTools.load_internal("x509sak.data.moduli", filename)
 			for entry in data:
 				if "text" not in entry:
 					raise InvalidInternalDataException("Modulus database requires text for given modulus, not present for entry: %s" % (str(entry)))
@@ -75,3 +64,5 @@ class ModulusDB(object):
 		n_hash = self._hash_int(n)
 		if n_hash in self._DB_DATA:
 			return self._ModulusMatch(hash = n_hash, text = self._DB_DATA[n_hash])
+		else:
+			return None
