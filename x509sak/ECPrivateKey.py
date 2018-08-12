@@ -48,9 +48,10 @@ class ECPrivateKey(PEMDERObject):
 			raise InvalidInputException("ECC private key does not contain public key. Cannot proceed.")
 
 		curve_oid = OID.from_asn1(self._asn1["parameters"])
-		if curve_oid not in OIDDB.EllipticCurves:
-			raise UnknownAlgorithmException("Unable to determine curve name for curve OID %s." % (curve_oid))
-		self._curve = OIDDB.EllipticCurves[curve_oid]
+		curve = CurveDB().lookup_by_oid(curve_oid)
+		if curve is None:
+			raise UnknownAlgorithmException("Unable to determine curve for curve OID %s." % (curve_oid))
+		self._curve = curve["name"]
 
 		self._d = int.from_bytes(self._asn1["privateKey"], byteorder = "big")
 		(self._x, self._y) = ECCTools.decode_enc_pubkey(ASN1Tools.bitstring2bytes(self._asn1["publicKey"]))

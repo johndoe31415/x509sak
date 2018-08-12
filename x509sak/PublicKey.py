@@ -29,6 +29,7 @@ from x509sak.Tools import ASN1Tools, ECCTools
 from x509sak.KeySpecification import KeySpecification, Cryptosystem
 from x509sak.Exceptions import UnknownAlgorithmException, LazyDeveloperException
 from x509sak.SecurityEstimator import SecurityEstimator
+from x509sak.CurveDB import CurveDB
 
 class PublicKey(PEMDERObject):
 	_PEM_MARKER = "PUBLIC KEY"
@@ -72,10 +73,11 @@ class PublicKey(PEMDERObject):
 			(x, y) = ECCTools.decode_enc_pubkey(inner_key)
 			(alg_oid, _) = pyasn1.codec.der.decoder.decode(self.asn1["algorithm"]["parameters"])
 			alg_oid = OID.from_asn1(alg_oid)
-			if alg_oid not in OIDDB.EllipticCurves:
-				raise UnknownAlgorithmException("Unable to determine curve name for curve OID %s." % (alg_oid))
+			curve = CurveDB().lookup_by_oid(alg_oid)
+			if curve is None:
+				raise UnknownAlgorithmException("Unable to determine curve for curve OID %s." % (alg_oid))
 			self._key = {
-				"curve":	OIDDB.EllipticCurves[alg_oid],
+				"curve":	curve["name"],
 				"x":		x,
 				"y":		y
 			}
