@@ -199,7 +199,7 @@ SecurityEstimator.register(RSASecurityEstimator)
 class ECCSecurityEstimator(SecurityEstimator):
 	_ALG_NAME = "ecc"
 	def analyze(self, pubkey):
-		curve = CurveDB().lookup_by_oid(pubkey.curve_oid)
+		curve = CurveDB().lookup(oid = pubkey.curve_oid)
 		print(curve)
 
 		# We assume, completely out-of-the-blue and worst-case estimate, 32
@@ -209,7 +209,8 @@ class ECCSecurityEstimator(SecurityEstimator):
 		# complexity in bits as:
 		#
 		# b = log2(sqrt(n / 32)) = (log2(n) / 2) - 2.5
-		bits_security = (curve["order_bits"] / 2) - 2.5
+		approx_curve_order_bits = math.log(curve["domain"]["n"], 2)
+		bits_security = (approx_curve_order_bits / 2) - 2.5
 		bits_security = math.floor(bits_security)
 		return self.algorithm("bits").analyze(bits_security)
 

@@ -33,6 +33,7 @@ class InvalidUsageException(UserErrorException): pass
 class InvalidInputException(UserErrorException): pass
 class UnknownFormatException(UserErrorException): pass
 class InvalidCAIndexFileEntry(UserErrorException): pass
+class CurveNotFoundException(UserErrorException): pass
 
 class CmdExecutionFailedException(InvisibleUserErrorException): pass
 

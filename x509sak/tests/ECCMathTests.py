@@ -19,19 +19,24 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-from .BaseTest import BaseTest
-from .X509CertificateTests import X509CertificateTests
-from .CertificatePoolTests import CertificatePoolTests
-from .NumberTheoryTests import NumberTheoryTests
-from .PublicKeyTests import PublicKeyTests
-from .OpenSSLToolsTests import OpenSSLToolsTests
-from .CmdLineTestsBuildChain import CmdLineTestsBuildChain
-from .CmdLineTestsCreateCA import CmdLineTestsCreateCA
-from .CmdLineTestsCreateCRT import CmdLineTestsCreateCRT
-from .CmdLineTestsSignCSR import CmdLineTestsSignCSR
-from .HardwareTokenTests import HardwareTokenTests
-from .OpenSSLCAIndexFileTests import OpenSSLCAIndexFileTests
-from .PassphraseGeneratorTests import PassphraseGeneratorTests
-from .RSASecurityEstimatorTests import RSASecurityEstimatorTests
-from .IntervalTests import IntervalTests
-from .ECCMathTests import ECCMathTests
+from x509sak.tests import BaseTest
+from x509sak.CurveDB import CurveDB
+
+class ECCMathTests(BaseTest):
+	def test_ecc_prime_curve(self):
+		curve = CurveDB().instanciate(name = "secp112r1")
+		self.assertTrue(curve.G.on_curve)
+
+	def test_ecc_binary_trinomial_basis_poly(self):
+		curve = CurveDB().instanciate(name = "sect113r1")
+		self.assertEqual(sorted(curve.poly), [ 0, 9, 113 ])
+
+	def test_ecc_binary_pentanomial_basis_poly(self):
+		curve = CurveDB().instanciate(name = "sect163r1")
+		self.assertEqual(sorted(curve.poly), [ 0, 3, 6, 7, 163 ])
+
+	def test_ecc_curvedb(self):
+		db = CurveDB()
+		for curve_oid in db:
+			curve = db.instanciate(oid = curve_oid)
+			self.assertTrue(curve.G.on_curve())

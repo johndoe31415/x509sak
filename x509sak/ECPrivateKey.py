@@ -48,7 +48,7 @@ class ECPrivateKey(PEMDERObject):
 			raise InvalidInputException("ECC private key does not contain public key. Cannot proceed.")
 
 		curve_oid = OID.from_asn1(self._asn1["parameters"])
-		curve = CurveDB().lookup_by_oid(curve_oid)
+		curve = CurveDB().lookup(oid = curve_oid)
 		if curve is None:
 			raise UnknownAlgorithmException("Unable to determine curve for curve OID %s." % (curve_oid))
 		self._curve = curve["name"]

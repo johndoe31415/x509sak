@@ -73,7 +73,7 @@ class PublicKey(PEMDERObject):
 			(x, y) = ECCTools.decode_enc_pubkey(inner_key)
 			(alg_oid, _) = pyasn1.codec.der.decoder.decode(self.asn1["algorithm"]["parameters"])
 			alg_oid = OID.from_asn1(alg_oid)
-			curve = CurveDB().lookup_by_oid(alg_oid)
+			curve = CurveDB().lookup(oid = alg_oid)
 			if curve is None:
 				raise UnknownAlgorithmException("Unable to determine curve for curve OID %s." % (alg_oid))
 			self._key = {
