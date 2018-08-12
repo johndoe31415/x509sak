@@ -23,6 +23,7 @@ import enum
 import math
 from x509sak.NumberTheory import NumberTheory
 from x509sak.ModulusDB import ModulusDB
+from x509sak.CurveDB import CurveDB
 
 class Verdict(enum.IntEnum):
 	NO_SECURITY = 0
@@ -193,3 +194,23 @@ class RSASecurityEstimator(SecurityEstimator):
 			"e":	self.analyze_e(e),
 		}
 SecurityEstimator.register(RSASecurityEstimator)
+
+
+class ECCSecurityEstimator(SecurityEstimator):
+	_ALG_NAME = "ecc"
+	def analyze(self, pubkey):
+		curve = CurveDB().lookup_by_oid(pubkey.curve_oid)
+		print(curve)
+
+		# We assume, completely out-of-the-blue and worst-case estimate, 32
+		# automorphisms that could be present for any curve (see Duursma et
+		# al., "Speeding up the discrete log computation on curves with
+		# automorphisms"). Therefore, for a given order n, we estimate the
+		# complexity in bits as:
+		#
+		# b = log2(sqrt(n / 32)) = (log2(n) / 2) - 2.5
+		bits_security = (curve["order_bits"] / 2) - 2.5
+		bits_security = math.floor(bits_security)
+		return self.algorithm("bits").analyze(bits_security)
+
+SecurityEstimator.register(ECCSecurityEstimator)

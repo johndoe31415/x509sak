@@ -77,9 +77,10 @@ class PublicKey(PEMDERObject):
 			if curve is None:
 				raise UnknownAlgorithmException("Unable to determine curve for curve OID %s." % (alg_oid))
 			self._key = {
-				"curve":	curve["name"],
-				"x":		x,
-				"y":		y
+				"curve":		curve["name"],
+				"x":			x,
+				"y":			y,
+				"curve_oid":	alg_oid,
 			}
 		else:
 			raise LazyDeveloperException(NotImplemented, self.cryptosystem)
@@ -121,8 +122,9 @@ class PublicKey(PEMDERObject):
 			result["specific"]["n"] = self.n
 			result["specific"]["e"] = self.e
 		elif self.cryptosystem == Cryptosystem.ECC:
-			result["pretty"] = "ECC on %s" % ("TODO")
-			result["specific"]["security"] = SecurityEstimator.algorithm("ecc").analyze(self.n, self.e)
+			result["pretty"] = "ECC on %s" % (self.curve)
+			result["specific"]["security"] = SecurityEstimator.algorithm("ecc").analyze(self)
+			result["specific"]["curve_name"] = self.curve
 		else:
 			raise LazyDeveloperException(NotImplemented, self.cryptosystem)
 		return result
