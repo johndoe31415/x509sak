@@ -196,6 +196,10 @@ class NumberTheory(object):
 	@classmethod
 	def cl_mul(cls, x, y):
 		"""Carryless multiplication of x * y."""
+		assert(isinstance(x, int))
+		assert(isinstance(y, int))
+		assert(x >= 0)
+		assert(y >= 0)
 		if x > y:
 			(x, y) = (y, x)
 		result = 0
@@ -208,8 +212,23 @@ class NumberTheory(object):
 	def binpoly_reduce(cls, x, poly):
 		"""Binary polynomial reduction of polynomial x against the given
 		polynimal."""
+		assert(isinstance(x, int))
+		assert(isinstance(poly, int))
+		assert(x >= 0)
+		assert(poly > 0)
 		while x >= poly:
 			# Determine bit difference
 			shift = x.bit_length() - poly.bit_length()
 			x ^= (poly << shift)
 		return x
+
+	@classmethod
+	def hamming_weight(cls, x):
+		assert(isinstance(x, int))
+		assert(x >= 0)
+		weight = 0
+		while x > 0:
+			if x & 1:
+				weight += 1
+			x >>= 1
+		return weight

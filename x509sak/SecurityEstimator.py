@@ -245,6 +245,14 @@ class ECCSecurityEstimator(SecurityEstimator):
 		if ((field_len - x_len) >= 32) or ((field_len - y_len) >= 32):
 			security_estimate["common"] = Commonness.HIGHLY_UNUSUAL
 			security_estimate["text"] += " Affine public key field element lengths (x = %d bit, y = %d bit) differ from field element width of %d bits more than 32 bits; this is likely not coincidential." % (x_len, y_len, field_len)
+
+		avg_weight = field_len // 2
+		x_weight = NumberTheory.hamming_weight(pubkey.x)
+		y_weight = NumberTheory.hamming_weight(pubkey.y)
+		if (abs(avg_weight - x_weight) >= 32) or (abs(avg_weight - y_weight) >= 32):
+			security_estimate["common"] = Commonness.HIGHLY_UNUSUAL
+			security_estimate["text"] += " Hamming weight of public key field element lengths (H_x = %d, H_y = %d) differs from expected average of %d more than 32; this is likely not coincidential." % (x_weight, y_weight, avg_weight)
+
 		return security_estimate
 
 SecurityEstimator.register(ECCSecurityEstimator)
