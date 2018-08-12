@@ -17,7 +17,7 @@ for line in output:
 		match = match.groupdict()
 		curves.append(match["name"])
 
-_Curve = collections.namedtuple("Curve", [ "oid", "name", "field", "order" ])
+_Curve = collections.namedtuple("Curve", [ "oid", "name", "field", "field_size", "order" ])
 
 oid_curves = { }
 for curvename in curves:
@@ -32,8 +32,12 @@ for curvename in curves:
 			"1.2.840.10045.1.1":	"prime",
 			"1.2.840.10045.1.2":	"binary",
 		}[str(asn1[1][0])]
+		if field_type == "prime":
+			field_size = int(asn1[1][1]).bit_length()
+		else:
+			field_size = int(asn1[1][1][0])
 		order = int(asn1[4])
-		curve = _Curve(oid = oid, name = curvename, field = field_type, order = order)
+		curve = _Curve(oid = oid, name = curvename, field = field_type, field_size = field_size, order = order)
 		oid_curves[oid] = curve
 	except pyasn1.error.PyAsn1Error:
 		# OpenSSL bug https://github.com/openssl/openssl/issues/5723
@@ -48,6 +52,7 @@ for (oid, curve) in oid_curves.items():
 		("name",		curve.name),
 		("order_bits",	math.log(float(curve.order), 2)),	# Only an approximation for complexity estimation
 		("field",		curve.field),
+		("field_size",	curve.field_size),
 	])
 
 #for (oid, curve) in sorted(oid_curves.items()):

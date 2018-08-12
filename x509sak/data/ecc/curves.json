@@ -2,396 +2,475 @@
     "1.2.840.10045.3.0.1": {
         "name": "c2pnb163v1",
         "order_bits": 162.0,
-        "field": "binary"
+        "field": "binary",
+        "field_size": 163
     },
     "1.2.840.10045.3.0.2": {
         "name": "c2pnb163v2",
         "order_bits": 162.0,
-        "field": "binary"
+        "field": "binary",
+        "field_size": 163
     },
     "1.2.840.10045.3.0.3": {
         "name": "c2pnb163v3",
         "order_bits": 162.0,
-        "field": "binary"
+        "field": "binary",
+        "field_size": 163
     },
     "1.2.840.10045.3.0.4": {
         "name": "c2pnb176v1",
         "order_bits": 160.00321759716604,
-        "field": "binary"
+        "field": "binary",
+        "field_size": 176
     },
     "1.2.840.10045.3.0.5": {
         "name": "c2tnb191v1",
         "order_bits": 190.00000000000003,
-        "field": "binary"
+        "field": "binary",
+        "field_size": 191
     },
     "1.2.840.10045.3.0.6": {
         "name": "c2tnb191v2",
         "order_bits": 189.00000000000003,
-        "field": "binary"
+        "field": "binary",
+        "field_size": 191
     },
     "1.2.840.10045.3.0.7": {
         "name": "c2tnb191v3",
         "order_bits": 188.41503749927884,
-        "field": "binary"
+        "field": "binary",
+        "field_size": 191
     },
     "1.2.840.10045.3.0.10": {
         "name": "c2pnb208w1",
         "order_bits": 192.0097187246397,
-        "field": "binary"
+        "field": "binary",
+        "field_size": 208
     },
     "1.2.840.10045.3.0.11": {
         "name": "c2tnb239v1",
         "order_bits": 237.0,
-        "field": "binary"
+        "field": "binary",
+        "field_size": 239
     },
     "1.2.840.10045.3.0.12": {
         "name": "c2tnb239v2",
         "order_bits": 236.41503749927884,
-        "field": "binary"
+        "field": "binary",
+        "field_size": 239
     },
     "1.2.840.10045.3.0.13": {
         "name": "c2tnb239v3",
         "order_bits": 235.67807190511266,
-        "field": "binary"
+        "field": "binary",
+        "field_size": 239
     },
     "1.2.840.10045.3.0.16": {
         "name": "c2pnb272w1",
         "order_bits": 256.0055139685874,
-        "field": "binary"
+        "field": "binary",
+        "field_size": 272
     },
     "1.2.840.10045.3.0.17": {
         "name": "c2pnb304w1",
         "order_bits": 288.0102950667192,
-        "field": "binary"
+        "field": "binary",
+        "field_size": 304
     },
     "1.2.840.10045.3.0.18": {
         "name": "c2tnb359v1",
         "order_bits": 352.7520724865564,
-        "field": "binary"
+        "field": "binary",
+        "field_size": 359
     },
     "1.2.840.10045.3.0.19": {
         "name": "c2pnb368w1",
         "order_bits": 352.0031734719793,
-        "field": "binary"
+        "field": "binary",
+        "field_size": 368
     },
     "1.2.840.10045.3.0.20": {
         "name": "c2tnb431r1",
         "order_bits": 417.7007919816127,
-        "field": "binary"
+        "field": "binary",
+        "field_size": 431
     },
     "1.2.840.10045.3.1.1": {
         "name": "prime192v1",
         "order_bits": 192.0,
-        "field": "prime"
+        "field": "prime",
+        "field_size": 192
     },
     "1.2.840.10045.3.1.2": {
         "name": "prime192v2",
         "order_bits": 192.0,
-        "field": "prime"
+        "field": "prime",
+        "field_size": 192
     },
     "1.2.840.10045.3.1.3": {
         "name": "prime192v3",
         "order_bits": 192.0,
-        "field": "prime"
+        "field": "prime",
+        "field_size": 192
     },
     "1.2.840.10045.3.1.4": {
         "name": "prime239v1",
         "order_bits": 239.0,
-        "field": "prime"
+        "field": "prime",
+        "field_size": 239
     },
     "1.2.840.10045.3.1.5": {
         "name": "prime239v2",
         "order_bits": 239.0,
-        "field": "prime"
+        "field": "prime",
+        "field_size": 239
     },
     "1.2.840.10045.3.1.6": {
         "name": "prime239v3",
         "order_bits": 239.0,
-        "field": "prime"
+        "field": "prime",
+        "field_size": 239
     },
     "1.2.840.10045.3.1.7": {
         "name": "prime256v1",
         "order_bits": 255.99999999966408,
-        "field": "prime"
+        "field": "prime",
+        "field_size": 256
     },
     "1.3.36.3.3.2.8.1.1.1": {
         "name": "brainpoolP160r1",
         "order_bits": 159.86646493117547,
-        "field": "prime"
+        "field": "prime",
+        "field_size": 160
     },
     "1.3.36.3.3.2.8.1.1.2": {
         "name": "brainpoolP160t1",
         "order_bits": 159.86646493117547,
-        "field": "prime"
+        "field": "prime",
+        "field_size": 160
     },
     "1.3.36.3.3.2.8.1.1.3": {
         "name": "brainpoolP192r1",
         "order_bits": 191.60741566999553,
-        "field": "prime"
+        "field": "prime",
+        "field_size": 192
     },
     "1.3.36.3.3.2.8.1.1.4": {
         "name": "brainpoolP192t1",
         "order_bits": 191.60741566999553,
-        "field": "prime"
+        "field": "prime",
+        "field_size": 192
     },
     "1.3.36.3.3.2.8.1.1.5": {
         "name": "brainpoolP224r1",
         "order_bits": 223.75324824304334,
-        "field": "prime"
+        "field": "prime",
+        "field_size": 224
     },
     "1.3.36.3.3.2.8.1.1.6": {
         "name": "brainpoolP224t1",
         "order_bits": 223.75324824304334,
-        "field": "prime"
+        "field": "prime",
+        "field_size": 224
     },
     "1.3.36.3.3.2.8.1.1.7": {
         "name": "brainpoolP256r1",
         "order_bits": 255.4092365540412,
-        "field": "prime"
+        "field": "prime",
+        "field_size": 256
     },
     "1.3.36.3.3.2.8.1.1.8": {
         "name": "brainpoolP256t1",
         "order_bits": 255.4092365540412,
-        "field": "prime"
+        "field": "prime",
+        "field_size": 256
     },
     "1.3.36.3.3.2.8.1.1.9": {
         "name": "brainpoolP320r1",
         "order_bits": 319.7236150285684,
-        "field": "prime"
+        "field": "prime",
+        "field_size": 320
     },
     "1.3.36.3.3.2.8.1.1.10": {
         "name": "brainpoolP320t1",
         "order_bits": 319.7236150285684,
-        "field": "prime"
+        "field": "prime",
+        "field_size": 320
     },
     "1.3.36.3.3.2.8.1.1.11": {
         "name": "brainpoolP384r1",
         "order_bits": 383.1367155827841,
-        "field": "prime"
+        "field": "prime",
+        "field_size": 384
     },
     "1.3.36.3.3.2.8.1.1.12": {
         "name": "brainpoolP384t1",
         "order_bits": 383.1367155827841,
-        "field": "prime"
+        "field": "prime",
+        "field_size": 384
     },
     "1.3.36.3.3.2.8.1.1.13": {
         "name": "brainpoolP512r1",
         "order_bits": 511.41671890353024,
-        "field": "prime"
+        "field": "prime",
+        "field_size": 512
     },
     "1.3.36.3.3.2.8.1.1.14": {
         "name": "brainpoolP512t1",
         "order_bits": 511.41671890353024,
-        "field": "prime"
+        "field": "prime",
+        "field_size": 512
     },
     "1.3.132.0.1": {
         "name": "sect163k1",
         "order_bits": 162.0,
-        "field": "binary"
+        "field": "binary",
+        "field_size": 163
     },
     "1.3.132.0.2": {
         "name": "sect163r1",
         "order_bits": 162.0,
-        "field": "binary"
+        "field": "binary",
+        "field_size": 163
     },
     "1.3.132.0.3": {
         "name": "sect239k1",
         "order_bits": 237.0,
-        "field": "binary"
+        "field": "binary",
+        "field_size": 239
     },
     "1.3.132.0.4": {
         "name": "sect113r1",
         "order_bits": 112.0,
-        "field": "binary"
+        "field": "binary",
+        "field_size": 113
     },
     "1.3.132.0.5": {
         "name": "sect113r2",
         "order_bits": 112.0,
-        "field": "binary"
+        "field": "binary",
+        "field_size": 113
     },
     "1.3.132.0.6": {
         "name": "secp112r1",
         "order_bits": 111.77797871582014,
-        "field": "prime"
+        "field": "prime",
+        "field_size": 112
     },
     "1.3.132.0.7": {
         "name": "secp112r2",
         "order_bits": 109.77797871582014,
-        "field": "prime"
+        "field": "prime",
+        "field_size": 112
     },
     "1.3.132.0.8": {
         "name": "secp160r1",
         "order_bits": 160.0,
-        "field": "prime"
+        "field": "prime",
+        "field_size": 160
     },
     "1.3.132.0.9": {
         "name": "secp160k1",
         "order_bits": 160.0,
-        "field": "prime"
+        "field": "prime",
+        "field_size": 160
     },
     "1.3.132.0.10": {
         "name": "secp256k1",
         "order_bits": 256.0,
-        "field": "prime"
+        "field": "prime",
+        "field_size": 256
     },
     "1.3.132.0.15": {
         "name": "sect163r2",
         "order_bits": 162.0,
-        "field": "binary"
+        "field": "binary",
+        "field_size": 163
     },
     "1.3.132.0.16": {
         "name": "sect283k1",
         "order_bits": 281.0,
-        "field": "binary"
+        "field": "binary",
+        "field_size": 283
     },
     "1.3.132.0.17": {
         "name": "sect283r1",
         "order_bits": 282.00000000000006,
-        "field": "binary"
+        "field": "binary",
+        "field_size": 283
     },
     "1.3.132.0.22": {
         "name": "sect131r1",
         "order_bits": 130.0,
-        "field": "binary"
+        "field": "binary",
+        "field_size": 131
     },
     "1.3.132.0.23": {
         "name": "sect131r2",
         "order_bits": 130.0,
-        "field": "binary"
+        "field": "binary",
+        "field_size": 131
     },
     "1.3.132.0.24": {
         "name": "sect193r1",
         "order_bits": 192.0,
-        "field": "binary"
+        "field": "binary",
+        "field_size": 193
     },
     "1.3.132.0.25": {
         "name": "sect193r2",
         "order_bits": 192.0,
-        "field": "binary"
+        "field": "binary",
+        "field_size": 193
     },
     "1.3.132.0.26": {
         "name": "sect233k1",
         "order_bits": 231.0,
-        "field": "binary"
+        "field": "binary",
+        "field_size": 233
     },
     "1.3.132.0.27": {
         "name": "sect233r1",
         "order_bits": 232.00000000000003,
-        "field": "binary"
+        "field": "binary",
+        "field_size": 233
     },
     "1.3.132.0.28": {
         "name": "secp128r1",
         "order_bits": 127.9999999993282,
-        "field": "prime"
+        "field": "prime",
+        "field_size": 128
     },
     "1.3.132.0.29": {
         "name": "secp128r2",
         "order_bits": 125.99999999932818,
-        "field": "prime"
+        "field": "prime",
+        "field_size": 128
     },
     "1.3.132.0.30": {
         "name": "secp160r2",
         "order_bits": 160.0,
-        "field": "prime"
+        "field": "prime",
+        "field_size": 160
     },
     "1.3.132.0.31": {
         "name": "secp192k1",
         "order_bits": 192.0,
-        "field": "prime"
+        "field": "prime",
+        "field_size": 192
     },
     "1.3.132.0.32": {
         "name": "secp224k1",
         "order_bits": 224.0,
-        "field": "prime"
+        "field": "prime",
+        "field_size": 224
     },
     "1.3.132.0.33": {
         "name": "secp224r1",
         "order_bits": 224.0,
-        "field": "prime"
+        "field": "prime",
+        "field_size": 224
     },
     "1.3.132.0.34": {
         "name": "secp384r1",
         "order_bits": 384.0,
-        "field": "prime"
+        "field": "prime",
+        "field_size": 384
     },
     "1.3.132.0.35": {
         "name": "secp521r1",
         "order_bits": 521.0,
-        "field": "prime"
+        "field": "prime",
+        "field_size": 521
     },
     "1.3.132.0.36": {
         "name": "sect409k1",
         "order_bits": 407.00000000000006,
-        "field": "binary"
+        "field": "binary",
+        "field_size": 409
     },
     "1.3.132.0.37": {
         "name": "sect409r1",
         "order_bits": 408.00000000000006,
-        "field": "binary"
+        "field": "binary",
+        "field_size": 409
     },
     "1.3.132.0.38": {
         "name": "sect571k1",
         "order_bits": 569.0,
-        "field": "binary"
+        "field": "binary",
+        "field_size": 571
     },
     "1.3.132.0.39": {
         "name": "sect571r1",
         "order_bits": 570.0,
-        "field": "binary"
+        "field": "binary",
+        "field_size": 571
     },
     "2.23.43.1.4.1": {
         "name": "wap-wsg-idm-ecid-wtls1",
         "order_bits": 112.0,
-        "field": "binary"
+        "field": "binary",
+        "field_size": 113
     },
     "2.23.43.1.4.3": {
         "name": "wap-wsg-idm-ecid-wtls3",
         "order_bits": 162.0,
-        "field": "binary"
+        "field": "binary",
+        "field_size": 163
     },
     "2.23.43.1.4.4": {
         "name": "wap-wsg-idm-ecid-wtls4",
         "order_bits": 112.0,
-        "field": "binary"
+        "field": "binary",
+        "field_size": 113
     },
     "2.23.43.1.4.5": {
         "name": "wap-wsg-idm-ecid-wtls5",
         "order_bits": 162.0,
-        "field": "binary"
+        "field": "binary",
+        "field_size": 163
     },
     "2.23.43.1.4.6": {
         "name": "wap-wsg-idm-ecid-wtls6",
         "order_bits": 111.77797871582014,
-        "field": "prime"
+        "field": "prime",
+        "field_size": 112
     },
     "2.23.43.1.4.7": {
         "name": "wap-wsg-idm-ecid-wtls7",
         "order_bits": 160.0,
-        "field": "prime"
+        "field": "prime",
+        "field_size": 160
     },
     "2.23.43.1.4.8": {
         "name": "wap-wsg-idm-ecid-wtls8",
         "order_bits": 112.0,
-        "field": "prime"
+        "field": "prime",
+        "field_size": 112
     },
     "2.23.43.1.4.9": {
         "name": "wap-wsg-idm-ecid-wtls9",
         "order_bits": 160.0,
-        "field": "prime"
+        "field": "prime",
+        "field_size": 160
     },
     "2.23.43.1.4.10": {
         "name": "wap-wsg-idm-ecid-wtls10",
         "order_bits": 231.0,
-        "field": "binary"
+        "field": "binary",
+        "field_size": 233
     },
     "2.23.43.1.4.11": {
         "name": "wap-wsg-idm-ecid-wtls11",
         "order_bits": 232.00000000000003,
-        "field": "binary"
+        "field": "binary",
+        "field_size": 233
     },
     "2.23.43.1.4.12": {
         "name": "wap-wsg-idm-ecid-wtls12",
         "order_bits": 224.0,
-        "field": "prime"
+        "field": "prime",
+        "field_size": 224
     }
 }
