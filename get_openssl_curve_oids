@@ -1,6 +1,9 @@
 #!/usr/bin/python3
 import re
+import math
 import subprocess
+import collections
+import json
 import pyasn1.codec.der.decoder
 import pyasn1.error
 from x509sak import OID
@@ -14,16 +17,39 @@ for line in output:
 		match = match.groupdict()
 		curves.append(match["name"])
 
+_Curve = collections.namedtuple("Curve", [ "oid", "name", "field", "order" ])
+
 oid_curves = { }
-for curve in curves:
-	private_key = subprocess.check_output([ "openssl", "ecparam", "-name", curve, "-outform", "der" ])
+for curvename in curves:
+	domain_params_oid = subprocess.check_output([ "openssl", "ecparam", "-name", curvename, "-outform", "der" ])
+	domain_params_explicit = subprocess.check_output([ "openssl", "ecparam", "-name", curvename, "-outform", "der", "-param_enc", "explicit" ])
 	try:
-		(asn1, tail) = pyasn1.codec.der.decoder.decode(private_key)
+		(asn1, tail) = pyasn1.codec.der.decoder.decode(domain_params_oid)
 		oid = OID.from_asn1(asn1)
+
+		(asn1, tail) = pyasn1.codec.der.decoder.decode(domain_params_explicit)
+		field_type = {
+			"1.2.840.10045.1.1":	"prime",
+			"1.2.840.10045.1.2":	"binary",
+		}[str(asn1[1][0])]
+		order = int(asn1[4])
+		curve = _Curve(oid = oid, name = curvename, field = field_type, order = order)
 		oid_curves[oid] = curve
 	except pyasn1.error.PyAsn1Error:
 		# OpenSSL bug https://github.com/openssl/openssl/issues/5723
 		pass
 
-for (oid, curve) in sorted(oid_curves.items()):
-	print("		OID.from_str(\"%s\"): \"%s\"," % (oid, curve))
+# Preserve OID order (unnecessary, but pretty)
+oid_curves = collections.OrderedDict(sorted(oid_curves.items()))
+
+json_output = collections.OrderedDict()
+for (oid, curve) in oid_curves.items():
+	json_output[str(oid)] = collections.OrderedDict([
+		("name",		curve.name),
+		("order_bits",	math.log(float(curve.order), 2)),	# Only an approximation for complexity estimation
+		("field",		curve.field),
+	])
+
+#for (oid, curve) in sorted(oid_curves.items()):
+#	print("		OID.from_str(\"%s\"): \"%s\"," % (oid, curve.name))
+print(json.dumps(json_output, indent = 4))
