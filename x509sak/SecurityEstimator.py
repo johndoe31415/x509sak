@@ -211,6 +211,15 @@ class ECCSecurityEstimator(SecurityEstimator):
 				"text":			"Public key point Q is not on the underlying curve %s." % (pubkey.curve),
 			}
 
+		# Check that the encoded public key is not Gx
+		if pubkey.x == curve.Gx:
+			return {
+				"bits":			0,
+				"verdict":		Verdict.NO_SECURITY,
+				"common":		Commonness.HIGHLY_UNUSUAL,
+				"text":			"Public key point Q_x is equal to generator G_x on curve %s." % (pubkey.curve),
+			}
+
 		# We assume, completely out-of-the-blue and worst-case estimate, 32
 		# automorphisms that could be present for any curve (see Duursma et
 		# al., "Speeding up the discrete log computation on curves with
@@ -221,6 +230,21 @@ class ECCSecurityEstimator(SecurityEstimator):
 		approx_curve_order_bits = math.log(curve.n, 2)
 		bits_security = (approx_curve_order_bits / 2) - 2.5
 		bits_security = math.floor(bits_security)
-		return self.algorithm("bits").analyze(bits_security)
+		security_estimate = self.algorithm("bits").analyze(bits_security)
+
+		# Check if the affine X/Y coordinates of the public key are about the
+		# same length as the curve order. If randomly generated, both X and Y
+		# should be about the same		bitlength as the generator order. We're
+		# warning for the topmost 32 bits cleared, i.e.  false positive rate
+		# should be about p = 2^(-32) = 0.2 ppb = 1 : 4 billion.  This isn't
+		# necessarily a security issue, but it is uncommon and unusual,
+		# therefore we report it.
+		field_len = curve.field_bits
+		x_len = pubkey.x.bit_length()
+		y_len = pubkey.y.bit_length()
+		if ((field_len - x_len) >= 32) or ((field_len - y_len) >= 32):
+			security_estimate["common"] = Commonness.HIGHLY_UNUSUAL
+			security_estimate["text"] += " Affine public key field element lengths (x = %d bit, y = %d bit) differ from field element width of %d bits more than 32 bits; this is likely not coincidential." % (x_len, y_len, field_len)
+		return security_estimate
 
 SecurityEstimator.register(ECCSecurityEstimator)
