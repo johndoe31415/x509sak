@@ -20,6 +20,7 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 from x509sak.KwargsChecker import KwargsChecker
+from x509sak.NumberTheory import NumberTheory
 
 class EllipticCurvePoint(object):
 	"""Affine representation of an ECC curve point."""
@@ -104,10 +105,15 @@ class BinaryFieldEllipticCurve(EllipticCurve):
 	"""y^2 + xy = x^3 + ax^2 + b (in F_{2^m}, reduced by irreducible poly)"""
 	_DomainArgs = KwargsChecker(required_arguments = set([ "m", "poly", "a", "b", "n", "h" ]), optional_arguments = set([ "Gx", "Gy" ]))
 
+	def __init__(self, **domain_parameters):
+		super().__init__(**domain_parameters)
+		self._domain_parameters["intpoly"] = sum(1 << bit for bit in set(self.poly))
+
 	@property
 	def field_bits(self):
 		return self.m
 
 	def on_curve(self, point):
-		print(point)
-		pass
+		lhs = NumberTheory.binpoly_reduce(NumberTheory.cl_mul(point.y, point.y) ^ NumberTheory.cl_mul(point.x, point.y), self.intpoly)
+		rhs = NumberTheory.binpoly_reduce(NumberTheory.cl_mul(NumberTheory.cl_mul(point.x, point.x), point.x) ^ NumberTheory.cl_mul(NumberTheory.cl_mul(self.a, point.x), point.x) ^ self.b, self.intpoly)
+		return lhs == rhs
