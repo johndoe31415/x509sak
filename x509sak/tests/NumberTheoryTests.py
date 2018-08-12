@@ -112,3 +112,9 @@ class NumberTheoryTests(BaseTest):
 			self.assertEqual(NumberTheory.cl_mul(x, 1 | 2 | 8 | 256), (1 * x) ^ (2 * x) ^ (8 * x) ^ (256 * x))
 			self.assertEqual(NumberTheory.cl_mul(1 | 2 | 8 | 256, x), (1 * x) ^ (2 * x) ^ (8 * x) ^ (256 * x))
 
+	def test_polynomial_reduction(self):
+		self.assertEqual(NumberTheory.binpoly_reduce(0, 0x10001), 0)
+		self.assertEqual(NumberTheory.binpoly_reduce(0x123, 0x10001), 0x123)
+		self.assertEqual(NumberTheory.binpoly_reduce(0x1234, 0x10001), 0x1234)
+		self.assertEqual(NumberTheory.binpoly_reduce(0x12345, 0x10001), 0x2344)
+		self.assertEqual(NumberTheory.binpoly_reduce(0x20000, 0x10001), 0x2)

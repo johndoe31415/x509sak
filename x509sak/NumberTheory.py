@@ -203,3 +203,13 @@ class NumberTheory(object):
 			if x & (1 << bit):
 				result ^= (y << bit)
 		return result
+
+	@classmethod
+	def binpoly_reduce(cls, x, poly):
+		"""Binary polynomial reduction of polynomial x against the given
+		polynimal."""
+		while x >= poly:
+			# Determine bit difference
+			shift = x.bit_length() - poly.bit_length()
+			x ^= (poly << shift)
+		return x
