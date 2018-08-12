@@ -20,7 +20,7 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 from x509sak.tests import BaseTest
-from x509sak.SecurityEstimator import RSASecurityEstimator
+from x509sak.SecurityEstimator import RSASecurityEstimator, AnalysisOptions
 
 class RSASecurityEstimatorTests(BaseTest):
 	def test_rsa_modulus_bitlength(self):
@@ -43,12 +43,10 @@ class RSASecurityEstimatorTests(BaseTest):
 			n = nontrivially_factorable_moduli[modulus_bitlength]
 			self.assertEqual(n.bit_length(), modulus_bitlength)
 			if modulus_bitlength <= 1024:
-				test_probable_prime = True
-				pollards_rho_iterations = 100
+				analysis_options = AnalysisOptions(rsa_testing = AnalysisOptions.RSATesting.Some)
 			else:
 				# Skip this for large moduli, too slow.
-				test_probable_prime = False
-				pollards_rho_iterations = 0
-			analysis = RSASecurityEstimator(test_probable_prime = test_probable_prime, pollards_rho_iterations = pollards_rho_iterations).analyze_n(n)
+				analysis_options = AnalysisOptions(rsa_testing = AnalysisOptions.RSATesting.Fast)
+			analysis = RSASecurityEstimator(analysis_options).analyze_n(n)
 			deviation = analysis["bits"] - expected_security
 			self.assertLessEqual(abs(deviation), 8)

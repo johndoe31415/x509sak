@@ -110,20 +110,20 @@ class PublicKey(PEMDERObject):
 		asn1["subjectPublicKey"] = ASN1Tools.bytes2bitstring(inner_key)
 		return cls.from_asn1(asn1)
 
-	def analyze(self):
+	def analyze(self, analysis_options = None):
 		result = {
 			"cryptosystem":	self.cryptosystem.name,
 			"specific": { },
 		}
 		if self.cryptosystem == Cryptosystem.RSA:
 			result["pretty"] = "RSA with %d bit modulus" % (self.n.bit_length())
-			result["specific"]["security"] = SecurityEstimator.algorithm("rsa").analyze(self.n, self.e)
+			result["specific"]["security"] = SecurityEstimator.algorithm("rsa", analysis_options = analysis_options).analyze(self.n, self.e)
 			result["specific"]["bits"] = self.n.bit_length()
 			result["specific"]["n"] = self.n
 			result["specific"]["e"] = self.e
 		elif self.cryptosystem == Cryptosystem.ECC:
 			result["pretty"] = "ECC on %s" % (self.curve)
-			result["specific"]["security"] = SecurityEstimator.algorithm("ecc").analyze(self)
+			result["specific"]["security"] = SecurityEstimator.algorithm("ecc", analysis_options = analysis_options).analyze(self)
 			result["specific"]["curve_name"] = self.curve
 		else:
 			raise LazyDeveloperException(NotImplemented, self.cryptosystem)

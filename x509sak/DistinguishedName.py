@@ -67,7 +67,7 @@ class DistinguishedName(object):
 				return text
 		return ", ".join("%s = %s" % (OIDDB.RDNTypes.get(key, key), escape(value)) for (key, value) in self._oid_value_list)
 
-	def analyze(self):
+	def analyze(self, analysis_options = None):
 		return {
 			"rfc2253":	self.rfc2253_str,
 			"pretty":	self.pretty_str,

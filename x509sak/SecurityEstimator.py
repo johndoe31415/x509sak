@@ -25,6 +25,20 @@ from x509sak.NumberTheory import NumberTheory
 from x509sak.ModulusDB import ModulusDB
 from x509sak.CurveDB import CurveDB
 
+class AnalysisOptions(object):
+	class RSATesting(enum.IntEnum):
+		Full = 0
+		Some = 1
+		Fast = 2
+
+	def __init__(self, rsa_testing = RSATesting.Full):
+		assert(isinstance(rsa_testing, self.RSATesting))
+		self._rsa_testing = rsa_testing
+
+	@property
+	def rsa_testing(self):
+		return self._rsa_testing
+
 class Verdict(enum.IntEnum):
 	NO_SECURITY = 0
 	BROKEN = 1
@@ -43,6 +57,11 @@ class SecurityEstimator(object):
 	_KNOWN_ALGORITHMS = { }
 	_ALG_NAME = None
 
+	def __init__(self, analysis_options = None):
+		if analysis_options is None:
+			analysis_options = AnalysisOptions()
+		self._analysis_options = analysis_options
+
 	@classmethod
 	def register(cls, estimator_class):
 		alg_name = estimator_class._ALG_NAME
@@ -53,10 +72,10 @@ class SecurityEstimator(object):
 		cls._KNOWN_ALGORITHMS[alg_name] = estimator_class
 
 	@classmethod
-	def algorithm(cls, alg_name):
+	def algorithm(cls, alg_name, analysis_options = None):
 		if alg_name not in cls._KNOWN_ALGORITHMS:
 			raise KeyError("Algorithm quality of '%s' cannot be estimated, Estimator class not registered." % (alg_name))
-		return cls._KNOWN_ALGORITHMS[alg_name]()
+		return cls._KNOWN_ALGORITHMS[alg_name](analysis_options = analysis_options)
 
 	def analyze(self, *args, **kwargs):
 		raise Exception(NotImplemented, "method 'analyze'")
@@ -113,9 +132,19 @@ SecurityEstimator.register(BitsSecurityEstimator)
 class RSASecurityEstimator(SecurityEstimator):
 	_ALG_NAME = "rsa"
 
-	def __init__(self, test_probable_prime = True, pollards_rho_iterations = 10000):
-		self._test_probable_prime = test_probable_prime
-		self._pollards_rho_iterations = pollards_rho_iterations
+	def __init__(self, analysis_options = None):
+		super().__init__(analysis_options = analysis_options)
+		if self._analysis_options.rsa_testing == AnalysisOptions.RSATesting.Full:
+			self._test_probable_prime = True
+			self._pollards_rho_iterations = 10000
+		elif self._analysis_options.rsa_testing == AnalysisOptions.RSATesting.Some:
+			self._test_probable_prime = False
+			self._pollards_rho_iterations = 5
+		elif self._analysis_options.rsa_testing == AnalysisOptions.RSATesting.Fast:
+			self._test_probable_prime = False
+			self._pollards_rho_iterations = 0
+		else:
+			raise LazyDeveloperException(NotImplemented, self._analysis_options.rsa_testing)
 
 	@staticmethod
 	def analyze_e(e):

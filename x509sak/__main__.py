@@ -173,6 +173,7 @@ mc.register("dumpkey", "Dump a key in text form", genparser, action = ActionDump
 
 def genparser(parser):
 	parser.add_argument("-n", "--server-name", metavar = "fqdn", type = str, help = "Check if the certificate is valid for the given hostname.")
+	parser.add_argument("--fast-rsa", action = "store_true", help = "Skip some time-intensive number theoretical tests for RSA moduli in order to speed up checking. Less thorough, but much faster.")
 	parser.add_argument("-w", "--write-json", metavar = "filename", type = str, help = "Write a JSON output document with detailed information about the checked certificate in the filename.")
 	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
 	parser.add_argument("crt_filename", metavar = "crt_filename", type = str, help = "Filename of the input certificate or certificates in PEM format.")

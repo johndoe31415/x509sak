@@ -23,6 +23,7 @@ from x509sak.BaseAction import BaseAction
 from x509sak import X509Certificate
 from x509sak.Exceptions import InvalidInputException
 from x509sak.Tools import JSONTools
+from x509sak.SecurityEstimator import AnalysisOptions
 
 class ActionExamineCert(BaseAction):
 	def __init__(self, cmdname, args):
@@ -36,14 +37,15 @@ class ActionExamineCert(BaseAction):
 		for (crtno, crt) in enumerate(crts, 1):
 			if len(crts) > 1:
 				print("Certificate #%d:" % (crtno))
-			analysis = self._analyze_crt(crt)
+			analysis_options = AnalysisOptions(rsa_testing = AnalysisOptions.RSATesting.Fast if self._args.fast_rsa else AnalysisOptions.RSATesting.Full)
+			analysis = self._analyze_crt(crt, analysis_options = analysis_options)
 			analyses.append(analysis)
 
 		if self._args.write_json:
 			JSONTools.write_to_file(analyses, self._args.write_json)
 
-	def _analyze_crt(self, crt):
-		analysis = crt.analyze()
+	def _analyze_crt(self, crt, analysis_options = None):
+		analysis = crt.analyze(analysis_options = analysis_options)
 		print(analysis)
 		print("Subject   : %s" % (analysis["subject"]["pretty"]))
 		print("Issuer    : %s" % (analysis["issuer"]["pretty"]))

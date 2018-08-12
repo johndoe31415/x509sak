@@ -116,11 +116,11 @@ class X509Certificate(PEMDERObject):
 		print(self.to_pem_data(), file = f)
 		print(file = f)
 
-	def analyze(self):
+	def analyze(self, analysis_options = None):
 		return {
-			"subject":	self.subject.analyze(),
-			"issuer":	self.issuer.analyze(),
-			"pubkey":	self.pubkey.analyze(),
+			"subject":	self.subject.analyze(analysis_options = analysis_options),
+			"issuer":	self.issuer.analyze(analysis_options = analysis_options),
+			"pubkey":	self.pubkey.analyze(analysis_options = analysis_options),
 			"raw":		base64.b64encode(self.der_data).decode("ascii"),
 		}
 
