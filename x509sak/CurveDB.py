@@ -37,7 +37,10 @@ class CurveDB(object):
 	@staticmethod
 	def _load_db_data():
 		json_data = JSONTools.load_internal("x509sak.data.ecc", "curves.json")
-		return { OID.from_str(oid): parameters for (oid, parameters) in json_data.items() }
+		result = { OID.from_str(oid): parameters for (oid, parameters) in json_data.items() }
+		for (oid, parameters) in result.items():
+			parameters["oid"] = oid
+		return result
 
 	def lookup(self, oid = None, name = None, on_error = "none"):
 		# Either OID or name must be given, not both

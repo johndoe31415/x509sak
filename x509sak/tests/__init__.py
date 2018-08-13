@@ -25,6 +25,7 @@ from .CertificatePoolTests import CertificatePoolTests
 from .NumberTheoryTests import NumberTheoryTests
 from .PublicKeyTests import PublicKeyTests
 from .OpenSSLToolsTests import OpenSSLToolsTests
+from .CmdLineTestsDumpKey import CmdLineTestsDumpKey
 from .CmdLineTestsBuildChain import CmdLineTestsBuildChain
 from .CmdLineTestsCreateCA import CmdLineTestsCreateCA
 from .CmdLineTestsCreateCRT import CmdLineTestsCreateCRT

@@ -34,6 +34,7 @@ class InvalidInputException(UserErrorException): pass
 class UnknownFormatException(UserErrorException): pass
 class InvalidCAIndexFileEntry(UserErrorException): pass
 class CurveNotFoundException(UserErrorException): pass
+class UnexpectedFileContentException(UserErrorException): pass
 
 class CmdExecutionFailedException(InvisibleUserErrorException): pass
 

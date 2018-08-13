@@ -22,7 +22,8 @@
 import hashlib
 import pyasn1.codec.der.decoder
 import pyasn1.codec.der.encoder
-from .Tools import PEMDataTools
+from x509sak.Tools import PEMDataTools
+from x509sak.Exceptions import LazyDeveloperException
 
 class PEMDERObject(object):
 	_PEM_MARKER = None
@@ -68,12 +69,12 @@ class PEMDERObject(object):
 		return cls(derdata)
 
 	@classmethod
-	def from_pem_data(cls, pem_data, source = None):
+	def from_pem_data(cls, pem_data, source = None, ignore_errors = False):
 		if cls._PEM_MARKER is None:
-			raise Exception(NotImplemented)
+			raise LazyDeveloperException("PEM marker not specified for class %s; cannot convert to PEM." % (cls.__name__))
 
 		result = [ ]
-		for (number, der_data) in enumerate(PEMDataTools.pem2data(pem_data, cls._PEM_MARKER), 1):
+		for (number, der_data) in enumerate(PEMDataTools.pem2data(pem_data, cls._PEM_MARKER, ignore_errors = ignore_errors), 1):
 			if source is None:
 				pem_source = None
 			else:
@@ -100,9 +101,9 @@ class PEMDERObject(object):
 			f.write(self.der_data)
 
 	@classmethod
-	def read_pemfile(cls, filename):
+	def read_pemfile(cls, filename, ignore_errors = False):
 		with open(filename, "r") as f:
-			return cls.from_pem_data(f.read(), source = filename)
+			return cls.from_pem_data(f.read(), source = filename, ignore_errors = ignore_errors)
 
 	def write_pemfile(self, filename):
 		with open(filename, "w") as f:

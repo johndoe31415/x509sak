@@ -29,10 +29,11 @@ import gzip
 import textwrap
 import datetime
 import pyasn1.type.univ
+from x509sak.Exceptions import UnexpectedFileContentException
 
 class PEMDataTools(object):
 	@classmethod
-	def pem2data(cls, pem_text, marker):
+	def pem2data(cls, pem_text, marker, ignore_errors = False):
 		line_begin = "-----BEGIN %s-----" % (marker)
 		line_end = "-----END %s-----" % (marker)
 		result = [ ]
@@ -50,11 +51,11 @@ class PEMDataTools(object):
 				if line == line_begin:
 					data = [ ]
 
-		if len(result) == 0:
+		if (len(result) == 0) and (not ignore_errors):
 			if data is None:
-				raise Exception("No begin marker found: Not a %s?" % (marker))
+				raise UnexpectedFileContentException("No begin marker found: Not a %s?" % (marker))
 			else:
-				raise Exception("No end marker found. %s data incomplete?" % (marker))
+				raise UnexpectedFileContentException("No end marker found. %s data incomplete?" % (marker))
 		return result
 
 	@classmethod

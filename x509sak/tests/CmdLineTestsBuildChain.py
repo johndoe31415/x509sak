@@ -68,7 +68,7 @@ class CmdLineTestsBuildChain(BaseTest):
 			self.assertEqual(crts[0].subject.rfc2253_str, "CN=DST Root CA X3,O=Digital Signature Trust Co.")
 
 	def test_root_only(self):
-		output = subprocess.check_output(self._x509sak + [ "buildchain", "-s", "x509sak/tests/data", "--outform", "rootonly", "x509sak/tests/data/johannes-bauer.com.crt" ])
+		(success, output) = SubprocessExecutor.run(self._x509sak + [ "buildchain", "-s", "x509sak/tests/data", "--outform", "rootonly", "x509sak/tests/data/johannes-bauer.com.crt" ], return_stdout = True)
 		self.assertOcurrences(output, b"-----BEGIN CERTIFICATE-----", 1)
 		crts = X509Certificate.from_pem_data(output.decode("ascii"))
 		self.assertEqual(crts[0].subject.rfc2253_str, "CN=DST Root CA X3,O=Digital Signature Trust Co.")

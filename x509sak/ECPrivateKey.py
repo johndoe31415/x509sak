@@ -26,6 +26,7 @@ from x509sak.OID import OID, OIDDB
 from x509sak.Exceptions import InvalidInputException, UnknownAlgorithmException
 from x509sak.KeySpecification import Cryptosystem
 from x509sak.PublicKey import PublicKey
+from x509sak.CurveDB import CurveDB
 
 class _ECPrivateKey(univ.Sequence):
 	"""Minimalistic RFC5915 implementation."""

@@ -99,7 +99,8 @@ class PublicKey(PEMDERObject):
 			inner_key = pyasn1.codec.der.encoder.encode(inner_key)
 		elif cryptosystem == Cryptosystem.ECC:
 			asn1["algorithm"]["algorithm"] = OIDDB.KeySpecificationAlgorithms.inverse("ecPublicKey").to_asn1()
-			asn1["algorithm"]["parameters"] = pyasn1.codec.der.encoder.encode(OIDDB.EllipticCurves.inverse(parameters["curve"]).to_asn1())
+			curve_oid = CurveDB().lookup(name = parameters["curve"])["oid"]
+			asn1["algorithm"]["parameters"] = pyasn1.codec.der.encoder.encode(curve_oid.to_asn1())
 
 			# TODO: Shame on me! This is not how length is computed. It needs
 			# to be looked up in the curve database, also see SEC1, ver 1.9,

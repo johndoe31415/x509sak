@@ -35,7 +35,7 @@ class ActionDumpKey(BaseAction):
 				print("n = 0x%x" % (key.n))
 				print("e = 0x%x" % (key.e))
 			elif key.cryptosystem == Cryptosystem.ECC:
-				print("# ECC key on %s (key ID %s)" % (key.curve, key.keyid().hex()))
+				print("# ECC public key on %s (key ID %s)" % (key.curve, key.keyid().hex()))
 				print("curve_name = \"%s\"" % (key.curve))
 				print("(x, y) = (0x%x, 0x%x)" % (key.x, key.y))
 			else:
