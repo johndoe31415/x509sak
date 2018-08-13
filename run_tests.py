@@ -86,7 +86,7 @@ class SelectiveTestRunner(object):
 		return self._test_result.wasSuccessful()
 
 	def write_failed_tests_file(self):
-		failed_test_ids = [ test_instance.id() for (test_instance, msg) in self._test_result.errors ]
+		failed_test_ids = [ test_instance.id() for (test_instance, msg) in (self._test_result.errors + self._test_result.failures) ]
 		with open(self._failed_tests_file, "w") as f:
 			json.dump(failed_test_ids, fp = f)
 
