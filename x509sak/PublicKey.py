@@ -58,7 +58,7 @@ class PublicKey(PEMDERObject):
 	def _post_decode_hook(self):
 		alg_oid = OID.from_asn1(self.asn1["algorithm"]["algorithm"])
 		if alg_oid not in OIDDB.KeySpecificationAlgorithms:
-			raise UnknownAlgorithmException("Unable to determine public algorithm for OID %s." % (alg_oid))
+			raise UnknownAlgorithmException("Unable to determine public key algorithm for OID %s." % (alg_oid))
 		alg_name = OIDDB.KeySpecificationAlgorithms[alg_oid]
 		self._cryptosystem = Cryptosystem(alg_name)
 
@@ -82,6 +82,8 @@ class PublicKey(PEMDERObject):
 				"y":			y,
 				"curve_oid":	alg_oid,
 			}
+		elif self.cryptosystem == Cryptosystem.EdDSA25519:
+			print("MOO")
 		else:
 			raise LazyDeveloperException(NotImplemented, self.cryptosystem)
 
@@ -121,6 +123,9 @@ class PublicKey(PEMDERObject):
 		elif self.cryptosystem == Cryptosystem.ECC:
 			result["pretty"] = "ECC on %s" % (self.curve)
 			result["specific"] = SecurityEstimator.algorithm("ecc", analysis_options = analysis_options).analyze(self)
+		elif self.cryptosystem == Cryptosystem.EdDSA25519:
+			result["pretty"] = "EdDSA on Curve25519"
+#			result["specific"] = SecurityEstimator.algorithm("ecc", analysis_options = analysis_options).analyze(self)
 		else:
 			raise LazyDeveloperException(NotImplemented, self.cryptosystem)
 		return result

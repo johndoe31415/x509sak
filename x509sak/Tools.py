@@ -188,6 +188,10 @@ class JSONTools(object):
 				raise TypeError("Unable to encode type as JSON: %s" % (type(obj)))
 
 	@classmethod
+	def serialize(cls, data):
+		return json.dumps(data, indent = 4, sort_keys = True, cls = cls.Encoder)
+
+	@classmethod
 	def write_to_file(cls, data, filename):
 		with open(filename, "w") as f:
 			json.dump(data, fp = f, indent = 4, sort_keys = True, cls = cls.Encoder)

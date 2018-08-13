@@ -55,6 +55,8 @@ SignatureAlgorithms = { fnc.name: fnc for fnc in [
 	SignatureAlgorithm(name = "md5WithRsaEncryption", hash_fnc = HashFunctions["md5"], sig_fnc = SignatureFunctions["rsa-encryption"]),
 	SignatureAlgorithm(name = "sha1WithRsaEncryption", hash_fnc = HashFunctions["sha1"], sig_fnc = SignatureFunctions["rsa-encryption"]),
 	SignatureAlgorithm(name = "sha256WithRsaEncryption", hash_fnc = HashFunctions["sha256"], sig_fnc = SignatureFunctions["rsa-encryption"]),
+	SignatureAlgorithm(name = "sha384WithRsaEncryption", hash_fnc = HashFunctions["sha384"], sig_fnc = SignatureFunctions["rsa-encryption"]),
+	SignatureAlgorithm(name = "sha512WithRsaEncryption", hash_fnc = HashFunctions["sha512"], sig_fnc = SignatureFunctions["rsa-encryption"]),
 	SignatureAlgorithm(name = "ecdsa-with-SHA224", hash_fnc = HashFunctions["sha224"], sig_fnc = SignatureFunctions["ecdsa"]),
 	SignatureAlgorithm(name = "ecdsa-with-SHA256", hash_fnc = HashFunctions["sha256"], sig_fnc = SignatureFunctions["ecdsa"]),
 	SignatureAlgorithm(name = "ecdsa-with-SHA384", hash_fnc = HashFunctions["sha384"], sig_fnc = SignatureFunctions["ecdsa"]),

@@ -27,6 +27,7 @@ from x509sak.KwargsChecker import KwargsChecker
 class Cryptosystem(enum.Enum):
 	RSA = "rsaEncryption"
 	ECC = "ecPublicKey"
+	EdDSA25519 = "id-EdDSA25519"
 
 class KeySpecification(object):
 	_PARAMETER_CONSTRAINTS = {
