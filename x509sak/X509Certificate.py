@@ -33,6 +33,7 @@ from x509sak.KeySpecification import SignatureAlgorithm
 from x509sak.OID import OID
 from x509sak.PublicKey import PublicKey
 from x509sak.X509Extensions import X509ExtensionRegistry, X509Extensions
+from x509sak.SecurityEstimator import SecurityEstimator
 
 _log = logging.getLogger("x509sak.X509Certificate")
 
@@ -70,6 +71,23 @@ class X509Certificate(PEMDERObject):
 	@property
 	def valid_not_after(self):
 		return ASN1Tools.parse_datetime(str(self._asn1["tbsCertificate"]["validity"]["notAfter"]["utcTime"])) or ASN1Tools.parse_datetime(str(self._asn1["tbsCertificate"]["validity"]["notAfter"]["generalTime"]))
+
+	@property
+	def signature_alg_oid(self):
+		signature_alg_oid = OID.from_str(str(self._asn1["signatureAlgorithm"]["algorithm"]))
+		return signature_alg_oid
+
+	@property
+	def signature_alg_params(self):
+		if self._asn1["signatureAlgorithm"]["parameters"].hasValue():
+			return bytes(self._asn1["signatureAlgorithm"]["parameters"])
+		else:
+			return None
+
+	@property
+	def signature(self):
+		signature = ASN1Tools.bitstring2bytes(self._asn1["signatureValue"])
+		return signature
 
 	def get_extensions(self):
 		result = [ ]
@@ -117,12 +135,17 @@ class X509Certificate(PEMDERObject):
 		print(file = f)
 
 	def analyze(self, analysis_options = None):
-		return {
-			"subject":	self.subject.analyze(analysis_options = analysis_options),
-			"issuer":	self.issuer.analyze(analysis_options = analysis_options),
-			"pubkey":	self.pubkey.analyze(analysis_options = analysis_options),
-			"raw":		base64.b64encode(self.der_data).decode("ascii"),
+		result = {
+			"subject":		self.subject.analyze(analysis_options = analysis_options),
+			"issuer":		self.issuer.analyze(analysis_options = analysis_options),
+			"validity":		SecurityEstimator.algorithm("crt_validity", analysis_options = analysis_options).analyze(self.valid_not_before, self.valid_not_after),
+			"pubkey":		self.pubkey.analyze(analysis_options = analysis_options),
+			"extensions":	self.get_extensions().analyze(analysis_options = analysis_options),
+			"signature":	SecurityEstimator.algorithm("sig", analysis_options = analysis_options).analyze(self.signature_alg_oid, self.signature_alg_params, self.signature),
 		}
+		if (analysis_options is not None) and analysis_options.include_raw_data:
+			result["raw"] = base64.b64encode(self.der_data).decode("ascii")
+		return result
 
 	def __str__(self):
 		return "X509Certificate<subject = %s, issuer = %s>" % (self.subject.rfc2253_str, self.issuer.rfc2253_str)

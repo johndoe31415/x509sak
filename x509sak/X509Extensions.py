@@ -25,6 +25,7 @@ import pyasn1.type.univ
 from pyasn1.type import tag
 from pyasn1_modules import rfc2459
 from x509sak.OID import OID, OIDDB
+from x509sak.SecurityEstimator import SecurityEstimator
 
 class X509Extensions(object):
 	def __init__(self, extensions):
@@ -69,6 +70,9 @@ class X509Extensions(object):
 		extensions_asn1 = rfc2459.Extensions().subtype(explicitTag = tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 3))
 		extensions_asn1.setComponents(*extension_list)
 		return extensions_asn1
+
+	def analyze(self, analysis_options = None):
+		return SecurityEstimator.algorithm("crt_exts", analysis_options = analysis_options).analyze(self)
 
 	def __getitem__(self, index):
 		return self._exts[index]

@@ -19,6 +19,7 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
+import pprint
 from x509sak.BaseAction import BaseAction
 from x509sak import X509Certificate
 from x509sak.Exceptions import InvalidInputException
@@ -37,7 +38,7 @@ class ActionExamineCert(BaseAction):
 		for (crtno, crt) in enumerate(crts, 1):
 			if len(crts) > 1:
 				print("Certificate #%d:" % (crtno))
-			analysis_options = AnalysisOptions(rsa_testing = AnalysisOptions.RSATesting.Fast if self._args.fast_rsa else AnalysisOptions.RSATesting.Full)
+			analysis_options = AnalysisOptions(rsa_testing = AnalysisOptions.RSATesting.Fast if self._args.fast_rsa else AnalysisOptions.RSATesting.Full, include_raw_data = self._args.include_raw_data)
 			analysis = self._analyze_crt(crt, analysis_options = analysis_options)
 			analyses.append(analysis)
 
@@ -46,7 +47,6 @@ class ActionExamineCert(BaseAction):
 
 	def _analyze_crt(self, crt, analysis_options = None):
 		analysis = crt.analyze(analysis_options = analysis_options)
-		print(analysis)
 		print("Subject   : %s" % (analysis["subject"]["pretty"]))
 		print("Issuer    : %s" % (analysis["issuer"]["pretty"]))
 		print("Public key: %s" % (analysis["pubkey"]["pretty"]))

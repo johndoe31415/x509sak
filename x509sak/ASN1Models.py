@@ -23,7 +23,7 @@ from pyasn1.type import namedtype
 from pyasn1.type import namedval
 from pyasn1.type import tag
 from pyasn1.type import univ
-from pyasn1_modules import rfc2315
+from pyasn1_modules import rfc2315, rfc3280
 
 class ECPVer(univ.Integer):
 	"""RFC 3279: Algorithms and Identifiers for the Internet X.509 Public Key Infrastructure Certificate and Certificate Revocation List (CRL) Profile
@@ -187,4 +187,25 @@ class DSASignature(univ.Sequence):
 	componentType = namedtype.NamedTypes(
 		namedtype.NamedType("r", univ.Integer()),
 		namedtype.NamedType("s", univ.Integer()),
+	)
+
+class HashAlgorithm(rfc3280.AlgorithmIdentifier): pass
+class MaskGenAlgorithm(rfc3280.AlgorithmIdentifier): pass
+class TrailerField(univ.Integer): pass
+
+class RSASSA_PSS_Params(univ.Sequence):
+	"""RFC3447:
+
+	 RSASSA-PSS-params ::= SEQUENCE {
+          hashAlgorithm      [0] HashAlgorithm    DEFAULT sha1,
+          maskGenAlgorithm   [1] MaskGenAlgorithm DEFAULT mgf1SHA1,
+          saltLength         [2] INTEGER          DEFAULT 20,
+          trailerField       [3] TrailerField     DEFAULT trailerFieldBC
+      }
+	"""
+	componentType = namedtype.NamedTypes(
+		namedtype.DefaultedNamedType("hashAlgorithm", HashAlgorithm().subtype(explicitTag = tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 0))),
+		namedtype.DefaultedNamedType("maskGenAlgorithm", MaskGenAlgorithm().subtype(explicitTag = tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 1))),
+		namedtype.DefaultedNamedType("saltLength", univ.Integer().subtype(explicitTag = tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 2))),
+		namedtype.DefaultedNamedType("trailerField", TrailerField().subtype(explicitTag = tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 3))),
 	)

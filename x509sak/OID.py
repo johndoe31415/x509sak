@@ -65,6 +65,7 @@ class OIDDB(object):
 		OID.from_str("1.2.840.113549.1.1.3"):	"md4WithRsaEncryption",
 		OID.from_str("1.2.840.113549.1.1.4"):	"md5WithRsaEncryption",
 		OID.from_str("1.2.840.113549.1.1.5"):	"sha1WithRsaEncryption",
+		OID.from_str("1.2.840.113549.1.1.10"):	"RSASSA-PSS",
 		OID.from_str("1.2.840.113549.1.1.11"):	"sha256WithRsaEncryption",
 
 		OID.from_str("1.2.840.10045.4.3.1"):	"ecdsa-with-SHA224",
@@ -135,5 +136,9 @@ class OIDDB(object):
 		OID.from_str("1.3.6.1.5.5.7.1.12"):			"id-pe-logotype",
 		OID.from_str("1.3.6.1.5.5.7.1.23"):			"NSACertificateExtension",
 		OID.from_str("1.3.6.1.5.5.7.1.24"):			"TLSFeature",
+	})
 
+	"""Hash functions."""
+	HashFunctions = BijectiveDict({
+		OID.from_str("1.3.14.3.2.26"):				"sha1",
 	})

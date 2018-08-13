@@ -21,9 +21,16 @@
 
 import enum
 import math
+import calendar
+import datetime
 from x509sak.NumberTheory import NumberTheory
 from x509sak.ModulusDB import ModulusDB
 from x509sak.CurveDB import CurveDB
+from x509sak.OID import OIDDB, OID
+from x509sak.Exceptions import LazyDeveloperException
+from x509sak.AlgorithmDB import HashFunctions, SignatureAlgorithms
+import x509sak.ASN1Models as ASN1Models
+import pyasn1.codec.der.decoder
 
 class AnalysisOptions(object):
 	class RSATesting(enum.IntEnum):
@@ -31,13 +38,18 @@ class AnalysisOptions(object):
 		Some = 1
 		Fast = 2
 
-	def __init__(self, rsa_testing = RSATesting.Full):
+	def __init__(self, rsa_testing = RSATesting.Full, include_raw_data = False):
 		assert(isinstance(rsa_testing, self.RSATesting))
 		self._rsa_testing = rsa_testing
+		self._include_raw_data = include_raw_data
 
 	@property
 	def rsa_testing(self):
 		return self._rsa_testing
+
+	@property
+	def include_raw_data(self):
+		return self._include_raw_data
 
 class Verdict(enum.IntEnum):
 	NO_SECURITY = 0
@@ -217,11 +229,20 @@ class RSASecurityEstimator(SecurityEstimator):
 		bits_security = math.floor(bits_security)
 		return self.algorithm("bits").analyze(bits_security)
 
-	def analyze(self, n, e):
-		return {
-			"n":	self.analyze_n(n),
-			"e":	self.analyze_e(e),
+	def analyze(self, pubkey):
+		result = {
+			"n": {
+				"bits":		pubkey.n.bit_length(),
+				"security":	self.analyze_n(pubkey.n),
+			},
+			"e": {
+				"security":	self.analyze_e(pubkey.e),
+			},
 		}
+		if self._analysis_options.include_raw_data:
+			result["n"]["value"] = pubkey.n
+			result["e"]["value"] = pubkey.e
+		return result
 SecurityEstimator.register(RSASecurityEstimator)
 
 
@@ -283,5 +304,98 @@ class ECCSecurityEstimator(SecurityEstimator):
 			security_estimate["text"] += " Hamming weight of public key field element lengths (H_x = %d, H_y = %d) differs from expected average of %d more than 32; this is likely not coincidential." % (x_weight, y_weight, avg_weight)
 
 		return security_estimate
-
 SecurityEstimator.register(ECCSecurityEstimator)
+
+class CrtValiditySecurityEstimator(SecurityEstimator):
+	_ALG_NAME = "crt_validity"
+
+	def _format_datetime(self, dt):
+		return {
+			"iso":		dt.strftime("%Y-%m-%dT%H:%M:%SZ"),
+			"timet":	calendar.timegm(dt.utctimetuple()),
+		}
+
+	def analyze(self, not_before, not_after):
+		return {
+			"not_before":	self._format_datetime(not_before),
+			"not_after":	self._format_datetime(not_after),
+		}
+		return "DATE"
+
+SecurityEstimator.register(CrtValiditySecurityEstimator)
+
+
+class SignatureSecurityEstimator(SecurityEstimator):
+	_ALG_NAME = "sig"
+
+	def analyze(self, signature_alg_oid, signature_alg_params, signature):
+		try:
+			signature_alg_name = OIDDB.SignatureAlgorithms[signature_alg_oid]
+		except KeyError:
+			return {
+				"common":		Commonness.HIGHLY_UNUSUAL,
+				"text":			"Unsupported signature algorithm used (OID %s), cannot make security determination." % (signature_alg_oid),
+			}
+
+		if signature_alg_name not in SignatureAlgorithms:
+			raise LazyDeveloperException("Signature OID %s known as %s, but cannot determine signature function/hash function from it." % (signature_alg_oid, signature_alg_name))
+		signature_alg = SignatureAlgorithms[signature_alg_name]
+
+		if signature_alg.hash_fnc is not None:
+			hash_fnc = signature_alg.hash_fnc
+		elif signature_alg.name == "RSASSA-PSS":
+			# Need to look at parameters to determine hash function
+			(asn1, tail) = pyasn1.codec.der.decoder.decode(signature_alg_params, asn1Spec = ASN1Models.RSASSA_PSS_Params())
+			if asn1["hashAlgorithm"].hasValue():
+				hash_oid = OID.from_str(str(asn1["hashAlgorithm"]["algorithm"]))
+				hash_name = OIDDB.HashFunctions[hash_oid]
+				hash_fnc = HashFunctions[hash_name]
+			else:
+				# Default for RSASSA-PSS is SHA-1
+				hash_fnc = HashFunctions["sha1"]
+		else:
+			raise LazyDeveloperException("Unable to determine hash function for signature algorithm %s." % (signature_alg.name))
+
+		return {
+			"sig_alg":		signature_alg.name,
+			"sig_fnc":		self.algorithm("sig_fnc", analysis_options = self._analysis_options).analyze(signature_alg.sig_fnc),
+			"hash_fnc":		self.algorithm("hash_fnc", analysis_options = self._analysis_options).analyze(hash_fnc),
+		}
+
+SecurityEstimator.register(SignatureSecurityEstimator)
+
+
+class CrtExtensionsSecurityEstimator(SecurityEstimator):
+	_ALG_NAME = "crt_exts"
+
+	def analyze(self, extensions):
+		return "TODO_CRT_EXTS"
+SecurityEstimator.register(CrtExtensionsSecurityEstimator)
+
+class SignatureFunctionSecurityEstimator(SecurityEstimator):
+	_ALG_NAME = "sig_fnc"
+
+	def analyze(self, sig_fnc):
+		return {
+			"name":			sig_fnc.name,
+		}
+SecurityEstimator.register(SignatureFunctionSecurityEstimator)
+
+
+class HashFunctionSecurityEstimator(SecurityEstimator):
+	_ALG_NAME = "hash_fnc"
+
+	def analyze(self, hash_fnc):
+		if hash_fnc.derating is None:
+			bits_security = hash_fnc.output_bits / 2
+		else:
+			bits_security = hash_fnc.derating.security_lvl_bits
+		result = {
+			"name":			hash_fnc.name,
+			"bitlen":		hash_fnc.output_bits,
+			"security":		self.algorithm("bits", analysis_options = self._analysis_options).analyze(bits_security)
+		}
+		if hash_fnc.derating is not None:
+			result["security"]["text"] += " Derated from ideal %d bits security level because of %s." % (hash_fnc.output_bits / 2, hash_fnc.derating.reason)
+		return result
+SecurityEstimator.register(HashFunctionSecurityEstimator)
