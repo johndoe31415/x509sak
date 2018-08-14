@@ -30,7 +30,8 @@ class SubprocessExecutor(object):
 	_pause_before_execution = False
 
 	@classmethod
-	def run(cls, cmd, success_retcodes = None, on_failure = "exception", return_stdout = False, discard_stderr = False, stdin = None, env = None):
+	def run(cls, cmd, success_retcodes = None, on_failure = "exception", returnval = "stdout", discard_stderr = False, stdin = None, env = None):
+		assert(returnval in [ "success", "success-stdout", "stdout" ])
 		assert(on_failure in [ "exception", "pass", "exception-nopause" ])
 		cmd_str = CmdTools.cmdline(cmd, env)
 		if env is not None:
@@ -79,10 +80,12 @@ class SubprocessExecutor(object):
 			if on_failure in [ "exception", "exception-nopause" ]:
 				raise CmdExecutionFailedException("Execution of command failed: %s" % (cmd_str))
 
-		if return_stdout:
-			return (success, stdout)
-		else:
+		if returnval == "success":
 			return success
+		elif returnval == "stdout":
+			return stdout
+		else:
+			return (success, stdout)
 
 	@classmethod
 	def set_verbose(cls):

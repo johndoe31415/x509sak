@@ -21,7 +21,6 @@
 
 import os
 import tempfile
-import subprocess
 from x509sak.WorkDir import WorkDir
 from x509sak.tests import BaseTest
 from x509sak.SubprocessExecutor import SubprocessExecutor
@@ -33,26 +32,25 @@ class CmdLineTestsBuildChain(BaseTest):
 		self.assertEqual(count, expected_count)
 
 	def test_root_only(self):
-		output = subprocess.check_output(self._x509sak + [ "buildchain", "x509sak/tests/data/johannes-bauer-root.crt" ])
+		output = SubprocessExecutor.run(self._x509sak + [ "buildchain", "x509sak/tests/data/johannes-bauer-root.crt" ])
 		self.assertOcurrences(output, b"-----BEGIN CERTIFICATE-----", 1)
-		crts = X509Certificate.from_pem_data(output.decode("ascii"))
+		crts = X509Certificate.from_pem_data(output)
 		self.assertEqual(crts[0].subject.rfc2253_str, "CN=DST Root CA X3,O=Digital Signature Trust Co.")
 
 	def test_root_notrust(self):
-		output = subprocess.check_output(self._x509sak + [ "buildchain", "--dont-trust-crtfile", "x509sak/tests/data/johannes-bauer-root.crt" ])
+		output = SubprocessExecutor.run(self._x509sak + [ "buildchain", "--dont-trust-crtfile", "x509sak/tests/data/johannes-bauer-root.crt" ])
 		self.assertOcurrences(output, b"-----BEGIN CERTIFICATE-----", 1)
-		crts = X509Certificate.from_pem_data(output.decode("ascii"))
+		crts = X509Certificate.from_pem_data(output)
 		self.assertEqual(crts[0].subject.rfc2253_str, "CN=DST Root CA X3,O=Digital Signature Trust Co.")
 
 	def test_interm_root_notrust(self):
-		with self.assertRaises(subprocess.CalledProcessError):
-			subprocess.check_call(self._x509sak + [ "buildchain", "x509sak/tests/data/johannes-bauer-intermediate.crt" ], stderr = subprocess.DEVNULL)
-		output = subprocess.check_output(self._x509sak + [ "buildchain", "--allow-partial-chain", "x509sak/tests/data/johannes-bauer-intermediate.crt" ])
+		SubprocessExecutor.run(self._x509sak + [ "buildchain", "x509sak/tests/data/johannes-bauer-intermediate.crt" ], discard_stderr = True, success_retcodes = [ 1 ])
+		output = SubprocessExecutor.run(self._x509sak + [ "buildchain", "--allow-partial-chain", "x509sak/tests/data/johannes-bauer-intermediate.crt" ])
 		self.assertOcurrences(output, b"-----BEGIN CERTIFICATE-----", 1)
-		crts = X509Certificate.from_pem_data(output.decode("ascii"))
+		crts = X509Certificate.from_pem_data(output)
 		self.assertEqual(crts[0].subject.rfc2253_str, "CN=Let's Encrypt Authority X3,C=US,O=Let's Encrypt")
 
-		output = subprocess.check_output(self._x509sak + [ "buildchain", "-s", "x509sak/tests/data", "x509sak/tests/data/johannes-bauer-intermediate.crt" ])
+		output = SubprocessExecutor.run(self._x509sak + [ "buildchain", "-s", "x509sak/tests/data", "x509sak/tests/data/johannes-bauer-intermediate.crt" ])
 		self.assertOcurrences(output, b"-----BEGIN CERTIFICATE-----", 2)
 		crts = X509Certificate.from_pem_data(output.decode("ascii"))
 		self.assertEqual(crts[0].subject.rfc2253_str, "CN=DST Root CA X3,O=Digital Signature Trust Co.")
@@ -62,25 +60,25 @@ class CmdLineTestsBuildChain(BaseTest):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
 			crt = self._load_crt("johannes-bauer-root.crt")
 			crt.write_derfile("root.der")
-			output = subprocess.check_output(self._x509sak + [ "buildchain", "--inform", "der", "root.der" ])
+			output = SubprocessExecutor.run(self._x509sak + [ "buildchain", "--inform", "der", "root.der" ])
 			self.assertOcurrences(output, b"-----BEGIN CERTIFICATE-----", 1)
 			crts = X509Certificate.from_pem_data(output.decode("ascii"))
 			self.assertEqual(crts[0].subject.rfc2253_str, "CN=DST Root CA X3,O=Digital Signature Trust Co.")
 
 	def test_root_only(self):
-		(success, output) = SubprocessExecutor.run(self._x509sak + [ "buildchain", "-s", "x509sak/tests/data", "--outform", "rootonly", "x509sak/tests/data/johannes-bauer.com.crt" ], return_stdout = True)
+		output = SubprocessExecutor.run(self._x509sak + [ "buildchain", "-s", "x509sak/tests/data", "--outform", "rootonly", "x509sak/tests/data/johannes-bauer.com.crt" ])
 		self.assertOcurrences(output, b"-----BEGIN CERTIFICATE-----", 1)
 		crts = X509Certificate.from_pem_data(output.decode("ascii"))
 		self.assertEqual(crts[0].subject.rfc2253_str, "CN=DST Root CA X3,O=Digital Signature Trust Co.")
 
 	def test_intermediate(self):
-		output = subprocess.check_output(self._x509sak + [ "buildchain", "-s", "x509sak/tests/data", "--outform", "intermediates", "x509sak/tests/data/johannes-bauer.com.crt" ])
+		output = SubprocessExecutor.run(self._x509sak + [ "buildchain", "-s", "x509sak/tests/data", "--outform", "intermediates", "x509sak/tests/data/johannes-bauer.com.crt" ])
 		self.assertOcurrences(output, b"-----BEGIN CERTIFICATE-----", 1)
 		crts = X509Certificate.from_pem_data(output.decode("ascii"))
 		self.assertEqual(crts[0].subject.rfc2253_str, "CN=Let's Encrypt Authority X3,C=US,O=Let's Encrypt")
 
 	def test_all_except_root(self):
-		output = subprocess.check_output(self._x509sak + [ "buildchain", "-s", "x509sak/tests/data", "--outform", "all-except-root", "x509sak/tests/data/johannes-bauer.com.crt" ])
+		output = SubprocessExecutor.run(self._x509sak + [ "buildchain", "-s", "x509sak/tests/data", "--outform", "all-except-root", "x509sak/tests/data/johannes-bauer.com.crt" ])
 		self.assertOcurrences(output, b"-----BEGIN CERTIFICATE-----", 2)
 		crts = X509Certificate.from_pem_data(output.decode("ascii"))
 		self.assertEqual(crts[0].subject.rfc2253_str, "CN=Let's Encrypt Authority X3,C=US,O=Let's Encrypt")
@@ -90,12 +88,12 @@ class CmdLineTestsBuildChain(BaseTest):
 		search_dir = os.path.realpath("x509sak/tests/data")
 		crt_file = os.path.realpath("x509sak/tests/data/johannes-bauer.com.crt")
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
-			output = subprocess.check_output(self._x509sak + [ "buildchain", "-s", search_dir, "--outform", "multifile", "--outfile", "outcrt%02d.pem", crt_file ])
+			output = SubprocessExecutor.run(self._x509sak + [ "buildchain", "-s", search_dir, "--outform", "multifile", "--outfile", "outcrt%02d.pem", crt_file ])
 			self.assertEqual(X509Certificate.read_pemfile("outcrt00.pem")[0].subject.rfc2253_str, "CN=DST Root CA X3,O=Digital Signature Trust Co.")
 			self.assertEqual(X509Certificate.read_pemfile("outcrt01.pem")[0].subject.rfc2253_str, "CN=Let's Encrypt Authority X3,C=US,O=Let's Encrypt")
 			self.assertEqual(X509Certificate.read_pemfile("outcrt02.pem")[0].subject.rfc2253_str, "CN=johannes-bauer.com")
 
-			output = subprocess.check_output(self._x509sak + [ "buildchain", "-s", search_dir, "--outform", "multifile", "--order-leaf-to-root", "--outfile", "rev_outcrt%02d.pem", crt_file ])
+			output = SubprocessExecutor.run(self._x509sak + [ "buildchain", "-s", search_dir, "--outform", "multifile", "--order-leaf-to-root", "--outfile", "rev_outcrt%02d.pem", crt_file ])
 			self.assertEqual(X509Certificate.read_pemfile("rev_outcrt00.pem")[0].subject.rfc2253_str, "CN=johannes-bauer.com")
 			self.assertEqual(X509Certificate.read_pemfile("rev_outcrt01.pem")[0].subject.rfc2253_str, "CN=Let's Encrypt Authority X3,C=US,O=Let's Encrypt")
 			self.assertEqual(X509Certificate.read_pemfile("rev_outcrt02.pem")[0].subject.rfc2253_str, "CN=DST Root CA X3,O=Digital Signature Trust Co.")
@@ -104,24 +102,17 @@ class CmdLineTestsBuildChain(BaseTest):
 		search_dir = os.path.realpath("x509sak/tests/data")
 		crt_file = os.path.realpath("x509sak/tests/data/johannes-bauer.com.crt")
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
-			subprocess.check_call(self._x509sak + [ "buildchain", "-s", search_dir, "--outform", "pkcs12", "--outfile", "output.p12", crt_file ])
-			output = subprocess.check_output([ "openssl", "pkcs12", "-in", "output.p12", "-passin", "pass:" ])
+			SubprocessExecutor.run(self._x509sak + [ "buildchain", "-s", search_dir, "--outform", "pkcs12", "--outfile", "output.p12", crt_file ])
+			output = SubprocessExecutor.run([ "openssl", "pkcs12", "-in", "output.p12", "-passin", "pass:" ])
 			self.assertOcurrences(output, b"-----BEGIN CERTIFICATE-----", 3)
 
 	def test_cmd_errors(self):
-		with self.assertRaises(subprocess.CalledProcessError):
-			subprocess.check_output(self._x509sak + [ "buildchain", "--private-key", "foo.key", "x509sak/tests/data/johannes-bauer-root.crt" ], stderr = subprocess.STDOUT)
-		with self.assertRaises(subprocess.CalledProcessError):
-			subprocess.check_output(self._x509sak + [ "buildchain", "--pkcs12-legacy-crypto", "x509sak/tests/data/johannes-bauer-root.crt" ], stderr = subprocess.STDOUT)
-		with self.assertRaises(subprocess.CalledProcessError):
-			subprocess.check_output(self._x509sak + [ "buildchain", "--pkcs12-no-passphrase", "x509sak/tests/data/johannes-bauer-root.crt" ], stderr = subprocess.STDOUT)
-		with self.assertRaises(subprocess.CalledProcessError):
-			subprocess.check_output(self._x509sak + [ "buildchain", "--pkcs12-passphrase-file", "pass.txt", "x509sak/tests/data/johannes-bauer-root.crt" ], stderr = subprocess.STDOUT)
-		with self.assertRaises(subprocess.CalledProcessError):
-			subprocess.check_output(self._x509sak + [ "buildchain", "--outform", "pkcs12", "--pkcs12-passphrase-file", "pass.txt", "x509sak/tests/data/johannes-bauer-root.crt" ], stderr = subprocess.STDOUT)
-		with self.assertRaises(subprocess.CalledProcessError):
-			subprocess.check_output(self._x509sak + [ "buildchain", "--outform", "pkcs12", "--pkcs12-legacy-crypto", "pass.txt", "x509sak/tests/data/johannes-bauer-root.crt" ], stderr = subprocess.STDOUT)
+		SubprocessExecutor.run(self._x509sak + [ "buildchain", "--private-key", "foo.key", "x509sak/tests/data/johannes-bauer-root.crt" ], discard_stderr = True, success_retcodes = [ 1 ])
+		SubprocessExecutor.run(self._x509sak + [ "buildchain", "--pkcs12-legacy-crypto", "x509sak/tests/data/johannes-bauer-root.crt" ], discard_stderr = True, success_retcodes = [ 1 ])
+		SubprocessExecutor.run(self._x509sak + [ "buildchain", "--pkcs12-no-passphrase", "x509sak/tests/data/johannes-bauer-root.crt" ], discard_stderr = True, success_retcodes = [ 1 ])
+		SubprocessExecutor.run(self._x509sak + [ "buildchain", "--pkcs12-passphrase-file", "pass.txt", "x509sak/tests/data/johannes-bauer-root.crt" ], discard_stderr = True, success_retcodes = [ 1 ])
+		SubprocessExecutor.run(self._x509sak + [ "buildchain", "--outform", "pkcs12", "--pkcs12-passphrase-file", "pass.txt", "x509sak/tests/data/johannes-bauer-root.crt" ], discard_stderr = True, success_retcodes = [ 1 ])
+		SubprocessExecutor.run(self._x509sak + [ "buildchain", "--outform", "pkcs12", "--pkcs12-legacy-crypto", "pass.txt", "x509sak/tests/data/johannes-bauer-root.crt" ], discard_stderr = True, success_retcodes = [ 1 ])
 
 	def test_cmd_no_root_found(self):
-		with self.assertRaises(subprocess.CalledProcessError):
-			subprocess.check_output(self._x509sak + [ "buildchain", "--allow-partial-chain", "--outform", "rootonly", "x509sak/tests/data/johannes-bauer-intermediate.crt" ], stderr = subprocess.STDOUT)
+		SubprocessExecutor.run(self._x509sak + [ "buildchain", "--allow-partial-chain", "--outform", "rootonly", "x509sak/tests/data/johannes-bauer-intermediate.crt" ], discard_stderr = True, success_retcodes = [ 1 ])

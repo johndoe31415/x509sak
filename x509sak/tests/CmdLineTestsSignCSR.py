@@ -37,10 +37,10 @@ class CmdLineTestsSignCSR(BaseTest):
 			SubprocessExecutor.run(self._x509sak + [ "signcsr", "myCA", "client.csr", "client.crt" ])
 
 			# Extract public key from private key
-			(success, pubkey_in) = SubprocessExecutor.run([ "openssl", "ec", "-pubout", "-in", "client.key" ], return_stdout = True, discard_stderr = True)
+			pubkey_in = SubprocessExecutor.run([ "openssl", "ec", "-pubout", "-in", "client.key" ], discard_stderr = True)
 
 			# Extract public key from certificate
-			(success, pubkey_out) = SubprocessExecutor.run([ "openssl", "x509", "-noout", "-pubkey", "-in", "client.crt" ], return_stdout = True)
+			pubkey_out = SubprocessExecutor.run([ "openssl", "x509", "-noout", "-pubkey", "-in", "client.crt" ])
 
 			self.assertEqual(pubkey_in, pubkey_out)
 
@@ -59,9 +59,9 @@ class CmdLineTestsSignCSR(BaseTest):
 			SubprocessExecutor.run(self._x509sak + [ "signcsr", "-s", "/CN=Foobar", "myCA", "client.csr", "client_override.crt" ])
 
 			# Get text representation of CSR and CRT
-			(success, csr_text) = SubprocessExecutor.run([ "openssl", "req", "-noout", "-text", "-in", "client.csr" ], return_stdout = True)
-			(success, crt_orig_text) = SubprocessExecutor.run([ "openssl", "x509", "-noout", "-text", "-in", "client_original.crt" ], return_stdout = True)
-			(success, crt_override_text) = SubprocessExecutor.run([ "openssl", "x509", "-noout", "-text", "-in", "client_override.crt" ], return_stdout = True)
+			csr_text = SubprocessExecutor.run([ "openssl", "req", "-noout", "-text", "-in", "client.csr" ])
+			crt_orig_text = SubprocessExecutor.run([ "openssl", "x509", "-noout", "-text", "-in", "client_original.crt" ])
+			crt_override_text = SubprocessExecutor.run([ "openssl", "x509", "-noout", "-text", "-in", "client_override.crt" ])
 
 			# The subject is in the CSR and the CRT without any specification,
 			# but not in the CRT where it was overriden
@@ -84,7 +84,7 @@ class CmdLineTestsSignCSR(BaseTest):
 			SubprocessExecutor.run(self._x509sak + [ "signcsr", "--san-dns", "foobar.com", "--san-dns", "barfoo.com", "--san-ip", "11.22.33.44", "myCA", "client.csr", "client.crt" ])
 
 			# Check that SAN ended up in the CRT
-			(success, crt_text) = SubprocessExecutor.run([ "openssl", "x509", "-noout", "-text", "-in", "client.crt" ], return_stdout = True)
+			crt_text = SubprocessExecutor.run([ "openssl", "x509", "-noout", "-text", "-in", "client.crt" ])
 			self.assertIn(b"X509v3 extensions", crt_text)
 			self.assertIn(b"foobar.com", crt_text)
 			self.assertIn(b"barfoo.com", crt_text)
@@ -107,10 +107,10 @@ class CmdLineTestsSignCSR(BaseTest):
 			SubprocessExecutor.run(self._x509sak + [ "signcsr", "-s", "/CN=Server with SAN DNS", "-t", "tls-server", "--san-dns", "newdns.com", "myCA", "client.csr", "client_server_dns.crt" ])
 
 			# Get text representation of CSR and CRT
-			(success, csr_text) = SubprocessExecutor.run([ "openssl", "req", "-noout", "-text", "-in", "client.csr" ], return_stdout = True)
-			(success, crt_none_text) = SubprocessExecutor.run([ "openssl", "x509", "-noout", "-text", "-in", "client_none.crt" ], return_stdout = True)
-			(success, crt_server_text) = SubprocessExecutor.run([ "openssl", "x509", "-noout", "-text", "-in", "client_server.crt" ], return_stdout = True)
-			(success, crt_server_dns_text) = SubprocessExecutor.run([ "openssl", "x509", "-noout", "-text", "-in", "client_server_dns.crt" ], return_stdout = True)
+			csr_text = SubprocessExecutor.run([ "openssl", "req", "-noout", "-text", "-in", "client.csr" ])
+			crt_none_text = SubprocessExecutor.run([ "openssl", "x509", "-noout", "-text", "-in", "client_none.crt" ])
+			crt_server_text = SubprocessExecutor.run([ "openssl", "x509", "-noout", "-text", "-in", "client_server.crt" ])
+			crt_server_dns_text = SubprocessExecutor.run([ "openssl", "x509", "-noout", "-text", "-in", "client_server_dns.crt" ])
 
 			# CSR contains a bunch of extensions
 			self.assertIn(b"Requested Extensions", csr_text)

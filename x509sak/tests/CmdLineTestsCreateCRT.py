@@ -30,7 +30,7 @@ class CmdLineTestsCreateCRT(BaseTest):
 		if options is None:
 			options = [ ]
 		SubprocessExecutor.run(self._x509sak + [ "createcsr", "-s", "/CN=CHILD%d" % (certno), "-c", "root_ca" ] + options + [ "client%d.key" % (certno), "client%d.crt" % (certno) ])
-		(success, output) = SubprocessExecutor.run([ "openssl", "x509", "-text", "-in", "client%d.crt" % (certno) ], return_stdout = True)
+		output = SubprocessExecutor.run([ "openssl", "x509", "-text", "-in", "client%d.crt" % (certno) ])
 		self.assertIn(b"--BEGIN CERTIFICATE--", output)
 		self.assertIn(b"--END CERTIFICATE--", output)
 		self.assertTrue((b"Issuer: CN=PARENT" in output) or (b"Issuer: CN = PARENT" in output))
@@ -40,7 +40,7 @@ class CmdLineTestsCreateCRT(BaseTest):
 	def test_create_simple_crt(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
 			SubprocessExecutor.run(self._x509sak + [ "createca", "-s", "/CN=PARENT", "root_ca" ])
-			(success, output) = SubprocessExecutor.run([ "openssl", "x509", "-text", "-in", "root_ca/CA.crt" ], return_stdout = True)
+			output = SubprocessExecutor.run([ "openssl", "x509", "-text", "-in", "root_ca/CA.crt" ])
 			self.assertIn(b"--BEGIN CERTIFICATE--", output)
 			self.assertIn(b"--END CERTIFICATE--", output)
 			self.assertTrue((b"Issuer: CN=PARENT" in output) or (b"Issuer: CN = PARENT" in output))
@@ -117,14 +117,14 @@ class CmdLineTestsCreateCRT(BaseTest):
 	def test_create_simple_csr(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
 			SubprocessExecutor.run(self._x509sak + [ "createcsr", "-s", "/CN=Request1", "request1.key", "request1.csr" ])
-			(success, output) = SubprocessExecutor.run([ "openssl", "req", "-text", "-in", "request1.csr" ], return_stdout = True)
+			output = SubprocessExecutor.run([ "openssl", "req", "-text", "-in", "request1.csr" ])
 			self.assertIn(b"--BEGIN CERTIFICATE REQUEST--", output)
 			self.assertIn(b"--END CERTIFICATE REQUEST--", output)
 			self.assertTrue((b"Subject: CN=Request1" in output) or (b"Subject: CN = Request1" in output))
 			self.assertNotIn(b"Requested Extensions:", output)
 
 			SubprocessExecutor.run(self._x509sak + [ "createcsr", "-s", "/CN=Request2", "--san-dns", "foodns", "request2.key", "request2.csr" ])
-			(success, output) = SubprocessExecutor.run([ "openssl", "req", "-text", "-in", "request2.csr" ], return_stdout = True)
+			output = SubprocessExecutor.run([ "openssl", "req", "-text", "-in", "request2.csr" ])
 			self.assertIn(b"--BEGIN CERTIFICATE REQUEST--", output)
 			self.assertIn(b"--END CERTIFICATE REQUEST--", output)
 			self.assertTrue((b"Subject: CN=Request2" in output) or (b"Subject: CN = Request2" in output))
@@ -132,7 +132,7 @@ class CmdLineTestsCreateCRT(BaseTest):
 			self.assertIn(b"DNS:foodns", output)
 
 			SubprocessExecutor.run(self._x509sak + [ "createcsr", "-s", "/CN=Request3", "--san-dns", "foodns", "--san-dns", "bardns", "request3.key", "request3.csr" ])
-			(success, output) = SubprocessExecutor.run([ "openssl", "req", "-text", "-in", "request3.csr" ], return_stdout = True)
+			output = SubprocessExecutor.run([ "openssl", "req", "-text", "-in", "request3.csr" ])
 			self.assertIn(b"--BEGIN CERTIFICATE REQUEST--", output)
 			self.assertIn(b"--END CERTIFICATE REQUEST--", output)
 			self.assertTrue((b"Subject: CN=Request3" in output) or (b"Subject: CN = Request3" in output))
@@ -141,7 +141,7 @@ class CmdLineTestsCreateCRT(BaseTest):
 			self.assertIn(b"DNS:bardns", output)
 
 			SubprocessExecutor.run(self._x509sak + [ "createcsr", "-s", "/CN=Request4", "--san-dns", "foodns", "--san-dns", "bardns", "--san-ip", "111.222.33.44", "request4.key", "request4.csr" ])
-			(success, output) = SubprocessExecutor.run([ "openssl", "req", "-text", "-in", "request4.csr" ], return_stdout = True)
+			output = SubprocessExecutor.run([ "openssl", "req", "-text", "-in", "request4.csr" ])
 			self.assertIn(b"--BEGIN CERTIFICATE REQUEST--", output)
 			self.assertIn(b"--END CERTIFICATE REQUEST--", output)
 			self.assertTrue((b"Subject: CN=Request4" in output) or (b"Subject: CN = Request4" in output))
@@ -151,7 +151,7 @@ class CmdLineTestsCreateCRT(BaseTest):
 			self.assertIn(b"IP Address:111.222.33.44", output)
 
 			SubprocessExecutor.run(self._x509sak + [ "createcsr", "-s", "/CN=Request5", "--san-dns", "foodns", "--san-dns", "bardns", "--san-ip", "111.222.33.55", "--extension", "extendedKeyUsage=1.2.3.4.5.6.7,1.1.1.2.2.2.3.3.3,codeSigning", "request5.key", "request5.csr" ])
-			(success, output) = SubprocessExecutor.run([ "openssl", "req", "-text", "-in", "request5.csr" ], return_stdout = True)
+			output = SubprocessExecutor.run([ "openssl", "req", "-text", "-in", "request5.csr" ])
 			self.assertIn(b"--BEGIN CERTIFICATE REQUEST--", output)
 			self.assertIn(b"--END CERTIFICATE REQUEST--", output)
 			self.assertTrue((b"Subject: CN=Request5" in output) or (b"Subject: CN = Request5" in output))

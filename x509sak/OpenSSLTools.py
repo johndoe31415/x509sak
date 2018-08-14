@@ -174,9 +174,9 @@ class OpenSSLTools(object):
 
 	@classmethod
 	def private_to_public(cls, private_key_filename, public_key_filename):
-		success = SubprocessExecutor.run([ "openssl", "rsa", "-in", private_key_filename, "-pubout", "-out", public_key_filename ], on_failure = "pass")
+		success = SubprocessExecutor.run([ "openssl", "rsa", "-in", private_key_filename, "-pubout", "-out", public_key_filename ], on_failure = "pass", returnval = "success")
 		if not success:
-			success = SubprocessExecutor.run([ "openssl", "ec", "-in", private_key_filename, "-pubout", "-out", public_key_filename ], on_failure = "pass")
+			success = SubprocessExecutor.run([ "openssl", "ec", "-in", private_key_filename, "-pubout", "-out", public_key_filename ], on_failure = "pass", returnval = "success")
 		if not success:
 			raise InvalidInputException("File %s contained neither RSA nor ECC private key." % (private_key_filename))
 
@@ -202,5 +202,5 @@ class OpenSSLTools(object):
 			if modern_crypto:
 				cmd += [ "-macalg", "sha384", "-maciter", "-keypbe", "aes-128-cbc" ]
 			pem_certificates = "\n".join(certificate.to_pem_data() for certificate in certificates)
-			(success, output) = SubprocessExecutor.run(cmd, stdin = pem_certificates.encode("ascii"), return_stdout = True)
+			output = SubprocessExecutor.run(cmd, stdin = pem_certificates.encode("ascii"))
 			return output

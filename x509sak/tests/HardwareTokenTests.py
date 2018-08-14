@@ -75,16 +75,16 @@ class SoftHSMInstance(object):
 		return "pkcs11:object=%s;type=private;pin-value=648219;token=TestToken" % (urllib.parse.quote(key_label))
 
 	def list_objects(self):
-		(success, output) = SubprocessExecutor.run([ "pkcs11-tool", "--module", self.module_so, "--login", "--pin", "648219", "--list-objects" ], env = self._env, return_stdout = True)
+		output = SubprocessExecutor.run([ "pkcs11-tool", "--module", self.module_so, "--login", "--pin", "648219", "--list-objects" ], env = self._env)
 		print(output.decode())
 
 	def get_pubkey_der(self, key_id):
-		(success, output) = SubprocessExecutor.run([ "pkcs11-tool", "--module", self.module_so, "--login", "--pin", "648219", "--read-object", "--type", "pubkey", "--id", "%x" % (key_id) ], env = self._env, return_stdout = True, discard_stderr = True)
+		output = SubprocessExecutor.run([ "pkcs11-tool", "--module", self.module_so, "--login", "--pin", "648219", "--read-object", "--type", "pubkey", "--id", "%x" % (key_id) ], env = self._env, discard_stderr = True)
 		return output
 
 	def get_ecc_pubkey_text(self, key_id):
 		pubkey = self.get_pubkey_der(key_id)
-		(success, output) = SubprocessExecutor.run([ "openssl", "ec", "-inform", "der", "-pubin", "-text", "-noout" ], stdin = pubkey, return_stdout = True, discard_stderr = True)
+		output = SubprocessExecutor.run([ "openssl", "ec", "-inform", "der", "-pubin", "-text", "-noout" ], stdin = pubkey, discard_stderr = True)
 		output = output.decode()
 		return output
 
@@ -120,8 +120,8 @@ class HardwareTokenTests(BaseTest):
 			SubprocessExecutor.run([ "openssl", "verify", "-check_ss_sig", "-CAfile", "root_ca/CA.crt", "root_ca/CA.crt" ])
 
 			# Check that the public key on the smart card appears inside the certificate
-			(success, cert) = SubprocessExecutor.run([ "openssl", "x509", "-noout", "-text", "-in", "root_ca/CA.crt" ], return_stdout = True)
-			self.assertIn(pubkey_start, cert)
+			output = SubprocessExecutor.run([ "openssl", "x509", "-noout", "-text", "-in", "root_ca/CA.crt" ])
+			self.assertIn(pubkey_start, output)
 
 
 	def test_create_certificate(self):

@@ -70,6 +70,8 @@ class PEMDERObject(object):
 
 	@classmethod
 	def from_pem_data(cls, pem_data, source = None, ignore_errors = False):
+		if isinstance(pem_data, bytes):
+			pem_data = pem_data.decode("ascii")
 		if cls._PEM_MARKER is None:
 			raise LazyDeveloperException("PEM marker not specified for class %s; cannot convert to PEM." % (cls.__name__))
 
