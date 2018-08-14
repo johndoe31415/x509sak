@@ -28,6 +28,7 @@ from x509sak.PrivateKeyStorage import PrivateKeyStorage, PrivateKeyStorageForm
 from x509sak.KeySpecification import KeySpecification
 from x509sak.CmdLineArgs import KeySpecArgument
 from x509sak.OpenSSLTools import OpenSSLTools
+from x509sak.Exceptions import UnfulfilledPrerequisitesException, InvalidUsageException
 
 class ActionCreateCA(BaseAction):
 	def __init__(self, cmdname, args):
@@ -41,16 +42,12 @@ class ActionCreateCA(BaseAction):
 				shutil.rmtree(self._args.capath)
 			except FileNotFoundError:
 				pass
+		else:
+			if os.path.exists(self._args.capath):
+				raise UnfulfilledPrerequisitesException("File/directory %s already exists. Remove it first or use --force." % (self._args.capath))
 
-		if os.path.exists(self._args.capath):
-			raise Exception("File/directory %s already exists. Remove it first or use --force." % (self._args.capath))
-
-		try:
-			os.makedirs(self._args.capath)
-		except FileExistsError:
-			pass
+		os.makedirs(self._args.capath)
 		os.chmod(self._args.capath, 0o700)
-
 
 		camgr = CAManager(self._args.capath)
 		custom_x509_extensions = { custom_x509_extension.key: custom_x509_extension.value for custom_x509_extension in self._args.extension }
@@ -79,7 +76,7 @@ class ActionCreateCA(BaseAction):
 		else:
 			# Intermediate CA
 			if self._args.serial is not None:
-				raise Exception("Can only specify certificate serial number when creating self-signed root CA certificate.")
+				raise InvalidUsageException("Can only specify certificate serial number when creating self-signed root CA certificate.")
 			with tempfile.NamedTemporaryFile("w", prefix = "ca_", suffix = ".csr") as csr:
 				camgr.create_ca_csr(csr_filename = csr.name, subject_dn = self._args.subject_dn)
 				parent_ca = CAManager(self._args.parent_ca)

@@ -19,6 +19,7 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
+import os
 import tempfile
 from x509sak.tests import BaseTest
 from x509sak.WorkDir import WorkDir
@@ -113,3 +114,13 @@ class CmdLineTestsCreateCA(BaseTest):
 			output = SubprocessExecutor.run([ "openssl", "x509", "-text", "-noout", "-in", "root_ca2/CA.crt" ])
 			self.assertIn(b"DNS:foo.bar.com", output)
 			self.assertIn(b"pathlen:123", output)
+
+	def test_dont_overwrite_dir_except_force(self):
+		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
+			os.makedirs("root_ca")
+			with open("root_ca/foobar", "wb"):
+				pass
+			SubprocessExecutor.run(self._x509sak + [ "createca", "root_ca" ], discard_stderr = True, success_retcodes = [ 1 ])
+			self.assertTrue(os.path.isfile("root_ca/foobar"))
+			SubprocessExecutor.run(self._x509sak + [ "createca", "--force", "root_ca" ])
+			self.assertFalse(os.path.isfile("root_ca/foobar"))
