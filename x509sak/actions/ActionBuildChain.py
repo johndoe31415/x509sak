@@ -53,7 +53,7 @@ class ActionBuildChain(BaseAction):
 		elif self._args.inform == "der":
 			cert = X509Certificate.read_derfile(self._args.crtfile)
 		else:
-			raise Exception(NotImplemented)
+			raise NotImplementedError("inform", self._args.inform)
 		chain = self._pool.find_chain(cert)
 		if (chain.root is None) and (not self._args.allow_partial_chain):
 			raise InvalidUsageException("Could not build full chain for certificate %s and partial chain matches are disallowed." % (self._args.crtfile))
@@ -72,7 +72,7 @@ class ActionBuildChain(BaseAction):
 			if chain.root is not None:
 				certs = certs[:-1]
 		else:
-			raise Exception(NotImplemented)
+			raise NotImplementedError("outform", self._args.outform)
 
 		if not self._args.order_leaf_to_root:
 			certs = certs[::-1]

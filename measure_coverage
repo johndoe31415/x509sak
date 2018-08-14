@@ -33,6 +33,6 @@ try:
 except FileNotFoundError:
 	pass
 
-subprocess.check_call([ "coverage", "run", "--append", "--omit", "/usr/*", "./run_tests.py", "--coverage" ])
+subprocess.check_call([ "coverage", "run", "--append", "--omit", "/usr/*", "./run_tests.py", "--coverage", "--all" ])
 subprocess.check_call([ "coverage", "html" ])
 subprocess.check_call([ "chromium-browser", "htmlcov/index.html" ])

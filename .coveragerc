@@ -1,0 +1,4 @@
+[report]
+exclude_lines =
+	raise LazyDeveloperException
+    raise NotImplementedError

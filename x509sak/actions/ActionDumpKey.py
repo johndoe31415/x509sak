@@ -39,7 +39,7 @@ class ActionDumpKey(BaseAction):
 				print("curve_name = \"%s\"" % (key.curve))
 				print("(x, y) = (0x%x, 0x%x)" % (key.x, key.y))
 			else:
-				raise Exception(NotImplemented)
+				raise NotImplementedError(key.cryptosystem)
 		else:
 			if self._args.key_type == "rsa":
 				key = RSAPrivateKey.read_pemfile(self._args.key_filename)[0]
@@ -55,6 +55,5 @@ class ActionDumpKey(BaseAction):
 				print("curve_name = \"%s\"" % (key.curve))
 				print("d = 0x%x" % (key.d))
 				print("(x, y) = (0x%x, 0x%x)" % (key.x, key.y))
-
 			else:
-				raise Exception(NotImplemented)
+				raise NotImplementedError(self._args.key_type)
