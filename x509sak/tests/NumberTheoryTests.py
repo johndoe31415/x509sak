@@ -66,21 +66,6 @@ class NumberTheoryTests(BaseTest):
 		for (modulus, remainder) in moduli.items():
 			self.assertEqual(solution % modulus, remainder)
 
-	def __test_gen_fastprime1(self):
-		cnt = 0
-		for _ in range(10):
-			p = NumberTheory.gen_insecure_probable_fastprime(200)
-			if NumberTheory.is_probable_prime(p):
-				cnt += 1
-			else:
-				print("NOPRIME")
-		print(cnt)
-
-	def __test_gen_fastprime2(self):
-		for n in [ 20, 50, 100, 150, 200, 500 ]:
-			p = NumberTheory.gen_insecure_probable_fastprime(n)
-			self.assertTrue(NumberTheory.is_probable_prime(p))
-
 	def test_pollard_rho_prime(self):
 		p = 2003
 		self.assertIsNone(NumberTheory.pollard_rho(p), None)

@@ -125,53 +125,6 @@ class NumberTheory(object):
 			p += 2
 
 	@classmethod
-	def __gen_insecure_probable_fastprime1(cls, nprimes):
-		"""Generate a cryptographically INSECURE probabilistic fast prime
-		consisting of n CRT moduli."""
-		i = 0
-		moduli = { }
-		for p in cls.iter_primes():
-			q = random.randint(1, p - 1)
-			moduli[p] = q
-			i += 1
-			if i == nprimes:
-				break
-		print(sorted(moduli.items()))
-		prime = cls.solve_crt(moduli)
-		assert(prime != 1)
-		return prime
-
-	@classmethod
-	def __gen_insecure_probable_fastprime2(cls, nprimes):
-		"""Pretty bad attempt on implementation of the fastprimes paper, with
-		only 1/10th of the understanding required to implment it. Surprise: It
-		doesn't work."""
-		P = 1
-		i = 0
-		for p in cls.iter_primes():
-			if p != 2:
-				P *= p
-				i += 1
-				if i == nprimes:
-					break
-
-		bmin = 100000000
-		bmax = 1000000000
-		v = 100000
-
-		l = v * P
-		k = random.randint(2, P - 1)
-		b = random.randint(bmin, bmax)
-		t = b * P
-		while True:
-			q = k + t + l
-			if (q % 2) == 0:
-				q = P - k + t + l
-			if cls.is_probable_prime(q):
-				return q
-			k = (2 * k) % P
-
-	@classmethod
 	def pollard_rho(cls, n, max_iterations = None):
 		"""Calculate Pollards Rho for a given number n. Returns either a prime
 		factor of n or None."""
