@@ -36,7 +36,19 @@ class InvalidCAIndexFileEntry(UserErrorException): pass
 class CurveNotFoundException(UserErrorException): pass
 class UnexpectedFileContentException(UserErrorException): pass
 
-class CmdExecutionFailedException(InvisibleUserErrorException): pass
+class CmdExecutionFailedException(InvisibleUserErrorException):
+	def __init__(self, command, stdout, stderr):
+		super().__init__(command)
+		self.__stdout = stdout
+		self.__stderr = stderr
+
+	@property
+	def stdout(self):
+		return self.__stdout
+
+	@property
+	def stderr(self):
+		return self.__stderr
 
 class LazyDeveloperException(ProgrammerErrorException): pass
 class UnknownAlgorithmException(ProgrammerErrorException): pass

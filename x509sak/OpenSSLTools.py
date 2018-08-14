@@ -202,5 +202,5 @@ class OpenSSLTools(object):
 			if modern_crypto:
 				cmd += [ "-macalg", "sha384", "-maciter", "-keypbe", "aes-128-cbc" ]
 			pem_certificates = "\n".join(certificate.to_pem_data() for certificate in certificates)
-			output = SubprocessExecutor.run(cmd, stdin = pem_certificates.encode("ascii"))
+			output = SubprocessExecutor.run(cmd, stdin = pem_certificates.encode("ascii"), discard_stderr = True)
 			return output

@@ -58,7 +58,7 @@ class CmdLineTestsCreateCA(BaseTest):
 			self.assertIn(b"--END CERTIFICATE--", output)
 			self.assertIn(b"rsaEncryption", output)
 			self.assertIn(b"sha1WithRSAEncryption", output)
-			self.assertTrue(b"Public-Key: (1024 bit)" in output)
+			self.assertIn(b"Public-Key: (1024 bit)", output)
 			self.assertTrue((b"CN=YepThats!TheCN" in output) or (b"CN = YepThats!TheCN" in output))
 			self.assertIn(b"X509v3 extensions", output)
 			self.assertIn(b"CA:TRUE", output)
@@ -124,3 +124,16 @@ class CmdLineTestsCreateCA(BaseTest):
 			self.assertTrue(os.path.isfile("root_ca/foobar"))
 			SubprocessExecutor.run(self._x509sak + [ "createca", "--force", "root_ca" ])
 			self.assertFalse(os.path.isfile("root_ca/foobar"))
+
+	def test_serial_spec(self):
+		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
+			SubprocessExecutor.run(self._x509sak + [ "createca", "-s", "/CN=PARENT", "--serial", "1234567", "root_ca" ])
+			output = SubprocessExecutor.run([ "openssl", "x509", "-text", "-in", "root_ca/CA.crt" ])
+			self.assertIn(b"Serial Number: 1234567", output)
+
+			SubprocessExecutor.run(self._x509sak + [ "createca", "-s", "/CN=PARENT", "-f", "--serial", "0x1234567", "root_ca" ])
+			output = SubprocessExecutor.run([ "openssl", "x509", "-text", "-in", "root_ca/CA.crt" ])
+			self.assertIn(b"Serial Number: 19088743", output)
+
+			output = SubprocessExecutor.run(self._x509sak + [ "createca", "-p", "root_ca", "-s", "/CN=INTERMEDIATE", "--serial", "9876", "intermediate_ca" ], success_retcodes = [ 1 ])
+			self.assertIn(b"certificate serial number", output)

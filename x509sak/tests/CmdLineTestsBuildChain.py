@@ -84,6 +84,14 @@ class CmdLineTestsBuildChain(BaseTest):
 		self.assertEqual(crts[0].subject.rfc2253_str, "CN=Let's Encrypt Authority X3,C=US,O=Let's Encrypt")
 		self.assertEqual(crts[1].subject.rfc2253_str, "CN=johannes-bauer.com")
 
+	def test_all_except_root_stdout(self):
+		with tempfile.NamedTemporaryFile("w", prefix = "config_", suffix = ".cnf") as out_file:
+			output = SubprocessExecutor.run(self._x509sak + [ "buildchain", "-s", "x509sak/tests/data", "--outform", "all-except-root", "--outfile", out_file.name, "x509sak/tests/data/johannes-bauer.com.crt" ])
+			self.assertOcurrences(output, b"-----BEGIN CERTIFICATE-----", 0)
+			crts = X509Certificate.read_pemfile(out_file.name)
+			self.assertEqual(crts[0].subject.rfc2253_str, "CN=Let's Encrypt Authority X3,C=US,O=Let's Encrypt")
+			self.assertEqual(crts[1].subject.rfc2253_str, "CN=johannes-bauer.com")
+
 	def test_multifile_all_except_root(self):
 		search_dir = os.path.realpath("x509sak/tests/data")
 		crt_file = os.path.realpath("x509sak/tests/data/johannes-bauer.com.crt")
@@ -116,3 +124,19 @@ class CmdLineTestsBuildChain(BaseTest):
 
 	def test_cmd_no_root_found(self):
 		SubprocessExecutor.run(self._x509sak + [ "buildchain", "--allow-partial-chain", "--outform", "rootonly", "x509sak/tests/data/johannes-bauer-intermediate.crt" ], discard_stderr = True, success_retcodes = [ 1 ])
+
+	def test_pkcs12_stdout(self):
+		search_dir = os.path.realpath("x509sak/tests/data")
+		crt_file = os.path.realpath("x509sak/tests/data/johannes-bauer.com.crt")
+		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
+			pkcs12 =  SubprocessExecutor.run(self._x509sak + [ "buildchain", "-s", search_dir, "--outform", "pkcs12", crt_file ])
+			output = SubprocessExecutor.run([ "openssl", "pkcs12", "-passin", "pass:" ], stdin = pkcs12)
+			self.assertOcurrences(output, b"-----BEGIN CERTIFICATE-----", 3)
+
+#	def test_pkcs12_passphrase(self):
+#		search_dir = os.path.realpath("x509sak/tests/data")
+#		crt_file = os.path.realpath("x509sak/tests/data/johannes-bauer.com.crt")
+#		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
+#			pkcs12 =  SubprocessExecutor.run(self._x509sak + [ "buildchain", "-s", search_dir, "--outform", "pkcs12", "--private-key", search_dir + "/privkey_rsa_768.pem", "--pkcs12-no-passphrase", crt_file ])
+#			output = SubprocessExecutor.run([ "openssl", "pkcs12", "-passin", "pass:" ], stdin = pkcs12)
+#			self.assertOcurrences(output, b"-----BEGIN CERTIFICATE-----", 3)

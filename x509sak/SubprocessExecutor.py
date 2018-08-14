@@ -78,7 +78,7 @@ class SubprocessExecutor(object):
 						print(stderr.decode())
 					input("Hit ENTER to continue...")
 			if on_failure in [ "exception", "exception-nopause" ]:
-				raise CmdExecutionFailedException("Execution of command failed: %s" % (cmd_str))
+				raise CmdExecutionFailedException("Execution of command failed: %s" % (cmd_str), stdout = stdout, stderr = stderr)
 
 		if returnval == "success":
 			return success

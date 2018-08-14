@@ -38,7 +38,7 @@ from x509sak.actions.ActionForgeCert import ActionForgeCert
 from x509sak.actions.ActionScrape import ActionScrape
 from x509sak.CmdLineArgs import KeySpecArgument, KeyValue
 from x509sak.KeySpecification import KeySpecification
-from x509sak.Exceptions import UserErrorException, InvisibleUserErrorException
+from x509sak.Exceptions import UserErrorException, InvisibleUserErrorException, CmdExecutionFailedException
 from x509sak.SubprocessExecutor import SubprocessExecutor
 from .FriendlyArgumentParser import baseint, baseint_unit
 from .MultiCommand import MultiCommand
@@ -214,9 +214,15 @@ try:
 except (UserErrorException, InvisibleUserErrorException) as e:
 	if logging.root.level == logging.DEBUG:
 		traceback.print_exc()
-		print(flie = sys.stderr)
+		print(file = sys.stderr)
 	if isinstance(e, UserErrorException) or (logging.root.level == logging.DEBUG):
 		print("%s: %s" % (e.__class__.__name__, str(e)), file = sys.stderr)
+	elif isinstance(e, CmdExecutionFailedException):
+		if len(e.stderr) > 0:
+			print("Subprocess command execution failed:", file = sys.stderr)
+			sys.stderr.write(e.stderr.decode())
+		else:
+			print("Subprocess command execution failed.")
 	else:
 		print("Failure while processing this request: %s" % (e.__class__.__name__), file = sys.stderr)
 	sys.exit(1)
