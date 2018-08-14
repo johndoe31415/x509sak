@@ -23,9 +23,9 @@ import pkgutil
 import importlib
 from .BaseTest import BaseTest
 
-for _module_info in pkgutil.iter_modules([ "x509sak/tests" ]):
-	if _module_info.ispkg:
+for (_module_info_module_finder, _module_info_name, _module_info_ispkg) in pkgutil.iter_modules([ "x509sak/tests" ]):
+	if _module_info_ispkg:
 		continue
-	_module = importlib.import_module("x509sak.tests." + _module_info.name)
-	_test_class = getattr(_module, _module_info.name)
-	globals()[_module_info.name] = _test_class
+	_module = importlib.import_module("x509sak.tests." + _module_info_name)
+	_test_class = getattr(_module, _module_info_name)
+	globals()[_module_info_name] = _test_class
