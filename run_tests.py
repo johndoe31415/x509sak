@@ -50,7 +50,7 @@ class SelectiveTestRunner(object):
 			if test_class_name.startswith("_"):
 				continue
 			test_class = getattr(root_module, test_class_name)
-			if not issubclass(test_class, unittest.TestCase):
+			if (not isinstance(test_class, type)) or (not issubclass(test_class, unittest.TestCase)):
 				continue
 			for test_method_name in dir(test_class):
 				if not test_method_name.startswith("test_"):

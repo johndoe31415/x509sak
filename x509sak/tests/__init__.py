@@ -19,20 +19,13 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
+import pkgutil
+import importlib
 from .BaseTest import BaseTest
-from .X509CertificateTests import X509CertificateTests
-from .CertificatePoolTests import CertificatePoolTests
-from .NumberTheoryTests import NumberTheoryTests
-from .PublicKeyTests import PublicKeyTests
-from .OpenSSLToolsTests import OpenSSLToolsTests
-from .CmdLineTestsDumpKey import CmdLineTestsDumpKey
-from .CmdLineTestsBuildChain import CmdLineTestsBuildChain
-from .CmdLineTestsCreateCA import CmdLineTestsCreateCA
-from .CmdLineTestsCreateCRT import CmdLineTestsCreateCRT
-from .CmdLineTestsSignCSR import CmdLineTestsSignCSR
-from .HardwareTokenTests import HardwareTokenTests
-from .OpenSSLCAIndexFileTests import OpenSSLCAIndexFileTests
-from .PassphraseGeneratorTests import PassphraseGeneratorTests
-from .RSASecurityEstimatorTests import RSASecurityEstimatorTests
-from .IntervalTests import IntervalTests
-from .ECCMathTests import ECCMathTests
+
+for _module_info in pkgutil.iter_modules([ "x509sak/tests" ]):
+	if _module_info.ispkg:
+		continue
+	_module = importlib.import_module("x509sak.tests." + _module_info.name)
+	_test_class = getattr(_module, _module_info.name)
+	globals()[_module_info.name] = _test_class
