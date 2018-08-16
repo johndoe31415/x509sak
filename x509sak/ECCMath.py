@@ -21,6 +21,7 @@
 
 from x509sak.KwargsChecker import KwargsChecker
 from x509sak.NumberTheory import NumberTheory
+from x509sak.Exceptions import InvalidInputException, UnsupportedEncodingException
 
 class EllipticCurvePoint(object):
 	"""Affine representation of an ECC curve point."""
@@ -32,8 +33,10 @@ class EllipticCurvePoint(object):
 	def on_curve(self):
 		return self._curve.on_curve(self)
 
-	def encode_point(self, pt_format = "explicit"):
+	def encode(self, pt_format = "explicit"):
 		assert(pt_format in [ "explicit" ])
+		byte_len = (self._curve.field_bits + 7) // 8
+		return bytes([ 0x04 ]) + self._x.to_bytes(length = byte_len, byteorder = "big") + self._y.to_bytes(length = byte_len, byteorder = "big")
 
 	@property
 	def curve(self):
@@ -46,6 +49,9 @@ class EllipticCurvePoint(object):
 	@property
 	def y(self):
 		return self._y
+
+	def __eq__(self, other):
+		return (self.curve, self.x, self.y) == (other.curve, other.x, other.y)
 
 	def __str__(self):
 		return "(0x%x, 0x%x) on %s" % (self.x, self.y, self.curve)
@@ -74,16 +80,22 @@ class EllipticCurve(object):
 
 	def decode_point(self, serialized_point):
 		if serialized_point[0] == 0x04:
-			field_len = (self.n.field_bits + 7) // 8
+			field_len = (self.field_bits + 7) // 8
 			expected_length = 1 + (2 * field_len)
-			if len(serialized_point == expected_length):
+			if len(serialized_point) == expected_length:
 				Gx = int.from_bytes(serialized_point[1 : 1 + field_len], byteorder = "big")
 				Gy = int.from_bytes(serialized_point[1 + field_len : 1 + (2 * field_len)], byteorder = "big")
 				return EllipticCurvePoint(x = Gx, y = Gy, curve = self)
 			else:
 				raise InvalidInputException("Do not know how to decode explicit serialized point with length %d (expected %d = 1 + 2 * %d bytes)." % (len(serialized_point), 1 + (2 * field_len), field_len))
 		else:
-			raise LazyDeveloperException("Do not know how to decode serialized point in non-explicit point format 0x%x." % (serialized_point[0]))
+			raise UnsupportedEncodingException("Do not know how to decode serialized point in non-explicit point format 0x%x." % (serialized_point[0]))
+
+	def __eq__(self, other):
+		# TODO: Two curves with different names will not be equal. Right now we
+		# don't have that case because we don'T support explicit curve
+		# encodings, but we might in the future.
+		return self._domain_parameters == other._domain_parameters
 
 	def __getattr__(self, key):
 		return self._domain_parameters[key]

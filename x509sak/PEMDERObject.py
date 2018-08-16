@@ -89,8 +89,6 @@ class PEMDERObject(object):
 		return result
 
 	def to_pem_data(self):
-		if self._PEM_MARKER is None:
-			raise Exception(NotImplemented)
 		return PEMDataTools.data2pem(self.der_data, self._PEM_MARKER)
 
 	@classmethod

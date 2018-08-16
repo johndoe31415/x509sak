@@ -29,7 +29,7 @@ import gzip
 import textwrap
 import datetime
 import pyasn1.type.univ
-from x509sak.Exceptions import UnexpectedFileContentException
+from x509sak.Exceptions import UnexpectedFileContentException, InvalidUsageException
 
 class PEMDataTools(object):
 	@classmethod
@@ -60,6 +60,9 @@ class PEMDataTools(object):
 
 	@classmethod
 	def data2pem(cls, data, marker):
+		if marker is None:
+			raise InvalidUsageException("Cannot encode object in PEM without a given marker.")
+
 		line_begin = "-----BEGIN %s-----" % (marker)
 		line_end = "-----END %s-----" % (marker)
 		lines = [ line_begin ]
