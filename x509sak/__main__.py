@@ -149,7 +149,7 @@ def genparser(parser):
 	parser.add_argument("-h", "--hashfnc", metavar = "alg", type = str, default = "sha256", help = "Hash function to use for signing the CRL. Defaults to %(default)s.")
 	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
 	parser.add_argument("capath", metavar = "capath", type = str, help = "CA which should generate the CRL.")
-	parser.add_argument("crl_filename", metavar = "crt_filename", type = str, help = "Filename of the output CRL.")
+	parser.add_argument("crl_filename", metavar = "crl_filename", type = str, help = "Filename of the output CRL.")
 mc.register("createcrl", "Generate a certificate revocation list (CRL)", genparser, action = ActionCreateCRL, aliases = [ "gencrl" ])
 
 def genparser(parser):

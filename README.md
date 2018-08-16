@@ -548,13 +548,13 @@ function.
 [//]: # (Begin of cmd-createcrl -- auto-generated, do not edit!)
 ```
 usage: ./x509sak.py createcrl [-d days] [-h alg] [-v] [--help]
-                              capath crt_filename
+                              capath crl_filename
 
 Generate a certificate revocation list (CRL)
 
 positional arguments:
   capath                CA which should generate the CRL.
-  crt_filename          Filename of the output CRL.
+  crl_filename          Filename of the output CRL.
 
 optional arguments:
   -d days, --validity-days days
