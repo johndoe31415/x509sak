@@ -43,9 +43,9 @@ class RSAPrivateKey(PEMDERObject):
 		if swap_e_d:
 			(e, d) = (d, e)
 
-		exp1 = d % (p - 1)
-		exp2 = d % (q - 1)
-		coeff = NumberTheory.modinv(q, p)
+		dmp1 = d % (p - 1)
+		dmq1 = d % (q - 1)
+		iqmp = NumberTheory.modinv(q, p)
 		asn1 = cls._ASN1_MODEL()
 		asn1["version"] = 0
 		asn1["modulus"] = n
@@ -53,9 +53,9 @@ class RSAPrivateKey(PEMDERObject):
 		asn1["privateExponent"] = d
 		asn1["prime1"] = p
 		asn1["prime2"] = q
-		asn1["exponent1"] = exp1
-		asn1["exponent2"] = exp2
-		asn1["coefficient"] = coeff
+		asn1["exponent1"] = dmp1
+		asn1["exponent2"] = dmq1
+		asn1["coefficient"] = iqmp
 		der = pyasn1.codec.der.encoder.encode(asn1)
 		return cls(der)
 
@@ -86,6 +86,33 @@ class RSAPrivateKey(PEMDERObject):
 	@property
 	def d(self):
 		return int(self._asn1["privateExponent"])
+
+	@property
+	def dmp1(self):
+		return int(self._asn1["exponent1"])
+
+	@property
+	def dmq1(self):
+		return int(self._asn1["exponent2"])
+
+	@property
+	def iqmp(self):
+		return int(self._asn1["coefficient"])
+
+	def check_integrity(self, msg = 12345678987654321):
+		# Calculate normale signature and verify
+		msg = msg % self.n
+		sig = pow(msg, self.d, self.n)
+		verify = pow(sig, self.e, self.n)
+		if verify != msg:
+			raise KeyCorruptException("Expected verify value %d, but got %d." % (msg, verify))
+
+		# Test that RSA-CRT constants work
+		m1 = pow(msg, self.dmp1, self.p)
+		m2 = pow(msg, self.dmq1, self.q)
+		sig_crt = (((self.iqmp * (m1 - m2)) % self.p) * self.q) + m2
+		if sig != sig_crt:
+			raise KeyCorruptException("Expected same signature for naive signature as RSA-CRT signature, but former was 0x%x and latter 0x%x." % (sig, sig_crt))
 
 	def __str__(self):
 		return "RSAPrivateKey<%d bits>" % (self.n.bit_length())

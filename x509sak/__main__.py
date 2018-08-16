@@ -154,11 +154,12 @@ mc.register("createcrl", "Generate a certificate revocation list (CRL)", genpars
 
 def genparser(parser):
 	parser.add_argument("-d", "--prime-db", metavar = "path", type = str, default = ".", help = "Prime database directory. Defaults to %(default)s and searches for files called primes_{bitlen}.txt in this directory.")
-	parser.add_argument("-b", "--bitlen", metavar = "bits", type = int, default = 2048, help = "Bitlength of primes p/q to choose. Note that the modulus bitlength will be twice of that because it is the product of two primes (n = pq). Defaults to %(default)d bits.")
-	parser.add_argument("-e", "--public-exponent", metavar = "exp", type = int, default = 0x10001, help = "Public exponent e (or d in case --switch-e-d is specified) to use. Defaults to 0x%(default)x. Will be randomly chosen from 2..n-1 if set to -1.")
-	parser.add_argument("--switch-e-d", action = "store_true", help = "Swtich e with d when generating keypair.")
+	parser.add_argument("-b", "--bitlen", metavar = "bits", type = int, default = 2048, help = "Bitlength of modulus. Defaults to %(default)d bits.")
+	parser.add_argument("-e", "--public-exponent", metavar = "exp", type = baseint, default = 0x10001, help = "Public exponent e (or d in case --switch-e-d is specified) to use. Defaults to 0x%(default)x. Will be randomly chosen from 2..n-1 if set to -1.")
+	parser.add_argument("--switch-e-d", action = "store_true", help = "Switch e with d when generating keypair.")
 	parser.add_argument("--accept-unusable-key", action = "store_true", help = "Disregard integral checks, such as if gcd(e, phi(n)) == 1 before inverting e. Might lead to an unusable key or might fail altogether.")
-	parser.add_argument("--close-q", action = "store_true", help = "Use a value for q that is very close to the value of p so that search starting from sqrt(n) is computationally feasible to factor the modulus.")
+	parser.add_argument("--close-q", action = "store_true", help = "Use a value for q that is very close to the value of p so that search starting from sqrt(n) is computationally feasible to factor the modulus. Note that for this, the bitlength of the modulus must be evenly divisible by two.")
+	parser.add_argument("--q-stepping", metavar = "int", type = baseint, default = 1, help = "When creating a close-q RSA keypair, q is chosen by taking p and incrementing it repeatedly by a random int from 2 to (2 * q-stepping). The larger q-stepping is therefore chosen, the further apart p and q will be. By default, q-stepping is the minimum value of %(default)d.")
 	parser.add_argument("-o", "--outfile", metavar = "file", type = str, default = "broken_rsa.key", help = "Output filename. Defaults to %(default)s.")
 	parser.add_argument("-f", "--force", action = "store_true", help = "Overwrite output file if it already exists instead of bailing out.")
 	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")

@@ -36,6 +36,7 @@ class InvalidCAIndexFileEntry(UserErrorException): pass
 class CurveNotFoundException(UserErrorException): pass
 class UnexpectedFileContentException(UserErrorException): pass
 class UnsupportedEncodingException(UserErrorException): pass
+class KeyCorruptException(UserErrorException): pass
 
 class CmdExecutionFailedException(InvisibleUserErrorException):
 	def __init__(self, command, stdout, stderr):
