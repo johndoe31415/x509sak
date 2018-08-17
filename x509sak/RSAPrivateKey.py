@@ -33,13 +33,16 @@ class RSAPrivateKey(PEMDERObject):
 	_ASN1_MODEL = rfc2437.RSAPrivateKey
 
 	@classmethod
-	def create(cls, p, q, e = 0x10001, swap_e_d = False, valid_only = True):
+	def create(cls, p, q, e = 0x10001, swap_e_d = False, valid_only = True, carmichael_totient = False):
 		n = p * q
-		phi_n = (p - 1) * (q - 1)
-		gcd = NumberTheory.gcd(e, phi_n)
+		if not carmichael_totient:
+			totient = (p - 1) * (q - 1)
+		else:
+			totient = NumberTheory.lcm(p - 1, q - 1)
+		gcd = NumberTheory.gcd(e, totient)
 		if (gcd != 1) and valid_only:
-			raise Exception("e = 0x%x isnt't relative prime to phi(n), gcd = 0x%x." % (e, gcd))
-		d = NumberTheory.modinv(e, phi_n)
+			raise KeyCorruptException("e = 0x%x isnt't relative prime to totient, gcd = 0x%x. Either accept broken keys or fix e." % (e, gcd))
+		d = NumberTheory.modinv(e, totient)
 		if swap_e_d:
 			(e, d) = (d, e)
 
@@ -100,8 +103,16 @@ class RSAPrivateKey(PEMDERObject):
 		return int(self._asn1["coefficient"])
 
 	def check_integrity(self, msg = 12345678987654321):
-		# Calculate normale signature and verify
+		# Assert gcd(e, phi(n)) == 1
+		phi_n = (self.p - 1) * (self.q - 1)
+		gcd = NumberTheory.gcd(phi_n, self.e)
+		if gcd != 1:
+			raise KeyCorruptException("Expected gcd(phi(n), e) to be 1, but was %d." % (gcd))
+
+		# Truncate msg if too large for exponent
 		msg = msg % self.n
+
+		# Calculate normale signature and verify
 		sig = pow(msg, self.d, self.n)
 		verify = pow(sig, self.e, self.n)
 		if verify != msg:

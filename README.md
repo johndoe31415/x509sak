@@ -283,9 +283,8 @@ positional arguments:
 optional arguments:
   -f {dot,png,ps,pdf}, --format {dot,png,ps,pdf}
                         Specifies the output file format. Can be one of dot,
-                        png, ps, pdf, defaults to None. When unspecified, the
-                        file extension out the output file is used to
-                        determine the file type.
+                        png, ps, pdf. When unspecified, the file extension out
+                        the output file is used to determine the file type.
   -o file, --outfile file
                         Specifies the output filename. Mandatory argument.
   -v, --verbose         Increase verbosity level. Can be specified multiple
@@ -580,8 +579,9 @@ cryptographic applications. They are *not secure*.
 [//]: # (Begin of cmd-genbrokenrsa -- auto-generated, do not edit!)
 ```
 usage: ./x509sak.py genbrokenrsa [-d path] [-b bits] [-e exp] [--switch-e-d]
-                                 [--accept-unusable-key] [--close-q] [-o file]
-                                 [-f] [-v] [--help]
+                                 [--accept-unusable-key] [--close-q]
+                                 [--q-stepping int] [--carmichael-totient]
+                                 [-o file] [-f] [-v] [--help]
 
 Generate broken RSA keys for use in pentetration testing
 
@@ -591,22 +591,30 @@ optional arguments:
                         for files called primes_{bitlen}.txt in this
                         directory.
   -b bits, --bitlen bits
-                        Bitlength of primes p/q to choose. Note that the
-                        modulus bitlength will be twice of that because it is
-                        the product of two primes (n = pq). Defaults to 2048
-                        bits.
+                        Bitlength of modulus. Defaults to 2048 bits.
   -e exp, --public-exponent exp
                         Public exponent e (or d in case --switch-e-d is
                         specified) to use. Defaults to 0x10001. Will be
                         randomly chosen from 2..n-1 if set to -1.
-  --switch-e-d          Swtich e with d when generating keypair.
+  --switch-e-d          Switch e with d when generating keypair.
   --accept-unusable-key
                         Disregard integral checks, such as if gcd(e, phi(n))
                         == 1 before inverting e. Might lead to an unusable key
                         or might fail altogether.
   --close-q             Use a value for q that is very close to the value of p
                         so that search starting from sqrt(n) is
-                        computationally feasible to factor the modulus.
+                        computationally feasible to factor the modulus. Note
+                        that for this, the bitlength of the modulus must be
+                        evenly divisible by two.
+  --q-stepping int      When creating a close-q RSA keypair, q is chosen by
+                        taking p and incrementing it repeatedly by a random
+                        int from 2 to (2 * q-stepping). The larger q-stepping
+                        is therefore chosen, the further apart p and q will
+                        be. By default, q-stepping is the minimum value of 1.
+  --carmichael-totient  Bv default, d is computed as the modular inverse of e
+                        to phi(n), the Euler Totient function. This computes d
+                        as the modular inverse of e to lambda(n), the
+                        Carmichael Totient function, instead.
   -o file, --outfile file
                         Output filename. Defaults to broken_rsa.key.
   -f, --force           Overwrite output file if it already exists instead of

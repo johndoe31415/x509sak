@@ -34,42 +34,65 @@ class ActionGenerateBrokenRSA(BaseAction):
 		if (not self._args.force) and os.path.exists(self._args.outfile):
 			raise UnfulfilledPrerequisitesException("File/directory %s already exists. Remove it first or use --force." % (self._args.outfile))
 
-		p_bitlen = self._args.bitlen // 2
-		q_bitlen = self._args.bitlen - p_bitlen
-		if (self._args.close_q) and (p_bitlen != q_bitlen):
-			raise UnfulfilledPrerequisitesException("Generating a close-q keypair with a %d modulus does't work, because p would have to be %d bit and q %d bit. Choose an even modulus bitlength." % (self._args.bitlen, p_bitlen, q_bitlen))
+		self._p_bitlen = self._args.bitlen // 2
+		self._q_bitlen = self._args.bitlen - self._p_bitlen
+		if (self._args.close_q) and (self._p_bitlen != self._q_bitlen):
+			raise UnfulfilledPrerequisitesException("Generating a close-q keypair with a %d modulus does't work, because p would have to be %d bit and q %d bit. Choose an even modulus bitlength." % (self._args.bitlen, self._p_bitlen, self._q_bitlen))
 
 		if self._args.q_stepping < 1:
 			raise InvalidInputException("q-stepping value must be greater or equal to 1, was %d." % (self._args.q_stepping))
 
-		prime_db = PrimeDB(self._args.prime_db)
-		p = prime_db[p_bitlen]
+		self._prime_db = PrimeDB(self._args.prime_db)
+		p = self._prime_db[self._p_bitlen]
+		q_generator = self._select_q(p)
+		q = None
+		while True:
+			if q is None:
+				q = next(q_generator)
+
+			# Always make p the smaller factor
+			if p > q:
+				(p, q) = (q, p)
+			n = p * q
+			if self._args.public_exponent == -1:
+				e = random.randint(2, n - 1)
+			else:
+				e = self._args.public_exponent
+
+			if self._args.carmichael_totient:
+				totient = NumberTheory.lcm(p - 1, q - 1)
+			else:
+				totient = (p - 1) * (q - 1)
+			gcd = NumberTheory.gcd(totient, e)
+			if self._args.accept_unusable_key or (gcd == 1):
+				break
+			else:
+				# Pair (phi(n), e) wasn't acceptable.
+				self._log.debug("gcd(totient, e) was %d, retrying.", gcd)
+				if self._args.public_exponent != -1:
+					# Public exponent e is fixed, need to choose another q
+					(p, q) = (q, None)
+
+		rsa_keypair = RSAPrivateKey.create(p = p, q = q, e = e, swap_e_d = self._args.switch_e_d, valid_only = not self._args.accept_unusable_key, carmichael_totient = self._args.carmichael_totient)
+		rsa_keypair.write_pemfile(self._args.outfile)
+		if self._args.verbose >= 1:
+			diff = q - p
+			print("Generated %d bit RSA key:" % (rsa_keypair.n.bit_length()))
+			print("p = 0x%x" % (rsa_keypair.p))
+			print("q = 0x%x" % (rsa_keypair.q))
+			if self._args.close_q:
+				print("q - p = %d (%d bit)" % (diff, diff.bit_length()))
+			print("n = 0x%x" % (rsa_keypair.n))
+			print("d = 0x%x" % (rsa_keypair.d))
+			print("e = 0x%x" % (rsa_keypair.e))
+
+	def _select_q(self, p):
 		if not self._args.close_q:
-			q = prime_db[q_bitlen]
+			while True:
+				yield self._prime_db[self._q_bitlen]
 		else:
 			q = p
 			while True:
 				q += 2 * random.randint(1, self._args.q_stepping)
 				if NumberTheory.is_probable_prime(q):
-					break
-			if self._args.verbose >= 1:
-				diff = q - p
-				print("q - p = %d (%d bit)" % (diff, diff.bit_length()))
-
-		# Always make p the smaller factor
-		if p > q:
-			(p, q) = (q, p)
-		n = p * q
-		e = self._args.public_exponent
-		if e == -1:
-			e = random.randint(2, n - 1)
-		rsa_keypair = RSAPrivateKey.create(p = p, q = q, e = e, swap_e_d = self._args.switch_e_d, valid_only = not self._args.accept_unusable_key)
-		rsa_keypair.write_pemfile(self._args.outfile)
-
-		if self._args.verbose >= 1:
-			print("Generated %d bit RSA key:" % (rsa_keypair.n.bit_length()))
-			print("p = 0x%x" % (rsa_keypair.p))
-			print("q = 0x%x" % (rsa_keypair.q))
-			print("n = 0x%x" % (rsa_keypair.n))
-			print("d = 0x%x" % (rsa_keypair.d))
-			print("e = 0x%x" % (rsa_keypair.e))
+					yield q

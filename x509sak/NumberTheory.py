@@ -26,8 +26,13 @@ class NumberTheory(object):
 	helpers."""
 
 	@classmethod
+	def lcm(cls, a, b):
+		"""Least common multiple."""
+		return (a * b) // cls.gcd(a, b)
+
+	@classmethod
 	def gcd(cls, a, b):
-		"""Euclidian algorithm."""
+		"""Euclidian algorithm to compute greatest common divisor."""
 		while b != 0:
 			(a, b) = (b, a % b)
 		return a

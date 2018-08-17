@@ -160,6 +160,7 @@ def genparser(parser):
 	parser.add_argument("--accept-unusable-key", action = "store_true", help = "Disregard integral checks, such as if gcd(e, phi(n)) == 1 before inverting e. Might lead to an unusable key or might fail altogether.")
 	parser.add_argument("--close-q", action = "store_true", help = "Use a value for q that is very close to the value of p so that search starting from sqrt(n) is computationally feasible to factor the modulus. Note that for this, the bitlength of the modulus must be evenly divisible by two.")
 	parser.add_argument("--q-stepping", metavar = "int", type = baseint, default = 1, help = "When creating a close-q RSA keypair, q is chosen by taking p and incrementing it repeatedly by a random int from 2 to (2 * q-stepping). The larger q-stepping is therefore chosen, the further apart p and q will be. By default, q-stepping is the minimum value of %(default)d.")
+	parser.add_argument("--carmichael-totient", action = "store_true", help = "Bv default, d is computed as the modular inverse of e to phi(n), the Euler Totient function. This computes d as the modular inverse of e to lambda(n), the Carmichael Totient function, instead.")
 	parser.add_argument("-o", "--outfile", metavar = "file", type = str, default = "broken_rsa.key", help = "Output filename. Defaults to %(default)s.")
 	parser.add_argument("-f", "--force", action = "store_true", help = "Overwrite output file if it already exists instead of bailing out.")
 	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
@@ -219,7 +220,7 @@ except (UserErrorException, InvisibleUserErrorException) as e:
 	if isinstance(e, UserErrorException) or (logging.root.level == logging.DEBUG):
 		print("%s: %s" % (e.__class__.__name__, str(e)), file = sys.stderr)
 	elif isinstance(e, CmdExecutionFailedException):
-		if len(e.stderr) > 0:
+		if (e.stderr is not None) and (len(e.stderr) > 0):
 			print("Subprocess command execution failed:", file = sys.stderr)
 			sys.stderr.write(e.stderr.decode())
 		else:
