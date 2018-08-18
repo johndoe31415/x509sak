@@ -252,11 +252,15 @@ class ActionScrape(BaseAction):
 			# Completely disregard if we've already captured this.
 			return False
 		interval = Interval.begin_length(offset, length)
+		print("Checking:", interval)
+		self._matches.dump()
 		if self._matches.fully_contained_in_subinterval(interval):
 			# We already have this match.
+			print("Fully contained")
 			return True
 		else:
 			self._matches.add(interval)
+			print("NOT fully contained")
 			return False
 
 	def _is_known_blob(self, data):
