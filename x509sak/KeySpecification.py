@@ -56,6 +56,9 @@ class KeySpecification(object):
 		else:
 			raise LazyDeveloperException(NotImplemented, keyspec_arg)
 
+	def __eq__(self, other):
+		return (self.cryptosystem, self._parameters) == (other.cryptosystem, other._parameters)
+
 	def __getitem__(self, key):
 		return self._parameters[key]
 

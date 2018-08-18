@@ -191,6 +191,9 @@ class X509SubjectKeyIdentifierExtension(X509Extension):
 	def format_value(self):
 		return "KeyID %s" % (self.keyid.hex())
 
+	def __eq__(self, other):
+		return self.keyid == other.keyid
+
 	def _decode_hook(self):
 		self._keyid = bytes(self.asn1)
 X509ExtensionRegistry.set_handler_class(X509SubjectKeyIdentifierExtension)
