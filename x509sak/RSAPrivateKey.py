@@ -25,6 +25,7 @@ from x509sak.NumberTheory import NumberTheory
 from x509sak.PEMDERObject import PEMDERObject
 from x509sak.KeySpecification import Cryptosystem
 from x509sak.PublicKey import PublicKey
+from x509sak.Exceptions import KeyCorruptException
 
 class RSAPrivateKey(PEMDERObject):
 	"""Class that allows generate deliberately broken or oddball RSA

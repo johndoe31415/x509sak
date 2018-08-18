@@ -45,7 +45,7 @@ class CmdLineTestsScrape(BaseTest):
 		fp.flush()
 
 	def test_scrape_dir_exists(self):
-		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir), tempfile.NamedTemporaryFile(mode = "wb", prefix = "scrapeme_", suffix = ".bin") as f:
+		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
 			HashedPRNG(seed = b"foobar").write_file("out.bin", 3000)
 			os.mkdir("scrape")
 			with open("scrape/foo", "wb"):
@@ -66,7 +66,7 @@ class CmdLineTestsScrape(BaseTest):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
 			crt = self._load_crt("johannes-bauer.com.crt")
 			for prefix_len in [ 0, 100, 1000, 1024 * 1024 - 100, 1024 * 1024, 1024 * 1024 + 100 ]:
-				prng = HashedPRNG(seed = b"foobar").write_bracketed("out.bin", prefix_len, crt.der_data, 1000)
+				HashedPRNG(seed = b"foobar").write_bracketed("out.bin", prefix_len, crt.der_data, 1000)
 				SubprocessExecutor.run(self._x509sak + [ "scrape", "out.bin" ])
 				found = os.listdir("scrape/")
 				self.assertEqual(len(found), 1)
@@ -127,7 +127,6 @@ class CmdLineTestsScrape(BaseTest):
 
 	def test_extract_broken_pem1(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir), tempfile.NamedTemporaryFile(mode = "wb", prefix = "scrapeme_", suffix = ".bin") as f:
-			crt = self._load_crt("johannes-bauer.com.crt")
 			self._prepare_file(f, [ 100, b"-----BEGIN XYZ", 100 ])
 			SubprocessExecutor.run(self._x509sak + [ "scrape", "--extract-nested", f.name ])
 			self.assertEqual(len(os.listdir("scrape/")), 0)
@@ -141,7 +140,6 @@ class CmdLineTestsScrape(BaseTest):
 
 	def test_extract_broken_pem3(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir), tempfile.NamedTemporaryFile(mode = "wb", prefix = "scrapeme_", suffix = ".bin") as f:
-			crt = self._load_crt("johannes-bauer.com.crt")
 			self._prepare_file(f, [ 100, b"-----BEGIN CERTIFICATE----- -----END CERTIFICATE-----", 100 ])
 			SubprocessExecutor.run(self._x509sak + [ "scrape", "--extract-nested", f.name ])
 			self.assertEqual(len(os.listdir("scrape/")), 0)
@@ -176,7 +174,6 @@ class CmdLineTestsScrape(BaseTest):
 
 	def test_failed_ec_plausibility(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir), tempfile.NamedTemporaryFile(mode = "wb", prefix = "scrapeme_", suffix = ".bin") as f:
-			privkey = RSAPrivateKey.from_pem_data(self._load_text("broken_rsa_p_q_privkey.pem"))[0]
 			self._prepare_file(f, [ 100, bytes.fromhex("300b0201010406666f6f626172"), 100 ])
 			SubprocessExecutor.run(self._x509sak + [ "scrape", f.name ])
 			self.assertEqual(len(os.listdir("scrape/")), 0)
@@ -186,7 +183,6 @@ class CmdLineTestsScrape(BaseTest):
 
 	def test_failed_dsa_plausibility(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir), tempfile.NamedTemporaryFile(mode = "wb", prefix = "scrapeme_", suffix = ".bin") as f:
-			privkey = RSAPrivateKey.from_pem_data(self._load_text("broken_rsa_p_q_privkey.pem"))[0]
 			self._prepare_file(f, [ 100, bytes.fromhex("300b0203112233020400aabbcc"), 100 ])
 			SubprocessExecutor.run(self._x509sak + [ "scrape", f.name ])
 			self.assertEqual(len(os.listdir("scrape/")), 0)

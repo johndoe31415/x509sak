@@ -37,7 +37,7 @@ class CmdLineTestsGenBrokenRSA(BaseTest):
 
 	def test_create_rsa_key_no_overwrite(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
-			with open("broken_rsa.key", "wb") as f:
+			with open("broken_rsa.key", "wb"):
 				pass
 			with self.assertRaises(CmdExecutionFailedException):
 				SubprocessExecutor.run(self._x509sak + [ "genbrokenrsa" ], on_failure = "exception-nopause")

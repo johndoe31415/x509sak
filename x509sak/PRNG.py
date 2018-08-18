@@ -82,8 +82,8 @@ class HashedPRNG(PRNG):
 
 	_HASHFNC = hashlib.sha512
 
-	def init_state(self, initial_state):
-		self._state = self._HASHFNC(initial_state).digest()
+	def init_state(self, state):
+		self._state = self._HASHFNC(state).digest()
 
 	def _next_chunk(self):
 		result = self._state

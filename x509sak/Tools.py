@@ -183,7 +183,7 @@ class JSONTools(object):
 			obj = self._translate(obj)
 			return super().iterencode(obj, _one_shot)
 
-		def default(cls, obj):
+		def default(self, obj):
 			if isinstance(obj, datetime.datetime):
 				return obj.strftime("%Y-%m-%d %H:%M:%S")
 			elif isinstance(obj, set):

@@ -19,10 +19,8 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-import pprint
 from x509sak.BaseAction import BaseAction
 from x509sak import X509Certificate
-from x509sak.Exceptions import InvalidInputException
 from x509sak.Tools import JSONTools
 from x509sak.SecurityEstimator import AnalysisOptions
 

@@ -22,7 +22,7 @@
 from pyasn1.type import tag, namedtype, univ
 from x509sak.PEMDERObject import PEMDERObject
 from x509sak.Tools import ASN1Tools, ECCTools
-from x509sak.OID import OID, OIDDB
+from x509sak.OID import OID
 from x509sak.Exceptions import InvalidInputException, UnknownAlgorithmException
 from x509sak.KeySpecification import Cryptosystem
 from x509sak.PublicKey import PublicKey

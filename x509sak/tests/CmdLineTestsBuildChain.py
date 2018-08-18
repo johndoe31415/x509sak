@@ -31,7 +31,7 @@ class CmdLineTestsBuildChain(BaseTest):
 		count = haystack.count(needle)
 		self.assertEqual(count, expected_count)
 
-	def test_root_only(self):
+	def test_root_only_out_default(self):
 		output = SubprocessExecutor.run(self._x509sak + [ "buildchain", "x509sak/tests/data/johannes-bauer-root.crt" ])
 		self.assertOcurrences(output, b"-----BEGIN CERTIFICATE-----", 1)
 		crts = X509Certificate.from_pem_data(output)
@@ -65,7 +65,7 @@ class CmdLineTestsBuildChain(BaseTest):
 			crts = X509Certificate.from_pem_data(output.decode("ascii"))
 			self.assertEqual(crts[0].subject.rfc2253_str, "CN=DST Root CA X3,O=Digital Signature Trust Co.")
 
-	def test_root_only(self):
+	def test_root_only_out_rootonly(self):
 		output = SubprocessExecutor.run(self._x509sak + [ "buildchain", "-s", "x509sak/tests/data", "--outform", "rootonly", "x509sak/tests/data/johannes-bauer.com.crt" ])
 		self.assertOcurrences(output, b"-----BEGIN CERTIFICATE-----", 1)
 		crts = X509Certificate.from_pem_data(output.decode("ascii"))
@@ -96,7 +96,7 @@ class CmdLineTestsBuildChain(BaseTest):
 		search_dir = os.path.realpath("x509sak/tests/data")
 		crt_file = os.path.realpath("x509sak/tests/data/johannes-bauer.com.crt")
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
-			output = SubprocessExecutor.run(self._x509sak + [ "buildchain", "-s", search_dir, "--outform", "multifile", "--outfile", "outcrt%02d.pem", crt_file ])
+			SubprocessExecutor.run(self._x509sak + [ "buildchain", "-s", search_dir, "--outform", "multifile", "--outfile", "outcrt%02d.pem", crt_file ])
 			self.assertEqual(X509Certificate.read_pemfile("outcrt00.pem")[0].subject.rfc2253_str, "CN=DST Root CA X3,O=Digital Signature Trust Co.")
 			self.assertEqual(X509Certificate.read_pemfile("outcrt01.pem")[0].subject.rfc2253_str, "CN=Let's Encrypt Authority X3,C=US,O=Let's Encrypt")
 			self.assertEqual(X509Certificate.read_pemfile("outcrt02.pem")[0].subject.rfc2253_str, "CN=johannes-bauer.com")

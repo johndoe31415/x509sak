@@ -22,7 +22,7 @@
 import enum
 import math
 import calendar
-import datetime
+import pyasn1.codec.der.decoder
 from x509sak.NumberTheory import NumberTheory
 from x509sak.ModulusDB import ModulusDB
 from x509sak.CurveDB import CurveDB
@@ -30,7 +30,6 @@ from x509sak.OID import OIDDB, OID
 from x509sak.Exceptions import LazyDeveloperException
 from x509sak.AlgorithmDB import HashFunctions, SignatureAlgorithms
 import x509sak.ASN1Models as ASN1Models
-import pyasn1.codec.der.decoder
 
 class AnalysisOptions(object):
 	class RSATesting(enum.IntEnum):
@@ -320,7 +319,6 @@ class CrtValiditySecurityEstimator(SecurityEstimator):
 			"not_before":	self._format_datetime(not_before),
 			"not_after":	self._format_datetime(not_after),
 		}
-		return "DATE"
 
 SecurityEstimator.register(CrtValiditySecurityEstimator)
 

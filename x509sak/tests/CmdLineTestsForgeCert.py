@@ -19,7 +19,6 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-import os
 import tempfile
 from x509sak.tests import BaseTest
 from x509sak.WorkDir import WorkDir

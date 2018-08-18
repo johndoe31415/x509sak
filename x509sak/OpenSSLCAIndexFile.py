@@ -65,7 +65,10 @@ class OpenSSLCAIndexFile(object):
 		with open(filename) as f:
 			for (lineno, line) in enumerate(f, 1):
 				line = line.rstrip("\r\n")
-				self._parseline(line)
+				try:
+					self._parseline(line)
+				except InvalidCAIndexFileEntry as e:
+					raise InvalidInputException("Could not parse %s:%d (\"%s\") %s: %s" % (filename, lineno, line, e.__class__.__name__, str(e)))
 
 	def write(self, filename):
 		with open(filename, "w") as f:

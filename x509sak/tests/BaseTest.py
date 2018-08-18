@@ -33,7 +33,8 @@ class BaseTest(unittest.TestCase):
 		else:
 			self._x509sak = [ "coverage", "run", "--append", "--omit", "/usr/*", os.path.realpath("x509sak.py") ]
 
-	def _load_data(self, filename):
+	@staticmethod
+	def _load_data(filename):
 		data = pkgutil.get_data("x509sak.tests.data", filename)
 		if filename.endswith(".gz"):
 			data = gzip.decompress(data)

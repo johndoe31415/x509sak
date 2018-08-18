@@ -54,10 +54,10 @@ class ECCMathTests(BaseTest):
 	def test_point_decode_fail(self):
 		curve = CurveDB().instanciate(name = "sect113r1")
 		with self.assertRaises(InvalidInputException):
-			decoded_point = curve.decode_point(bytes.fromhex("04 0011 2233"))
+			curve.decode_point(bytes.fromhex("04 0011 2233"))
 
 		with self.assertRaises(UnsupportedEncodingException):
-			decoded_point = curve.decode_point(bytes.fromhex("02 0011 2233"))
+			curve.decode_point(bytes.fromhex("02 0011 2233"))
 
 	def test_point_str(self):
 		point = CurveDB().instanciate(name = "sect113r1").G
