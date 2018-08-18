@@ -12,19 +12,22 @@
 
 enum argparse_option_internal_t {
 	ARG_MODE_SHORT = 'm',
+	ARG_PRIME_TYPE_SHORT = 'p',
 	ARG_THREAD_CNT_SHORT = 't',
 	ARG_BIT_LENGTH_SHORT = 'b',
 	ARG_NUM_PRIMES_SHORT = 'n',
 	ARG_MODE_LONG = 1000,
-	ARG_THREAD_CNT_LONG = 1001,
-	ARG_BIT_LENGTH_LONG = 1002,
-	ARG_NUM_PRIMES_LONG = 1003,
+	ARG_PRIME_TYPE_LONG = 1001,
+	ARG_THREAD_CNT_LONG = 1002,
+	ARG_BIT_LENGTH_LONG = 1003,
+	ARG_NUM_PRIMES_LONG = 1004,
 };
 
 bool argparse_parse(int argc, char **argv, argparse_callback_t argument_callback) {
-	const char *short_options = "m:t:b:n:";
+	const char *short_options = "m:p:t:b:n:";
 	struct option long_options[] = {
 		{ "mode",                             required_argument, 0, ARG_MODE_LONG },
+		{ "prime-type",                       required_argument, 0, ARG_PRIME_TYPE_LONG },
 		{ "thread-cnt",                       required_argument, 0, ARG_THREAD_CNT_LONG },
 		{ "bit-length",                       required_argument, 0, ARG_BIT_LENGTH_LONG },
 		{ "num-primes",                       required_argument, 0, ARG_NUM_PRIMES_LONG },
@@ -41,6 +44,13 @@ bool argparse_parse(int argc, char **argv, argparse_callback_t argument_callback
 			case ARG_MODE_SHORT:
 			case ARG_MODE_LONG:
 				if (!argument_callback(ARG_MODE, optarg)) {
+					return false;
+				}
+				break;
+
+			case ARG_PRIME_TYPE_SHORT:
+			case ARG_PRIME_TYPE_LONG:
+				if (!argument_callback(ARG_PRIME_TYPE, optarg)) {
 					return false;
 				}
 				break;
@@ -77,7 +87,8 @@ bool argparse_parse(int argc, char **argv, argparse_callback_t argument_callback
 }
 
 void argparse_show_syntax(void) {
-	fprintf(stderr, "usage: primegen [-m {random,crt}] [-t number] [-b bits] [-n cnt]\n");
+	fprintf(stderr, "usage: primegen [-m {random,crt}] [-p {2msb,3msb}] [-t number] [-b bits]\n");
+	fprintf(stderr, "                [-n cnt]\n");
 	fprintf(stderr, "\n");
 	fprintf(stderr, "Multithreaded prime generation\n");
 	fprintf(stderr, "\n");
@@ -85,6 +96,10 @@ void argparse_show_syntax(void) {
 	fprintf(stderr, "  -m {random,crt}, --mode {random,crt}\n");
 	fprintf(stderr, "                        Mode in which to try to generate primes. Can be one of\n");
 	fprintf(stderr, "                        random, crt, defaults to random.\n");
+	fprintf(stderr, "  -p {2msb,3msb}, --prime-type {2msb,3msb}\n");
+	fprintf(stderr, "                        Types of primes to generate. Either the top 2 most\n");
+	fprintf(stderr, "                        significant bits can be set or the top 3 MSB. Can\n");
+	fprintf(stderr, "                        therefore be one of 2msb, 3msb, defaults to 2msb.\n");
 	fprintf(stderr, "  -t number, --thread-cnt number\n");
 	fprintf(stderr, "                        Number of threads to use. Defaults to 8.\n");
 	fprintf(stderr, "  -b bits, --bit-length bits\n");

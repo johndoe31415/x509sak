@@ -6,10 +6,16 @@ enum genmode_t {
 	MODE_CRT,
 };
 
+enum primetype_t {
+	PRIMETYPE_2_MSB,
+	PRIMETYPE_3_MSB
+};
+
 struct pgmopts_t {
 	enum genmode_t genmode;
 	unsigned int threads;
 	unsigned int prime_bits;
+	enum primetype_t prime_type;
 	unsigned int prime_count;
 };
 

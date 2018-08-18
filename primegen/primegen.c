@@ -35,9 +35,13 @@ static double now(void) {
 	return tv.tv_sec + (1e-6 * tv.tv_usec);
 }
 
-static bool mpz_randomize_prime_candidate(mpz_t number, unsigned int bits) {
+static bool mpz_randomize_prime_candidate(mpz_t number, unsigned int bits, enum primetype_t prime_type) {
 	uint8_t random_data[(bits + 7) / 8];
 	int fd = open("/dev/urandom", O_RDONLY);
+	if (bits < 8) {
+		fprintf(stderr, "Bits must be at least 8.\n");
+		return false;
+	}
 	if (fd == -1) {
 		perror("/dev/urandom");
 		return false;
@@ -46,13 +50,27 @@ static bool mpz_randomize_prime_candidate(mpz_t number, unsigned int bits) {
 		perror("urandom read");
 		return false;
 	}
+	if ((bits % 8) != 0) {
+		uint8_t msb_mask = (1 << (bits % 8)) - 1;
+		random_data[0] &= msb_mask;
+	}
 	mpz_import(number, sizeof(random_data), 1, 1, 0, 0, random_data);
 
 	/* Set LSB and both MSB */
 	mpz_t mask;
 	mpz_init_set_ui(mask, 1);
-	mpz_setbit(mask, bits - 1);
-	mpz_setbit(mask, bits - 2);
+	switch (prime_type) {
+		case PRIMETYPE_2_MSB:
+			mpz_setbit(mask, bits - 1);
+			mpz_setbit(mask, bits - 2);
+			break;
+
+		case PRIMETYPE_3_MSB:
+			mpz_setbit(mask, bits - 1);
+			mpz_setbit(mask, bits - 2);
+			mpz_setbit(mask, bits - 3);
+			break;
+	}
 	mpz_ior(number, number, mask);
 	mpz_clear(mask);
 
@@ -76,10 +94,16 @@ static void generate_odd_prime_product(mpz_t result, unsigned int bits) {
 	mpz_clear(prime);
 }
 
-static bool export_prime(struct thread_data_t *thread_data, mpz_t prime) {
+static bool export_prime(struct thread_data_t *thread_data, mpz_t prime, enum primetype_t prime_type) {
 	pthread_mutex_lock(&thread_data->shared->global_lock);
 	char filename[128];
-	snprintf(filename, sizeof(filename), "primes_%ld.txt", mpz_sizeinbase(prime, 2));
+	long length_bits = mpz_sizeinbase(prime, 2);
+	const char *prime_type_str = "unknown";
+	switch (prime_type) {
+		case PRIMETYPE_2_MSB:	prime_type_str = "2msb"; break;
+		case PRIMETYPE_3_MSB:	prime_type_str = "3msb"; break;
+	}
+	snprintf(filename, sizeof(filename), "primes_%s_%ld.txt", prime_type_str, length_bits);
 
 	FILE *f = fopen(filename, "a");
 	if (!f) {
@@ -108,14 +132,14 @@ static void *find_primes_random(void *vthread_data) {
 	//generate_odd_prime_product(oddprimes, pgmopts->prime_bits);
 	generate_odd_prime_product(oddprimes, 64);
 
-	mpz_randomize_prime_candidate(candidate, pgmopts->prime_bits);
+	mpz_randomize_prime_candidate(candidate, pgmopts->prime_bits, pgmopts->prime_type);
 	while ((!thread_data->shared->quit) && (thread_data->shared->found_primes < pgmopts->prime_count)) {
 		thread_data->candidates++;
 		mpz_gcd(gcd, candidate, oddprimes);
 		if (mpz_cmp_ui(gcd, 1) == 0) {
 			if (mpz_probab_prime_p(candidate, 10)) {
-				export_prime(thread_data, candidate);
-				mpz_randomize_prime_candidate(candidate, pgmopts->prime_bits);
+				export_prime(thread_data, candidate, pgmopts->prime_type);
+				mpz_randomize_prime_candidate(candidate, pgmopts->prime_bits, pgmopts->prime_type);
 			}
 		}
 		mpz_add_ui(candidate, candidate, 2);
@@ -188,7 +212,7 @@ static void *find_primes_crt(void *vthread_data) {
 			mpz_mul_ui(last_factor, ring, last_remainder);
 			mpz_add(candidate, sum, last_factor);
 			if (mpz_probab_prime_p(candidate, 10)) {
-				export_prime(thread_data, candidate);
+				export_prime(thread_data, candidate, pgmopts->prime_type);
 			}
 
 			if ((thread_data->shared->quit) || (thread_data->shared->found_primes >= pgmopts->prime_count)) {

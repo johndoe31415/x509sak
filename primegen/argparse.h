@@ -9,6 +9,7 @@
 
 enum argparse_option_t {
 	ARG_MODE,
+	ARG_PRIME_TYPE,
 	ARG_THREAD_CNT,
 	ARG_BIT_LENGTH,
 	ARG_NUM_PRIMES,
