@@ -19,10 +19,11 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
+import os
 import random
 
 class PrimeDB(object):
-	def __init__(self, directory):
+	def __init__(self, directory = "."):
 		self._directory = directory
 		if not self._directory.endswith("/"):
 			self._directory += "/"
@@ -44,6 +45,36 @@ class PrimeDB(object):
 				primes.append(p)
 			random.shuffle(primes)
 		self._primes[(primetype, bitlen)] = primes
+
+	def add_prime(self, prime):
+		if prime.bit_length() < 8:
+			raise NotImplementedError("We're not interesting in tiny primes.")
+		msb_2_set = ((prime >> (prime.bit_length() - 2)) & 1) == 1
+		msb_3_set = ((prime >> (prime.bit_length() - 3)) & 1) == 1
+		if msb_2_set and msb_3_set:
+			prime_type = "3msb"
+		elif msb_2_set:
+			prime_type = "2msb"
+		else:
+			prime_type = "1msb"
+		key = (prime_type, prime.bit_length())
+		if key not in self._primes:
+			self._primes[key] = [ ]
+		self._primes[key].append(prime)
+		return self
+
+	def add(self, *primes):
+		for prime in primes:
+			self.add_prime(prime)
+		return self
+
+	def write(self, overwrite_files = False):
+		for ((primetype, bitlen), primes) in self._primes.items():
+			filename = self._get_filename(primetype, bitlen)
+			if (len(primes) > 0) and (overwrite_files or (not os.path.exists(filename))):
+				with open(filename, "w") as f:
+					for prime in primes:
+						print("%x" % (prime), file = f)
 
 	def get(self, bitlen, primetype = "2msb"):
 		key = (primetype, bitlen)

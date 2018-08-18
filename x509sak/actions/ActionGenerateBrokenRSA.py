@@ -58,15 +58,13 @@ class ActionGenerateBrokenRSA(BaseAction):
 		while True:
 			if q is None:
 				q = next(q_generator)
-
 			if self._args.gcd_n_phi_n:
 				# q = (2 * r * p) + 1
-				q_ = 2 * q * p + 1
-				if not NumberTheory.is_probable_prime(q_):
+				r = q
+				q = 2 * r * p + 1
+				if not NumberTheory.is_probable_prime(q):
 					q = None
 					continue
-				else:
-					q = q_
 
 			# Always make p the smaller factor
 			if p > q:
@@ -98,7 +96,12 @@ class ActionGenerateBrokenRSA(BaseAction):
 			diff = q - p
 			print("Generated %d bit RSA key:" % (rsa_keypair.n.bit_length()))
 			print("p = 0x%x" % (rsa_keypair.p))
-			print("q = 0x%x" % (rsa_keypair.q))
+			if not self._args.gcd_n_phi_n:
+				print("q = 0x%x" % (rsa_keypair.q))
+			else:
+				print("q = 2 * r * p + 1 = 0x%x" % (rsa_keypair.q))
+				print("r = 0x%x" % (r))
+
 			print("phi(n) = 0x%x" % (rsa_keypair.phi_n))
 			print("lambda(n) = 0x%x" % (rsa_keypair.lambda_n))
 			print("phi(n) / lambda(n) = gcd(p - 1, q - 1) = %d" % (rsa_keypair.phi_n // rsa_keypair.lambda_n))

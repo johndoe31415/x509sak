@@ -56,23 +56,22 @@ static bool mpz_randomize_prime_candidate(mpz_t number, unsigned int bits, enum 
 	}
 	mpz_import(number, sizeof(random_data), 1, 1, 0, 0, random_data);
 
-	/* Set LSB and both MSB */
-	mpz_t mask;
-	mpz_init_set_ui(mask, 1);
+	/* Set LSB always (odd prime) and the top three MSB to either 0b110 or
+	 * 0b111 (depending on the type) */
+	mpz_setbit(number, 0);
 	switch (prime_type) {
 		case PRIMETYPE_2_MSB:
-			mpz_setbit(mask, bits - 1);
-			mpz_setbit(mask, bits - 2);
+			mpz_setbit(number, bits - 1);
+			mpz_setbit(number, bits - 2);
+			mpz_clrbit(number, bits - 3);
 			break;
 
 		case PRIMETYPE_3_MSB:
-			mpz_setbit(mask, bits - 1);
-			mpz_setbit(mask, bits - 2);
-			mpz_setbit(mask, bits - 3);
+			mpz_setbit(number, bits - 1);
+			mpz_setbit(number, bits - 2);
+			mpz_setbit(number, bits - 3);
 			break;
 	}
-	mpz_ior(number, number, mask);
-	mpz_clear(mask);
 
 	close(fd);
 	return true;
