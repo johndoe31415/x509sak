@@ -159,7 +159,7 @@ class CmdLineTestsScrape(BaseTest):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir), tempfile.NamedTemporaryFile(mode = "wb", prefix = "scrapeme_", suffix = ".bin") as f:
 			crt = self._load_crt("johannes-bauer.com.crt")
 			self._prepare_file(f, [ 100, crt.der_data, 100 ])
-			print(SubprocessExecutor.run(self._x509sak + [ "scrape", "--keep-original-der", f.name ]).decode())
+			SubprocessExecutor.run(self._x509sak + [ "scrape", "--keep-original-der", f.name ])
 			scraped_crt = X509Certificate.read_derfile("scrape/scrape_%07x_crt.der" % (100))
 			self.assertEqual(len(os.listdir("scrape/")), 1)
 			self.assertEqual(crt, scraped_crt)

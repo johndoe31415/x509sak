@@ -52,7 +52,7 @@ class ScrapeEngine(object):
 		results = { }
 		for pattern in self._patterns:
 			results.update(self._search_pattern(pattern, start_offset, data, ignore_tail_bytes))
-		for (offset, pattern) in results.items():
+		for (offset, pattern) in sorted(results.items()):
 			if offset in self._last_chunk_offsets:
 				continue
 			relative_offset = offset - start_offset
