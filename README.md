@@ -579,9 +579,11 @@ cryptographic applications. They are *not secure*.
 [//]: # (Begin of cmd-genbrokenrsa -- auto-generated, do not edit!)
 ```
 usage: ./x509sak.py genbrokenrsa [-d path] [-b bits] [-e exp] [--switch-e-d]
-                                 [--accept-unusable-key] [--close-q]
-                                 [--q-stepping int] [--carmichael-totient]
-                                 [-o file] [-f] [-v] [--help]
+                                 [--accept-unusable-key]
+                                 [--carmichael-totient]
+                                 [--gcd-n-phi-n | --close-q]
+                                 [--q-stepping int] [-o file] [-f] [-v]
+                                 [--help]
 
 Generate broken RSA keys for use in pentetration testing
 
@@ -601,6 +603,14 @@ optional arguments:
                         Disregard integral checks, such as if gcd(e, phi(n))
                         == 1 before inverting e. Might lead to an unusable key
                         or might fail altogether.
+  --carmichael-totient  Bv default, d is computed as the modular inverse of e
+                        to phi(n), the Euler Totient function. This computes d
+                        as the modular inverse of e to lambda(n), the
+                        Carmichael Totient function, instead.
+  --gcd-n-phi-n         Generate a keypair in which gcd(n, phi(n)) != 1 by
+                        specially constructing the prime q. This will lead to
+                        a size disparity of p and q and requires 3-msb primes
+                        as input.
   --close-q             Use a value for q that is very close to the value of p
                         so that search starting from sqrt(n) is
                         computationally feasible to factor the modulus. Note
@@ -611,10 +621,6 @@ optional arguments:
                         int from 2 to (2 * q-stepping). The larger q-stepping
                         is therefore chosen, the further apart p and q will
                         be. By default, q-stepping is the minimum value of 1.
-  --carmichael-totient  Bv default, d is computed as the modular inverse of e
-                        to phi(n), the Euler Totient function. This computes d
-                        as the modular inverse of e to lambda(n), the
-                        Carmichael Totient function, instead.
   -o file, --outfile file
                         Output filename. Defaults to broken_rsa.key.
   -f, --force           Overwrite output file if it already exists instead of

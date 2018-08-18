@@ -30,7 +30,7 @@ class CmdLineTestsGenBrokenRSA(BaseTest):
 	@staticmethod
 	def _setup_prime_db(prime_cnt = 2):
 		assert(prime_cnt in [ 1, 2 ])
-		with open("primes_128.txt", "w") as f:
+		with open("primes_2msb_128.txt", "w") as f:
 			print("d7627ea571293d6bd1dc8d4664bc6ab1", file = f)
 			if prime_cnt >= 2:
 				print("ee56535d1f91101227f00411ad847dc5", file = f)

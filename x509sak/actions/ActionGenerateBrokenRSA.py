@@ -34,25 +34,44 @@ class ActionGenerateBrokenRSA(BaseAction):
 		if (not self._args.force) and os.path.exists(self._args.outfile):
 			raise UnfulfilledPrerequisitesException("File/directory %s already exists. Remove it first or use --force." % (self._args.outfile))
 
-		self._p_bitlen = self._args.bitlen // 2
-		self._q_bitlen = self._args.bitlen - self._p_bitlen
+		if not self._args.gcd_n_phi_n:
+			self._primetype = "2msb"
+			self._p_bitlen = self._args.bitlen // 2
+			self._q_bitlen = self._args.bitlen - self._p_bitlen
+		else:
+			self._primetype = "3msb"
+			self._p_bitlen = self._args.bitlen // 3
+			self._q_bitlen = self._args.bitlen - (2 * self._p_bitlen) - 1
+
 		if (self._args.close_q) and (self._p_bitlen != self._q_bitlen):
 			raise UnfulfilledPrerequisitesException("Generating a close-q keypair with a %d modulus does't work, because p would have to be %d bit and q %d bit. Choose an even modulus bitlength." % (self._args.bitlen, self._p_bitlen, self._q_bitlen))
 
 		if self._args.q_stepping < 1:
 			raise InvalidInputException("q-stepping value must be greater or equal to 1, was %d." % (self._args.q_stepping))
 
+		self._log.debug("Selecting %s primes with p = %d bit and q = %d bit.", self._primetype, self._p_bitlen, self._q_bitlen)
+
 		self._prime_db = PrimeDB(self._args.prime_db)
-		p = self._prime_db[self._p_bitlen]
+		p = self._prime_db.get(bitlen = self._p_bitlen, primetype = self._primetype)
 		q_generator = self._select_q(p)
 		q = None
 		while True:
 			if q is None:
 				q = next(q_generator)
 
+			if self._args.gcd_n_phi_n:
+				# q = (2 * r * p) + 1
+				q_ = 2 * q * p + 1
+				if not NumberTheory.is_probable_prime(q_):
+					q = None
+					continue
+				else:
+					q = q_
+
 			# Always make p the smaller factor
 			if p > q:
 				(p, q) = (q, p)
+
 			n = p * q
 			if self._args.public_exponent == -1:
 				e = random.randint(2, n - 1)
@@ -80,6 +99,14 @@ class ActionGenerateBrokenRSA(BaseAction):
 			print("Generated %d bit RSA key:" % (rsa_keypair.n.bit_length()))
 			print("p = 0x%x" % (rsa_keypair.p))
 			print("q = 0x%x" % (rsa_keypair.q))
+			print("phi(n) = 0x%x" % (rsa_keypair.phi_n))
+			print("lambda(n) = 0x%x" % (rsa_keypair.lambda_n))
+			print("phi(n) / lambda(n) = gcd(p - 1, q - 1) = %d" % (rsa_keypair.phi_n // rsa_keypair.lambda_n))
+			gcd_n_phin = NumberTheory.gcd(rsa_keypair.n, rsa_keypair.phi_n)
+			if gcd_n_phin == rsa_keypair.p:
+				print("gcd(n, phi(n)) = p")
+			else:
+				print("gcd(n, phi(n)) = 0x%x" % (gcd_n_phin))
 			if self._args.close_q:
 				print("q - p = %d (%d bit)" % (diff, diff.bit_length()))
 			print("n = 0x%x" % (rsa_keypair.n))
@@ -89,7 +116,7 @@ class ActionGenerateBrokenRSA(BaseAction):
 	def _select_q(self, p):
 		if not self._args.close_q:
 			while True:
-				yield self._prime_db[self._q_bitlen]
+				yield self._prime_db.get(bitlen = self._q_bitlen, primetype = self._primetype)
 		else:
 			q = p
 			while True:

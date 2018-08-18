@@ -28,12 +28,13 @@ class PrimeDB(object):
 			self._directory += "/"
 		self._primes = { }
 
-	def _get_filename(self, bitlen):
-		filename = self._directory + "primes_%d.txt" % (bitlen)
+	def _get_filename(self, primetype, bitlen):
+		assert(primetype in [ "2msb", "3msb" ])
+		filename = self._directory + "primes_%s_%d.txt" % (primetype, bitlen)
 		return filename
 
-	def _load_bitlen(self, bitlen):
-		filename = self._get_filename(bitlen)
+	def _load_primes(self, primetype, bitlen):
+		filename = self._get_filename(primetype, bitlen)
 		primes = [ ]
 		with open(filename) as f:
 			for line in f:
@@ -42,14 +43,15 @@ class PrimeDB(object):
 				p = int(line.rstrip("\r\n"), 16)
 				primes.append(p)
 			random.shuffle(primes)
-		self._primes[bitlen] = primes
+		self._primes[(primetype, bitlen)] = primes
 
-	def __getitem__(self, bitlen):
-		if bitlen not in self._primes:
+	def get(self, bitlen, primetype = "2msb"):
+		key = (primetype, bitlen)
+		if key not in self._primes:
 			try:
-				self._load_bitlen(bitlen)
+				self._load_primes(primetype, bitlen)
 			except FileNotFoundError:
 				pass
-		if (bitlen not in self._primes) or (len(self._primes[bitlen]) == 0):
-			raise Exception("Primes of bitlength %d exhausted in database. Generate new primes and save them to %s." % (bitlen, self._get_filename(bitlen)))
-		return self._primes[bitlen].pop()
+		if (key not in self._primes) or (len(self._primes[key]) == 0):
+			raise Exception("Primes of type %s with bitlength %d exhausted in database. Generate these primes and save them in a file called \"%s\". Execute: primegen/primegen -b %d -p %s" % (primetype, bitlen, self._get_filename(primetype, bitlen), bitlen, primetype))
+		return self._primes[key].pop()

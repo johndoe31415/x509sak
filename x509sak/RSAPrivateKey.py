@@ -102,6 +102,16 @@ class RSAPrivateKey(PEMDERObject):
 	def iqmp(self):
 		return int(self._asn1["coefficient"])
 
+	@property
+	def phi_n(self):
+		"""Returns the Euler Totient phi(n)."""
+		return (self.p - 1) * (self.q - 1)
+
+	@property
+	def lambda_n(self):
+		"""Returns the Carmichael Totient lambda(n)."""
+		return NumberTheory.lcm(self.p - 1, self.q - 1)
+
 	def check_integrity(self, msg = 12345678987654321):
 		# Assert gcd(e, phi(n)) == 1
 		phi_n = (self.p - 1) * (self.q - 1)
