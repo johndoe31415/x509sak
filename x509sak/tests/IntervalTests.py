@@ -162,3 +162,9 @@ class IntervalTests(BaseTest):
 			intervals.add(Interval(0, 4))
 		with self.assertRaises(IntervalConstraintException):
 			intervals.add(Interval(-10, 10))
+
+	def test_interval_fully_contained_subinterval(self):
+		intervals = Intervals()
+		intervals.add(Interval(100, 1285))
+		new = Interval(287, 407)
+		self.assertTrue(intervals.fully_contained_in_subinterval(new))
