@@ -336,6 +336,7 @@ class ActionScrape(BaseAction):
 		self._stats.der_potential_match()
 
 		for der_candidate in self._active_der_types:
+			print(offset, der_candidate.data_type)
 			try:
 				self._stats.der_attempt_decode()
 				(asn1, tail) = pyasn1.codec.der.decoder.decode(data, asn1Spec = der_candidate.asn1_spec)
