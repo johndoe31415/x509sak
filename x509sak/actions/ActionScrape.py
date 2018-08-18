@@ -164,7 +164,7 @@ class ActionScrapeStats(object):
 		print("Processed  : %.0f MiB, average speed %s" % (data_mib, avg), file = f)
 		print("PEM matches: %d offsets analyzed, %d successful PEM decodings" % (stats["analysis"]["pem"]["potential_match"], stats["analysis"]["pem"]["successful_decode"]), file = f)
 		print("DER matches: %d offsets analyzed, %d attempted DER decodings total, %d successful DER decodings, %d also passed plausibility check" % (stats["analysis"]["der"]["potential_match"], stats["analysis"]["der"]["attempted_decode"], stats["analysis"]["der"]["successful_decode"], stats["analysis"]["der"]["passed_plausibility"]), file = f)
-		print("DER types  : %s" % (", ".join(sorted(stats["analysis"]["der"]["active_types"]))), file = f)
+		print("DER types  : %s" % (", ".join(stats["analysis"]["der"]["active_types"])), file = f)
 		written = sum(1 for finding in stats["findings"] if finding["action"] == "written")
 		zero_length = sum(1 for finding in stats["findings"] if finding["action"] == "discard:zero_length")
 		non_unique = sum(1 for finding in stats["findings"] if finding["action"] == "discard:non_unique")
@@ -180,7 +180,7 @@ class ActionScrapeStats(object):
 				print("%-30s %d" % (self._FRIENDLY_DATA_TYPE.get(data_type, data_type), counter), file = f)
 
 class ActionScrape(BaseAction):
-	_DERHandler = collections.namedtuple("DERHandler", [ "asn1_spec", "data_type", "extension", "pem_marker", "sanity_check_fn" ])
+	_DERHandler = collections.namedtuple("DERHandler", [ "asn1_spec", "data_type", "extension", "pem_marker", "sanity_check_fn", "precedence" ])
 	_PEM_BEGIN = re.compile("^-----BEGIN (?P<marker>[ A-Za-z0-9]+)-----")
 	_MARKERS = {
 		"CERTIFICATE":				"crt",
@@ -193,22 +193,23 @@ class ActionScrape(BaseAction):
 		"CERTIFICATE REQUEST":		"csr",
 		"NEW CERTIFICATE REQUEST":	"csr",
 	}
-	_DER_CLASSES = [
-		_DERHandler(asn1_spec = rfc2459.Certificate(), data_type = "crt", extension = "der", pem_marker = "CERTIFICATE", sanity_check_fn = None),
-		_DERHandler(asn1_spec = rfc2437.RSAPrivateKey(), data_type = "rsa_key", extension = "der", pem_marker = "RSA PRIVATE KEY", sanity_check_fn = _DERSanityCheck.check_rsa_key),
-		_DERHandler(asn1_spec = rfc2459.DSAPrivateKey(), data_type = "dsa_key", extension = "der", pem_marker = "DSA PRIVATE KEY", sanity_check_fn = None),
-		_DERHandler(asn1_spec = rfc2459.SubjectPublicKeyInfo(), data_type = "pubkey", extension = "der", pem_marker = "PUBLIC KEY", sanity_check_fn = None),
-		_DERHandler(asn1_spec = x509sak.ASN1Models.ECPrivateKey(), data_type = "ec_key", extension = "der", pem_marker = "EC PRIVATE KEY", sanity_check_fn = _DERSanityCheck.check_ec_key),
-		_DERHandler(asn1_spec = x509sak.ASN1Models.PFX(), data_type = "pkcs12", extension = "p12", pem_marker = None, sanity_check_fn = None),
-		_DERHandler(asn1_spec = x509sak.ASN1Models.DSASignature(), data_type = "dsa_sig", extension = "der", pem_marker = None, sanity_check_fn = _DERSanityCheck.check_dsa_sig),
-	]
-	handler_classes = set(handler_class.data_type for handler_class in _DER_CLASSES)
+	_DER_CLASSES = {
+		handler_class.data_type: handler_class for handler_class in (
+			_DERHandler(asn1_spec = rfc2459.Certificate(), data_type = "crt", extension = "der", pem_marker = "CERTIFICATE", sanity_check_fn = None, precedence = 10),
+			_DERHandler(asn1_spec = rfc2437.RSAPrivateKey(), data_type = "rsa_key", extension = "der", pem_marker = "RSA PRIVATE KEY", sanity_check_fn = _DERSanityCheck.check_rsa_key, precedence = 20),
+			_DERHandler(asn1_spec = rfc2459.DSAPrivateKey(), data_type = "dsa_key", extension = "der", pem_marker = "DSA PRIVATE KEY", sanity_check_fn = None, precedence = 20),
+			_DERHandler(asn1_spec = rfc2459.SubjectPublicKeyInfo(), data_type = "pubkey", extension = "der", pem_marker = "PUBLIC KEY", sanity_check_fn = None, precedence = 30),
+			_DERHandler(asn1_spec = x509sak.ASN1Models.ECPrivateKey(), data_type = "ec_key", extension = "der", pem_marker = "EC PRIVATE KEY", sanity_check_fn = _DERSanityCheck.check_ec_key, precedence = 20),
+			_DERHandler(asn1_spec = x509sak.ASN1Models.PFX(), data_type = "pkcs12", extension = "p12", pem_marker = None, sanity_check_fn = None, precedence = 0),
+			_DERHandler(asn1_spec = x509sak.ASN1Models.DSASignature(), data_type = "dsa_sig", extension = "der", pem_marker = None, sanity_check_fn = _DERSanityCheck.check_dsa_sig, precedence = 40),
+	)}
+	handler_classes = sorted(list(_DER_CLASSES.keys()))
 
 	def __init__(self, cmdname, args):
 		BaseAction.__init__(self, cmdname, args)
 
 		# Plausibilize input parameters
-		kwargs_checker = KwargsChecker(optional_arguments = self.handler_classes)
+		kwargs_checker = KwargsChecker(optional_arguments = set(self._DER_CLASSES.keys()))
 		kwargs_checker.check(self._args.include_dertype, hint = "DER classes to be included")
 		kwargs_checker.check(self._args.exclude_dertype, hint = "DER classes to be excluded")
 
@@ -222,13 +223,15 @@ class ActionScrape(BaseAction):
 
 		# Determine active DERHandler classes
 		if len(self._args.include_dertype) == 0:
-			self._active_der_types = set(self.handler_classes)
+			active_der_types = set(self._DER_CLASSES.keys())
 		else:
-			self._active_der_types = set(self._args.include_dertype)
-		self._active_der_types -= set(self._args.exclude_dertype)
+			active_der_types = set(self._args.include_dertype)
+		active_der_types -= set(self._args.exclude_dertype)
+		self._active_der_types = [ self._DER_CLASSES[class_name] for class_name in active_der_types ]
+		self._active_der_types.sort(key = lambda handler: (handler.precedence, handler.data_type))
 
 		self._stats = ActionScrapeStats(self._args)
-		self._stats.set_active_der_types(self._active_der_types)
+		self._stats.set_active_der_types([ handler_class.data_type for handler_class in self._active_der_types ])
 
 		self._matches = Intervals()
 		self._hashes = set()
@@ -236,7 +239,7 @@ class ActionScrape(BaseAction):
 		if not self._args.no_pem:
 			engine.search(self._find_pem, b"-----BEGIN ", min_length = 52, max_length = 32 * 1024)
 		if (not self._args.no_der) and (len(self._active_der_types) > 0):
-			self._log.debug("Looking for %d DER type(s): %s", len(self._active_der_types), ", ".join(sorted(self._active_der_types)))
+			self._log.debug("Looking for %d DER type(s): %s", len(self._active_der_types), ", ".join(handler.data_type for handler in self._active_der_types))
 			engine.search(self._find_der, bytes.fromhex("30"), min_length = 2, max_length = 32 * 1024)
 		end_offset = engine.commence(start_offset = self._args.seek_offset, length = self._args.analysis_length, progress_callback = self._progress_callback)
 		self._stats.finish(end_offset)
@@ -252,15 +255,11 @@ class ActionScrape(BaseAction):
 			# Completely disregard if we've already captured this.
 			return False
 		interval = Interval.begin_length(offset, length)
-		print("Checking:", interval)
-		self._matches.dump()
 		if self._matches.fully_contained_in_subinterval(interval):
 			# We already have this match.
-			print("Fully contained")
 			return True
 		else:
 			self._matches.add(interval)
-			print("NOT fully contained")
 			return False
 
 	def _is_known_blob(self, data):
@@ -336,9 +335,7 @@ class ActionScrape(BaseAction):
 	def _find_der(self, offset, data):
 		self._stats.der_potential_match()
 
-		for der_candidate in self._DER_CLASSES:
-			if der_candidate.data_type not in self._active_der_types:
-				continue
+		for der_candidate in self._active_der_types:
 			try:
 				self._stats.der_attempt_decode()
 				(asn1, tail) = pyasn1.codec.der.decoder.decode(data, asn1Spec = der_candidate.asn1_spec)

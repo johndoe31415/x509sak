@@ -160,13 +160,7 @@ class CmdLineTestsScrape(BaseTest):
 			crt = self._load_crt("johannes-bauer.com.crt")
 			self._prepare_file(f, [ 100, crt.der_data, 100 ])
 			output = SubprocessExecutor.run(self._x509sak + [ "scrape", "--keep-original-der", f.name ])
-			print(output.decode())
 			scraped_crt = X509Certificate.read_derfile("scrape/scrape_%07x_crt.der" % (100))
-			print(os.listdir("scrape"))
-			for filename in os.listdir("scrape"):
-				with open("scrape/" + filename, "rb") as f:
-					print(f.read().hex())
-
 			self.assertEqual(len(os.listdir("scrape/")), 1)
 			self.assertEqual(crt, scraped_crt)
 
