@@ -156,7 +156,12 @@ class ActionScrapeStats(object):
 		print("Range      : From 0x%x to 0x%x" % (stats["meta"]["start_offset"], stats["meta"]["end_offset"]), file = f)
 		print("Time       : From %s UTC to %s UTC" % (stats["meta"]["start_time_utc"].strftime("%Y-%m-%d %H:%M:%S"), stats["meta"]["end_time_utc"].strftime("%Y-%m-%d %H:%M:%S")), file = f)
 		data_mib = (stats["meta"]["end_offset"] - stats["meta"]["start_offset"]) / 1024 / 1024
-		print("Processed  : %.0f MiB, average speed %.1f MiB/sec" % (data_mib, data_mib / stats["meta"]["time_secs"]), file = f)
+
+		if stats["meta"]["time_secs"] > 0.1:
+			avg = "%.1f MiB/sec" % (data_mib / stats["meta"]["time_secs"])
+		else:
+			avg = "N/A"
+		print("Processed  : %.0f MiB, average speed %s" % (data_mib, avg), file = f)
 		print("PEM matches: %d offsets analyzed, %d successful PEM decodings" % (stats["analysis"]["pem"]["potential_match"], stats["analysis"]["pem"]["successful_decode"]), file = f)
 		print("DER matches: %d offsets analyzed, %d attempted DER decodings total, %d successful DER decodings, %d also passed plausibility check" % (stats["analysis"]["der"]["potential_match"], stats["analysis"]["der"]["attempted_decode"], stats["analysis"]["der"]["successful_decode"], stats["analysis"]["der"]["passed_plausibility"]), file = f)
 		print("DER types  : %s" % (", ".join(sorted(stats["analysis"]["der"]["active_types"]))), file = f)
@@ -229,7 +234,7 @@ class ActionScrape(BaseAction):
 		self._hashes = set()
 		engine = ScrapeEngine(self._args.filename)
 		if not self._args.no_pem:
-			engine.search(self._find_pem, b"-----BEGIN ", min_length = 52, max_length = 4096)
+			engine.search(self._find_pem, b"-----BEGIN ", min_length = 52, max_length = 32 * 1024)
 		if (not self._args.no_der) and (len(self._active_der_types) > 0):
 			self._log.debug("Looking for %d DER type(s): %s", len(self._active_der_types), ", ".join(sorted(self._active_der_types)))
 			engine.search(self._find_der, bytes.fromhex("30"), min_length = 2, max_length = 32 * 1024)

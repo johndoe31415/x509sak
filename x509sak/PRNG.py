@@ -58,6 +58,24 @@ class PRNG(object):
 				break
 		print("%d bytes in %.1f secs: %.1f MBytes/sec" % (length, tdiff, length / tdiff / 1e6))
 
+	def write_fp(self, fp, length):
+		remaining = length
+		while remaining > 0:
+			chunk_size = min(1024 * 1024, remaining)
+			data = self.get(chunk_size)
+			fp.write(data)
+			remaining -= len(data)
+
+	def write_file(self, filename, length):
+		with open(filename, "wb") as f:
+			self.write_fp(f, length)
+
+	def write_bracketed(self, filename, prefix_len, data, suffix_len):
+		with open(filename, "wb") as f:
+			self.write_fp(f, prefix_len)
+			f.write(data)
+			self.write_fp(f, suffix_len)
+
 class HashedPRNG(PRNG):
 	"""This PRNG is *not* a CSPRNG. It's intended purely for testing
 	purposes."""

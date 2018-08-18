@@ -42,3 +42,11 @@ class PRNGTests(BaseTest):
 		for l in range(len(data) + 1):
 			part = HashedPRNG(b"foobar").get(l)
 			self.assertEqual(part, data[:l])
+
+	def test_twoparts(self):
+		data = HashedPRNG(b"foobar").get(256)
+		for l in range(len(data) + 1):
+			prng = HashedPRNG(b"foobar")
+			part1 = prng.get(l)
+			part2 = prng.get(len(data) - l)
+			self.assertEqual(data, part1 + part2)

@@ -91,4 +91,5 @@ class ScrapeEngine(object):
 				if (progress_callback is not None) and ((chunk_count % 100) == 0):
 					progress_callback(position = offset + len(chunk) - start_offset, total_length = eof_position - start_offset, elapsed_secs = time.time() - t0)
 			end_offset = f.tell()
+			progress_callback(position = end_offset - start_offset, total_length = eof_position - start_offset, elapsed_secs = time.time() - t0)
 		return end_offset

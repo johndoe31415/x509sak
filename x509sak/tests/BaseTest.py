@@ -22,6 +22,7 @@
 import os
 import unittest
 import pkgutil
+import gzip
 from x509sak import X509Certificate
 
 class BaseTest(unittest.TestCase):
@@ -32,12 +33,20 @@ class BaseTest(unittest.TestCase):
 		else:
 			self._x509sak = [ "coverage", "run", "--append", "--omit", "/usr/*", os.path.realpath("x509sak.py") ]
 
-	@staticmethod
-	def _load_crt(crtname):
-		x509_text = pkgutil.get_data("x509sak.tests.data", crtname).decode("ascii")
+
+	def _load_data(self, filename):
+		data = pkgutil.get_data("x509sak.tests.data", filename)
+		if filename.endswith(".gz"):
+			data = gzip.decompress(data)
+		return data
+
+	def _load_text(self, filename):
+		return self._load_data(filename).decode("ascii")
+
+	def _load_crt(self, crtname):
+		x509_text = self._load_text(crtname)
 		cert = X509Certificate.from_pem_data(x509_text)[0]
 		return cert
 
-	@staticmethod
-	def _load_pubkey(crtname):
-		return BaseTest._load_crt(crtname).pubkey
+	def _load_pubkey(self, crtname):
+		return self._load_crt(crtname).pubkey
