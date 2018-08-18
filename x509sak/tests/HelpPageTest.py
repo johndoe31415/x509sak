@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
 #	Copyright (C) 2018-2018 Johannes Bauer
 #
@@ -20,19 +19,9 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-import os
-import shutil
-import subprocess
+from x509sak.tests import BaseTest
+from x509sak.SubprocessExecutor import SubprocessExecutor
 
-try:
-	os.unlink(".coverage")
-except FileNotFoundError:
-	pass
-try:
-	shutil.rmtree("htmlcov")
-except FileNotFoundError:
-	pass
-
-subprocess.check_call([ "coverage", "run", "--append", "--omit", "/usr/*", "./run_tests.py", "--coverage", "--all" ])
-subprocess.check_call([ "coverage", "html" ])
-subprocess.check_call([ "chromium-browser", "htmlcov/index.html" ])
+class HelpPageTest(BaseTest):
+	def test_help_page(self):
+		SubprocessExecutor.run(self._x509sak + [ "--help" ], success_retcodes = [ 1 ])

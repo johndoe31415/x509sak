@@ -27,5 +27,8 @@ for (_module_info_module_finder, _module_info_name, _module_info_ispkg) in pkgut
 	if _module_info_ispkg:
 		continue
 	_module = importlib.import_module("x509sak.tests." + _module_info_name)
-	_test_class = getattr(_module, _module_info_name)
-	globals()[_module_info_name] = _test_class
+	_test_class = getattr(_module, _module_info_name, None)
+	if _test_class is None:
+		print("Warning: Module %s doesn't have a class named %s." % (_module, _module_info_name))
+	else:
+		globals()[_module_info_name] = _test_class

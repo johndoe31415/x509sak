@@ -71,7 +71,7 @@ class PEMDataTools(object):
 		return "\n".join(lines)
 
 class CmdTools(object):
-	_ENV_ALWAYS_EXPORT = [ "SOFTHSM2_CONF" ]
+	_ENV_ALWAYS_EXPORT = [ "SOFTHSM2_CONF", "COVERAGE_FILE" ]
 
 	@classmethod
 	def cmdline(cls, cmd, env = None):
@@ -84,7 +84,7 @@ class CmdTools(object):
 				env[varname] = os.environ[varname]
 
 		def escape(text):
-			if (" " in text) or ("\"" in text) or ("'" in text) or (";" in text) or ("&" in text):
+			if (" " in text) or ("\"" in text) or ("'" in text) or (";" in text) or ("&" in text) or ("*" in text):
 				return "'%s'" % (text.replace("'", "\'"))
 			else:
 				return text
@@ -94,7 +94,7 @@ class CmdTools(object):
 			return command
 		else:
 			env_string = " ".join("%s=%s" % (key, escape(value)) for (key, value) in sorted(env.items()))
-			return env_string + " " + command
+			return (env_string + " " + command).lstrip()
 
 class ASN1Tools(object):
 	_REGEX_UTCTime = re.compile(r"(?P<year>\d{2})(?P<month>\d{2})(?P<day>\d{2})(?P<hour>\d{2})(?P<minute>\d{2})(?P<second>\d{2})Z")

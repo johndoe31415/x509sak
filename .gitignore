@@ -2,4 +2,7 @@ __pycache__
 .*.swp
 output
 .coverage
+.coveragerc
 htmlcov
+.tests_estimate.json
+.tests_failed.json
