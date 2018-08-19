@@ -48,7 +48,7 @@ class KeySpecArgument(object):
 		elif self._cryptosystem == self.KeySpecification.HARDWARE_TOKEN:
 			self._key_id = int(keyspec[1])
 		else:
-			raise Exception(NotImplemented)
+			raise NotImplementedError(self._cryptosystem)
 
 	@property
 	def cryptosystem(self):
@@ -77,7 +77,7 @@ class KeySpecArgument(object):
 		elif self.cryptosystem == self.KeySpecification.HARDWARE_TOKEN:
 			return "Keyspec(Hardware key #%d)" % (self.key_id)
 		else:
-			raise Exception(NotImplemented)
+			raise NotImplementedError(self.cryptosystem)
 
 class KeyValue(object):
 	def __init__(self, keyvalue_str):

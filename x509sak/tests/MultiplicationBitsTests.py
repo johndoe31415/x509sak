@@ -37,9 +37,6 @@ class MultiplicationBitsTests(BaseTest):
 		value = value | (bitvalue << shift)
 		return value
 
-	def _set_msb_bits_10(self, value):
-		return self._set_msb_bits(value, 2, 0b10)
-
 	def _set_msb_bits_11(self, value):
 		return self._set_msb_bits(value, 2, 0b11)
 

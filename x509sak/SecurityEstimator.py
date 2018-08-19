@@ -89,7 +89,7 @@ class SecurityEstimator(object):
 		return cls._KNOWN_ALGORITHMS[alg_name](analysis_options = analysis_options)
 
 	def analyze(self, *args, **kwargs):
-		raise Exception(NotImplemented, "method 'analyze'")
+		raise NotImplementedError("method 'analyze'")
 
 
 class BitsSecurityEstimator(SecurityEstimator):

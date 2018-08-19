@@ -66,7 +66,7 @@ class EllipticCurve(object):
 
 	@property
 	def field_bits(self):
-		raise Exception(NotImplemented)
+		raise NotImplementedError()
 
 	def point(self, x, y):
 		return EllipticCurvePoint(self, x, y)
@@ -76,7 +76,7 @@ class EllipticCurve(object):
 		return self.point(self.Gx, self.Gy)
 
 	def on_curve(self, point):
-		raise Exception(NotImplemented)
+		raise NotImplementedError()
 
 	def decode_point(self, serialized_point):
 		if serialized_point[0] == 0x04:
