@@ -24,6 +24,7 @@ import pkgutil
 import datetime
 from x509sak.tests import BaseTest
 from x509sak import X509Certificate
+from x509sak.X509Certificate import X509CertificateClass
 from x509sak.OID import OIDDB
 
 class X509CertificateTests(BaseTest):
@@ -98,3 +99,21 @@ class X509CertificateTests(BaseTest):
 		cert = self._load_crt("johannes-bauer.com.crt")
 		ca_cert = self._load_crt("johannes-bauer-intermediate.crt")
 		self.assertTrue(cert.signed_by(ca_cert, verbose_failure = True))
+
+	def test_certtype(self):
+		self.assertTrue(self._load_crt("johannes-bauer-root.crt").is_ca_certificate)
+		self.assertTrue(self._load_crt("johannes-bauer-intermediate.crt").is_ca_certificate)
+		self.assertFalse(self._load_crt("johannes-bauer.com.crt").is_ca_certificate)
+		self.assertTrue(self._load_crt("ecdsa_crt_custom_key_usage.crt").is_ca_certificate)
+		self.assertTrue(self._load_crt("broken_debian.crt").is_ca_certificate)
+		self.assertTrue(self._load_crt("certificate_no_exts.pem").is_ca_certificate)
+
+	def test_selfsigned(self):
+		self.assertTrue(self._load_crt("johannes-bauer-root.crt").is_selfsigned)
+		self.assertFalse(self._load_crt("johannes-bauer-intermediate.crt").is_selfsigned)
+		self.assertFalse(self._load_crt("johannes-bauer.com.crt").is_selfsigned)
+
+	def test_classification(self):
+		self.assertEqual(self._load_crt("johannes-bauer-root.crt").classify(), X509CertificateClass.CARoot)
+		self.assertEqual(self._load_crt("johannes-bauer-intermediate.crt").classify(), X509CertificateClass.CAIntermediate)
+		self.assertEqual(self._load_crt("johannes-bauer.com.crt").classify(), X509CertificateClass.ClientServerAuth)

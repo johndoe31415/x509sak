@@ -147,3 +147,16 @@ class OIDDB(object):
 		OID.from_str("1.3.14.3.2.26"):				"sha1",
 		OID.from_str("2.16.840.1.101.3.4.2.1"):		"sha256",
 	})
+
+	"""X.509 Extension Extended Key Usage."""
+	X509ExtendedKeyUsage = BijectiveDict({
+		OID.from_str("1.3.6.1.5.5.7.3.1"):			"id_kp_serverAuth",
+		OID.from_str("1.3.6.1.5.5.7.3.2"):			"id_kp_clientAuth",
+		OID.from_str("1.3.6.1.5.5.7.3.3"):			"id_kp_codeSigning",
+		OID.from_str("1.3.6.1.5.5.7.3.4"):			"id_kp_emailProtection",
+		OID.from_str("1.3.6.1.5.5.7.3.5"):			"id_kp-ipsecEndSystem",
+		OID.from_str("1.3.6.1.5.5.7.3.6"):			"id_kp-ipsecTunnel",
+		OID.from_str("1.3.6.1.5.5.7.3.7"):			"id_kp-ipsecUser",
+		OID.from_str("1.3.6.1.5.5.7.3.8"):			"id_kp_timeStamping",
+		OID.from_str("1.3.6.1.5.5.7.3.9"):			"OCSPSigning",
+	})

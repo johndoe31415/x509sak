@@ -221,3 +221,36 @@ class X509AuthorityKeyIdentifierExtension(X509Extension):
 	def _decode_hook(self):
 		self._keyid = bytes(self.asn1["keyIdentifier"])
 X509ExtensionRegistry.set_handler_class(X509AuthorityKeyIdentifierExtension)
+
+
+class X509BasicConstraintsExtension(X509Extension):
+	_HANDLER_OID = OIDDB.X509Extensions.inverse("BasicConstraints")
+	_ASN1_MODEL = rfc2459.BasicConstraints
+
+	@property
+	def is_ca(self):
+		return bool(self.asn1["cA"])
+
+	def __repr__(self):
+		return "%s<CA = %s>" % (self.__class__.__name__, self.is_ca)
+X509ExtensionRegistry.set_handler_class(X509BasicConstraintsExtension)
+
+
+class X509ExtendedKeyUsageExtension(X509Extension):
+	_HANDLER_OID = OIDDB.X509Extensions.inverse("ExtendedKeyUsage")
+	_ASN1_MODEL = rfc2459.ExtKeyUsageSyntax
+
+	def _decode_hook(self):
+		self._oids = set(OID.from_str(str(oid)) for oid in self.asn1)
+
+	@property
+	def client_auth(self):
+		return OIDDB.X509ExtendedKeyUsage.inverse("id_kp_clientAuth") in self._oids
+
+	@property
+	def server_auth(self):
+		return OIDDB.X509ExtendedKeyUsage.inverse("id_kp_serverAuth") in self._oids
+
+	def __repr__(self):
+		return "%s<CA = %s>" % (self.__class__.__name__, self.is_ca)
+X509ExtensionRegistry.set_handler_class(X509ExtendedKeyUsageExtension)

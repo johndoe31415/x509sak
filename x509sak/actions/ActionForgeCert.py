@@ -36,7 +36,7 @@ class ActionForgeCert(BaseAction):
 		BaseAction.__init__(self, cmdname, args)
 
 		certs = X509Certificate.read_pemfile(self._args.crt_filename)
-		if not certs[0].is_selfsigned():
+		if not certs[0].is_selfsigned:
 			raise InvalidInputException("First certificate in chain (%s) is not self-signed." % (certs[0]))
 		for (cert_id, (issuer, subject)) in enumerate(zip(certs, certs[1:]), 1):
 			if not subject.signed_by(issuer):

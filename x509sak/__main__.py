@@ -76,6 +76,9 @@ def genparser(parser):
 mc.register("buildchain", "Build a certificate chain", genparser, action = ActionBuildChain, aliases = [ "bc" ])
 
 def genparser(parser):
+	parser.add_argument("-c", "--color-scheme", choices = sorted(list(ActionGraphPool.get_supported_colorschemes())), default = "expiration", help = "Color scheme to use when coloring the certificates. Can either color by expiration date, by certificate type (client/server/CA/...), key type (RSA/ECC/etc), signature type (used hash function) or overall security level. Defaults to %(default)s.")
+	parser.add_argument("--abbreviate-to", metavar = "charcnt", type = int, default = 30, help = "Abbreviate each line to this amount of characters. Defaults to %(default)d characters.")
+	parser.add_argument("-l", "--label", metavar = "text", default = [ ], action = "append", help = "Label that is printed in the certificate nodes. Can be given multiple times to specify multiple lines. Substitutions that are supported are %s. Defaults to %s." % (", ".join(sorted(ActionGraphPool.get_supported_substitutions())), [ line.replace("%", "%%") for line in ActionGraphPool.get_default_label() ]))
 	parser.add_argument("-f", "--format", choices = [ "dot", "png", "ps", "pdf" ], default = None, help = "Specifies the output file format. Can be one of %(choices)s. When unspecified, the file extension out the output file is used to determine the file type.")
 	parser.add_argument("-o", "--outfile", metavar = "file", required = True, help = "Specifies the output filename. Mandatory argument.")
 	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")

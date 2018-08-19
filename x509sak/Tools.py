@@ -209,3 +209,19 @@ class JSONTools(object):
 		# str, not bytes.
 		data = data.decode("ascii")
 		return json.loads(data)
+
+class TextTools(object):
+	@classmethod
+	def abbreviate(cls, text, to_length):
+		if len(text) <= to_length:
+			return text
+		else:
+			textlen = to_length - 3
+			tail = round(textlen / 4)
+			head = textlen - tail
+			if tail + head >= len(text):
+				# Only abbreviate tail
+				return text[ : (to_length - 3)] + "..."
+			else:
+				# Abbreviate head and tail
+				return text[ : head] + "..." + text[-tail : ]

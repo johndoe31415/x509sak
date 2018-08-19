@@ -22,13 +22,28 @@
 import os
 import tempfile
 import subprocess
+import collections
+import datetime
 from x509sak import CertificatePool
 from x509sak.BaseAction import BaseAction
-from x509sak.Exceptions import UnknownFormatException
+from x509sak.Exceptions import UnknownFormatException, LazyDeveloperException
+from x509sak.Tools import TextTools, JSONTools
+from x509sak.X509Certificate import X509CertificateClass
+from x509sak.KeySpecification import Cryptosystem
+from x509sak.AdvancedColorPalette import AdvancedColorPalette
 
 class ActionGraphPool(BaseAction):
+	_NodeAttributes = collections.namedtuple("NodeAttributes", [ "shape", "stroke_color", "fill_color", "text_color" ])
+	_DefaultNodeAttributes = _NodeAttributes(shape = "box", stroke_color = "#000000", fill_color = None, text_color = "#000000")
+	_NodeAttributeMap = {
+		"stroke_color":		"color",
+		"fill_color":		"fillcolor",
+		"text_color":		"fontcolor",
+	}
+
 	def __init__(self, cmdname, args):
 		BaseAction.__init__(self, cmdname, args)
+
 		self._pool = CertificatePool()
 		self._pool.load_sources(self._args.crtsource)
 		self._log.debug("Loaded a total of %d unique certificates in trust store.", self._pool.certificate_count)
@@ -37,6 +52,15 @@ class ActionGraphPool(BaseAction):
 			file_format = self._args.format
 		else:
 			file_format = os.path.splitext(self._args.outfile)[1].lstrip(".")
+
+		self._active_substitutions = { name: getattr(self, "_substitute_" + name) for name in self.get_supported_substitutions() }
+		self._get_cert_attributes = getattr(self, "_get_cert_attributes_" + self._args.color_scheme, None)
+		if self._get_cert_attributes is None:
+			raise LazyDeveloperException("Color scheme '%s' is unsupported. This is a bug." % (self._args.color_scheme))
+
+		# Load color palettes
+		self._palette_traffic = AdvancedColorPalette(JSONTools.load_internal("x509sak.data", "palettes.json")["traffic"])
+		self._palette_flatui = AdvancedColorPalette(JSONTools.load_internal("x509sak.data", "palettes.json")["flatui"])
 
 		if file_format == "dot":
 			with open(self._args.outfile, "w") as dotfile:
@@ -55,35 +79,23 @@ class ActionGraphPool(BaseAction):
 			text = text.replace("\"", "\\\"")
 			return text
 
-		def abbreviate(text, length = 30):
-			if len(text) > length:
-				return text[ : length - 3] + "..."
-			else:
-				return text
-
 		print("digraph G {", file = dotfile)
+		print("	node [ fontname=\"Arial\" ];", file = dotfile)
 		for cert in sorted(self._pool):
-			properties = {
-				"shape":	"box",
-			}
-			label = [
-				abbreviate(cert.subject.rfc2253_str, 32),
-				cert.valid_not_after.strftime("%Y-%m-%d"),
-			]
-			if cert.source is None:
-				label.append(cert.hashval.hex()[:8])
-			else:
-				label.append("%s (%s)" % (cert.source, cert.hashval.hex()[:8]))
+			attributes = self._get_cert_attributes(cert)
+			attributes = self._NodeAttributes(*[concrete if (concrete is not None) else default for (concrete, default) in zip(attributes, self._DefaultNodeAttributes) ])
+			attributes = { self._NodeAttributeMap.get(key, key): value for (key, value) in attributes._asdict().items() if (value is not None) }
+			if "fillcolor" in attributes:
+				attributes["style"] = "filled"
 
-			properties["label"] = "\\n".join(escape(text) for text in label)
-
-			if cert.is_selfsigned():
-				properties["color"] = "#ff0000"
-			else:
-				properties["color"] = "#000000"
+			label = self._args.label if (len(self._args.label) > 0) else self.get_default_label()
+			subs = self._all_substitutions(cert)
+			label = [ line % subs for line in label ]
+			label = [ TextTools.abbreviate(line, to_length = self._args.abbreviate_to) for line in label ]
+			attributes["label"] = "\\n".join(escape(line) for line in label)
 
 			node_name = "crt_" + cert.hashval.hex()
-			print("	%s [ %s ];" % (node_name, ", ".join("%s = \"%s\"" % (key, value) for (key, value) in properties.items())), file = dotfile)
+			print("	%s [ %s ];" % (node_name, ", ".join("%s = \"%s\"" % (key, value) for (key, value) in attributes.items())), file = dotfile)
 
 			issuers = self._pool.find_issuers(cert)
 			for issuer in issuers:
@@ -91,3 +103,87 @@ class ActionGraphPool(BaseAction):
 				print("	%s -> %s;" % (issuer_node_name, node_name), file = dotfile)
 		print("}", file = dotfile)
 		dotfile.flush()
+
+	def _get_cert_attributes_expiration(self, crt):
+		now = datetime.datetime.utcnow()
+		if now < crt.valid_not_before:
+			# Not valid yet
+			return self._NodeAttributes(shape = None, fill_color = self._palette_flatui.get_hex_color("peter-river"), stroke_color = None, text_color = None)
+		elif now > crt.valid_not_after:
+			# Already expired
+			return self._NodeAttributes(shape = None, fill_color = self._palette_flatui.get_hex_color("pomegranate"), stroke_color = None, text_color = None)
+		else:
+			still_valid_days = ((crt.valid_not_after - now).total_seconds()) / 86400
+			coefficient = still_valid_days / 100
+			color = self._palette_traffic.get_hex_color(coefficient)
+			return self._NodeAttributes(shape = None, fill_color = color, stroke_color = None, text_color = None)
+
+	def _get_cert_attributes_certtype(self, crt):
+		classification = crt.classify()
+		return {
+			X509CertificateClass.CARoot:			self._NodeAttributes(shape = None, fill_color = self._palette_flatui.get_hex_color("sun-flower"), stroke_color = None, text_color = None),
+			X509CertificateClass.CAIntermediate:	self._NodeAttributes(shape = None, fill_color = self._palette_flatui.get_hex_color("orange"), stroke_color = None, text_color = None),
+			X509CertificateClass.ClientServerAuth:	self._NodeAttributes(shape = None, fill_color = self._palette_flatui.get_hex_color("amethyst"), stroke_color = None, text_color = None),
+			X509CertificateClass.ClientAuth:		self._NodeAttributes(shape = None, fill_color = self._palette_flatui.get_hex_color("emerland"), stroke_color = None, text_color = None),
+			X509CertificateClass.ServerAuth:		self._NodeAttributes(shape = None, fill_color = self._palette_flatui.get_hex_color("peter-river"), stroke_color = None, text_color = None),
+		}.get(classification, self._NodeAttributes(shape = None, fill_color = self._palette_flatui.get_hex_color("concrete"), stroke_color = None, text_color = None))
+
+	def _get_cert_attributes_keytype(self, crt):
+		# TODO: Support EdDSA
+		return {
+			Cryptosystem.RSA:	self._NodeAttributes(shape = None, fill_color = self._palette_flatui.get_hex_color("peter-river"), stroke_color = None, text_color = None),
+			Cryptosystem.ECC:	self._NodeAttributes(shape = None, fill_color = self._palette_flatui.get_hex_color("emerland"), stroke_color = None, text_color = None),
+		}.get(crt.pubkey.cryptosystem, self._NodeAttributes(shape = None, fill_color = self._palette_flatui.get_hex_color("concrete"), stroke_color = None, text_color = None))
+
+	def _get_cert_attributes_sigtype(self, crt):
+		# TODO Refactor signature algorithms
+		sigalg = crt.signature_algorithm
+		return {
+			"rsaEncryption":	self._NodeAttributes(shape = None, fill_color = self._palette_flatui.get_hex_color("peter-river"), stroke_color = None, text_color = None),
+			"ECDSA":			self._NodeAttributes(shape = None, fill_color = self._palette_flatui.get_hex_color("emerland"), stroke_color = None, text_color = None),
+		}.get(sigalg.scheme, self._NodeAttributes(shape = None, fill_color = self._palette_flatui.get_hex_color("concrete"), stroke_color = None, text_color = None))
+
+#	def _get_cert_attributes_security(self, crt):
+#		# TODO Implement this!
+#		raise NotImplementedError()
+
+	def _substitute_derhash(self, crt):
+		return crt.hashval.hex()[:8]
+
+	def _substitute_filename(self, crt):
+		return crt.source
+
+	def _substitute_filebasename(self, crt):
+		return os.path.basename(crt.source)
+
+	def _substitute_subject(self, crt):
+		return crt.subject.pretty_str
+
+	def _substitute_subject_rfc2253(self, crt):
+		return crt.subject.rfc2253_str
+
+	def _substitute_valid_not_after(self, crt):
+		return crt.valid_not_after.strftime("%Y-%m-%d")
+
+	def _all_substitutions(self, crt):
+		return { name: handler(crt) for (name, handler) in self._active_substitutions.items() }
+
+	@classmethod
+	def get_supported_substitutions(cls):
+		for methodname in dir(cls):
+			if methodname.startswith("_substitute_"):
+				yield methodname[12:]
+
+	@classmethod
+	def get_supported_colorschemes(cls):
+		for methodname in dir(cls):
+			if methodname.startswith("_get_cert_attributes_"):
+				yield methodname[21:]
+
+	@classmethod
+	def get_default_label(cls):
+		return [
+			"%(filebasename)s (%(derhash)s)",
+			"%(subject)s",
+			"%(valid_not_after)s",
+		]

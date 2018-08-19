@@ -23,6 +23,7 @@ import re
 import logging
 import tempfile
 import base64
+import enum
 import pyasn1.codec.der.encoder
 from pyasn1_modules import rfc2459
 from x509sak.SubprocessExecutor import SubprocessExecutor
@@ -30,12 +31,20 @@ from x509sak.PEMDERObject import PEMDERObject
 from x509sak.DistinguishedName import DistinguishedName
 from x509sak.Tools import CmdTools, ASN1Tools
 from x509sak.KeySpecification import SignatureAlgorithm
-from x509sak.OID import OID
+from x509sak.OID import OID, OIDDB
 from x509sak.PublicKey import PublicKey
 from x509sak.X509Extensions import X509ExtensionRegistry, X509Extensions
 from x509sak.SecurityEstimator import SecurityEstimator
 
 _log = logging.getLogger("x509sak.X509Certificate")
+
+class X509CertificateClass(enum.IntEnum):
+	CARoot = 1
+	CAIntermediate = 2
+	ClientServerAuth = 3
+	ServerAuth = 4
+	ClientAuth = 5
+	Other = 6
 
 class X509Certificate(PEMDERObject):
 	_PEM_MARKER = "CERTIFICATE"
@@ -99,6 +108,7 @@ class X509Certificate(PEMDERObject):
 				result.append(X509ExtensionRegistry.create(oid, critical, value))
 		return X509Extensions(result)
 
+	@property
 	def is_selfsigned(self):
 		return self.signed_by(self)
 
@@ -152,6 +162,37 @@ class X509Certificate(PEMDERObject):
 		if (analysis_options is not None) and analysis_options.include_raw_data:
 			result["raw"] = base64.b64encode(self.der_data).decode("ascii")
 		return result
+
+	@property
+	def is_ca_certificate(self):
+		extensions = self.get_extensions()
+		if len(extensions) == 0:
+			return True
+		else:
+			# TODO: What if present multiple times?
+			basic_constraints = extensions.get_first(OIDDB.X509Extensions.inverse("BasicConstraints"))
+			if basic_constraints is None:
+				return True
+			else:
+				return basic_constraints.is_ca
+
+	def classify(self):
+		if self.is_ca_certificate:
+			if self.is_selfsigned:
+				return X509CertificateClass.CARoot
+			else:
+				return X509CertificateClass.CAIntermediate
+		else:
+			eku = self.get_extensions().get_first(OIDDB.X509Extensions.inverse("ExtendedKeyUsage"))
+			if eku is not None:
+				(client, server) = (eku.client_auth, eku.server_auth)
+				if client and server:
+					return X509CertificateClass.ClientServerAuth
+				elif client:
+					return X509CertificateClass.ClientAuth
+				elif server:
+					return X509CertificateClass.ServerAuth
+			return X509CertificateClass.Other
 
 	def __str__(self):
 		return "X509Certificate<subject = %s, issuer = %s>" % (self.subject.rfc2253_str, self.issuer.rfc2253_str)

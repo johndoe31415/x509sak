@@ -270,7 +270,9 @@ Here's an example of some certificates that I've plotted:
 
 [//]: # (Begin of cmd-graph -- auto-generated, do not edit!)
 ```
-usage: ./x509sak.py graph [-f {dot,png,ps,pdf}] -o file [-v] [--help]
+usage: ./x509sak.py graph [-c {certtype,expiration,keytype,sigtype}]
+                          [--abbreviate-to charcnt] [-l text]
+                          [-f {dot,png,ps,pdf}] -o file [-v] [--help]
                           crtsource [crtsource ...]
 
 Graph a certificate pool
@@ -281,6 +283,22 @@ positional arguments:
                         should be included in the graph.
 
 optional arguments:
+  -c {certtype,expiration,keytype,sigtype}, --color-scheme {certtype,expiration,keytype,sigtype}
+                        Color scheme to use when coloring the certificates.
+                        Can either color by expiration date, by certificate
+                        type (client/server/CA/...), key type (RSA/ECC/etc),
+                        signature type (used hash function) or overall
+                        security level. Defaults to expiration.
+  --abbreviate-to charcnt
+                        Abbreviate each line to this amount of characters.
+                        Defaults to 30 characters.
+  -l text, --label text
+                        Label that is printed in the certificate nodes. Can be
+                        given multiple times to specify multiple lines.
+                        Substitutions that are supported are derhash,
+                        filebasename, filename, subject, subject_rfc2253,
+                        valid_not_after. Defaults to ['%(filebasename)s
+                        (%(derhash)s)', '%(subject)s', '%(valid_not_after)s'].
   -f {dot,png,ps,pdf}, --format {dot,png,ps,pdf}
                         Specifies the output file format. Can be one of dot,
                         png, ps, pdf. When unspecified, the file extension out
