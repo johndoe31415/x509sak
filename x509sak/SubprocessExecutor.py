@@ -32,6 +32,10 @@ class ExecutionResult(object):
 		self._return_code = return_code
 
 	@property
+	def executor(self):
+		return self._executor
+
+	@property
 	def stdout(self):
 		return self._stdout
 
@@ -63,12 +67,39 @@ class ExecutionResult(object):
 	def successful(self):
 		return self.return_code in self._executor.success_return_codes
 
+	def _dump_data(self, text, bin_data):
+		print("%s (%d bytes):" % (text, len(bin_data)))
+		try:
+			text_data = bin_data.decode("utf-8")
+			print(text_data)
+		except UnicodeDecodeError:
+			print(bin_data)
+
+	def dump(self):
+		success_error_str = {
+			False:	"✖",
+			True:	"✓",
+		}[self.successful]
+		success_return_codes = ", ".join("%d" % (code) for code in sorted(self.executor.success_return_codes))
+		print("%s %3d (OK = %s): %s" % (success_error_str, self.return_code, success_return_codes, self.executor.cmd_str))
+		if (self.executor.stdin is None) or (len(self.executor.stdin) == 0):
+			print("No stdin.")
+		else:
+			self._dump_data("stdin", self.executor.stdin)
+		if len(self.stdout) == 0:
+			print("No stdout.")
+		else:
+			self._dump_data("stdout", self.stdout)
+		if len(self.stderr) == 0:
+			print("No stderr.")
+		else:
+			self._dump_data("stderr", self.stderr)
+
 class SubprocessExecutor(object):
 	_verbose = False
 	_pause_after_failed_execution = False
 	_pause_before_execution = False
 
-	#def __init__(self, cmd, success_return_codes = None, on_failure = "exception", returnval = "stdout", discard_stderr = False, stdin = None, env = None):
 	def __init__(self, cmd, success_return_codes = None, on_failure = "exception", stdin = None, env = None):
 		assert(on_failure in [ "exception", "pass", "exception-nopause" ])
 		self._cmd = cmd
@@ -76,7 +107,6 @@ class SubprocessExecutor(object):
 		self._on_failure = on_failure
 		self._stdin = stdin
 		self._env = env
-
 		if self._success_return_codes is None:
 			self._success_return_codes = (0, )
 		if self._env is None:
@@ -102,27 +132,14 @@ class SubprocessExecutor(object):
 
 	def _post_execution(self, execution_result):
 		if self._verbose:
-			success_error = {
-				False:	"✖",
-				True:	"✓",
-			}[execution_result.successful]
-			print("%s %3d: %s" % (success_error, execution_result.return_code, self.cmd_str))
-
-			print(execution_result.stdout)
-			print()
+			execution_result.dump()
 
 		# Execution failed.
 		if not execution_result.successful:
 			if self._on_failure == "exception":
 				if self._pause_after_failed_execution:
-					print("Execution failed: %s" % (self.cmd_str))
-					print("Input: %s" % (self.stdin))
-					print("Return code: %d (expected %s)." % (execution_result.return_code, ", ".join("%d" % (code) for code in sorted(self.success_return_codes))))
-					print("stdout was:")
-					print(execution_result.stdout)
-					if len(execution_result.stderr) > 0:
-						print("stderr was:")
-						print(execution_result.stderr)
+					if not self._verbose:
+						execution_result.dump()
 					input("Hit ENTER to continue...")
 			if self._on_failure in [ "exception", "exception-nopause" ]:
 				raise CmdExecutionFailedException("Execution of subprocess failed: %s" % (os.path.basename(self._cmd[0])), execution_result = execution_result)
