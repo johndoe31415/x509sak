@@ -51,11 +51,13 @@ class ActionGenerateBrokenRSA(BaseAction):
 
 		self._log.debug("Selecting %s primes with p = %d bit and q = %d bit.", self._primetype, self._p_bitlen, self._q_bitlen)
 
-		self._prime_db = PrimeDB(self._args.prime_db)
-		p = self._prime_db.get(bitlen = self._p_bitlen, primetype = self._primetype)
-		q_generator = self._select_q(p)
+		self._prime_db = PrimeDB(self._args.prime_db, generator_program = self._args.generator)
+		p = None
 		q = None
 		while True:
+			if p is None:
+				p = self._prime_db.get(bitlen = self._p_bitlen, primetype = self._primetype)
+				q_generator = self._select_q(p)
 			if q is None:
 				q = next(q_generator)
 			if self._args.gcd_n_phi_n:
@@ -87,8 +89,14 @@ class ActionGenerateBrokenRSA(BaseAction):
 				# Pair (phi(n), e) wasn't acceptable.
 				self._log.debug("gcd(totient, e) was %d, retrying.", gcd)
 				if self._args.public_exponent != -1:
-					# Public exponent e is fixed, need to choose another q
-					(p, q) = (q, None)
+					# Public exponent e is fixed, need to choose another q.
+					if p.bit_length() == q.bit_length():
+						# Can re-use q as next p
+						(p, q) = (q, None)
+						q_generator = self._select_q(p)
+					else:
+						# When they differ in length, need to re-choose both values
+						(p, q) = (None, None)
 
 		rsa_keypair = RSAPrivateKey.create(p = p, q = q, e = e, swap_e_d = self._args.switch_e_d, valid_only = not self._args.accept_unusable_key, carmichael_totient = self._args.carmichael_totient)
 		rsa_keypair.write_pemfile(self._args.outfile)
