@@ -7,4 +7,4 @@ before_install:
     - pip3 install pyasn1 pyasn1_modules
 
 script: 
-    - ./run_tests.py --exclude HardwareTokenTests
+    - ./run_tests.py --exclude HardwareTokenTests -v
