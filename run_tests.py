@@ -341,7 +341,7 @@ if args.coverage:
 if args.verbose >= 1:
 	SubprocessExecutor.set_failed_verbose()
 if args.verbose >= 2:
-	SubprocessExecutor.set_verbose()
+	SubprocessExecutor.set_all_verbose()
 if args.verbose >= 3:
 	SubprocessExecutor.pause_after_failed_execution()
 runner = SelectiveTestRunner(args, x509sak.tests, failed_tests_file = ".tests_failed.json")

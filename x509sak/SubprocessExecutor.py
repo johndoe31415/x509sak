@@ -23,6 +23,7 @@ import os
 import subprocess
 from x509sak.Tools import CmdTools
 from x509sak.Exceptions import CmdExecutionFailedException
+from x509sak.HexDump import HexDump
 
 class ExecutionResult(object):
 	def __init__(self, executor, stdout, stderr, return_code):
@@ -73,7 +74,7 @@ class ExecutionResult(object):
 			text_data = bin_data.decode("utf-8")
 			print(text_data)
 		except UnicodeDecodeError:
-			print(bin_data)
+			HexDump().dump(bin_data)
 
 	def dump(self):
 		success_error_str = {
