@@ -35,7 +35,7 @@ class CmdLineTestsExamine(BaseTest):
 	def test_crt_with_custom_key_usage(self):
 		with tempfile.NamedTemporaryFile(prefix = "crt_", suffix = ".pem") as f:
 			crt = self._load_crt("ecdsa_crt_custom_key_usage.crt").write_pemfile(f.name)
-			output = SubprocessExecutor.run(self._x509sak + [ "examine", f.name ])
+			output = SubprocessExecutor(self._x509sak + [ "examine", f.name ]).run().stdout
 			self.assertIn(b"CN = 0b239049", output)
 			self.assertIn(b"CN = \"Root CA\"", output)
 			self.assertIn(b"ECC on prime256v1", output)
@@ -43,7 +43,7 @@ class CmdLineTestsExamine(BaseTest):
 	def test_examine_write_json(self):
 		with tempfile.NamedTemporaryFile(prefix = "crt_", suffix = ".pem") as f, tempfile.NamedTemporaryFile(prefix = "crt_", suffix = ".json") as jsonfile:
 			crt = self._load_crt("ecdsa_crt_custom_key_usage.crt").write_pemfile(f.name)
-			output = SubprocessExecutor.run(self._x509sak + [ "examine", "--write-json", jsonfile.name, f.name ])
+			output = SubprocessExecutor(self._x509sak + [ "examine", "--write-json", jsonfile.name, f.name ]).run().stdout
 			with open(jsonfile.name) as jsonfile:
 				json_data = json.load(jsonfile)
 			self.assertEqual(json_data[0]["issuer"]["rfc2253"], "CN=Root CA")

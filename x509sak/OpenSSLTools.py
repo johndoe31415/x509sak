@@ -38,7 +38,7 @@ class OpenSSLTools(object):
 			cmd = [ "openssl", "ecparam", "-genkey", "-out", private_key_filename, "-name", keyspec["curve"] ]
 		else:
 			raise LazyDeveloperException(NotImplemented, keyspec.cryptosystem)
-		SubprocessExecutor.run(cmd)
+		SubprocessExecutor(cmd).run()
 
 	@classmethod
 	def create_private_key(cls, private_key_storage, keyspec):
@@ -60,7 +60,7 @@ class OpenSSLTools(object):
 			else:
 				raise LazyDeveloperException(NotImplemented, private_key_storage.storage_form)
 			cmd += [ "-in", pem_file.name, "-out", private_key_storage.full_filename ]
-			SubprocessExecutor.run(cmd)
+			SubprocessExecutor(cmd).run()
 
 	@classmethod
 	def _privkey_option(cls, private_key_storage, key_option = "key"):
@@ -98,7 +98,7 @@ class OpenSSLTools(object):
 				cmd += [ "-set_serial", "%d" % (serial) ]
 			cmd += cls._privkey_option(private_key_storage)
 			cmd += [  "-subj", subject_dn, "-out", output_filename ]
-			SubprocessExecutor.run(cmd, env = { "OPENSSL_CONF": config_file.name })
+			SubprocessExecutor(cmd, env = { "OPENSSL_CONF": config_file.name }).run()
 
 	@classmethod
 	def create_selfsigned_certificate(cls, private_key_storage, certificate_filename, subject_dn, validity_days, x509_extensions = None, subject_alternative_dns_names = None, subject_alternative_ip_addresses = None, signing_hash = None, serial = None):
@@ -142,7 +142,7 @@ class OpenSSLTools(object):
 				cmd += [ "-days", str(validity_days) ]
 			if signing_hash is not None:
 				cmd += [ "-md", signing_hash ]
-			SubprocessExecutor.run(cmd, env = { "OPENSSL_CONF": config_file.name })
+			SubprocessExecutor(cmd, env = { "OPENSSL_CONF": config_file.name }).run()
 
 	@classmethod
 	def ca_revoke_crt(cls, ca_manager, crt_filename):
@@ -151,7 +151,7 @@ class OpenSSLTools(object):
 		with WorkDir(ca_manager.capath), tempfile.NamedTemporaryFile("w", prefix = "config_", suffix = ".cnf") as config_file:
 			openssl_config.write_to(config_file.name)
 			cmd = [ "openssl", "ca", "-revoke", crt_absfilename ]
-			SubprocessExecutor.run(cmd, env = { "OPENSSL_CONF": config_file.name })
+			SubprocessExecutor(cmd, env = { "OPENSSL_CONF": config_file.name }).run()
 
 	@classmethod
 	def ca_create_crl(cls, ca_manager, crl_filename, signing_hash = None, validity_days = None):
@@ -164,19 +164,19 @@ class OpenSSLTools(object):
 				cmd += [ "-crldays", str(validity_days) ]
 			if signing_hash is not None:
 				cmd += [ "-md", signing_hash ]
-			SubprocessExecutor.run(cmd, env = { "OPENSSL_CONF": config_file.name })
+			SubprocessExecutor(cmd, env = { "OPENSSL_CONF": config_file.name }).run()
 
 	@classmethod
 	def sign_data(cls, signing_algorithm, private_key_filename, payload):
 		cmd = [ "openssl", "dgst", "-sign", private_key_filename, "-%s" % (signing_algorithm.hashfunction) ]
-		signature = SubprocessExecutor.run(cmd, stdin = payload, discard_stderr = True)
+		signature = SubprocessExecutor(cmd, stdin = payload).run().stdout
 		return signature
 
 	@classmethod
 	def private_to_public(cls, private_key_filename, public_key_filename):
-		success = SubprocessExecutor.run([ "openssl", "rsa", "-in", private_key_filename, "-pubout", "-out", public_key_filename ], on_failure = "pass", returnval = "success")
+		success = SubprocessExecutor([ "openssl", "rsa", "-in", private_key_filename, "-pubout", "-out", public_key_filename ], on_failure = "pass").run().successful
 		if not success:
-			success = SubprocessExecutor.run([ "openssl", "ec", "-in", private_key_filename, "-pubout", "-out", public_key_filename ], on_failure = "pass", returnval = "success")
+			success = SubprocessExecutor([ "openssl", "ec", "-in", private_key_filename, "-pubout", "-out", public_key_filename ], on_failure = "pass").run().successful
 		if not success:
 			raise InvalidInputException("File %s contained neither RSA nor ECC private key." % (private_key_filename))
 
@@ -202,5 +202,5 @@ class OpenSSLTools(object):
 			if modern_crypto:
 				cmd += [ "-macalg", "sha384", "-maciter", "-keypbe", "aes-128-cbc" ]
 			pem_certificates = "\n".join(certificate.to_pem_data() for certificate in certificates)
-			output = SubprocessExecutor.run(cmd, stdin = pem_certificates.encode("ascii"), discard_stderr = True)
+			output = SubprocessExecutor(cmd, stdin = pem_certificates.encode("ascii")).run().stdout
 			return output

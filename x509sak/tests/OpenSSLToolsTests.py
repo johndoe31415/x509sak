@@ -50,7 +50,7 @@ class OpenSSLToolsTests(BaseTest):
 				content = self._read_file(f.name)
 				self.assertIn(b"BEGIN RSA PRIVATE KEY", content)
 				self.assertIn(b"END RSA PRIVATE KEY", content)
-				output = SubprocessExecutor.run([ "openssl", "rsa", "-text" ], stdin = content)
+				output = SubprocessExecutor([ "openssl", "rsa", "-text" ], stdin = content).run().stdout
 				self.assertIn(output_data, output)
 
 	def test_gen_privkey_ecc(self):
@@ -73,7 +73,7 @@ class OpenSSLToolsTests(BaseTest):
 				self.assertNotIn(b"END EC PARAMETERS", content)
 				self.assertIn(b"BEGIN EC PRIVATE KEY", content)
 				self.assertIn(b"END EC PRIVATE KEY", content)
-				output = SubprocessExecutor.run([ "openssl", "ec", "-text" ], stdin = content)
+				output = SubprocessExecutor([ "openssl", "ec", "-text" ], stdin = content).run().stdout
 				self.assertIn(output_data[0], output)
 				self.assertIn(output_data[1], output)
 
@@ -83,14 +83,14 @@ class OpenSSLToolsTests(BaseTest):
 			private_key_storage = PrivateKeyStorage(storage_form = PrivateKeyStorageForm.PEM_FILE, filename = privkey_file.name)
 
 			OpenSSLTools.create_csr(private_key_storage = private_key_storage, csr_filename = csr_file.name, subject_dn = "/CN=Foobar")
-			output = SubprocessExecutor.run([ "openssl", "req", "-text" ], stdin = self._read_file(csr_file.name))
+			output = SubprocessExecutor([ "openssl", "req", "-text" ], stdin = self._read_file(csr_file.name)).run().stdout
 			self.assertIn(b"BEGIN CERTIFICATE REQUEST", output)
 			self.assertIn(b"END CERTIFICATE REQUEST", output)
 			self.assertTrue((b"Subject: CN = Foobar" in output) or (b"Subject: CN=Foobar" in output))
 			self.assertNotIn(b"Requested Extensions:", output)
 
 			OpenSSLTools.create_csr(private_key_storage = private_key_storage, csr_filename = csr_file.name, subject_dn = "/CN=Foobar", subject_alternative_dns_names = [ "muhkuh" ])
-			output = SubprocessExecutor.run([ "openssl", "req", "-text" ], stdin = self._read_file(csr_file.name))
+			output = SubprocessExecutor([ "openssl", "req", "-text" ], stdin = self._read_file(csr_file.name)).run().stdout
 			self.assertIn(b"BEGIN CERTIFICATE REQUEST", output)
 			self.assertIn(b"END CERTIFICATE REQUEST", output)
 			self.assertTrue((b"Subject: CN = Foobar" in output) or (b"Subject: CN=Foobar" in output))
@@ -99,7 +99,7 @@ class OpenSSLToolsTests(BaseTest):
 			self.assertIn(b"DNS:muhkuh", output)
 
 			OpenSSLTools.create_csr(private_key_storage = private_key_storage, csr_filename = csr_file.name, subject_dn = "/CN=Foobar", subject_alternative_dns_names = [ "muhkuh", "kruckelmuckel" ])
-			output = SubprocessExecutor.run([ "openssl", "req", "-text" ], stdin = self._read_file(csr_file.name))
+			output = SubprocessExecutor([ "openssl", "req", "-text" ], stdin = self._read_file(csr_file.name)).run().stdout
 			self.assertIn(b"BEGIN CERTIFICATE REQUEST", output)
 			self.assertIn(b"END CERTIFICATE REQUEST", output)
 			self.assertTrue((b"Subject: CN = Foobar" in output) or (b"Subject: CN=Foobar" in output))
@@ -109,7 +109,7 @@ class OpenSSLToolsTests(BaseTest):
 			self.assertIn(b"DNS:kruckelmuckel", output)
 
 			OpenSSLTools.create_csr(private_key_storage = private_key_storage, csr_filename = csr_file.name, subject_dn = "/CN=Foobar", subject_alternative_dns_names = [ "muhkuh", "kruckelmuckel" ], subject_alternative_ip_addresses = [ "11.22.33.44", "99.88.77.66", "abcd::9876" ])
-			output = SubprocessExecutor.run([ "openssl", "req", "-text" ], stdin = self._read_file(csr_file.name))
+			output = SubprocessExecutor([ "openssl", "req", "-text" ], stdin = self._read_file(csr_file.name)).run().stdout
 			self.assertIn(b"BEGIN CERTIFICATE REQUEST", output)
 			self.assertIn(b"END CERTIFICATE REQUEST", output)
 			self.assertTrue((b"Subject: CN = Foobar" in output) or (b"Subject: CN=Foobar" in output))
@@ -122,7 +122,7 @@ class OpenSSLToolsTests(BaseTest):
 			self.assertIn(b"IP Address:ABCD:0:0:0:0:0:0:9876", output)
 
 			OpenSSLTools.create_csr(private_key_storage = private_key_storage, csr_filename = csr_file.name, subject_dn = "/CN=Foobar", subject_alternative_dns_names = [ "muhkuh", "kruckelmuckel" ], subject_alternative_ip_addresses = [ "11.22.33.44", "99.88.77.66", "abcd::9876" ], x509_extensions = { "2.3.4.5.6.7": "ASN1:UTF8String:Never gonna give you up" })
-			output = SubprocessExecutor.run([ "openssl", "req", "-text" ], stdin = self._read_file(csr_file.name))
+			output = SubprocessExecutor([ "openssl", "req", "-text" ], stdin = self._read_file(csr_file.name)).run().stdout
 			self.assertIn(b"BEGIN CERTIFICATE REQUEST", output)
 			self.assertIn(b"END CERTIFICATE REQUEST", output)
 			self.assertTrue((b"Subject: CN = Foobar" in output) or (b"Subject: CN=Foobar" in output))
@@ -141,14 +141,14 @@ class OpenSSLToolsTests(BaseTest):
 			private_key_storage = PrivateKeyStorage(storage_form = PrivateKeyStorageForm.PEM_FILE, filename = privkey_file.name)
 
 			OpenSSLTools.create_selfsigned_certificate(private_key_storage = private_key_storage, certificate_filename = certificate_file.name, subject_dn = "/CN=Foobar", validity_days = 365)
-			output = SubprocessExecutor.run([ "openssl", "x509", "-text" ], stdin = self._read_file(certificate_file.name))
+			output = SubprocessExecutor([ "openssl", "x509", "-text" ], stdin = self._read_file(certificate_file.name)).run().stdout
 			self.assertIn(b"BEGIN CERTIFICATE--", output)
 			self.assertIn(b"END CERTIFICATE--", output)
 			self.assertTrue((b"Subject: CN = Foobar" in output) or (b"Subject: CN=Foobar" in output))
 			self.assertNotIn(b"X509v3 extensions:", output)
 
 			OpenSSLTools.create_selfsigned_certificate(private_key_storage = private_key_storage, certificate_filename = certificate_file.name, subject_dn = "/CN=Foobar", subject_alternative_dns_names = [ "muhkuh" ], validity_days = 365)
-			output = SubprocessExecutor.run([ "openssl", "x509", "-text" ], stdin = self._read_file(certificate_file.name))
+			output = SubprocessExecutor([ "openssl", "x509", "-text" ], stdin = self._read_file(certificate_file.name)).run().stdout
 			self.assertIn(b"BEGIN CERTIFICATE--", output)
 			self.assertIn(b"END CERTIFICATE--", output)
 			self.assertTrue((b"Subject: CN = Foobar" in output) or (b"Subject: CN=Foobar" in output))
@@ -157,7 +157,7 @@ class OpenSSLToolsTests(BaseTest):
 			self.assertIn(b"DNS:muhkuh", output)
 
 			OpenSSLTools.create_selfsigned_certificate(private_key_storage = private_key_storage, certificate_filename = certificate_file.name, subject_dn = "/CN=Foobar", subject_alternative_dns_names = [ "muhkuh", "kruckelmuckel" ], validity_days = 365)
-			output = SubprocessExecutor.run([ "openssl", "x509", "-text" ], stdin = self._read_file(certificate_file.name))
+			output = SubprocessExecutor([ "openssl", "x509", "-text" ], stdin = self._read_file(certificate_file.name)).run().stdout
 			self.assertIn(b"BEGIN CERTIFICATE--", output)
 			self.assertIn(b"END CERTIFICATE--", output)
 			self.assertTrue((b"Subject: CN = Foobar" in output) or (b"Subject: CN=Foobar" in output))
@@ -167,7 +167,7 @@ class OpenSSLToolsTests(BaseTest):
 			self.assertIn(b"DNS:kruckelmuckel", output)
 
 			OpenSSLTools.create_selfsigned_certificate(private_key_storage = private_key_storage, certificate_filename = certificate_file.name, subject_dn = "/CN=Foobar", subject_alternative_dns_names = [ "muhkuh", "kruckelmuckel" ], subject_alternative_ip_addresses = [ "11.22.33.44", "99.88.77.66", "abcd::9876" ], validity_days = 365)
-			output = SubprocessExecutor.run([ "openssl", "x509", "-text" ], stdin = self._read_file(certificate_file.name))
+			output = SubprocessExecutor([ "openssl", "x509", "-text" ], stdin = self._read_file(certificate_file.name)).run().stdout
 			self.assertIn(b"BEGIN CERTIFICATE--", output)
 			self.assertIn(b"END CERTIFICATE--", output)
 			self.assertTrue((b"Subject: CN = Foobar" in output) or (b"Subject: CN=Foobar" in output))
@@ -180,7 +180,7 @@ class OpenSSLToolsTests(BaseTest):
 			self.assertIn(b"IP Address:ABCD:0:0:0:0:0:0:9876", output)
 
 			OpenSSLTools.create_selfsigned_certificate(private_key_storage = private_key_storage, certificate_filename = certificate_file.name, subject_dn = "/CN=Foobar", subject_alternative_dns_names = [ "muhkuh", "kruckelmuckel" ], subject_alternative_ip_addresses = [ "11.22.33.44", "99.88.77.66", "abcd::9876" ], x509_extensions = { "2.3.4.5.6.7": "ASN1:UTF8String:Never gonna give you up" }, validity_days = 365)
-			output = SubprocessExecutor.run([ "openssl", "x509", "-text" ], stdin = self._read_file(certificate_file.name))
+			output = SubprocessExecutor([ "openssl", "x509", "-text" ], stdin = self._read_file(certificate_file.name)).run().stdout
 			self.assertIn(b"BEGIN CERTIFICATE--", output)
 			self.assertIn(b"END CERTIFICATE--", output)
 			self.assertTrue((b"Subject: CN = Foobar" in output) or (b"Subject: CN=Foobar" in output))

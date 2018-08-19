@@ -98,7 +98,7 @@ class PrimeDB(object):
 			count = 1
 		_log.debug("Generating %d %d bit %s prime(s) using %s; current DB %s offset is %d", count, bitlen, primetype, self._generator, filename, offset)
 		cmd = [ self._generator, "--prime-type", primetype, "--bit-length", str(bitlen), "--num-primes", str(count) ]
-		SubprocessExecutor.run(cmd)
+		SubprocessExecutor(cmd).run()
 
 		# finally re-read database from previous offset
 		self._load_primes(bitlen, primetype, offset)

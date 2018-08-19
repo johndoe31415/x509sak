@@ -62,7 +62,7 @@ class SoftHSMInstance(object):
 			print("log.level = INFO", file = self._softhsm_config_file)
 			self._softhsm_config_file.flush()
 			self._env = { "SOFTHSM2_CONF": self._softhsm_config_file.name }
-			SubprocessExecutor.run([ "softhsm2-util", "--init-token", "--slot", "0", "--label", "TestToken", "--so-pin", "3537363231383830", "--pin", "648219" ], env = self._env)
+			SubprocessExecutor([ "softhsm2-util", "--init-token", "--slot", "0", "--label", "TestToken", "--so-pin", "3537363231383830", "--pin", "648219" ], env = self._env).run()
 
 			return self
 		except:
@@ -71,22 +71,21 @@ class SoftHSMInstance(object):
 			raise
 
 	def keygen(self, key_id, key_label, key_spec):
-		SubprocessExecutor.run([ "pkcs11-tool", "--module", self.module_so, "--login", "--pin", "648219", "--keypairgen", "--key-type", key_spec, "--id", "%x" % (key_id), "--label", key_label ], env = self._env)
+		SubprocessExecutor([ "pkcs11-tool", "--module", self.module_so, "--login", "--pin", "648219", "--keypairgen", "--key-type", key_spec, "--id", "%x" % (key_id), "--label", key_label ], env = self._env).run()
 		return "pkcs11:object=%s;type=private;pin-value=648219;token=TestToken" % (urllib.parse.quote(key_label))
 
 	def list_objects(self):
-		output = SubprocessExecutor.run([ "pkcs11-tool", "--module", self.module_so, "--login", "--pin", "648219", "--list-objects" ], env = self._env)
+		output = SubprocessExecutor([ "pkcs11-tool", "--module", self.module_so, "--login", "--pin", "648219", "--list-objects" ], env = self._env).run().stdout
 		print(output.decode())
 
 	def get_pubkey_der(self, key_id):
-		output = SubprocessExecutor.run([ "pkcs11-tool", "--module", self.module_so, "--login", "--pin", "648219", "--read-object", "--type", "pubkey", "--id", "%x" % (key_id) ], env = self._env, discard_stderr = True)
+		output = SubprocessExecutor([ "pkcs11-tool", "--module", self.module_so, "--login", "--pin", "648219", "--read-object", "--type", "pubkey", "--id", "%x" % (key_id) ], env = self._env).run().stdout
 		return output
 
 	def get_ecc_pubkey_text(self, key_id):
 		pubkey = self.get_pubkey_der(key_id)
-		output = SubprocessExecutor.run([ "openssl", "ec", "-inform", "der", "-pubin", "-text", "-noout" ], stdin = pubkey, discard_stderr = True)
-		output = output.decode()
-		return output
+		result = SubprocessExecutor([ "openssl", "ec", "-inform", "der", "-pubin", "-text", "-noout" ], stdin = pubkey).run()
+		return result.stdout_text
 
 	def __cleanup(self):
 		self._softhsm_storage_dir.cleanup()
@@ -107,20 +106,20 @@ class HardwareTokenTests(BaseTest):
 
 			# With unknown key object name, it fails
 			with self.assertRaises(CmdExecutionFailedException):
-				SubprocessExecutor.run(self._x509sak + [ "createca", "-f", "-s", "/CN=Root CA with key in HSM", "--pkcs11-so-search", hsm.so_search_path, "--pkcs11-module", "libsofthsm2.so", "--hardware-key", key_name.replace("secure", "UNKNOWN"), "root_ca" ], env = hsm.env, on_failure = "exception-nopause")
+				SubprocessExecutor(self._x509sak + [ "createca", "-f", "-s", "/CN=Root CA with key in HSM", "--pkcs11-so-search", hsm.so_search_path, "--pkcs11-module", "libsofthsm2.so", "--hardware-key", key_name.replace("secure", "UNKNOWN"), "root_ca" ], env = hsm.env, on_failure = "exception-nopause").run()
 
 			# With unknown token name, it fails
 			with self.assertRaises(CmdExecutionFailedException):
-				SubprocessExecutor.run(self._x509sak + [ "createca", "-f", "-s", "/CN=Root CA with key in HSM", "--pkcs11-so-search", hsm.so_search_path, "--pkcs11-module", "libsofthsm2.so", "--hardware-key", key_name.replace("Token", "UNKNOWN"), "root_ca" ], env = hsm.env, on_failure = "exception-nopause")
+				SubprocessExecutor(self._x509sak + [ "createca", "-f", "-s", "/CN=Root CA with key in HSM", "--pkcs11-so-search", hsm.so_search_path, "--pkcs11-module", "libsofthsm2.so", "--hardware-key", key_name.replace("Token", "UNKNOWN"), "root_ca" ], env = hsm.env, on_failure = "exception-nopause").run()
 
 			# Create root certificate with key in SoftHSM
-			SubprocessExecutor.run(self._x509sak + [ "createca", "-f", "-s", "/CN=Root CA with key in HSM", "--pkcs11-so-search", hsm.so_search_path, "--pkcs11-module", "libsofthsm2.so", "--hardware-key", key_name, "root_ca" ], env = hsm.env)
+			SubprocessExecutor(self._x509sak + [ "createca", "-f", "-s", "/CN=Root CA with key in HSM", "--pkcs11-so-search", hsm.so_search_path, "--pkcs11-module", "libsofthsm2.so", "--hardware-key", key_name, "root_ca" ], env = hsm.env).run()
 
 			# Check that it's validly self-signed
-			SubprocessExecutor.run([ "openssl", "verify", "-check_ss_sig", "-CAfile", "root_ca/CA.crt", "root_ca/CA.crt" ])
+			SubprocessExecutor([ "openssl", "verify", "-check_ss_sig", "-CAfile", "root_ca/CA.crt", "root_ca/CA.crt" ]).run()
 
 			# Check that the public key on the smart card appears inside the certificate
-			output = SubprocessExecutor.run([ "openssl", "x509", "-noout", "-text", "-in", "root_ca/CA.crt" ])
+			output = SubprocessExecutor([ "openssl", "x509", "-noout", "-text", "-in", "root_ca/CA.crt" ]).run().stdout
 			self.assertIn(pubkey_start, output)
 
 
@@ -129,26 +128,26 @@ class HardwareTokenTests(BaseTest):
 			key_name = hsm.keygen(key_id = 1, key_label = "CA_key", key_spec = "EC:secp256r1")
 
 			# Create root certificate with key in SoftHSM
-			SubprocessExecutor.run(self._x509sak + [ "createca", "-s", "/CN=Root CA with key in HSM", "--pkcs11-so-search", hsm.so_search_path, "--pkcs11-module", "libsofthsm2.so", "--hardware-key", key_name, "root_ca" ], env = hsm.env)
+			SubprocessExecutor(self._x509sak + [ "createca", "-s", "/CN=Root CA with key in HSM", "--pkcs11-so-search", hsm.so_search_path, "--pkcs11-module", "libsofthsm2.so", "--hardware-key", key_name, "root_ca" ], env = hsm.env).run()
 
 			# Then create child certificate with that CA, but have child key in software
-			SubprocessExecutor.run(self._x509sak + [ "createcsr", "-s", "/CN=Child Cert", "-t", "tls-client", "-c", "root_ca", "client.key", "client.crt" ], env = hsm.env)
+			SubprocessExecutor(self._x509sak + [ "createcsr", "-s", "/CN=Child Cert", "-t", "tls-client", "-c", "root_ca", "client.key", "client.crt" ], env = hsm.env).run()
 
 			# Verify the child certificate is valid
-			SubprocessExecutor.run([ "openssl", "verify", "-check_ss_sig", "-CAfile", "root_ca/CA.crt", "client.crt" ])
+			SubprocessExecutor([ "openssl", "verify", "-check_ss_sig", "-CAfile", "root_ca/CA.crt", "client.crt" ]).run()
 
 	def test_sign_csr(self):
 		with SoftHSMInstance() as hsm, tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
 			key_name = hsm.keygen(key_id = 1, key_label = "CA_key", key_spec = "EC:secp256r1")
 
 			# Create root certificate with key in SoftHSM
-			SubprocessExecutor.run(self._x509sak + [ "createca", "-s", "/CN=Root CA with key in HSM", "--pkcs11-so-search", hsm.so_search_path, "--pkcs11-module", "libsofthsm2.so", "--hardware-key", key_name, "root_ca" ], env = hsm.env)
+			SubprocessExecutor(self._x509sak + [ "createca", "-s", "/CN=Root CA with key in HSM", "--pkcs11-so-search", hsm.so_search_path, "--pkcs11-module", "libsofthsm2.so", "--hardware-key", key_name, "root_ca" ], env = hsm.env).run()
 
 			# Then create child CSR
-			SubprocessExecutor.run(self._x509sak + [ "createcsr", "client.key", "client.csr" ], env = hsm.env)
+			SubprocessExecutor(self._x509sak + [ "createcsr", "client.key", "client.csr" ], env = hsm.env).run()
 
 			# Finally, sign the child certificate
-			SubprocessExecutor.run(self._x509sak + [ "signcsr", "-s", "/CN=Child Cert", "-t", "tls-client", "root_ca", "client.csr", "client.crt" ], env = hsm.env)
+			SubprocessExecutor(self._x509sak + [ "signcsr", "-s", "/CN=Child Cert", "-t", "tls-client", "root_ca", "client.csr", "client.crt" ], env = hsm.env).run()
 
 			# Verify the child certificate is valid
-			SubprocessExecutor.run([ "openssl", "verify", "-check_ss_sig", "-CAfile", "root_ca/CA.crt", "client.crt" ])
+			SubprocessExecutor([ "openssl", "verify", "-check_ss_sig", "-CAfile", "root_ca/CA.crt", "client.crt" ]).run()

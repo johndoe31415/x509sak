@@ -222,12 +222,11 @@ except (UserErrorException, InvisibleUserErrorException) as e:
 		print(file = sys.stderr)
 	if isinstance(e, UserErrorException) or (logging.root.level == logging.DEBUG):
 		print("%s: %s" % (e.__class__.__name__, str(e)), file = sys.stderr)
-	elif isinstance(e, CmdExecutionFailedException):
-		if (e.stderr is not None) and (len(e.stderr) > 0):
-			print("Subprocess command execution failed:", file = sys.stderr)
-			sys.stderr.write(e.stderr.decode())
-		else:
-			print("Subprocess command execution failed.")
 	else:
 		print("Failure while processing this request: %s" % (e.__class__.__name__), file = sys.stderr)
+
+	if isinstance(e, CmdExecutionFailedException):
+		if len(e.execution_result.stderr) > 0:
+			print("~" * 120)
+			sys.stderr.write(e.execution_result.stderr)
 	sys.exit(1)

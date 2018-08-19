@@ -24,7 +24,7 @@ from x509sak.tests.BaseTest import BaseTest
 
 class CmdLineTestsDumpKey(BaseTest):
 	def test_dump_rsa_privkey(self):
-		output = SubprocessExecutor.run(self._x509sak + [ "dumpkey", "x509sak/tests/data/privkey_rsa_768.pem" ])
+		output = SubprocessExecutor(self._x509sak + [ "dumpkey", "x509sak/tests/data/privkey_rsa_768.pem" ]).run().stdout
 		self.assertIn(b"768 bit RSA private key", output)
 		self.assertIn(b"p = 0xf918e2f126754ce0eaee977d800c", output)
 		self.assertIn(b"q = 0xec3e0a0cf644a2ea4a2bd0dd47d6", output)
@@ -32,18 +32,18 @@ class CmdLineTestsDumpKey(BaseTest):
 		self.assertIn(b"e = 0x10001", output)
 
 	def test_dump_rsa_pubkey(self):
-		output = SubprocessExecutor.run(self._x509sak + [ "dumpkey", "--public-key", "x509sak/tests/data/pubkey_rsa_768.pem" ])
+		output = SubprocessExecutor(self._x509sak + [ "dumpkey", "--public-key", "x509sak/tests/data/pubkey_rsa_768.pem" ]).run().stdout
 		self.assertIn(b"768 bit RSA public key", output)
 		self.assertIn(b"n = 0xe5df4f04db84354c15180af8034e", output)
 		self.assertIn(b"e = 0x10001", output)
 
 	def test_dump_ecc_privkey(self):
-		output = SubprocessExecutor.run(self._x509sak + [ "dumpkey", "--key-type", "ecc", "x509sak/tests/data/privkey_ecc_secp256r1.pem" ])
+		output = SubprocessExecutor(self._x509sak + [ "dumpkey", "--key-type", "ecc", "x509sak/tests/data/privkey_ecc_secp256r1.pem" ]).run().stdout
 		self.assertIn(b"ECC private key on prime256v1", output)
 		self.assertIn(b"(x, y) = (0x4774531f884fd64bf4ad6f2eaf6f1b777b5f4e163c6a354449af98bb3151d2af, 0x4b17e06b9f14831069356e9f5f511163a1a7032c59d8bbea304339ac86d84cb5)", output)
 		self.assertIn(b"d = 0x403ae4dc0ec5671c9eae4fa5fec04170a1a5fef7968190904fcfa874c90d6664", output)
 
 	def test_dump_ecc_pubkey(self):
-		output = SubprocessExecutor.run(self._x509sak + [ "dumpkey", "--key-type", "ecc", "--public-key", "x509sak/tests/data/pubkey_ecc_secp256r1.pem" ])
+		output = SubprocessExecutor(self._x509sak + [ "dumpkey", "--key-type", "ecc", "--public-key", "x509sak/tests/data/pubkey_ecc_secp256r1.pem" ]).run().stdout
 		self.assertIn(b"ECC public key on prime256v1", output)
 		self.assertIn(b"(x, y) = (0x4774531f884fd64bf4ad6f2eaf6f1b777b5f4e163c6a354449af98bb3151d2af, 0x4b17e06b9f14831069356e9f5f511163a1a7032c59d8bbea304339ac86d84cb5)", output)

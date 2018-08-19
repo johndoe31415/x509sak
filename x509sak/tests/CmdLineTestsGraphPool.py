@@ -26,7 +26,7 @@ from x509sak.SubprocessExecutor import SubprocessExecutor
 class CmdLineTestsGraphPool(BaseTest):
 	def test_create_dot(self):
 		with tempfile.NamedTemporaryFile(mode = "w", prefix = "graph_", suffix = ".dot") as f:
-			SubprocessExecutor.run(self._x509sak + [ "graph", "--outfile", f.name, "x509sak/tests/data/johannes-bauer.com.crt" ])
+			SubprocessExecutor(self._x509sak + [ "graph", "--outfile", f.name, "x509sak/tests/data/johannes-bauer.com.crt" ]).run()
 			with open(f.name) as f:
 				dotfile = f.read()
 			self.assertIn("digraph", dotfile)
@@ -34,33 +34,33 @@ class CmdLineTestsGraphPool(BaseTest):
 
 	def test_render_dot_png(self):
 		with tempfile.NamedTemporaryFile(mode = "w", prefix = "graph_", suffix = ".png") as f:
-			SubprocessExecutor.run(self._x509sak + [ "graph", "--outfile", f.name, "x509sak/tests/data/johannes-bauer.com.crt" ])
+			SubprocessExecutor(self._x509sak + [ "graph", "--outfile", f.name, "x509sak/tests/data/johannes-bauer.com.crt" ]).run()
 			with open(f.name, "rb") as f:
 				dotfile = f.read()
 			self.assertTrue(dotfile.startswith(b"\x89PNG\r\n"))
 
 	def test_render_dot_ps(self):
 		with tempfile.NamedTemporaryFile(mode = "w", prefix = "graph_", suffix = ".ps") as f:
-			SubprocessExecutor.run(self._x509sak + [ "graph", "--outfile", f.name, "x509sak/tests/data/johannes-bauer.com.crt" ])
+			SubprocessExecutor(self._x509sak + [ "graph", "--outfile", f.name, "x509sak/tests/data/johannes-bauer.com.crt" ]).run()
 			with open(f.name, "rb") as f:
 				dotfile = f.read()
 			self.assertTrue(dotfile.startswith(b"%!PS-Adobe-3.0"))
 
 	def test_render_dot_pdf(self):
 		with tempfile.NamedTemporaryFile(mode = "w", prefix = "graph_", suffix = ".pdf") as f:
-			SubprocessExecutor.run(self._x509sak + [ "graph", "--outfile", f.name, "x509sak/tests/data/johannes-bauer.com.crt" ])
+			SubprocessExecutor(self._x509sak + [ "graph", "--outfile", f.name, "x509sak/tests/data/johannes-bauer.com.crt" ]).run()
 			with open(f.name, "rb") as f:
 				dotfile = f.read()
 			self.assertTrue(dotfile.startswith(b"%PDF"))
 
 	def test_render_unknown_ext(self):
 		with tempfile.NamedTemporaryFile(mode = "w", prefix = "graph_", suffix = ".xyz") as f:
-			SubprocessExecutor.run(self._x509sak + [ "graph", "--outfile", f.name, "x509sak/tests/data/johannes-bauer.com.crt" ], success_retcodes = [ 1 ])
-			SubprocessExecutor.run(self._x509sak + [ "graph", "--outfile", f.name, "--format", "pdf", "x509sak/tests/data/johannes-bauer.com.crt" ])
+			SubprocessExecutor(self._x509sak + [ "graph", "--outfile", f.name, "x509sak/tests/data/johannes-bauer.com.crt" ], success_return_codes = [ 1 ]).run()
+			SubprocessExecutor(self._x509sak + [ "graph", "--outfile", f.name, "--format", "pdf", "x509sak/tests/data/johannes-bauer.com.crt" ]).run()
 			with open(f.name, "rb") as f:
 				dotfile = f.read()
 			self.assertTrue(dotfile.startswith(b"%PDF"))
 
 	def test_render_multiple(self):
 		with tempfile.NamedTemporaryFile(mode = "w", prefix = "graph_", suffix = ".dot") as f:
-			SubprocessExecutor.run(self._x509sak + [ "graph", "--outfile", f.name, "x509sak/tests/data/johannes-bauer.com.crt", "x509sak/tests/data/johannes-bauer-intermediate.crt", "x509sak/tests/data/johannes-bauer-root.crt" ])
+			SubprocessExecutor(self._x509sak + [ "graph", "--outfile", f.name, "x509sak/tests/data/johannes-bauer.com.crt", "x509sak/tests/data/johannes-bauer-intermediate.crt", "x509sak/tests/data/johannes-bauer-root.crt" ]).run()

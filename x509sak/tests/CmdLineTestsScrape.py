@@ -50,15 +50,15 @@ class CmdLineTestsScrape(BaseTest):
 			os.mkdir("scrape")
 			with open("scrape/foo", "wb"):
 				pass
-			SubprocessExecutor.run(self._x509sak + [ "scrape", "out.bin" ], success_retcodes = [ 1 ])
+			SubprocessExecutor(self._x509sak + [ "scrape", "out.bin" ], success_return_codes = [ 1 ]).run()
 			self.assertTrue(os.path.isfile("scrape/foo"))
-			SubprocessExecutor.run(self._x509sak + [ "scrape", "--force", "out.bin" ])
+			SubprocessExecutor(self._x509sak + [ "scrape", "--force", "out.bin" ]).run()
 			self.assertTrue(os.path.isfile("scrape/foo"))
 
 	def test_scrape_random(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
 			HashedPRNG(seed = b"foobar").write_file("out.bin", 3 * 1024 * 1024)
-			SubprocessExecutor.run(self._x509sak + [ "scrape", "out.bin" ])
+			SubprocessExecutor(self._x509sak + [ "scrape", "out.bin" ]).run()
 			found = os.listdir("scrape/")
 			self.assertEqual(len(found), 0)
 
@@ -67,7 +67,7 @@ class CmdLineTestsScrape(BaseTest):
 			crt = self._load_crt("johannes-bauer.com.crt")
 			for prefix_len in [ 0, 100, 1000, 1024 * 1024 - 100, 1024 * 1024, 1024 * 1024 + 100 ]:
 				HashedPRNG(seed = b"foobar").write_bracketed("out.bin", prefix_len, crt.der_data, 1000)
-				SubprocessExecutor.run(self._x509sak + [ "scrape", "out.bin" ])
+				SubprocessExecutor(self._x509sak + [ "scrape", "out.bin" ]).run()
 				found = os.listdir("scrape/")
 				self.assertEqual(len(found), 1)
 				scraped_crt = X509Certificate.read_pemfile("scrape/scrape_%07x_crt.pem" % (prefix_len))[0]
@@ -79,7 +79,7 @@ class CmdLineTestsScrape(BaseTest):
 			crt = self._load_crt("johannes-bauer.com.crt")
 			for prefix_len in [ 0, 100, 1000 ]:
 				self._prepare_file(f, [ prefix_len, crt.to_pem_data().encode("ascii"), 1000 ])
-				SubprocessExecutor.run(self._x509sak + [ "scrape", "--no-der", f.name ])
+				SubprocessExecutor(self._x509sak + [ "scrape", "--no-der", f.name ]).run()
 				found = os.listdir("scrape/")
 				self.assertEqual(len(found), 1)
 				scraped_crt = X509Certificate.read_pemfile("scrape/scrape_%07x_crt.pem" % (prefix_len))[0]
@@ -90,14 +90,14 @@ class CmdLineTestsScrape(BaseTest):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir), tempfile.NamedTemporaryFile(mode = "wb", prefix = "scrapeme_", suffix = ".bin") as f:
 			crt = self._load_crt("johannes-bauer.com.crt")
 			self._prepare_file(f, [ 1000, crt.der_data, 100, crt.der_data, 500 ])
-			SubprocessExecutor.run(self._x509sak + [ "scrape", "--no-pem", f.name ])
+			SubprocessExecutor(self._x509sak + [ "scrape", "--no-pem", f.name ]).run()
 
 			found = os.listdir("scrape/")
 			self.assertEqual(len(found), 1)
 			scraped_crt = X509Certificate.read_pemfile("scrape/scrape_%07x_crt.pem" % (1000))[0]
 			self.assertEqual(crt, scraped_crt)
 
-			SubprocessExecutor.run(self._x509sak + [ "scrape", "--force", "--allow-non-unique-blobs", f.name ])
+			SubprocessExecutor(self._x509sak + [ "scrape", "--force", "--allow-non-unique-blobs", f.name ]).run()
 			found = os.listdir("scrape/")
 			self.assertEqual(len(found), 2)
 			scraped_crt = X509Certificate.read_pemfile("scrape/scrape_%07x_crt.pem" % (1000))[0]
@@ -109,7 +109,7 @@ class CmdLineTestsScrape(BaseTest):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir), tempfile.NamedTemporaryFile(mode = "wb", prefix = "scrapeme_", suffix = ".bin") as f:
 			crt = self._load_crt("johannes-bauer.com.crt")
 			self._prepare_file(f, [ 1000, crt.der_data, 100, crt.der_data, 500 ])
-			SubprocessExecutor.run(self._x509sak + [ "scrape", "--write-json", "out.json", f.name ])
+			SubprocessExecutor(self._x509sak + [ "scrape", "--write-json", "out.json", f.name ]).run()
 			with open("out.json") as f:
 				data = json.load(f)
 			self.assertEqual(len(data["findings"]), 4)
@@ -118,7 +118,7 @@ class CmdLineTestsScrape(BaseTest):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir), tempfile.NamedTemporaryFile(mode = "wb", prefix = "scrapeme_", suffix = ".bin") as f:
 			crt = self._load_crt("johannes-bauer.com.crt")
 			self._prepare_file(f, [ 100, crt.der_data, 100 ])
-			SubprocessExecutor.run(self._x509sak + [ "scrape", "--extract-nested", f.name ])
+			SubprocessExecutor(self._x509sak + [ "scrape", "--extract-nested", f.name ]).run()
 			found = os.listdir("scrape/")
 			self.assertEqual(len(found), 2)
 			scraped_crt = X509Certificate.read_pemfile("scrape/scrape_%07x_crt.pem" % (100))[0]
@@ -128,27 +128,27 @@ class CmdLineTestsScrape(BaseTest):
 	def test_extract_broken_pem1(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir), tempfile.NamedTemporaryFile(mode = "wb", prefix = "scrapeme_", suffix = ".bin") as f:
 			self._prepare_file(f, [ 100, b"-----BEGIN XYZ", 100 ])
-			SubprocessExecutor.run(self._x509sak + [ "scrape", "--extract-nested", f.name ])
+			SubprocessExecutor(self._x509sak + [ "scrape", "--extract-nested", f.name ]).run()
 			self.assertEqual(len(os.listdir("scrape/")), 0)
 
 	def test_extract_broken_pem2(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir), tempfile.NamedTemporaryFile(mode = "wb", prefix = "scrapeme_", suffix = ".bin") as f:
 			crt = self._load_crt("johannes-bauer.com.crt")
 			self._prepare_file(f, [ 100, crt.to_pem_data().encode("ascii")[:-10], 100 ])
-			SubprocessExecutor.run(self._x509sak + [ "scrape", "--extract-nested", f.name ])
+			SubprocessExecutor(self._x509sak + [ "scrape", "--extract-nested", f.name ]).run()
 			self.assertEqual(len(os.listdir("scrape/")), 0)
 
 	def test_extract_broken_pem3(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir), tempfile.NamedTemporaryFile(mode = "wb", prefix = "scrapeme_", suffix = ".bin") as f:
 			self._prepare_file(f, [ 100, b"-----BEGIN CERTIFICATE----- -----END CERTIFICATE-----", 100 ])
-			SubprocessExecutor.run(self._x509sak + [ "scrape", "--extract-nested", f.name ])
+			SubprocessExecutor(self._x509sak + [ "scrape", "--extract-nested", f.name ]).run()
 			self.assertEqual(len(os.listdir("scrape/")), 0)
 
 	def test_scrape_original_der(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir), tempfile.NamedTemporaryFile(mode = "wb", prefix = "scrapeme_", suffix = ".bin") as f:
 			crt = self._load_crt("johannes-bauer.com.crt")
 			self._prepare_file(f, [ 100, crt.der_data, 100 ])
-			SubprocessExecutor.run(self._x509sak + [ "scrape", "--keep-original-der", f.name ])
+			SubprocessExecutor(self._x509sak + [ "scrape", "--keep-original-der", f.name ]).run()
 			scraped_crt = X509Certificate.read_derfile("scrape/scrape_%07x_crt.der" % (100))
 			self.assertEqual(len(os.listdir("scrape/")), 1)
 			self.assertEqual(crt, scraped_crt)
@@ -157,7 +157,7 @@ class CmdLineTestsScrape(BaseTest):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir), tempfile.NamedTemporaryFile(mode = "wb", prefix = "scrapeme_", suffix = ".bin") as f:
 			crt = self._load_crt("johannes-bauer.com.crt")
 			self._prepare_file(f, [ 100, crt.der_data, 100 ])
-			SubprocessExecutor.run(self._x509sak + [ "scrape", "--keep-original-der", f.name ])
+			SubprocessExecutor(self._x509sak + [ "scrape", "--keep-original-der", f.name ]).run()
 			scraped_crt = X509Certificate.read_derfile("scrape/scrape_%07x_crt.der" % (100))
 			self.assertEqual(len(os.listdir("scrape/")), 1)
 			self.assertEqual(crt, scraped_crt)
@@ -166,47 +166,47 @@ class CmdLineTestsScrape(BaseTest):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir), tempfile.NamedTemporaryFile(mode = "wb", prefix = "scrapeme_", suffix = ".bin") as f:
 			privkey = RSAPrivateKey.from_pem_data(self._load_text("broken_rsa_p_q_privkey.pem"))[0]
 			self._prepare_file(f, [ 100, privkey.der_data, 100 ])
-			SubprocessExecutor.run(self._x509sak + [ "scrape", f.name ])
+			SubprocessExecutor(self._x509sak + [ "scrape", f.name ]).run()
 			self.assertEqual(len(os.listdir("scrape/")), 0)
 			shutil.rmtree("scrape")
-			SubprocessExecutor.run(self._x509sak + [ "scrape", "--disable-der-sanity-checks", f.name ])
+			SubprocessExecutor(self._x509sak + [ "scrape", "--disable-der-sanity-checks", f.name ]).run()
 			self.assertEqual(len(os.listdir("scrape/")), 1)
 
 	def test_failed_ec_plausibility(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir), tempfile.NamedTemporaryFile(mode = "wb", prefix = "scrapeme_", suffix = ".bin") as f:
 			self._prepare_file(f, [ 100, bytes.fromhex("300b0201010406666f6f626172"), 100 ])
-			SubprocessExecutor.run(self._x509sak + [ "scrape", f.name ])
+			SubprocessExecutor(self._x509sak + [ "scrape", f.name ]).run()
 			self.assertEqual(len(os.listdir("scrape/")), 0)
 			shutil.rmtree("scrape")
-			SubprocessExecutor.run(self._x509sak + [ "scrape", "--disable-der-sanity-checks", f.name ])
+			SubprocessExecutor(self._x509sak + [ "scrape", "--disable-der-sanity-checks", f.name ]).run()
 			self.assertEqual(len(os.listdir("scrape/")), 1)
 
 	def test_failed_dsa_plausibility(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir), tempfile.NamedTemporaryFile(mode = "wb", prefix = "scrapeme_", suffix = ".bin") as f:
 			self._prepare_file(f, [ 100, bytes.fromhex("300b0203112233020400aabbcc"), 100 ])
-			SubprocessExecutor.run(self._x509sak + [ "scrape", f.name ])
+			SubprocessExecutor(self._x509sak + [ "scrape", f.name ]).run()
 			self.assertEqual(len(os.listdir("scrape/")), 0)
 			shutil.rmtree("scrape")
-			SubprocessExecutor.run(self._x509sak + [ "scrape", "--disable-der-sanity-checks", f.name ])
+			SubprocessExecutor(self._x509sak + [ "scrape", "--disable-der-sanity-checks", f.name ]).run()
 			self.assertEqual(len(os.listdir("scrape/")), 1)
 
 	def test_included_types(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir), tempfile.NamedTemporaryFile(mode = "wb", prefix = "scrapeme_", suffix = ".bin") as f:
 			crt = self._load_crt("johannes-bauer.com.crt")
 			self._prepare_file(f, [ 100, crt.der_data, 100 ])
-			SubprocessExecutor.run(self._x509sak + [ "scrape", "--include-dertype", "crt", f.name ])
+			SubprocessExecutor(self._x509sak + [ "scrape", "--include-dertype", "crt", f.name ]).run()
 			self.assertEqual(len(os.listdir("scrape/")), 1)
 			shutil.rmtree("scrape")
 
-			SubprocessExecutor.run(self._x509sak + [ "scrape", "--include-dertype", "crt", "--exclude-dertype", "crt", f.name ])
+			SubprocessExecutor(self._x509sak + [ "scrape", "--include-dertype", "crt", "--exclude-dertype", "crt", f.name ]).run()
 			self.assertEqual(len(os.listdir("scrape/")), 0)
 			shutil.rmtree("scrape")
 
-			SubprocessExecutor.run(self._x509sak + [ "scrape", "--include-dertype", "pubkey", f.name ])
+			SubprocessExecutor(self._x509sak + [ "scrape", "--include-dertype", "pubkey", f.name ]).run()
 			self.assertEqual(len(os.listdir("scrape/")), 1)
 			shutil.rmtree("scrape")
 
-			SubprocessExecutor.run(self._x509sak + [ "scrape", "--include-dertype", "ec_key", f.name ])
+			SubprocessExecutor(self._x509sak + [ "scrape", "--include-dertype", "ec_key", f.name ]).run()
 			self.assertEqual(len(os.listdir("scrape/")), 0)
 			shutil.rmtree("scrape")
 
@@ -215,5 +215,5 @@ class CmdLineTestsScrape(BaseTest):
 			crt_der = self._load_data("certificate_32k.der.gz")
 			self.assertEqual(len(crt_der), 32 * 1024)
 			self._prepare_file(f, [ 100, crt_der, 100 ])
-			SubprocessExecutor.run(self._x509sak + [ "scrape", f.name ])
+			SubprocessExecutor(self._x509sak + [ "scrape", f.name ]).run()
 			self.assertEqual(len(os.listdir("scrape/")), 1)

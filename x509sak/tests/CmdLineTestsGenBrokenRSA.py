@@ -34,12 +34,12 @@ class CmdLineTestsGenBrokenRSA(BaseTest):
 			with open("broken_rsa.key", "wb"):
 				pass
 			with self.assertRaises(CmdExecutionFailedException):
-				SubprocessExecutor.run(self._x509sak + [ "genbrokenrsa" ], on_failure = "exception-nopause")
+				SubprocessExecutor(self._x509sak + [ "genbrokenrsa" ], on_failure = "exception-nopause").run()
 
 	def test_create_rsa_key(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
 			PrimeDB().add(0xd06bda6bd4031ec96cb8023fd89fc9bb, 0xd578117dc5a445697a7c6e04e09c801f).write()
-			SubprocessExecutor.run(self._x509sak + [ "genbrokenrsa", "--bitlen", "256" ])
+			SubprocessExecutor(self._x509sak + [ "genbrokenrsa", "--bitlen", "256" ]).run()
 			key = RSAPrivateKey.read_pemfile("broken_rsa.key")[0]
 			self.assertEqual(key.n.bit_length(), 256)
 			self.assertEqual(key.p, 0xd06bda6bd4031ec96cb8023fd89fc9bb)
@@ -51,7 +51,7 @@ class CmdLineTestsGenBrokenRSA(BaseTest):
 	def test_carmichael_totient(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
 			PrimeDB().add(0xd06bda6bd4031ec96cb8023fd89fc9bb, 0xd578117dc5a445697a7c6e04e09c801f).write()
-			SubprocessExecutor.run(self._x509sak + [ "genbrokenrsa", "--bitlen", "256", "--carmichael-totient" ])
+			SubprocessExecutor(self._x509sak + [ "genbrokenrsa", "--bitlen", "256", "--carmichael-totient" ]).run()
 			key = RSAPrivateKey.read_pemfile("broken_rsa.key")[0]
 			self.assertEqual(key.n.bit_length(), 256)
 			self.assertEqual(key.p, 0xd06bda6bd4031ec96cb8023fd89fc9bb)
@@ -63,7 +63,7 @@ class CmdLineTestsGenBrokenRSA(BaseTest):
 	def test_create_close_q_rsa_key(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
 			PrimeDB().add(0xd7627ea571293d6bd1dc8d4664bc6ab1).write()
-			SubprocessExecutor.run(self._x509sak + [ "genbrokenrsa", "--bitlen", "256", "--close-q" ])
+			SubprocessExecutor(self._x509sak + [ "genbrokenrsa", "--bitlen", "256", "--close-q" ]).run()
 			key = RSAPrivateKey.read_pemfile("broken_rsa.key")[0]
 			self.assertEqual(key.n.bit_length(), 256)
 			self.assertEqual(key.p, 0xd7627ea571293d6bd1dc8d4664bc6ab1)
@@ -73,7 +73,7 @@ class CmdLineTestsGenBrokenRSA(BaseTest):
 	def test_create_inv_e_d_rsa_key(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
 			PrimeDB().add(0xd06bda6bd4031ec96cb8023fd89fc9bb, 0xd578117dc5a445697a7c6e04e09c801f).write()
-			SubprocessExecutor.run(self._x509sak + [ "genbrokenrsa", "--bitlen", "256", "--switch-e-d", "-e", "0x101" ])
+			SubprocessExecutor(self._x509sak + [ "genbrokenrsa", "--bitlen", "256", "--switch-e-d", "-e", "0x101" ]).run()
 			key = RSAPrivateKey.read_pemfile("broken_rsa.key")[0]
 			self.assertEqual(key.n.bit_length(), 256)
 			self.assertEqual(key.p, 0xd06bda6bd4031ec96cb8023fd89fc9bb)
@@ -83,16 +83,16 @@ class CmdLineTestsGenBrokenRSA(BaseTest):
 
 	def test_invalid_close_q(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
-			self.assertIn(b"even modulus bitlength", SubprocessExecutor.run(self._x509sak + [ "genbrokenrsa", "--bitlen", "129", "--close-q" ], success_retcodes = [ 1 ]))
+			self.assertIn(b"even modulus bitlength", SubprocessExecutor(self._x509sak + [ "genbrokenrsa", "--bitlen", "129", "--close-q" ], success_return_codes = [ 1 ]).run().stderr)
 
 	def test_invalid_stepping(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
-			self.assertIn(b"greater or equal", SubprocessExecutor.run(self._x509sak + [ "genbrokenrsa", "--bitlen", "128", "--q-stepping", "0" ], success_retcodes = [ 1 ]))
+			self.assertIn(b"greater or equal", SubprocessExecutor(self._x509sak + [ "genbrokenrsa", "--bitlen", "128", "--q-stepping", "0" ], success_return_codes = [ 1 ]).run().stderr)
 
 	def test_automatic_e(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
 			PrimeDB().add(0xd06bda6bd4031ec96cb8023fd89fc9bb, 0xd578117dc5a445697a7c6e04e09c801f).write()
-			SubprocessExecutor.run(self._x509sak + [ "genbrokenrsa", "--bitlen", "256", "-e", "-1" ])
+			SubprocessExecutor(self._x509sak + [ "genbrokenrsa", "--bitlen", "256", "-e", "-1" ]).run()
 			key = RSAPrivateKey.read_pemfile("broken_rsa.key")[0]
 			self.assertEqual(key.n.bit_length(), 256)
 			self.assertEqual(key.p, 0xd06bda6bd4031ec96cb8023fd89fc9bb)
@@ -103,14 +103,14 @@ class CmdLineTestsGenBrokenRSA(BaseTest):
 	def test_verbosity(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
 			PrimeDB().add(0xd7627ea571293d6bd1dc8d4664bc6ab1).write()
-			output = SubprocessExecutor.run(self._x509sak + [ "genbrokenrsa", "--bitlen", "256", "-v", "--close-q" ])
+			output = SubprocessExecutor(self._x509sak + [ "genbrokenrsa", "--bitlen", "256", "-v", "--close-q" ]).run().stdout
 			self.assertIn(b"p = 0xd7627ea571293d6bd1dc8d4664bc6ab1", output)
 
 	def test_retry_q(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
 			PrimeDB().add(0xd7627ea571293d6bd1dc8d4664bc6ab1).write()
-			output = SubprocessExecutor.run(self._x509sak + [ "genbrokenrsa", "--bitlen", "256", "-v", "--close-q", "--public-exponent", "3", "-vv" ])
-			self.assertIn(b"retrying", output)
+			result = SubprocessExecutor(self._x509sak + [ "genbrokenrsa", "--bitlen", "256", "-v", "--close-q", "--public-exponent", "3", "-vv" ]).run()
+			self.assertIn(b"retrying", result.stderr)
 
 	def test_retry_e(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
@@ -119,8 +119,8 @@ class CmdLineTestsGenBrokenRSA(BaseTest):
 			# probability that it fails 10 times in a row without there being a
 			# bug therefore is roughly one in a million.
 			for i in range(10):
-				output = SubprocessExecutor.run(self._x509sak + [ "genbrokenrsa", "--bitlen", "256", "-f", "-v", "--close-q", "--public-exponent", "3", "-e", "-1", "-vv" ])
-				if b"retrying" in output:
+				result = SubprocessExecutor(self._x509sak + [ "genbrokenrsa", "--bitlen", "256", "-f", "-v", "--close-q", "--public-exponent", "3", "-e", "-1", "-vv" ]).run()
+				if b"retrying" in result.stderr:
 					break
 			else:
 				self.fail("In 10 tries, never was a retry with a different e value chosen. Highly improbable.")
@@ -128,7 +128,7 @@ class CmdLineTestsGenBrokenRSA(BaseTest):
 	def test_gcd_n_phi_n(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
 			PrimeDB().add(0x1fd22b50d1e28365855635, 0x3af25062dcf148b85084f5).write()
-			output = SubprocessExecutor.run(self._x509sak + [ "genbrokenrsa", "--bitlen", "257", "--gcd-n-phi-n", "-v" ])
+			output = SubprocessExecutor(self._x509sak + [ "genbrokenrsa", "--bitlen", "257", "--gcd-n-phi-n", "-v" ]).run().stdout
 			key = RSAPrivateKey.read_pemfile("broken_rsa.key")[0]
 			self.assertEqual(key.n.bit_length(), 257)
 			self.assertEqual(key.p, 0x1fd22b50d1e28365855635)
@@ -141,11 +141,11 @@ class CmdLineTestsGenBrokenRSA(BaseTest):
 
 	def test_incompatible_opts(self):
 		with tempfile.NamedTemporaryFile(prefix = "config_", suffix = ".cnf") as f:
-			output = SubprocessExecutor.run(self._x509sak + [ "genbrokenrsa", "--close-q", "--gcd-n-phi-n", "--outfile", f.name ], success_retcodes = [ 1 ])
-			self.assertIn(b"not allowed", output)
+			result = SubprocessExecutor(self._x509sak + [ "genbrokenrsa", "--close-q", "--gcd-n-phi-n", "--outfile", f.name ], success_return_codes = [ 1 ]).run()
+			self.assertIn(b"not allowed", result.stderr)
 
 	def test_gcd_n_phi_n_try_again_q(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
 			PrimeDB().add(0x3f25fbdd02563798a3ee15, 0x3c1e53497fe2626fa6d389, 0x3bf7ae07a1892c3881ee69).write()
-			output = SubprocessExecutor.run(self._x509sak + [ "genbrokenrsa", "--bitlen", "259", "--gcd-n-phi-n", "-vv" ], success_retcodes = [ 1 ])
-			self.assertIn(b"exhausted", output)
+			result = SubprocessExecutor(self._x509sak + [ "genbrokenrsa", "--bitlen", "259", "--gcd-n-phi-n", "-vv" ], success_return_codes = [ 1 ]).run()
+			self.assertIn(b"exhausted", result.stderr)

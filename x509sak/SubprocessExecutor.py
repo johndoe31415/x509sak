@@ -24,68 +24,120 @@ import subprocess
 from x509sak.Tools import CmdTools
 from x509sak.Exceptions import CmdExecutionFailedException
 
+class ExecutionResult(object):
+	def __init__(self, executor, stdout, stderr, return_code):
+		self._executor = executor
+		self._stdout = stdout
+		self._stderr = stderr
+		self._return_code = return_code
+
+	@property
+	def stdout(self):
+		return self._stdout
+
+	@property
+	def stdout_text(self, codec = "utf-8"):
+		return self.stdout.decode(codec)
+
+	@property
+	def stderr(self):
+		return self._stderr
+
+	@property
+	def stderr_text(self, codec = "utf-8"):
+		return self.stderr.decode(codec)
+
+	@property
+	def stdouterr(self):
+		return self._stdout + self._stderr
+
+	@property
+	def stdouterr_text(self, codec = "utf-8"):
+		return self.stdouterr.decode(codec)
+
+	@property
+	def return_code(self):
+		return self._return_code
+
+	@property
+	def successful(self):
+		return self.return_code in self._executor.success_return_codes
+
 class SubprocessExecutor(object):
 	_verbose = False
 	_pause_after_failed_execution = False
 	_pause_before_execution = False
 
-	@classmethod
-	def run(cls, cmd, success_retcodes = None, on_failure = "exception", returnval = "stdout", discard_stderr = False, stdin = None, env = None):
-		assert(returnval in [ "success", "success-stdout", "stdout" ])
+	#def __init__(self, cmd, success_return_codes = None, on_failure = "exception", returnval = "stdout", discard_stderr = False, stdin = None, env = None):
+	def __init__(self, cmd, success_return_codes = None, on_failure = "exception", stdin = None, env = None):
 		assert(on_failure in [ "exception", "pass", "exception-nopause" ])
-		cmd_str = CmdTools.cmdline(cmd, env)
-		if env is not None:
-			full_env = dict(os.environ)
-			full_env.update(env)
-		else:
-			full_env = None
+		self._cmd = cmd
+		self._success_return_codes = success_return_codes
+		self._on_failure = on_failure
+		self._stdin = stdin
+		self._env = env
 
-		if success_retcodes is None:
-			success_retcodes = [ 0 ]
+		if self._success_return_codes is None:
+			self._success_return_codes = (0, )
+		if self._env is None:
+			self._env = { }
 
-		if cls._verbose or cls._pause_before_execution:
-			print(cmd_str)
-		if cls._pause_before_execution:
+	@property
+	def stdin(self):
+		return self._stdin
+
+	@property
+	def success_return_codes(self):
+		return self._success_return_codes
+
+	@property
+	def cmd_str(self):
+		return CmdTools.cmdline(self._cmd, self._env)
+
+	def _pre_execution(self):
+		if self._verbose or self._pause_before_execution:
+			print(self.cmd_str)
+		if self._pause_before_execution:
 			input("About to execute above command, press RETURN to continue...")
 
-		if discard_stderr:
-			stderr = subprocess.PIPE
-		else:
-			stderr = subprocess.STDOUT
-		proc = subprocess.Popen(cmd, stdout = subprocess.PIPE, stderr = stderr, stdin = subprocess.PIPE, env = full_env)
-		(stdout, stderr) = proc.communicate(stdin)
+	def _post_execution(self, execution_result):
+		if self._verbose:
+			success_error = {
+				False:	"✖",
+				True:	"✓",
+			}[execution_result.successful]
+			print("%s %3d: %s" % (success_error, execution_result.return_code, self.cmd_str))
 
-		success = proc.returncode in success_retcodes
-		if cls._verbose:
-			if success:
-				print("Successful: %s" % (cmd_str))
-			else:
-				print("Failed: %s" % (cmd_str))
-				print(stdout.decode())
-				print()
+			print(execution_result.stdout)
+			print()
 
 		# Execution failed.
-		if (not success):
-			if on_failure == "exception":
-				if cls._pause_after_failed_execution:
-					print("Execution failed: %s" % (cmd_str))
-					print("Input: %s" % (stdin))
-					print("Return code: %d (expected one of %s)." % (proc.returncode, str(success_retcodes)))
+		if not execution_result.successful:
+			if self._on_failure == "exception":
+				if self._pause_after_failed_execution:
+					print("Execution failed: %s" % (self.cmd_str))
+					print("Input: %s" % (self.stdin))
+					print("Return code: %d (expected %s)." % (execution_result.return_code, ", ".join("%d" % (code) for code in sorted(self.success_return_codes))))
 					print("stdout was:")
-					print(stdout.decode())
-					if (stderr is not None) and (len(stderr) > 0):
+					print(execution_result.stdout)
+					if len(execution_result.stderr) > 0:
 						print("stderr was:")
-						print(stderr.decode())
+						print(execution_result.stderr)
 					input("Hit ENTER to continue...")
-			if on_failure in [ "exception", "exception-nopause" ]:
-				raise CmdExecutionFailedException("Execution of command failed: %s" % (cmd_str), stdout = stdout, stderr = stderr)
+			if self._on_failure in [ "exception", "exception-nopause" ]:
+				raise CmdExecutionFailedException("Execution of subprocess failed: %s" % (os.path.basename(self._cmd[0])), execution_result = execution_result)
 
-		if returnval == "success":
-			return success
-		elif returnval == "stdout":
-			return stdout
-		else:
-			return (success, stdout)
+	def run(self):
+		self._pre_execution()
+		env = dict(os.environ)
+		env.update(self._env)
+
+		proc = subprocess.Popen(self._cmd, stdout = subprocess.PIPE, stderr = subprocess.PIPE, stdin = subprocess.PIPE, env = env)
+		(stdout, stderr) = proc.communicate(self._stdin)
+		execution_result = ExecutionResult(executor = self, stdout = stdout, stderr = stderr, return_code = proc.returncode)
+
+		self._post_execution(execution_result)
+		return execution_result
 
 	@classmethod
 	def set_verbose(cls):

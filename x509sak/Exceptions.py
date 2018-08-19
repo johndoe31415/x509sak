@@ -39,18 +39,13 @@ class UnsupportedEncodingException(UserErrorException): pass
 class KeyCorruptException(UserErrorException): pass
 
 class CmdExecutionFailedException(InvisibleUserErrorException):
-	def __init__(self, command, stdout, stderr):
-		super().__init__(command)
-		self.__stdout = stdout
-		self.__stderr = stderr
+	def __init__(self, msg, execution_result):
+		super().__init__(msg)
+		self.__execution_result = execution_result
 
 	@property
-	def stdout(self):
-		return self.__stdout
-
-	@property
-	def stderr(self):
-		return self.__stderr
+	def execution_result(self):
+		return self.__execution_result
 
 class LazyDeveloperException(ProgrammerErrorException): pass
 class UnknownAlgorithmException(ProgrammerErrorException): pass

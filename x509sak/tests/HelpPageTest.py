@@ -24,4 +24,4 @@ from x509sak.SubprocessExecutor import SubprocessExecutor
 
 class HelpPageTest(BaseTest):
 	def test_help_page(self):
-		SubprocessExecutor.run(self._x509sak + [ "--help" ], success_retcodes = [ 1 ])
+		SubprocessExecutor(self._x509sak + [ "--help" ], success_return_codes = [ 1 ]).run()

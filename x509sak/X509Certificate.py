@@ -109,18 +109,17 @@ class X509Certificate(PEMDERObject):
 
 			cmd = [ "openssl", "verify", "-CApath", "/dev/null" ]
 			cmd += [ "-check_ss_sig", "-CAfile", issuer.name, subject.name ]
-			_log.debug("Executing: %s", CmdTools.cmdline(cmd))
-			(success, output) = SubprocessExecutor.run(cmd, on_failure = "pass", returnval = "success-stdout")
-			if success:
+			result = SubprocessExecutor(cmd, on_failure = "pass").run()
+			if result.successful:
 				return True
 			else:
 				# Maybe the certificate signature was okay, but the complete
 				# chain couldn't be established. This would still count as a
 				# successful verification, however.
-				result = self._CERT_VERIFY_REGEX.search(output.decode())
-				if result:
-					result = result.groupdict()
-					(error_code, depth) = (int(result["error_code"]), int(result["depth"]))
+				match = self._CERT_VERIFY_REGEX.search(result.stderr_text)
+				if match:
+					match = match.groupdict()
+					(error_code, depth) = (int(match["error_code"]), int(match["depth"]))
 					return (error_code == 2) and (depth == 1)
 				else:
 					# If in doubt, reject.

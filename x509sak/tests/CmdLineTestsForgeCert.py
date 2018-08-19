@@ -40,7 +40,7 @@ class CmdLineTestsForgeCert(BaseTest):
 		root_crt = self._load_crt("johannes-bauer-root.crt")
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
 			root_crt.write_pemfile("root.crt")
-			SubprocessExecutor.run(self._x509sak + [ "forgecert", "root.crt" ])
+			SubprocessExecutor(self._x509sak + [ "forgecert", "root.crt" ]).run()
 
 			forged_root_crt = X509Certificate.read_pemfile("forged_00.crt")[0]
 			self._assertCrtsSimilar(root_crt, forged_root_crt)
@@ -52,7 +52,7 @@ class CmdLineTestsForgeCert(BaseTest):
 		root_crt = self._load_crt("johannes-bauer-root.crt")
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
 			root_crt.write_pemfile("root.crt")
-			SubprocessExecutor.run(self._x509sak + [ "forgecert", "--recalculate-keyids", "root.crt" ])
+			SubprocessExecutor(self._x509sak + [ "forgecert", "--recalculate-keyids", "root.crt" ]).run()
 
 			forged_root_crt = X509Certificate.read_pemfile("forged_00.crt")[0]
 			self._assertCrtsSimilar(root_crt, forged_root_crt)
@@ -70,7 +70,7 @@ class CmdLineTestsForgeCert(BaseTest):
 			with open("chain.crt", "w") as f:
 				for orig_crt in orig_crts:
 					print(orig_crt.to_pem_data(), file = f)
-			SubprocessExecutor.run(self._x509sak + [ "forgecert", "chain.crt" ])
+			SubprocessExecutor(self._x509sak + [ "forgecert", "chain.crt" ]).run()
 
 			for (num, orig_crt) in enumerate(orig_crts):
 				forged_crt = X509Certificate.read_pemfile("forged_%02d.crt" % (num))[0]

@@ -28,17 +28,17 @@ from x509sak.SubprocessExecutor import SubprocessExecutor
 class CmdLineTestsCreateCA(BaseTest):
 	def test_create_simple_ca(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
-			SubprocessExecutor.run(self._x509sak + [ "createca", "root_ca" ])
-			output = SubprocessExecutor.run([ "openssl", "x509", "-text", "-in", "root_ca/CA.crt" ])
+			SubprocessExecutor(self._x509sak + [ "createca", "root_ca" ]).run()
+			output = SubprocessExecutor([ "openssl", "x509", "-text", "-in", "root_ca/CA.crt" ]).run().stdout
 			self.assertIn(b"--BEGIN CERTIFICATE--", output)
 			self.assertIn(b"--END CERTIFICATE--", output)
 			self.assertIn(b"id-ecPublicKey", output)
-			SubprocessExecutor.run([ "openssl", "ec", "-in", "root_ca/CA.key" ])
+			SubprocessExecutor([ "openssl", "ec", "-in", "root_ca/CA.key" ]).run()
 
 	def test_create_simple_ca_2(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
-			SubprocessExecutor.run(self._x509sak + [ "createca", "-g", "ecc:secp256r1", "-s", "/CN=YepThatsTheCN", "-h", "sha512", "root_ca" ])
-			output = SubprocessExecutor.run([ "openssl", "x509", "-text", "-in", "root_ca/CA.crt" ])
+			SubprocessExecutor(self._x509sak + [ "createca", "-g", "ecc:secp256r1", "-s", "/CN=YepThatsTheCN", "-h", "sha512", "root_ca" ]).run()
+			output = SubprocessExecutor([ "openssl", "x509", "-text", "-in", "root_ca/CA.crt" ]).run().stdout
 			self.assertIn(b"--BEGIN CERTIFICATE--", output)
 			self.assertIn(b"--END CERTIFICATE--", output)
 			self.assertIn(b"id-ecPublicKey", output)
@@ -48,12 +48,12 @@ class CmdLineTestsCreateCA(BaseTest):
 			self.assertIn(b"X509v3 extensions", output)
 			self.assertIn(b"CA:TRUE", output)
 			self.assertIn(b"X509v3 Subject Key Identifier", output)
-			SubprocessExecutor.run([ "openssl", "ec", "-in", "root_ca/CA.key" ])
+			SubprocessExecutor([ "openssl", "ec", "-in", "root_ca/CA.key" ]).run()
 
 	def test_create_simple_ca_3(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
-			SubprocessExecutor.run(self._x509sak + [ "createca", "-g", "rsa:1024", "-s", "/CN=YepThats!TheCN", "-h", "sha1", "root_ca" ])
-			output = SubprocessExecutor.run([ "openssl", "x509", "-text", "-in", "root_ca/CA.crt" ])
+			SubprocessExecutor(self._x509sak + [ "createca", "-g", "rsa:1024", "-s", "/CN=YepThats!TheCN", "-h", "sha1", "root_ca" ]).run()
+			output = SubprocessExecutor([ "openssl", "x509", "-text", "-in", "root_ca/CA.crt" ]).run().stdout
 			self.assertIn(b"--BEGIN CERTIFICATE--", output)
 			self.assertIn(b"--END CERTIFICATE--", output)
 			self.assertIn(b"rsaEncryption", output)
@@ -63,41 +63,41 @@ class CmdLineTestsCreateCA(BaseTest):
 			self.assertIn(b"X509v3 extensions", output)
 			self.assertIn(b"CA:TRUE", output)
 			self.assertIn(b"X509v3 Subject Key Identifier", output)
-			SubprocessExecutor.run([ "openssl", "rsa", "-in", "root_ca/CA.key" ])
+			SubprocessExecutor([ "openssl", "rsa", "-in", "root_ca/CA.key" ]).run()
 
 	def test_create_nested_ca(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
-			SubprocessExecutor.run(self._x509sak + [ "createca", "this/is/a/root_ca" ])
-			output = SubprocessExecutor.run([ "openssl", "x509", "-text", "-in", "this/is/a/root_ca/CA.crt" ])
+			SubprocessExecutor(self._x509sak + [ "createca", "this/is/a/root_ca" ]).run()
+			output = SubprocessExecutor([ "openssl", "x509", "-text", "-in", "this/is/a/root_ca/CA.crt" ]).run().stdout
 			self.assertIn(b"--BEGIN CERTIFICATE--", output)
 			self.assertIn(b"--END CERTIFICATE--", output)
 			self.assertIn(b"id-ecPublicKey", output)
-			SubprocessExecutor.run([ "openssl", "ec", "-in", "this/is/a/root_ca/CA.key" ])
+			SubprocessExecutor([ "openssl", "ec", "-in", "this/is/a/root_ca/CA.key" ]).run()
 
 	def test_create_intermediate_ca(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
-			SubprocessExecutor.run(self._x509sak + [ "createca", "-s", "/CN=PARENT", "root_ca" ])
-			output = SubprocessExecutor.run([ "openssl", "x509", "-text", "-in", "root_ca/CA.crt" ])
+			SubprocessExecutor(self._x509sak + [ "createca", "-s", "/CN=PARENT", "root_ca" ]).run()
+			output = SubprocessExecutor([ "openssl", "x509", "-text", "-in", "root_ca/CA.crt" ]).run().stdout
 			self.assertIn(b"--BEGIN CERTIFICATE--", output)
 			self.assertIn(b"--END CERTIFICATE--", output)
 			self.assertTrue((b"Issuer: CN=PARENT" in output) or (b"Issuer: CN = PARENT" in output))
 			self.assertTrue((b"Subject: CN=PARENT" in output) or (b"Subject: CN = PARENT" in output))
 			self.assertIn(b"id-ecPublicKey", output)
-			SubprocessExecutor.run([ "openssl", "ec", "-in", "root_ca/CA.key" ])
+			SubprocessExecutor([ "openssl", "ec", "-in", "root_ca/CA.key" ]).run()
 
-			SubprocessExecutor.run(self._x509sak + [ "createca", "-p", "root_ca", "-s", "/CN=INTERMEDIATE", "intermediate_ca" ])
-			output = SubprocessExecutor.run([ "openssl", "x509", "-text", "-in", "intermediate_ca/CA.crt" ])
+			SubprocessExecutor(self._x509sak + [ "createca", "-p", "root_ca", "-s", "/CN=INTERMEDIATE", "intermediate_ca" ]).run()
+			output = SubprocessExecutor([ "openssl", "x509", "-text", "-in", "intermediate_ca/CA.crt" ]).run().stdout
 			self.assertIn(b"--BEGIN CERTIFICATE--", output)
 			self.assertIn(b"--END CERTIFICATE--", output)
 			self.assertTrue((b"Issuer: CN=PARENT" in output) or (b"Issuer: CN = PARENT" in output))
 			self.assertTrue((b"Subject: CN=INTERMEDIATE" in output) or (b"Subject: CN = INTERMEDIATE" in output))
 			self.assertIn(b"id-ecPublicKey", output)
-			SubprocessExecutor.run([ "openssl", "ec", "-in", "intermediate_ca/CA.key" ])
+			SubprocessExecutor([ "openssl", "ec", "-in", "intermediate_ca/CA.key" ]).run()
 
 	def test_subject_info(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
-			SubprocessExecutor.run(self._x509sak + [ "createca", "-s", "/CN=Elem00/OU=Elem01/C=DE/SN=Elem02/GN=Elem03/emailAddress=Elem04/title=Elem05/L=Elem06/stateOrProvinceName=Elem07/pseudonym=Elem08", "root_ca" ])
-			output = SubprocessExecutor.run([ "openssl", "x509", "-subject", "-noout", "-in", "root_ca/CA.crt" ])
+			SubprocessExecutor(self._x509sak + [ "createca", "-s", "/CN=Elem00/OU=Elem01/C=DE/SN=Elem02/GN=Elem03/emailAddress=Elem04/title=Elem05/L=Elem06/stateOrProvinceName=Elem07/pseudonym=Elem08", "root_ca" ]).run()
+			output = SubprocessExecutor([ "openssl", "x509", "-subject", "-noout", "-in", "root_ca/CA.crt" ]).run().stdout
 			self.assertIn(b"DE", output)
 			for eid in range(9):
 				element = ("Elem%02d" % (eid)).encode("ascii")
@@ -105,13 +105,13 @@ class CmdLineTestsCreateCA(BaseTest):
 
 	def test_x509_extension(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
-			SubprocessExecutor.run(self._x509sak + [ "createca", "--extension", "nameConstraints=critical,permitted;DNS:foo.bar.com", "root_ca" ])
-			output = SubprocessExecutor.run([ "openssl", "x509", "-text", "-noout", "-in", "root_ca/CA.crt" ])
+			SubprocessExecutor(self._x509sak + [ "createca", "--extension", "nameConstraints=critical,permitted;DNS:foo.bar.com", "root_ca" ]).run()
+			output = SubprocessExecutor([ "openssl", "x509", "-text", "-noout", "-in", "root_ca/CA.crt" ]).run().stdout
 			self.assertIn(b"DNS:foo.bar.com", output)
 			self.assertNotIn(b"pathlen", output)
 
-			SubprocessExecutor.run(self._x509sak + [ "createca", "--extension", "nameConstraints=critical,permitted;DNS:foo.bar.com", "--extension", "basicConstraints=critical,CA:TRUE,pathlen:123", "root_ca2" ])
-			output = SubprocessExecutor.run([ "openssl", "x509", "-text", "-noout", "-in", "root_ca2/CA.crt" ])
+			SubprocessExecutor(self._x509sak + [ "createca", "--extension", "nameConstraints=critical,permitted;DNS:foo.bar.com", "--extension", "basicConstraints=critical,CA:TRUE,pathlen:123", "root_ca2" ]).run()
+			output = SubprocessExecutor([ "openssl", "x509", "-text", "-noout", "-in", "root_ca2/CA.crt" ]).run().stdout
 			self.assertIn(b"DNS:foo.bar.com", output)
 			self.assertIn(b"pathlen:123", output)
 
@@ -120,20 +120,21 @@ class CmdLineTestsCreateCA(BaseTest):
 			os.makedirs("root_ca")
 			with open("root_ca/foobar", "wb"):
 				pass
-			SubprocessExecutor.run(self._x509sak + [ "createca", "root_ca" ], discard_stderr = True, success_retcodes = [ 1 ])
+			SubprocessExecutor(self._x509sak + [ "createca", "root_ca" ], success_return_codes = [ 1 ]).run()
 			self.assertTrue(os.path.isfile("root_ca/foobar"))
-			SubprocessExecutor.run(self._x509sak + [ "createca", "--force", "root_ca" ])
+			SubprocessExecutor(self._x509sak + [ "createca", "--force", "root_ca" ]).run()
 			self.assertFalse(os.path.isfile("root_ca/foobar"))
 
 	def test_serial_spec(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
-			SubprocessExecutor.run(self._x509sak + [ "createca", "-s", "/CN=PARENT", "--serial", "1234567", "root_ca" ])
-			output = SubprocessExecutor.run([ "openssl", "x509", "-text", "-in", "root_ca/CA.crt" ])
+			SubprocessExecutor(self._x509sak + [ "createca", "-s", "/CN=PARENT", "--serial", "1234567", "root_ca" ]).run()
+			output = SubprocessExecutor([ "openssl", "x509", "-text", "-in", "root_ca/CA.crt" ]).run().stdout
 			self.assertIn(b"Serial Number: 1234567", output)
 
-			SubprocessExecutor.run(self._x509sak + [ "createca", "-s", "/CN=PARENT", "-f", "--serial", "0x1234567", "root_ca" ])
-			output = SubprocessExecutor.run([ "openssl", "x509", "-text", "-in", "root_ca/CA.crt" ])
+			SubprocessExecutor(self._x509sak + [ "createca", "-s", "/CN=PARENT", "-f", "--serial", "0x1234567", "root_ca" ]).run()
+			output = SubprocessExecutor([ "openssl", "x509", "-text", "-in", "root_ca/CA.crt" ]).run().stdout
 			self.assertIn(b"Serial Number: 19088743", output)
 
-			output = SubprocessExecutor.run(self._x509sak + [ "createca", "-p", "root_ca", "-s", "/CN=INTERMEDIATE", "--serial", "9876", "intermediate_ca" ], success_retcodes = [ 1 ])
-			self.assertIn(b"certificate serial number", output)
+			# Catch error message
+			output = SubprocessExecutor(self._x509sak + [ "createca", "-p", "root_ca", "-s", "/CN=INTERMEDIATE", "--serial", "9876", "intermediate_ca" ], success_return_codes = [ 1 ]).run().stderr
+			self.assertIn(b"specify certificate serial number", output)
