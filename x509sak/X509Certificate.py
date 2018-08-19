@@ -116,11 +116,15 @@ class X509Certificate(PEMDERObject):
 				# Maybe the certificate signature was okay, but the complete
 				# chain couldn't be established. This would still count as a
 				# successful verification, however.
-				match = self._CERT_VERIFY_REGEX.search(result.stderr_text)
+				match = self._CERT_VERIFY_REGEX.search(result.stdouterr_text)
 				if match:
 					match = match.groupdict()
 					(error_code, depth) = (int(match["error_code"]), int(match["depth"]))
-					return (error_code == 2) and (depth == 1)
+					chain_valid = (error_code == 2) and (depth == 1)
+					if (not chain_valid) and verbose_failure:
+						print("Certificate verification error, error_code %d, depth = %d. %s not signed by %s." % (error_code, depth, self, potential_issuer))
+						result.dump()
+					return chain_valid
 				else:
 					# If in doubt, reject.
 					if verbose_failure:
