@@ -33,8 +33,7 @@ class CmdLineTestsGenBrokenRSA(BaseTest):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
 			with open("broken_rsa.key", "wb"):
 				pass
-			with self.assertRaises(CmdExecutionFailedException):
-				SubprocessExecutor(self._x509sak + [ "genbrokenrsa" ], on_failure = "exception-nopause").run()
+			SubprocessExecutor(self._x509sak + [ "genbrokenrsa" ], on_failure = "exception-nopause", success_return_codes = [ 1 ]).run()
 
 	def test_create_rsa_key(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):

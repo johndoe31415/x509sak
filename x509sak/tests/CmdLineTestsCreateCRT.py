@@ -111,8 +111,7 @@ class CmdLineTestsCreateCRT(BaseTest):
 			self._gencert(1)
 
 			# Try to reuse same CN for other certificate -- must fail!
-			with self.assertRaises(CmdExecutionFailedException):
-				SubprocessExecutor(self._x509sak + [ "createcsr", "-s" "/CN=CHILD1", "-t", "tls-client", "-c", "root_ca", "client2.key", "client2.crt" ], on_failure = "exception-nopause").run()
+			SubprocessExecutor(self._x509sak + [ "createcsr", "-s" "/CN=CHILD1", "-t", "tls-client", "-c", "root_ca", "client2.key", "client2.crt" ], on_failure = "exception-nopause", success_return_codes = [ 1 ]).run()
 
 	def test_create_simple_csr(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):

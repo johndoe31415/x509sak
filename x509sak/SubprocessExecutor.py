@@ -133,7 +133,7 @@ class SubprocessExecutor(object):
 
 	def _post_execution(self, execution_result):
 		dumped = False
-		if self._all_verbose or (self._failed_verbose and not execution_result.successful):
+		if self._all_verbose or (self._failed_verbose and (not execution_result.successful) and (self._on_failure != "pass")):
 			dumped = True
 			execution_result.dump()
 

@@ -105,12 +105,10 @@ class HardwareTokenTests(BaseTest):
 			pubkey_start = pubkey_start[4:].encode("ascii")
 
 			# With unknown key object name, it fails
-			with self.assertRaises(CmdExecutionFailedException):
-				SubprocessExecutor(self._x509sak + [ "createca", "-f", "-s", "/CN=Root CA with key in HSM", "--pkcs11-so-search", hsm.so_search_path, "--pkcs11-module", "libsofthsm2.so", "--hardware-key", key_name.replace("secure", "UNKNOWN"), "root_ca" ], env = hsm.env, on_failure = "exception-nopause").run()
+			SubprocessExecutor(self._x509sak + [ "createca", "-f", "-s", "/CN=Root CA with key in HSM", "--pkcs11-so-search", hsm.so_search_path, "--pkcs11-module", "libsofthsm2.so", "--hardware-key", key_name.replace("secure", "UNKNOWN"), "root_ca" ], env = hsm.env, success_return_codes = [ 1 ]).run()
 
 			# With unknown token name, it fails
-			with self.assertRaises(CmdExecutionFailedException):
-				SubprocessExecutor(self._x509sak + [ "createca", "-f", "-s", "/CN=Root CA with key in HSM", "--pkcs11-so-search", hsm.so_search_path, "--pkcs11-module", "libsofthsm2.so", "--hardware-key", key_name.replace("Token", "UNKNOWN"), "root_ca" ], env = hsm.env, on_failure = "exception-nopause").run()
+			SubprocessExecutor(self._x509sak + [ "createca", "-f", "-s", "/CN=Root CA with key in HSM", "--pkcs11-so-search", hsm.so_search_path, "--pkcs11-module", "libsofthsm2.so", "--hardware-key", key_name.replace("Token", "UNKNOWN"), "root_ca" ], env = hsm.env, success_return_codes = [ 1 ]).run()
 
 			# Create root certificate with key in SoftHSM
 			SubprocessExecutor(self._x509sak + [ "createca", "-f", "-s", "/CN=Root CA with key in HSM", "--pkcs11-so-search", hsm.so_search_path, "--pkcs11-module", "libsofthsm2.so", "--hardware-key", key_name, "root_ca" ], env = hsm.env).run()
