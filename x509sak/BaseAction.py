@@ -37,8 +37,10 @@ class BaseAction(object):
 		handler.setFormatter(formatter)
 		logging.root.addHandler(handler)
 
+		if self._args.verbose >= 1:
+			SubprocessExecutor.set_failed_verbose()
 		if self._args.verbose >= 2:
-			SubprocessExecutor.set_verbose()
+			SubprocessExecutor.set_all_verbose()
 		if self._args.verbose >= 3:
 			SubprocessExecutor.pause_after_failed_execution()
 

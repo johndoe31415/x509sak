@@ -228,5 +228,5 @@ except (UserErrorException, InvisibleUserErrorException) as e:
 	if isinstance(e, CmdExecutionFailedException):
 		if len(e.execution_result.stderr) > 0:
 			print("~" * 120)
-			sys.stderr.write(e.execution_result.stderr)
+			e.execution_result.dump()
 	sys.exit(1)

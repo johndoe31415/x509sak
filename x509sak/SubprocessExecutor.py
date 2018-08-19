@@ -96,7 +96,8 @@ class ExecutionResult(object):
 			self._dump_data("stderr", self.stderr)
 
 class SubprocessExecutor(object):
-	_verbose = False
+	_failed_verbose = False
+	_all_verbose = False
 	_pause_after_failed_execution = False
 	_pause_before_execution = False
 
@@ -125,20 +126,23 @@ class SubprocessExecutor(object):
 		return CmdTools.cmdline(self._cmd, self._env)
 
 	def _pre_execution(self):
-		if self._verbose or self._pause_before_execution:
+		if self._all_verbose or self._pause_before_execution:
 			print(self.cmd_str)
 		if self._pause_before_execution:
 			input("About to execute above command, press RETURN to continue...")
 
 	def _post_execution(self, execution_result):
-		if self._verbose:
+		dumped = False
+		if self._all_verbose or (self._failed_verbose and not execution_result.successful):
+			dumped = True
 			execution_result.dump()
 
 		# Execution failed.
 		if not execution_result.successful:
 			if self._on_failure == "exception":
 				if self._pause_after_failed_execution:
-					if not self._verbose:
+					if not dumped:
+						# Don't output this twice.
 						execution_result.dump()
 					input("Hit ENTER to continue...")
 			if self._on_failure in [ "exception", "exception-nopause" ]:
@@ -157,8 +161,12 @@ class SubprocessExecutor(object):
 		return execution_result
 
 	@classmethod
-	def set_verbose(cls):
-		cls._verbose = True
+	def set_failed_verbose(cls):
+		cls._failed_verbose = True
+
+	@classmethod
+	def set_all_verbose(cls):
+		cls._all_verbose = True
 
 	@classmethod
 	def pause_after_failed_execution(cls):
