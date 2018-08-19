@@ -102,7 +102,7 @@ class X509Certificate(PEMDERObject):
 	def is_selfsigned(self):
 		return self.signed_by(self)
 
-	def signed_by(self, potential_issuer):
+	def signed_by(self, potential_issuer, verbose_failure = False):
 		with tempfile.NamedTemporaryFile(prefix = "subject_", suffix = ".crt") as subject, tempfile.NamedTemporaryFile(prefix = "issuer_", suffix = ".crt") as issuer:
 			self.write_pemfile(subject.name)
 			potential_issuer.write_pemfile(issuer.name)
@@ -123,6 +123,9 @@ class X509Certificate(PEMDERObject):
 					return (error_code == 2) and (depth == 1)
 				else:
 					# If in doubt, reject.
+					if verbose_failure:
+						print("Certificate verification error. %s not signed by %s." % (self, potential_issuer))
+						result.dump()
 					return False
 
 	def dump_pem(self, f = None):

@@ -93,3 +93,8 @@ class X509CertificateTests(BaseTest):
 		ext = exts.get_first(OIDDB.X509Extensions.inverse("AuthorityKeyIdentifier"))
 		self.assertIsNotNone(ext)
 		self.assertEqual(ext.keyid, bytes.fromhex("A84A6A63047DDDBAE6D139B7A64565EFF3A8ECA1"))
+
+	def test_cert_sign_chain(self):
+		cert = self._load_crt("johannes-bauer.com.crt")
+		ca_cert = self._load_crt("johannes-bauer-intermediate.crt")
+		self.assertTrue(cert.signed_by(ca_cert, verbose_failure = True))
