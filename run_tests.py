@@ -10,10 +10,47 @@ import argparse
 import collections
 import subprocess
 import shutil
-import x509sak.tests
+import io
 import tempfile
+import x509sak.tests
 from x509sak.SubprocessExecutor import SubprocessExecutor
 from x509sak.FriendlyArgumentParser import FriendlyArgumentParser
+
+class OutputRedirector(object):
+	def __init__(self):
+		self._stdout_f = None
+		self._stderr_f = None
+		self._stdout = None
+		self._stderr = None
+
+	@property
+	def stdout(self):
+		return self._stdout
+
+	@property
+	def stderr(self):
+		return self._stderr
+
+	def _backup_and_replace_fd(self, fd):
+		replacement_file = tempfile.NamedTemporaryFile(mode = "w+b", prefix = "fd_", suffix = ".bin")
+		fd_backup = os.dup(fd)
+		os.dup2(replacement_file.fileno(), fd)
+		return (fd_backup, replacement_file)
+
+	def _restore_fd(self, fd_backup_file, fd):
+		(fd_backup, replacement_file) = fd_backup_file
+		replacement_file.seek(0)
+		data = replacement_file.read()
+		os.dup2(fd_backup, fd)
+		return data
+
+	def __enter__(self):
+		self._stdout_f = self._backup_and_replace_fd(sys.stdout.fileno())
+		self._stderr_f = self._backup_and_replace_fd(sys.stderr.fileno())
+
+	def __exit__(self, *args):
+		self._stderr = self._restore_fd(self._stderr_f, sys.stderr.fileno())
+		self._stdout = self._restore_fd(self._stdout_f, sys.stdout.fileno())
 
 class Bucket(object):
 	def __init__(self):
@@ -57,18 +94,13 @@ class Bucketizer(object):
 		return [ bucket.content for bucket in buckets ]
 
 class TestStats(object):
-	def __init__(self, runtime = 0, run = None, failed = None, errored = None, processes = 1):
+	def __init__(self, runtime = 0, run = None, processes = 1):
 		self._stats = {
 			"total_time":		runtime,
 			"cumulative_time":	0,
 			"run":				run or { },
-			"failed":			[ ],
 			"processes":		processes,
 		}
-		if failed is not None:
-			self._stats["failed"] += self._failures_to_dict(failed, failtype = "failed")
-		if errored is not None:
-			self._stats["failed"] += self._failures_to_dict(errored, failtype = "errored")
 
 	@classmethod
 	def from_json(cls, filename):
@@ -81,7 +113,6 @@ class TestStats(object):
 	def merge(self, stats):
 		self._stats["cumulative_time"] += stats._stats["total_time"]
 		self._stats["run"].update(stats._stats["run"])
-		self._stats["failed"] += stats._stats["failed"]
 		self._stats["processes"] += stats._stats["processes"]
 
 	@property
@@ -94,24 +125,26 @@ class TestStats(object):
 
 	@property
 	def success_cnt(self):
-		return self.run_cnt - self.failed_cnt
+		return self._count_result(("success", ))
 
 	@property
 	def failed_cnt(self):
-		return len(self._stats["failed"])
+		return self._count_result(("fail", "error"))
+
+	@property
+	def failed_tcids(self):
+		return [ tcid for (tcid, details) in self._stats["run"].items() if details["result"] != "success" ]
+
+	@property
+	def runtime_by_tcid(self):
+		return { tcid: details["runtime"] for (tcid, details) in self._stats["run"].items() }
+
+	def _count_result(self, count_type):
+		return sum(1 for (tcid, results) in self._stats["run"].items() if results["result"] in count_type)
 
 	@property
 	def successful(self):
 		return self.failed_cnt == 0
-
-	@staticmethod
-	def _failures_to_dict(failures, failtype = "errored"):
-		return [ {
-			"failtype":		failtype,
-			"instance":		str(testcase),
-			"tcid":			testcase.id(),
-			"traceback":	traceback.rstrip("\r\n"),
-		} for (testcase, traceback) in failures ]
 
 	def _to_dict(self):
 		return self._stats
@@ -122,7 +155,7 @@ class TestStats(object):
 
 	def write_failed_tests_file(self, filename):
 		with open(filename, "w") as f:
-			json.dump([ failure["tcid"] for failure in self._stats["failed"] ], fp = f)
+			json.dump(self.failed_tcids, fp = f)
 
 	def merge_test_estimation_time(self, filename):
 		try:
@@ -130,16 +163,24 @@ class TestStats(object):
 				estimate = json.load(f)
 		except (FileNotFoundError, json.decoder.JSONDecodeError):
 			estimate = { }
-		estimate.update(self._stats["run"])
+		estimate.update(self.runtime_by_tcid)
 		with open(filename, "w") as f:
-			json.dump(estimate, fp= f)
+			json.dump(estimate, fp = f)
 
 	def dump(self):
-		for failure in self._stats["failed"]:
-			print("~" * 120, file = sys.stderr)
-			print("%s: %s" % (failure["failtype"], failure["instance"]), file = sys.stderr)
-			print(failure["traceback"], file = sys.stderr)
-		print("~" * 120, file = sys.stderr)
+		for (tcid, tcstats) in sorted(self._stats["run"].items()):
+			if tcstats["result"] != "success":
+				print("~" * 120, file = sys.stderr)
+				print("%s: %s" % (tcstats["result"], tcstats["instance"]), file = sys.stderr)
+				if tcstats["stdout"] != "":
+					print(tcstats["stdout"], file = sys.stderr)
+					print(file = sys.stderr)
+				if tcstats["stderr"] != "":
+					print(tcstats["stderr"], file = sys.stderr)
+					print(file = sys.stderr)
+				print(file = sys.stderr)
+				print(tcstats["traceback"], file = sys.stderr)
+		print("=" * 120, file = sys.stderr)
 
 		if self.run_cnt > 0:
 			print("run: %d in %.1f secs (%d processes, cumulative %.1f secs), successful: %d (%.0f%%), failures: %d (%.0f%%)" % (
@@ -164,13 +205,25 @@ class SelectiveTestRunner(object):
 		if len(self._args.full_id) > 0:
 			# Ignore all other arguments, full ID takes full precedence
 			self._add_testcases_with_full_id(self._args.full_id)
-		elif (not self._args.all) and (os.path.isfile(self._failed_tests_file)):
-			with open(self._failed_tests_file) as f:
-				full_testcase_ids = json.load(f)
-			self._add_testcases_with_full_id(full_testcase_ids)
-			os.unlink(self._failed_tests_file)
-		else:
+		elif len(self._include_regexes) > 0:
+			# Have include regex, this takes second precedence
 			self._add_all_included_tests()
+		elif (not self._args.all) and (os.path.isfile(self._failed_tests_file)):
+			# No full IDs and no include regexes given, failed testcases is
+			# number three
+			try:
+				with open(self._failed_tests_file) as f:
+					full_testcase_ids = json.load(f)
+				self._add_testcases_with_full_id(full_testcase_ids)
+			except json.JSONDecodeError:
+				self._add_all_included_tests()
+		else:
+			# Otherwise just run everything
+			self._add_all_included_tests()
+		try:
+			os.unlink(self._failed_tests_file)
+		except FileNotFoundError:
+			pass
 
 	def _is_testcase_included(self, testcase):
 		test_id = testcase.class_name + "." + testcase.test_name
@@ -231,16 +284,35 @@ class SelectiveTestRunner(object):
 
 	def _run_single(self):
 		t0_total = time.time()
-		self._test_result = unittest.TextTestResult(stream = sys.stderr, descriptions = True, verbosity = 1)
-		time_taken = { }
+		stream = io.StringIO()
+		self._test_result = unittest.TextTestResult(stream = stream, descriptions = True, verbosity = 1)
+		details = { }
 		for testcase in self._suite:
 			t0 = time.time()
-			testcase.run(self._test_result)
+			output_redirector = OutputRedirector()
+			with output_redirector:
+				testcase.run(self._test_result)
+			sys.stderr.write(stream.getvalue())
+			sys.stderr.flush()
+			stream.truncate(0)
 			t1 = time.time()
-			time_taken[testcase.id()] = t1 - t0
+			details[testcase.id()] = {
+				"runtime":		t1 - t0,
+				"stdout":		output_redirector.stdout.decode("utf-8", errors = "ignore").rstrip("\r\n"),
+				"stderr":		output_redirector.stderr.decode("utf-8", errors = "ignore").rstrip("\r\n"),
+				"instance":		str(testcase),
+				"result":		"success",
+			}
 		t1_total = time.time()
 		runtime = t1_total - t0_total
-		test_stats = TestStats(runtime = runtime, run = time_taken, failed = self._test_result.failures, errored = self._test_result.errors)
+
+		for (fail_type, fails) in [ ("fail", self._test_result.failures), ("error", self._test_result.errors) ]:
+			for (testcase, traceback) in fails:
+				tcid = testcase.id()
+				traceback = traceback.rstrip("\r\n")
+				details[tcid]["result"] = fail_type
+				details[tcid]["traceback"] = traceback
+		test_stats = TestStats(runtime = runtime, run = details)
 		return test_stats
 
 	def _run_parallel(self):
