@@ -168,18 +168,25 @@ class TestStats(object):
 			json.dump(estimate, fp = f)
 
 	def dump(self):
+		def _tc_header(tcstats):
+			print("~" * 120, file = sys.stderr)
+			print("%s: %s" % (tcstats["result"], tcstats["instance"]), file = sys.stderr)
+			if tcstats["stdout"] != "":
+				print(tcstats["stdout"], file = sys.stderr)
+				print(file = sys.stderr)
+			if tcstats["stderr"] != "":
+				print(tcstats["stderr"], file = sys.stderr)
+				print(file = sys.stderr)
+
+
 		for (tcid, tcstats) in sorted(self._stats["run"].items()):
 			if tcstats["result"] != "success":
-				print("~" * 120, file = sys.stderr)
-				print("%s: %s" % (tcstats["result"], tcstats["instance"]), file = sys.stderr)
-				if tcstats["stdout"] != "":
-					print(tcstats["stdout"], file = sys.stderr)
-					print(file = sys.stderr)
-				if tcstats["stderr"] != "":
-					print(tcstats["stderr"], file = sys.stderr)
-					print(file = sys.stderr)
+				_tc_header(tcstats)
 				print(file = sys.stderr)
 				print(tcstats["traceback"], file = sys.stderr)
+			elif (tcstats["stdout"] != "") or (tcstats["stderr"] != ""):
+				_tc_header(tcstats)
+
 		print("=" * 120, file = sys.stderr)
 
 		if self.run_cnt > 0:
