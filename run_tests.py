@@ -172,12 +172,11 @@ class TestStats(object):
 			print("~" * 120, file = sys.stderr)
 			print("%s: %s" % (tcstats["result"], tcstats["instance"]), file = sys.stderr)
 			if tcstats["stdout"] != "":
+				print(file = sys.stderr)
 				print(tcstats["stdout"], file = sys.stderr)
-				print(file = sys.stderr)
 			if tcstats["stderr"] != "":
-				print(tcstats["stderr"], file = sys.stderr)
 				print(file = sys.stderr)
-
+				print(tcstats["stderr"], file = sys.stderr)
 
 		for (tcid, tcstats) in sorted(self._stats["run"].items()):
 			if tcstats["result"] != "success":
@@ -187,7 +186,7 @@ class TestStats(object):
 			elif (tcstats["stdout"] != "") or (tcstats["stderr"] != ""):
 				_tc_header(tcstats)
 
-		print("=" * 120, file = sys.stderr)
+		print("~" * 120, file = sys.stderr)
 
 		if self.run_cnt > 0:
 			print("run: %d in %.1f secs (%d processes, cumulative %.1f secs), successful: %d (%.0f%%), failures: %d (%.0f%%)" % (
