@@ -36,6 +36,7 @@ from x509sak.actions.ActionDumpKey import ActionDumpKey
 from x509sak.actions.ActionExamineCert import ActionExamineCert
 from x509sak.actions.ActionForgeCert import ActionForgeCert
 from x509sak.actions.ActionScrape import ActionScrape
+from x509sak.actions.ActionHashPart import ActionHashPart
 from x509sak.CmdLineArgs import KeySpecArgument, KeyValue
 from x509sak.KeySpecification import KeySpecification
 from x509sak.Exceptions import UserErrorException, InvisibleUserErrorException, CmdExecutionFailedException
@@ -51,10 +52,6 @@ if "X509SAK_PAUSE_FAILED_EXECUTION" in os.environ:
 	SubprocessExecutor.pause_after_failed_execution()
 if "X509SAK_PAUSE_BEFORE_EXECUTION" in os.environ:
 	SubprocessExecutor.pause_before_execution()
-
-def __keyspec(arg):
-	keyspec_arg = KeySpecArgument(arg)
-	return KeySpecification.from_keyspec_argument(keyspec_arg)
 
 mc = MultiCommand()
 
@@ -93,7 +90,7 @@ mc.register("findcrt", "Find a specific certificate", genparser, action = Action
 
 def genparser(parser):
 	group = parser.add_mutually_exclusive_group()
-	group.add_argument("-g", "--gen-keyspec", metavar = "keyspec", type = __keyspec, help = "Private key specification to generate. Examples are rsa:1024 or ecc:secp256r1. Defaults to ecc:secp384r1.")
+	group.add_argument("-g", "--gen-keyspec", metavar = "keyspec", type = KeySpecification.from_cmdline_str, help = "Private key specification to generate. Examples are rsa:1024 or ecc:secp256r1. Defaults to ecc:secp384r1.")
 	group.add_argument("-w", "--hardware-key", metavar = "pkcs11uri", type = str, help = "Use a hardware token which stores the private key. The parameter gives the pkcs11 URI, e.g., 'pkcs11:object=mykey;type=private'")
 	parser.add_argument("--pkcs11-so-search", metavar = "path", type = str, default = _default_so_search_path, help = "Gives the path that will be searched for the \"dynamic\" and \"module\" shared objects. The \"dynamic\" shared object is libpkcs11.so, the \"module\" shared object can be changed by the --pkcs11-module option. The search path defaults to %(default)s.")
 	parser.add_argument("--pkcs11-module", metavar = "sofile", type = str, default = "opensc-pkcs11.so", help = "Name of the \"module\" shared object when using PKCS#11 keys. Defaults to %(default)s.")
@@ -110,7 +107,7 @@ def genparser(parser):
 mc.register("createca", "Create a new certificate authority (CA)", genparser, aliases = [ "genca" ], action = ActionCreateCA)
 
 def genparser(parser):
-	parser.add_argument("-g", "--gen-keyspec", metavar = "keyspec", type = __keyspec, help = "Private key specification to generate for the certificate or CSR when it doesn't exist. Examples are rsa:1024 or ecc:secp256r1.")
+	parser.add_argument("-g", "--gen-keyspec", metavar = "keyspec", type = KeySpecification.from_cmdline_str, help = "Private key specification to generate for the certificate or CSR when it doesn't exist. Examples are rsa:1024 or ecc:secp256r1.")
 	parser.add_argument("-k", "--keytype", choices = [ "pem", "der", "hw" ], default = "pem", help = "Private key type. Can be any of %(choices)s. Defaults to %(default)s.")
 	parser.add_argument("-s", "--subject-dn", metavar = "subject", type = str, default = "/CN=New Cert", help = "Certificate/CSR subject distinguished name. Defaults to %(default)s.")
 	parser.add_argument("-d", "--validity-days", metavar = "days", type = int, default = 365, help = "When creating a certificate, number of days that the certificate will be valid for. Defaults to %(default)s days.")
@@ -173,7 +170,7 @@ def genparser(parser):
 mc.register("genbrokenrsa", "Generate broken RSA keys for use in pentetration testing", genparser, action = ActionGenerateBrokenRSA)
 
 def genparser(parser):
-	parser.add_argument("-t", "--key-type", choices = [ "rsa", "ecc" ], default = "rsa", help = "Type of private key to import. Can be one of %(choices)s, defaults to %(default)s. Disregarded for public keys and determined automatically.")
+	parser.add_argument("-t", "--key-type", choices = [ "rsa", "ecc", "eddsa" ], default = "rsa", help = "Type of private key to import. Can be one of %(choices)s, defaults to %(default)s. Disregarded for public keys and determined automatically.")
 	parser.add_argument("-p", "--public-key", action = "store_true", help = "Input is a public key, not a private key.")
 	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
 	parser.add_argument("key_filename", metavar = "key_filename", type = str, help = "Filename of the input key file in PEM format.")
@@ -216,6 +213,16 @@ def genparser(parser):
 	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
 	parser.add_argument("filename", metavar = "filename", type = str, help = "File that should be scraped for certificates or keys.")
 mc.register("scrape", "Scrape input file for certificates, keys or signatures", genparser, action = ActionScrape)
+
+def genparser(parser):
+	parser.add_argument("-h", "--hash-alg", metavar = "alg", choices = ActionHashPart.get_supported_hash_fncs() + [ "all" ], action = "append", default = [ ], help = "Hash function(s) that should be tried. Can be specified multiple times and defaults to all available hash functions. Can be any of %%(choices)s, but defaults to %s. Special value 'all' means all supported functions." % (", ".join(ActionHashPart.get_default_hash_fncs())))
+	parser.add_argument("-o", "--seek-offset", metavar = "offset", type = baseint_unit, default = "0", help = "Offset to seek into file. Supports hex/octal/binary prefixes and SI/binary SI (k, ki, M, Mi, etc.) suffixes. Defaults to %(default)s.")
+	parser.add_argument("-a", "--variable-hash-length", metavar = "length", type = int, action = "append", default = [ ], help = "For hash functions which have a variable output length, try all of these hash lenghts. Length is given in bits and must be a multiple of 8. Can be supplied multiple times. Defaults to %s." % ((", ".join("%d" % (length) for length in ActionHashPart.get_default_variable_hash_lengths_bits()))))
+	parser.add_argument("-l", "--analysis-length", metavar = "length", type = baseint_unit, default = None, help = "Amount of data to inspect at max. Supports hex/octal/binary prefixes and SI/binary SI (k, ki, M, Mi, etc.) suffixes. Defaults to everything until EOF is hit.")
+	parser.add_argument("-s", "--search", metavar = "hexpattern", type = str, help = "Hexadecimal pattern that is expected in the hashing.")
+	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
+	parser.add_argument("filename", metavar = "filename", type = str, help = "File that should be hashed.")
+mc.register("hashpart", "Hash all substrings of a file and search for a particular hash value", genparser, action = ActionHashPart)
 
 try:
 	mc.run(sys.argv[1:])

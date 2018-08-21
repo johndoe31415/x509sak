@@ -33,6 +33,8 @@ Options vary from command to command. To receive further info, type
     dumpkey            Dump a key in text form
     forgecert          Forge an X.509 certificate
     scrape             Scrape input file for certificates, keys or signatures
+    hashpart           Hash all substrings of a file and search for a
+                       particular hash value
 ```
 [//]: # (End of summary -- auto-generated, do not edit!)
 
@@ -659,7 +661,8 @@ given PEM keyfile into Python-code for further processing.
 
 [//]: # (Begin of cmd-dumpkey -- auto-generated, do not edit!)
 ```
-usage: ./x509sak.py dumpkey [-t {rsa,ecc}] [-p] [-v] [--help] key_filename
+usage: ./x509sak.py dumpkey [-t {rsa,ecc,eddsa}] [-p] [-v] [--help]
+                            key_filename
 
 Dump a key in text form
 
@@ -667,10 +670,10 @@ positional arguments:
   key_filename          Filename of the input key file in PEM format.
 
 optional arguments:
-  -t {rsa,ecc}, --key-type {rsa,ecc}
+  -t {rsa,ecc,eddsa}, --key-type {rsa,ecc,eddsa}
                         Type of private key to import. Can be one of rsa, ecc,
-                        defaults to rsa. Disregarded for public keys and
-                        determined automatically.
+                        eddsa, defaults to rsa. Disregarded for public keys
+                        and determined automatically.
   -p, --public-key      Input is a public key, not a private key.
   -v, --verbose         Increase verbosity level. Can be specified multiple
                         times.
@@ -804,6 +807,62 @@ optional arguments:
   --help                Show this help page.
 ```
 [//]: # (End of cmd-scrape -- auto-generated, do not edit!)
+
+## hashpart
+The hashpart facility allows the user to have all substrings of a file hashed
+with different hash algorithms in a brute-force manner. So for example, if you
+have a three-byte file "ABC" then the strings "A", "AB", "ABC", "BC" and "C"
+would be hashed by all selected hash functions. A search parameter allows you
+to have the tool only print those hexademical hash values which have a
+substring match. This makes sense when you for example have a hash value of a
+blob contained inside a larger blob but are unsure which hash function was used
+starting from which offset and which length the hash is computed over. A simple
+example is that you know the Subject Key Identifier (SKI) of a DER-encoded
+certificate and want to bruteforce the offsets over which it is calculated.
+
+[//]: # (Begin of cmd-hashpart -- auto-generated, do not edit!)
+```
+usage: ./x509sak.py hashpart [-h alg] [-o offset] [-a length] [-l length]
+                             [-s hexpattern] [-v] [--help]
+                             filename
+
+Hash all substrings of a file and search for a particular hash value
+
+positional arguments:
+  filename              File that should be hashed.
+
+optional arguments:
+  -h alg, --hash-alg alg
+                        Hash function(s) that should be tried. Can be
+                        specified multiple times and defaults to all available
+                        hash functions. Can be any of blake2b, blake2s, md4,
+                        md5, md5-sha1, mdc2, ripemd160, sha1, sha224, sha256,
+                        sha384, sha3_224, sha3_256, sha3_384, sha3_512,
+                        sha512, shake128, shake256, shake_128, shake_256, sm3,
+                        whirlpool, all, but defaults to md5, sha1, sha256,
+                        sha384, sha512. Special value 'all' means all
+                        supported functions.
+  -o offset, --seek-offset offset
+                        Offset to seek into file. Supports hex/octal/binary
+                        prefixes and SI/binary SI (k, ki, M, Mi, etc.)
+                        suffixes. Defaults to 0.
+  -a length, --variable-hash-length length
+                        For hash functions which have a variable output
+                        length, try all of these hash lenghts. Length is given
+                        in bits and must be a multiple of 8. Can be supplied
+                        multiple times. Defaults to 128, 256, 384.
+  -l length, --analysis-length length
+                        Amount of data to inspect at max. Supports
+                        hex/octal/binary prefixes and SI/binary SI (k, ki, M,
+                        Mi, etc.) suffixes. Defaults to everything until EOF
+                        is hit.
+  -s hexpattern, --search hexpattern
+                        Hexadecimal pattern that is expected in the hashing.
+  -v, --verbose         Increase verbosity level. Can be specified multiple
+                        times.
+  --help                Show this help page.
+```
+[//]: # (End of cmd-hashpart -- auto-generated, do not edit!)
 
 # License
 GNU GPL-3.
