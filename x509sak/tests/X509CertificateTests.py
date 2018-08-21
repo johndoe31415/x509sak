@@ -117,3 +117,7 @@ class X509CertificateTests(BaseTest):
 		self.assertEqual(self._load_crt("johannes-bauer-root.crt").classify(), X509CertificateClass.CARoot)
 		self.assertEqual(self._load_crt("johannes-bauer-intermediate.crt").classify(), X509CertificateClass.CAIntermediate)
 		self.assertEqual(self._load_crt("johannes-bauer.com.crt").classify(), X509CertificateClass.ClientServerAuth)
+
+	def test_crt_get_pubkey(self):
+		x509 = self._load_crt("johannes-bauer.com.crt")
+		self.assertEqual(str(x509.pubkey), "PublicKey<ECC-secp384r1>")

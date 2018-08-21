@@ -23,38 +23,37 @@ import enum
 from x509sak.OID import OID, OIDDB
 from x509sak.Exceptions import LazyDeveloperException, UnknownAlgorithmException
 from x509sak.KwargsChecker import KwargsChecker
-
-class Cryptosystem(enum.Enum):
-	RSA = "rsaEncryption"
-	ECC = "ecPublicKey"
-	EdDSA25519 = "id-EdDSA25519"
+from x509sak.AlgorithmDB import Cryptosystems
 
 class KeySpecification(object):
-	_PARAMETER_CONSTRAINTS = {
-		Cryptosystem.RSA:	KwargsChecker(required_arguments = set([ "bitlen" ])),
-		Cryptosystem.ECC:	KwargsChecker(required_arguments = set([ "curve" ])),
-	}
-
 	def __init__(self, cryptosystem, parameters = None):
-		assert(isinstance(cryptosystem, Cryptosystem))
+		assert(isinstance(cryptosystem, Cryptosystems))
 		if parameters is None:
 			parameters = { }
 		self._cryptosystem = cryptosystem
 		self._parameters = dict(parameters)
-		self._PARAMETER_CONSTRAINTS[self._cryptosystem].check(parameters, hint = "keyspec for cryptosystem %s" % (self._cryptosystem.name))
+
+		constraints = KwargsChecker(required_arguments = set(param[0] for param in self._cryptosystem.value.spec_parameters))
+		constraints.check(parameters, hint = "keyspec for cryptosystem %s" % (self._cryptosystem.name))
 
 	@property
 	def cryptosystem(self):
 		return self._cryptosystem
 
 	@classmethod
-	def from_keyspec_argument(cls, keyspec_arg):
-		if keyspec_arg.cryptosystem == keyspec_arg.KeySpecification.RSA:
-			return cls(cryptosystem = Cryptosystem.RSA, parameters = { "bitlen": keyspec_arg.bitlen })
-		elif keyspec_arg.cryptosystem == keyspec_arg.KeySpecification.ECC:
-			return cls(cryptosystem = Cryptosystem.ECC, parameters = { "curve": keyspec_arg.curve })
+	def from_cmdline_str(cls, text):
+		text = text.lower()
+		if text.startswith("rsa:"):
+			parameters = { "bitlen": int(text[4:]) }
+			return cls(Cryptosystems.RSA, parameters = parameters)
+		elif text.startswith("ecc:"):
+			parameters = { "curvename": text[4:] }
+			return cls(Cryptosystems.ECC_ECDSA, parameters = parameters)
+		elif text.startswith("eddsa:"):
+			parameters = { "curvename": text[6:] }
+			return cls(Cryptosystems.ECC_EdDSA, parameters = parameters)
 		else:
-			raise LazyDeveloperException(NotImplemented, keyspec_arg)
+			raise ValueError("Cannot interpret command line string '%s'." % (text))
 
 	def __eq__(self, other):
 		return (self.cryptosystem, self._parameters) == (other.cryptosystem, other._parameters)
@@ -63,54 +62,10 @@ class KeySpecification(object):
 		return self._parameters[key]
 
 	def __str__(self):
-		if self._cryptosystem == Cryptosystem.RSA:
+		if self._cryptosystem == Cryptosystems.RSA:
 			return "RSA-%d" % (self["bitlen"])
-		elif self._cryptosystem == Cryptosystem.ECC:
-			return "ECC-%s" % (self["curve"])
-		return "%s-%s" % (self._cryptosystem, str(self._parameters))
-
-class SignatureAlgorithm(object):
-	_KNOWN_CRYPTOSYSTEM_SCHEME_HASHES = {
-		"md2WithRsaEncryption":		(Cryptosystem.RSA, "rsaEncryption", "md2"),
-		"md4WithRsaEncryption":		(Cryptosystem.RSA, "rsaEncryption", "md4"),
-		"md5WithRsaEncryption":		(Cryptosystem.RSA, "rsaEncryption", "md5"),
-		"sha1WithRsaEncryption":	(Cryptosystem.RSA, "rsaEncryption", "sha1"),
-		"sha256WithRsaEncryption":	(Cryptosystem.RSA, "rsaEncryption", "sha256"),
-		"ecdsa-with-SHA224":		(Cryptosystem.ECC, "ECDSA", "sha224"),
-		"ecdsa-with-SHA256":		(Cryptosystem.ECC, "ECDSA", "sha256"),
-		"ecdsa-with-SHA384":		(Cryptosystem.ECC, "ECDSA", "sha384"),
-		"ecdsa-with-SHA512":		(Cryptosystem.ECC, "ECDSA", "sha512"),
-	}
-
-	def __init__(self, cryptosystem, scheme, hashfunction):
-		self._cryptosystem = cryptosystem
-		self._scheme = scheme
-		self._hashfunction = hashfunction
-
-	@property
-	def cryptosystem(self):
-		return self._cryptosystem
-
-	@property
-	def scheme(self):
-		return self._scheme
-
-	@property
-	def hashfunction(self):
-		return self._hashfunction
-
-	@classmethod
-	def from_sigalg_oid(cls, sig_algorithm_oid):
-		assert(isinstance(sig_algorithm_oid, OID))
-		if sig_algorithm_oid not in OIDDB.SignatureAlgorithms:
-			raise UnknownAlgorithmException("OID %s is not a known signature algorithm identifier." % (sig_algorithm_oid))
-
-		sig_algorithm = OIDDB.SignatureAlgorithms[sig_algorithm_oid]
-		if sig_algorithm not in cls._KNOWN_CRYPTOSYSTEM_SCHEME_HASHES:
-			raise UnknownAlgorithmException("Cannot determine signature scheme/hash function for %s." % (sig_algorithm))
-
-		(cryptosystem, scheme, hashfnc) = cls._KNOWN_CRYPTOSYSTEM_SCHEME_HASHES[sig_algorithm]
-		return cls(cryptosystem = cryptosystem, scheme = scheme, hashfunction = hashfnc)
-
-	def __str__(self):
-		return "SignatureAlg<%s, %s, %s>" % (self.cryptosystem, self.scheme, self.hashfunction)
+		elif self._cryptosystem == Cryptosystems.ECC_ECDSA:
+			return "ECC-%s" % (self["curvename"])
+		elif self._cryptosystem == Cryptosystems.ECC_EdDSA:
+			return "EdDSA-%s" % (self["curvename"])
+		return "%s-%s" % (self._cryptosystem.name, str(self._parameters))

@@ -189,7 +189,7 @@ class TestStats(object):
 		print("~" * 120, file = sys.stderr)
 
 		if self.run_cnt > 0:
-			print("run: %d in %.1f secs (%d processes, cumulative %.1f secs), successful: %d (%.0f%%), failures: %d (%.0f%%)" % (
+			print("ran: %d in %.1f secs (%d processes, cumulative %.1f secs), successful: %d (%.0f%%), failures: %d (%.0f%%)" % (
 						self.run_cnt, self._stats["total_time"], self.processes, self._stats["cumulative_time"],
 						self.success_cnt, 100 * self.success_cnt / self.run_cnt,
 						self.failed_cnt, 100 * self.failed_cnt / self.run_cnt))

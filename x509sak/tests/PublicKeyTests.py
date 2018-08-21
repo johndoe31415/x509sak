@@ -33,10 +33,20 @@ class PublicKeyTests(BaseTest):
 
 	def test_ecc_pubkey(self):
 		pubkey = self._load_pubkey("johannes-bauer.com.crt")
-		self.assertEqual(pubkey.curve, "secp384r1")
+		self.assertEqual(pubkey.curve.name, "secp384r1")
 		self.assertEqual(pubkey.x, 0x53559b24a6bf90e6533c957915ec2a5580a07fcb77571e798986869b446b012ff219f8c0b30628d95bc9de795a54df11)
 		self.assertEqual(pubkey.y, 0x50a9a4ffecb67f74485cc85bd5218a6c06ea20f3fdbb41aae225c3789f5acdf65544a3b4d519b6ed6f09553afbc26e84)
 
 	def test_ecc_keyid(self):
 		pubkey = self._load_pubkey("johannes-bauer.com.crt")
 		self.assertEqual(pubkey.keyid(), bytes.fromhex("1A4AB011B05CFA57FB49028765169337F78D8EE6"))
+
+	def test_eddsa_ed25519_keyid_openssl(self):
+		pubkey = self._load_pubkey("certificate_ed25519.crt")
+		self.assertTrue(pubkey.curve.point(pubkey.x, pubkey.y).on_curve())
+		self.assertEqual(pubkey.keyid(), bytes.fromhex("6403FEE102060D6C6907473A9115583AD83C9B90"))
+
+	def test_eddsa_ed448_keyid_openssl(self):
+		pubkey = self._load_pubkey("certificate_ed448.crt")
+		self.assertTrue(pubkey.curve.point(pubkey.x, pubkey.y).on_curve())
+		self.assertEqual(pubkey.keyid(), bytes.fromhex("CDF4E080CF5DEA11FDC0BE0BA9F9CB677AD63CE1"))

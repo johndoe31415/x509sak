@@ -29,7 +29,7 @@ from x509sak.BaseAction import BaseAction
 from x509sak.Exceptions import UnknownFormatException, LazyDeveloperException
 from x509sak.Tools import TextTools, JSONTools
 from x509sak.X509Certificate import X509CertificateClass
-from x509sak.KeySpecification import Cryptosystem
+from x509sak.AlgorithmDB import Cryptosystems
 from x509sak.AdvancedColorPalette import AdvancedColorPalette
 
 class ActionGraphPool(BaseAction):
@@ -131,9 +131,9 @@ class ActionGraphPool(BaseAction):
 	def _get_cert_attributes_keytype(self, crt):
 		# TODO: Support EdDSA
 		return {
-			Cryptosystem.RSA:	self._NodeAttributes(shape = None, fill_color = self._palette_flatui.get_hex_color("peter-river"), stroke_color = None, text_color = None),
-			Cryptosystem.ECC:	self._NodeAttributes(shape = None, fill_color = self._palette_flatui.get_hex_color("emerland"), stroke_color = None, text_color = None),
-		}.get(crt.pubkey.cryptosystem, self._NodeAttributes(shape = None, fill_color = self._palette_flatui.get_hex_color("concrete"), stroke_color = None, text_color = None))
+			Cryptosystems.RSA:	self._NodeAttributes(shape = None, fill_color = self._palette_flatui.get_hex_color("peter-river"), stroke_color = None, text_color = None),
+			Cryptosystems.ECC:	self._NodeAttributes(shape = None, fill_color = self._palette_flatui.get_hex_color("emerland"), stroke_color = None, text_color = None),
+		}.get(crt.pubkey.pk_alg.value.cryptosystem, self._NodeAttributes(shape = None, fill_color = self._palette_flatui.get_hex_color("concrete"), stroke_color = None, text_color = None))
 
 	def _get_cert_attributes_sigtype(self, crt):
 		# TODO Refactor signature algorithms

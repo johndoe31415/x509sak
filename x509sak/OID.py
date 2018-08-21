@@ -57,7 +57,10 @@ class OIDDB(object):
 	KeySpecificationAlgorithms = BijectiveDict({
 		OID.from_str("1.2.840.113549.1.1.1"):	"rsaEncryption",
 		OID.from_str("1.2.840.10045.2.1"):		"ecPublicKey",
-		OID.from_str("1.3.101.112"):			"id-EdDSA25519",
+		OID.from_str("1.3.101.110"):			"id-X25519",
+		OID.from_str("1.3.101.111"):			"id-X448",
+		OID.from_str("1.3.101.112"):			"id-Ed25519",
+		OID.from_str("1.3.101.113"):			"id-Ed448",
 	})
 
 	"""Signature algorithm OIDs."""

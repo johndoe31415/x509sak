@@ -23,9 +23,9 @@ import pyasn1.codec.der.encoder
 from pyasn1_modules import rfc2437
 from x509sak.NumberTheory import NumberTheory
 from x509sak.PEMDERObject import PEMDERObject
-from x509sak.KeySpecification import Cryptosystem
 from x509sak.PublicKey import PublicKey
 from x509sak.Exceptions import KeyCorruptException
+from x509sak.AlgorithmDB import Cryptosystems
 
 class RSAPrivateKey(PEMDERObject):
 	"""Class that allows generate deliberately broken or oddball RSA
@@ -65,7 +65,7 @@ class RSAPrivateKey(PEMDERObject):
 
 	@property
 	def cryptosystem(self):
-		return Cryptosystem.RSA
+		return Cryptosystems["RSA"]
 
 	@property
 	def pubkey(self):

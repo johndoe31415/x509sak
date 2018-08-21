@@ -209,3 +209,19 @@ class RSASSA_PSS_Params(univ.Sequence):
 		namedtype.DefaultedNamedType("saltLength", univ.Integer().subtype(explicitTag = tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 2))),
 		namedtype.DefaultedNamedType("trailerField", TrailerField().subtype(explicitTag = tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 3))),
 	)
+
+
+class PFX(univ.Sequence):
+	"""RFC7292: PKCS #12: Personal Information Exchange Syntax v1.1
+
+	PFX ::= SEQUENCE {
+		 version    INTEGER {v3(3)}(v3,...),
+		 authSafe   ContentInfo,
+		 macData    MacData OPTIONAL
+	}
+	"""
+	componentType = namedtype.NamedTypes(
+		namedtype.NamedType("version", PFXVersion()),
+		namedtype.NamedType("authSafe", rfc2315.ContentInfo()),
+		namedtype.OptionalNamedType("macData", MacData()),
+	)

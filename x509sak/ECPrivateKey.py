@@ -24,7 +24,7 @@ from x509sak.PEMDERObject import PEMDERObject
 from x509sak.Tools import ASN1Tools, ECCTools
 from x509sak.OID import OID
 from x509sak.Exceptions import InvalidInputException, UnknownAlgorithmException
-from x509sak.KeySpecification import Cryptosystem
+from x509sak.AlgorithmDB import Cryptosystems
 from x509sak.PublicKey import PublicKey
 from x509sak.CurveDB import CurveDB
 
@@ -49,17 +49,14 @@ class ECPrivateKey(PEMDERObject):
 			raise InvalidInputException("ECC private key does not contain public key. Cannot proceed.")
 
 		curve_oid = OID.from_asn1(self._asn1["parameters"])
-		curve = CurveDB().lookup(oid = curve_oid)
-		if curve is None:
-			raise UnknownAlgorithmException("Unable to determine curve for curve OID %s." % (curve_oid))
-		self._curve = curve["name"]
+		self._curve = CurveDB().instanciate(oid = curve_oid)
 
 		self._d = int.from_bytes(self._asn1["privateKey"], byteorder = "big")
 		(self._x, self._y) = ECCTools.decode_enc_pubkey(ASN1Tools.bitstring2bytes(self._asn1["publicKey"]))
 
 	@property
 	def cryptosystem(self):
-		return Cryptosystem.ECC
+		return Cryptosystems.ECC_ECDSA
 
 	@property
 	def pubkey(self):

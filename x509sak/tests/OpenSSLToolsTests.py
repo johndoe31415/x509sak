@@ -22,7 +22,8 @@
 import tempfile
 from x509sak.tests import BaseTest
 from x509sak.OpenSSLTools import OpenSSLTools
-from x509sak.KeySpecification import KeySpecification, Cryptosystem
+from x509sak.KeySpecification import KeySpecification
+from x509sak.AlgorithmDB import Cryptosystems
 from x509sak.PrivateKeyStorage import PrivateKeyStorage, PrivateKeyStorageForm
 from x509sak.SubprocessExecutor import SubprocessExecutor
 
@@ -46,7 +47,7 @@ class OpenSSLToolsTests(BaseTest):
 
 		for (input_data, output_data) in input_output_data:
 			with tempfile.NamedTemporaryFile(prefix = "privkey_", suffix = ".pem") as f:
-				OpenSSLTools.create_private_key(PrivateKeyStorage(storage_form = PrivateKeyStorageForm.PEM_FILE, filename = f.name), keyspec = KeySpecification(cryptosystem = Cryptosystem.RSA, parameters = input_data))
+				OpenSSLTools.create_private_key(PrivateKeyStorage(storage_form = PrivateKeyStorageForm.PEM_FILE, filename = f.name), keyspec = KeySpecification(cryptosystem = Cryptosystems.RSA, parameters = input_data))
 				content = self._read_file(f.name)
 				self.assertIn(b"BEGIN RSA PRIVATE KEY", content)
 				self.assertIn(b"END RSA PRIVATE KEY", content)
@@ -56,18 +57,18 @@ class OpenSSLToolsTests(BaseTest):
 	def test_gen_privkey_ecc(self):
 		input_output_data = [
 			(
-				{ "curve": "secp384r1" },
+				{ "curvename": "secp384r1" },
 				(b"384 bit", b"secp384r1"),
 			),
 			(
-				{ "curve": "secp256r1" },
+				{ "curvename": "secp256r1" },
 				(b"256 bit", b"prime256v1"),
 			),
 		]
 
 		for (input_data, output_data) in input_output_data:
 			with tempfile.NamedTemporaryFile(prefix = "privkey_", suffix = ".pem") as f:
-				OpenSSLTools.create_private_key(PrivateKeyStorage(storage_form = PrivateKeyStorageForm.PEM_FILE, filename = f.name), keyspec = KeySpecification(cryptosystem = Cryptosystem.ECC, parameters = input_data))
+				OpenSSLTools.create_private_key(PrivateKeyStorage(storage_form = PrivateKeyStorageForm.PEM_FILE, filename = f.name), keyspec = KeySpecification(cryptosystem = Cryptosystems.ECC_ECDSA, parameters = input_data))
 				content = self._read_file(f.name)
 				self.assertNotIn(b"BEGIN EC PARAMETERS", content)
 				self.assertNotIn(b"END EC PARAMETERS", content)
@@ -79,7 +80,7 @@ class OpenSSLToolsTests(BaseTest):
 
 	def test_gen_csr(self):
 		with tempfile.NamedTemporaryFile(prefix = "privkey_", suffix = ".pem") as privkey_file, tempfile.NamedTemporaryFile(prefix = "csr_", suffix = ".pem") as csr_file:
-			OpenSSLTools.create_private_key(PrivateKeyStorage(storage_form = PrivateKeyStorageForm.PEM_FILE, filename = privkey_file.name), keyspec = KeySpecification(cryptosystem = Cryptosystem.ECC, parameters = { "curve": "secp256r1" }))
+			OpenSSLTools.create_private_key(PrivateKeyStorage(storage_form = PrivateKeyStorageForm.PEM_FILE, filename = privkey_file.name), keyspec = KeySpecification.from_cmdline_str("ecc:secp256r1"))
 			private_key_storage = PrivateKeyStorage(storage_form = PrivateKeyStorageForm.PEM_FILE, filename = privkey_file.name)
 
 			OpenSSLTools.create_csr(private_key_storage = private_key_storage, csr_filename = csr_file.name, subject_dn = "/CN=Foobar")
@@ -137,7 +138,7 @@ class OpenSSLToolsTests(BaseTest):
 
 	def test_gen_selfsigned_cert(self):
 		with tempfile.NamedTemporaryFile(prefix = "privkey_", suffix = ".pem") as privkey_file, tempfile.NamedTemporaryFile(prefix = "crt_", suffix = ".pem") as certificate_file:
-			OpenSSLTools.create_private_key(PrivateKeyStorage(storage_form = PrivateKeyStorageForm.PEM_FILE, filename = privkey_file.name), keyspec = KeySpecification(cryptosystem = Cryptosystem.ECC, parameters = { "curve": "secp256r1" }))
+			OpenSSLTools.create_private_key(PrivateKeyStorage(storage_form = PrivateKeyStorageForm.PEM_FILE, filename = privkey_file.name), keyspec = KeySpecification(cryptosystem = Cryptosystems.ECC_ECDSA, parameters = { "curvename": "secp256r1" }))
 			private_key_storage = PrivateKeyStorage(storage_form = PrivateKeyStorageForm.PEM_FILE, filename = privkey_file.name)
 
 			OpenSSLTools.create_selfsigned_certificate(private_key_storage = private_key_storage, certificate_filename = certificate_file.name, subject_dn = "/CN=Foobar", validity_days = 365)

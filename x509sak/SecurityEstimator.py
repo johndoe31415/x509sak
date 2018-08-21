@@ -248,7 +248,7 @@ SecurityEstimator.register(RSASecurityEstimator)
 class ECCSecurityEstimator(SecurityEstimator):
 	_ALG_NAME = "ecc"
 	def analyze(self, pubkey):
-		curve = CurveDB().instanciate(oid = pubkey.curve_oid)
+		curve = pubkey.curve
 
 		# Check that the encoded public key point is on curve first
 		Q = curve.point(pubkey.x, pubkey.y)
@@ -261,7 +261,7 @@ class ECCSecurityEstimator(SecurityEstimator):
 			}
 
 		# Check that the encoded public key is not Gx
-		if pubkey.x == curve.Gx:
+		if Q.x == curve.Gx:
 			return {
 				"bits":			0,
 				"verdict":		Verdict.NO_SECURITY,
@@ -327,24 +327,20 @@ class SignatureSecurityEstimator(SecurityEstimator):
 	_ALG_NAME = "sig"
 
 	def analyze(self, signature_alg_oid, signature_alg_params, signature):
-		try:
-			signature_alg_name = OIDDB.SignatureAlgorithms[signature_alg_oid]
-		except KeyError:
+		signature_alg = SignatureAlgorithms.lookup("oid", signature_alg_oid)
+		if signature_alg is None:
 			return {
 				"common":		Commonness.HIGHLY_UNUSUAL,
 				"text":			"Unsupported signature algorithm used (OID %s), cannot make security determination." % (signature_alg_oid),
 			}
 
-		if signature_alg_name not in SignatureAlgorithms:
-			raise LazyDeveloperException("Signature OID %s known as %s, but cannot determine signature function/hash function from it." % (signature_alg_oid, signature_alg_name))
-		signature_alg = SignatureAlgorithms[signature_alg_name]
-
-		if signature_alg.hash_fnc is not None:
-			hash_fnc = signature_alg.hash_fnc
-		elif signature_alg.name == "RSASSA-PSS":
+		if signature_alg.value.hash_fnc is not None:
+			hash_fnc = signature_alg.value.hash_fnc
+		elif signature_alg == SignatureAlgortims.RSASSA_PSS:
 			# Need to look at parameters to determine hash function
 			(asn1, tail) = pyasn1.codec.der.decoder.decode(signature_alg_params, asn1Spec = ASN1Models.RSASSA_PSS_Params())
 			if asn1["hashAlgorithm"].hasValue():
+				# TODO BROKEN
 				hash_oid = OID.from_str(str(asn1["hashAlgorithm"]["algorithm"]))
 				hash_name = OIDDB.HashFunctions[hash_oid]
 				hash_fnc = HashFunctions[hash_name]
@@ -356,7 +352,7 @@ class SignatureSecurityEstimator(SecurityEstimator):
 
 		return {
 			"sig_alg":		signature_alg.name,
-			"sig_fnc":		self.algorithm("sig_fnc", analysis_options = self._analysis_options).analyze(signature_alg.sig_fnc),
+			"sig_fnc":		self.algorithm("sig_fnc", analysis_options = self._analysis_options).analyze(signature_alg.value.sig_fnc),
 			"hash_fnc":		self.algorithm("hash_fnc", analysis_options = self._analysis_options).analyze(hash_fnc),
 		}
 
@@ -384,16 +380,16 @@ class HashFunctionSecurityEstimator(SecurityEstimator):
 	_ALG_NAME = "hash_fnc"
 
 	def analyze(self, hash_fnc):
-		if hash_fnc.derating is None:
-			bits_security = hash_fnc.output_bits / 2
+		if hash_fnc.value.derating is None:
+			bits_security = hash_fnc.value.output_bits / 2
 		else:
-			bits_security = hash_fnc.derating.security_lvl_bits
+			bits_security = hash_fnc.value.derating.security_lvl_bits
 		result = {
-			"name":			hash_fnc.name,
-			"bitlen":		hash_fnc.output_bits,
+			"name":			hash_fnc.value.name,
+			"bitlen":		hash_fnc.value.output_bits,
 			"security":		self.algorithm("bits", analysis_options = self._analysis_options).analyze(bits_security)
 		}
-		if hash_fnc.derating is not None:
-			result["security"]["text"] += " Derated from ideal %d bits security level because of %s." % (hash_fnc.output_bits / 2, hash_fnc.derating.reason)
+		if hash_fnc.value.derating is not None:
+			result["security"]["text"] += " Derated from ideal %d bits security level because of %s." % (hash_fnc.value.output_bits / 2, hash_fnc.value.derating.reason)
 		return result
 SecurityEstimator.register(HashFunctionSecurityEstimator)

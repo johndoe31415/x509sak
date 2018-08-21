@@ -21,8 +21,8 @@
 
 from x509sak.Tools import JSONTools
 from x509sak.OID import OID
-from x509sak.Exceptions import LazyDeveloperException, CurveNotFoundException
-from x509sak.ECCMath import PrimeFieldEllipticCurve, BinaryFieldEllipticCurve
+from x509sak.Exceptions import LazyDeveloperException, CurveNotFoundException, InvalidInputException
+from x509sak.ECCMath import PrimeFieldEllipticCurve, BinaryFieldEllipticCurve, TwistedEdwardsEllipticCurve
 
 class CurveDB(object):
 	_DB_DATA = None
@@ -43,11 +43,13 @@ class CurveDB(object):
 		return result
 
 	def lookup(self, oid = None, name = None, on_error = "none"):
-		# Either OID or name must be given, not both
-		assert((oid is not None) ^ (name is not None))
-		assert((oid is None) or isinstance(oid, OID))
-		assert((name is None) or isinstance(name, str))
 		assert(on_error in [ "none", "raise" ])
+
+		# Check that either OID or name must be given, not both
+		if (oid is None) and (name is None):
+			raise InvalidInputException("Lookup from curve database needs either OID or name of curve to look up.")
+		if (oid is not None) and (name is not None):
+			raise InvalidInputException("Lookup from curve database needs either OID or name of curve to look up, not both. Given: OID %s and name %s." % (oid, name))
 
 		if oid is not None:
 			curve_data = self._DB_DATA.get(oid)
@@ -64,12 +66,18 @@ class CurveDB(object):
 		curve_data = self.lookup(oid = oid, name = name, on_error = "raise")
 
 		domain = curve_data["domain"]
-		if curve_data["field"] == "prime":
-			return PrimeFieldEllipticCurve(**domain)
-		elif curve_data["field"] == "binary":
-			return BinaryFieldEllipticCurve(**domain)
+		metadata = {
+			"name":		curve_data["name"],
+			"oid":		curve_data["oid"],
+		}
+		if curve_data["curvetype"] == "prime":
+			return PrimeFieldEllipticCurve(metadata = metadata, **domain)
+		elif curve_data["curvetype"] == "binary":
+			return BinaryFieldEllipticCurve(metadata = metadata, **domain)
+		elif curve_data["curvetype"] == "twisted_edwards":
+			return TwistedEdwardsEllipticCurve(metadata = metadata, **domain)
 		else:
-			raise LazyDeveloperException(NotImplemented, curve_data["field"])
+			raise LazyDeveloperException(NotImplemented, curve_data["curvetype"])
 
 	def __iter__(self):
 		return iter(self._DB_DATA)

@@ -58,7 +58,7 @@ class ActionCreateCA(BaseAction):
 			else:
 				# Cannot default to this in argparse because it's part of a
 				# mutually exclusive group with hardware_key
-				keyspec = KeySpecification.from_keyspec_argument(KeySpecArgument("ecc:secp384r1"))
+				keyspec = KeySpecification.from_cmdline_str("ecc:secp384r1")
 			private_key_storage = PrivateKeyStorage(PrivateKeyStorageForm.PEM_FILE, filename = "CA.key", search_path = camgr.capath)
 			OpenSSLTools.create_private_key(private_key_storage, keyspec = keyspec)
 		else:

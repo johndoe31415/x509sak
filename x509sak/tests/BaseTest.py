@@ -24,6 +24,7 @@ import unittest
 import pkgutil
 import gzip
 from x509sak import X509Certificate
+from x509sak.PublicKey import PublicKey
 
 class BaseTest(unittest.TestCase):
 	def __init__(self, *args, **kwargs):
@@ -50,3 +51,6 @@ class BaseTest(unittest.TestCase):
 
 	def _load_pubkey(self, crtname):
 		return self._load_crt(crtname).pubkey
+
+	def _load_raw_pubkey(self, keyname):
+		return PublicKey.from_pem_data(self._load_data(keyname))[0]

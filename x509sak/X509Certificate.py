@@ -30,11 +30,12 @@ from x509sak.SubprocessExecutor import SubprocessExecutor
 from x509sak.PEMDERObject import PEMDERObject
 from x509sak.DistinguishedName import DistinguishedName
 from x509sak.Tools import CmdTools, ASN1Tools
-from x509sak.KeySpecification import SignatureAlgorithm
+from x509sak.AlgorithmDB import SignatureAlgorithms
 from x509sak.OID import OID, OIDDB
 from x509sak.PublicKey import PublicKey
 from x509sak.X509Extensions import X509ExtensionRegistry, X509Extensions
 from x509sak.SecurityEstimator import SecurityEstimator
+from x509sak.Exceptions import UnknownAlgorithmException
 
 _log = logging.getLogger("x509sak.X509Certificate")
 
@@ -58,7 +59,10 @@ class X509Certificate(PEMDERObject):
 	@property
 	def signature_algorithm(self):
 		algorithm_oid = OID.from_asn1(self._asn1["signatureAlgorithm"]["algorithm"])
-		return SignatureAlgorithm.from_sigalg_oid(algorithm_oid)
+		sig_alg = SignatureAlgorithms.lookup("oid", algorithm_oid)
+		if sig_alg is None:
+			raise UnknownAlgorithmException("Unknown signature OID %s." % (algorithm_oid))
+		return sig_alg
 
 	@property
 	def pubkey(self):

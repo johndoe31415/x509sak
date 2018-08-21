@@ -103,3 +103,28 @@ class NumberTheoryTests(BaseTest):
 		self.assertEqual(NumberTheory.binpoly_reduce(0x1234, 0x10001), 0x1234)
 		self.assertEqual(NumberTheory.binpoly_reduce(0x12345, 0x10001), 0x2344)
 		self.assertEqual(NumberTheory.binpoly_reduce(0x20000, 0x10001), 0x2)
+
+	def test_sqrt_3_mod_4(self):
+		p = 9937818373633759003
+		self.assertEqual(p % 4, 3)
+
+		for value in [ 1, 123, 123456789, 0x123456789 ]:
+			value = value % p
+			sqr = (value * value) % p
+			(sqrt_pos, sqrt_neg) = NumberTheory.sqrt_mod_p(sqr, p)
+			self.assertEqual((sqrt_pos & 1), 0)
+			self.assertEqual((sqrt_neg & 1), 1)
+			self.assertEqual((sqrt_pos * sqrt_pos) % p, sqr)
+			self.assertEqual((sqrt_neg * sqrt_neg) % p, sqr)
+
+	def test_sqrt_5_mod_8(self):
+		for p in [ 11948800825345174421 ]:
+			self.assertEqual(p % 8, 5)
+
+			for value in [ 1, 123, 123456789, 0x123456789 ]:
+				value = value % p
+				sqr = (value * value) % p
+				(sqrt_pos, sqrt_neg) = NumberTheory.sqrt_mod_p(sqr, p)
+				self.assertEqual((sqrt_pos & 1), 0)
+				self.assertEqual((sqrt_neg & 1), 1)
+				self.assertEqual((sqrt_pos * sqrt_pos) % p, sqr)

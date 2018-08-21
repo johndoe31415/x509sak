@@ -84,7 +84,7 @@ json_output = collections.OrderedDict()
 for (oid, curve) in oid_curves.items():
 	json_output[str(oid)] = collections.OrderedDict([
 		("name",		curve.name),
-		("field",		curve.field),
+		("curvetype",	curve.field),
 		("domain",		curve.domain),
 	])
 

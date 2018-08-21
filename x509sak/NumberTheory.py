@@ -20,6 +20,7 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 import random
+from x509sak.Exceptions import InvalidInputException
 
 class NumberTheory(object):
 	"""Collection of number theoretic functions and modular arithmetic
@@ -190,3 +191,29 @@ class NumberTheory(object):
 				weight += 1
 			x >>= 1
 		return weight
+
+	@classmethod
+	def sqrt_mod_p(cls, x, p):
+		x %= p
+		if (p % 4) == 3:
+			sqrt = pow(x, (p + 1) // 4, p)
+		elif (p % 8) == 5:
+			# Two possibilities, depending on if x is a quartic residue modulo
+			# p or not
+			sqrt_qr = pow(x, (p + 3) // 8, p)
+			if pow(sqrt_qr, 2, p) == x:
+				# x is a quartic residue mod p
+				sqrt = sqrt_qr
+			else:
+				# x is a quartic non-residue mod p
+				sqrt = (sqrt_qr * pow(2, (p - 1) // 4, p)) % p
+		else:
+			raise NotImplementedError("Need to use Tonelli-Shanks algorithm to find quadratic residues for a p % 8 == %d" % (p % 8))
+
+		if ((sqrt * sqrt) % p) != (x % p):
+			raise InvalidInputException("Given input value has no quadratric residue modulo p.")
+
+		if (sqrt & 1) == 0:
+			return (sqrt, p - sqrt)
+		else:
+			return (p - sqrt, sqrt)

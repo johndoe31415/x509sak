@@ -38,7 +38,7 @@ class ActionCreateCSR(BaseAction):
 			raise InvalidInputException("x509sak cannot generate private keys on a hardware token; please do this with a different tool and use x509sak to then use the created key.")
 
 		private_key_storage = PrivateKeyStorage.from_str(self._args.keytype, self._args.key_filename)
-		gen_keyspec = self._args.gen_keyspec or KeySpecification.from_keyspec_argument(KeySpecArgument("ecc:secp384r1"))
+		gen_keyspec = self._args.gen_keyspec or KeySpecification.from_cmdline_str("ecc:secp384r1")
 		if (private_key_storage.is_file_based) and (not os.path.exists(private_key_storage.filename)):
 			OpenSSLTools.create_private_key(private_key_storage, gen_keyspec)
 
