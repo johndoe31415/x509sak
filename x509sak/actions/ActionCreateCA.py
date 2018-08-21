@@ -29,6 +29,7 @@ from x509sak.KeySpecification import KeySpecification
 from x509sak.CmdLineArgs import KeySpecArgument
 from x509sak.OpenSSLTools import OpenSSLTools
 from x509sak.Exceptions import UnfulfilledPrerequisitesException, InvalidUsageException
+from x509sak.EDPrivateKey import EDPrivateKey
 
 class ActionCreateCA(BaseAction):
 	def __init__(self, cmdname, args):
@@ -65,10 +66,20 @@ class ActionCreateCA(BaseAction):
 			# The key is stored in hardware.
 			private_key_storage = PrivateKeyStorage(PrivateKeyStorageForm.HARDWARE_TOKEN, pkcs11uri = self._args.hardware_key, so_search_path = self._args.pkcs11_so_search, module_so = self._args.pkcs11_module)
 
+		signing_hash = self._args.hashfnc
+		if private_key_storage.is_file_based:
+			privkey = private_key_storage.load_private_key()
+			if isinstance(privkey, EDPrivateKey):
+				# We cannot specify a hash function for EdDSA because this
+				# causes OpenSSL to fail with "elliptic curve
+				# routines:pkey_ecd_ctrl:invalid digest type" -- for EdDSA, the
+				# hash algorithms are implied
+				signing_hash = None
+
 		camgr.create_ca_structure(private_key_storage = private_key_storage, unique_subject = not self._args.allow_duplicate_subjects)
 		if self._args.parent_ca is None:
 			# Self-signed root CA
-			camgr.create_selfsigned_ca_cert(subject_dn = self._args.subject_dn, validity_days = self._args.validity_days, custom_x509_extensions = custom_x509_extensions, signing_hash = self._args.hashfnc, serial = self._args.serial)
+			camgr.create_selfsigned_ca_cert(subject_dn = self._args.subject_dn, validity_days = self._args.validity_days, custom_x509_extensions = custom_x509_extensions, signing_hash = signing_hash, serial = self._args.serial)
 
 			# Create certificate chain file that only consists of our
 			# self-signed certificate
@@ -80,7 +91,7 @@ class ActionCreateCA(BaseAction):
 			with tempfile.NamedTemporaryFile("w", prefix = "ca_", suffix = ".csr") as csr:
 				camgr.create_ca_csr(csr_filename = csr.name, subject_dn = self._args.subject_dn)
 				parent_ca = CAManager(self._args.parent_ca)
-				parent_ca.sign_csr(csr.name, camgr.root_crt_filename, subject_dn = self._args.subject_dn, validity_days = self._args.validity_days, custom_x509_extensions = custom_x509_extensions, extension_template = "ca", signing_hash = self._args.hashfnc)
+				parent_ca.sign_csr(csr.name, camgr.root_crt_filename, subject_dn = self._args.subject_dn, validity_days = self._args.validity_days, custom_x509_extensions = custom_x509_extensions, extension_template = "ca", signing_hash = signing_hash)
 
 			# Create a certificate chain by appending the parent chain to our certificate
 			if os.path.isfile(self._args.parent_ca + "/chain.crt"):

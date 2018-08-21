@@ -37,7 +37,7 @@ class OpenSSLTools(object):
 		elif keyspec.cryptosystem == Cryptosystems.ECC_ECDSA:
 			cmd = [ "openssl", "ecparam", "-genkey", "-out", private_key_filename, "-name", keyspec["curvename"] ]
 		elif keyspec.cryptosystem == Cryptosystems.ECC_EdDSA:
-			cmd = [ "openssl", "genpkey", "-algorithm", keyspec["curvename"] ]
+			cmd = [ "openssl", "genpkey", "-out", private_key_filename, "-algorithm", keyspec["curvename"] ]
 		else:
 			raise LazyDeveloperException(NotImplemented, keyspec.cryptosystem)
 		SubprocessExecutor(cmd).run()

@@ -22,8 +22,11 @@
 import enum
 import urllib.parse
 from x509sak.KwargsChecker import KwargsChecker
-from x509sak.Exceptions import InvalidInputException, LazyDeveloperException
+from x509sak.Exceptions import InvalidInputException, LazyDeveloperException, UnexpectedFileContentException
 from x509sak.FriendlyArgumentParser import baseint
+from x509sak.RSAPrivateKey import RSAPrivateKey
+from x509sak.ECPrivateKey import ECPrivateKey
+from x509sak.EDPrivateKey import EDPrivateKey
 
 class PrivateKeyStorageForm(enum.IntEnum):
 	PEM_FILE = 1
@@ -31,6 +34,8 @@ class PrivateKeyStorageForm(enum.IntEnum):
 	HARDWARE_TOKEN = 3
 
 class PrivateKeyStorage(object):
+	_PRIVATE_KEY_CLASSES = [ RSAPrivateKey, ECPrivateKey, EDPrivateKey ]
+
 	_PARAMETER_CONSTRAINTS = {
 		PrivateKeyStorageForm.PEM_FILE:			KwargsChecker(required_arguments = set([ "filename" ]), optional_arguments = set([ "search_path" ])),
 		PrivateKeyStorageForm.DER_FILE:			KwargsChecker(required_arguments = set([ "filename" ]), optional_arguments = set([ "search_path" ])),
@@ -134,6 +139,23 @@ class PrivateKeyStorage(object):
 			return cls(PrivateKeyStorageForm.HARDWARE_TOKEN, pkcs11uri = key_value)
 		else:
 			raise LazyDeveloperException(NotImplemented, key_type)
+
+	def load_private_key(self):
+		assert(self.is_file_based)
+		for handler_class in self._PRIVATE_KEY_CLASSES:
+			try:
+				if self.storage_form == PrivateKeyStorageForm.PEM_FILE:
+					privkey = handler_class.read_pemfile(self.full_filename)[0]
+				elif self.storage_form == PrivateKeyStorageForm.DER_FILE:
+					privkey = handler_class.read_derfile(self.full_filename)
+				else:
+					raise LazyDeveloperException(NotImplemented, self.storage_form)
+			except UnexpectedFileContentException:
+				# TODO: read_derfile() will probably throw a pyasn1 decode
+				# Exception which we don't catch here.
+				continue
+			return privkey
+		raise UnexpectedFileContentException("Could not load key material from %s." % (self.full_filename))
 
 	def __str__(self):
 		if self.storage_form in [ PrivateKeyStorageForm.PEM_FILE, PrivateKeyStorageForm.DER_FILE ]:
