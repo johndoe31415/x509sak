@@ -838,10 +838,10 @@ optional arguments:
                         hash functions. Can be any of blake2b, blake2s, md4,
                         md5, md5-sha1, mdc2, ripemd160, sha1, sha224, sha256,
                         sha384, sha3_224, sha3_256, sha3_384, sha3_512,
-                        sha512, shake128, shake256, shake_128, shake_256, sm3,
-                        whirlpool, all, but defaults to md5, sha1, sha256,
-                        sha384, sha512. Special value 'all' means all
-                        supported functions.
+                        sha512, sha512-224, sha512-256, shake128, shake256,
+                        shake_128, shake_256, sm3, whirlpool, all, but
+                        defaults to md5, sha1, sha256, sha384, sha512. Special
+                        value 'all' means all supported functions.
   -o offset, --seek-offset offset
                         Offset to seek into file. Supports hex/octal/binary
                         prefixes and SI/binary SI (k, ki, M, Mi, etc.)
