@@ -21,20 +21,20 @@
 
 import tempfile
 import pkgutil
-from x509sak.tests import BaseTest
+from x509sak.tests import BaseTest, ResourceFileLoader
 from x509sak.OpenSSLCAIndexFile import OpenSSLCAIndexFile
 
 class OpenSSLCAIndexFileTests(BaseTest):
 	def test_index_file(self):
-		with tempfile.NamedTemporaryFile(prefix = "index_", suffix = ".txt") as infile, tempfile.NamedTemporaryFile(prefix = "new_index_", suffix = ".txt") as outfile:
-			indata = pkgutil.get_data("x509sak.tests.data", "index.txt")
-			infile.write(indata)
-			infile.flush()
-			index_file = OpenSSLCAIndexFile(infile.name)
+		with ResourceFileLoader("misc/index.txt") as infile, tempfile.NamedTemporaryFile(prefix = "new_index_", suffix = ".txt") as outfile:
+			index_file = OpenSSLCAIndexFile(infile)
 
 			# Write index file to outfile
 			index_file.write(outfile.name)
 
 			# Assert files are identical
+			with open(infile, "rb") as f:
+				in_data = f.read()
 			with open(outfile.name, "rb") as f:
-				self.assertEqual(f.read(), indata)
+				out_data = f.read()
+			self.assertEqual(in_data, out_data)

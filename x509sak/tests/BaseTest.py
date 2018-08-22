@@ -26,10 +26,11 @@ import gzip
 import tempfile
 from x509sak import X509Certificate
 from x509sak.PublicKey import PublicKey
+from x509sak.RSAPrivateKey import RSAPrivateKey
 
 class ResourceFileLoader(object):
 	def __init__(self, *resource_names):
-		self._data = [ self.load_data(resource_name) for resource_name in resource_names ]
+		self._resource_names = resource_names
 		self._tempfiles = None
 
 	@classmethod
@@ -40,11 +41,28 @@ class ResourceFileLoader(object):
 		return data
 
 	def __enter__(self):
-		self._tempfiles = [ tempfile.NamedTemporaryFile(mode = "wb") for i in range(len(self._data)) ]
-		for (data, tmpfile) in zip(self._data, self._tempfiles):
-			tmpfile.write(data)
-			tmpfile.flush()
-		filenames = [ tmpfile.name for tmpfile in self._tempfiles ]
+		filenames = [ ]
+		self._tempfiles = [ ]
+
+		for resource_name in self._resource_names:
+			if isinstance(resource_name, str):
+				# Load a single file
+				data = self.load_data(resource_name)
+				tmpfile = tempfile.NamedTemporaryFile(mode = "wb")
+				tmpfile.write(data)
+				tmpfile.flush()
+			elif isinstance(resource_name, (tuple, list)):
+				# Load multiple files
+				tmpfile = tempfile.TemporaryDirectory()
+				for resource in resource_name:
+					data = self.load_data(resource)
+					with open(tmpfile.name + "/" + os.path.basename(resource), "wb") as f:
+						f.write(data)
+			else:
+				raise NotImplementedError(type(resource_name))
+			self._tempfiles.append(tmpfile)
+			filenames.append(tmpfile.name)
+
 		if len(filenames) == 1:
 			return filenames[0]
 		else:
@@ -52,7 +70,10 @@ class ResourceFileLoader(object):
 
 	def __exit__(self, *args):
 		for tmpfile in self._tempfiles:
-			tmpfile.close()
+			if getattr(tmpfile, "close", None) is not None:
+				tmpfile.close()
+			else:
+				tmpfile.cleanup()
 
 class BaseTest(unittest.TestCase):
 	def __init__(self, *args, **kwargs):
@@ -70,12 +91,16 @@ class BaseTest(unittest.TestCase):
 		return self._load_data(filename).decode("ascii")
 
 	def _load_crt(self, crtname):
-		x509_text = self._load_text(crtname)
+		x509_text = self._load_text("certs/" + crtname + ".pem")
 		cert = X509Certificate.from_pem_data(x509_text)[0]
 		return cert
 
-	def _load_pubkey(self, crtname):
+	def _load_crt_pubkey(self, crtname):
 		return self._load_crt(crtname).pubkey
 
 	def _load_raw_pubkey(self, keyname):
 		return PublicKey.from_pem_data(self._load_data(keyname))[0]
+
+	def _load_privkey(self, keyname):
+		privkey_text = self._load_text("privkey/" + keyname + ".pem")
+		return RSAPrivateKey.from_pem_data(privkey_text)[0]

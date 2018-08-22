@@ -20,47 +20,47 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 import tempfile
-from x509sak.tests import BaseTest
+from x509sak.tests import BaseTest, ResourceFileLoader
 from x509sak.SubprocessExecutor import SubprocessExecutor
 
 class CmdLineTestsGraphPool(BaseTest):
 	def test_create_dot(self):
-		with tempfile.NamedTemporaryFile(mode = "w", prefix = "graph_", suffix = ".dot") as f:
-			SubprocessExecutor(self._x509sak + [ "graph", "--outfile", f.name, "x509sak/tests/data/johannes-bauer.com.crt" ]).run()
+		with tempfile.NamedTemporaryFile(prefix = "graph_", suffix = ".dot") as f, ResourceFileLoader("certs/ok/johannes-bauer.com.pem") as certfile:
+			SubprocessExecutor(self._x509sak + [ "graph", "--outfile", f.name, certfile ]).run()
 			with open(f.name) as f:
 				dotfile = f.read()
 			self.assertIn("digraph", dotfile)
 			self.assertIn("bcade7ce", dotfile)
 
 	def test_render_dot_png(self):
-		with tempfile.NamedTemporaryFile(mode = "w", prefix = "graph_", suffix = ".png") as f:
-			SubprocessExecutor(self._x509sak + [ "graph", "--outfile", f.name, "x509sak/tests/data/johannes-bauer.com.crt" ]).run()
+		with tempfile.NamedTemporaryFile(prefix = "graph_", suffix = ".png") as f, ResourceFileLoader("certs/ok/johannes-bauer.com.pem") as certfile:
+			SubprocessExecutor(self._x509sak + [ "graph", "--outfile", f.name, certfile ]).run()
 			with open(f.name, "rb") as f:
 				dotfile = f.read()
 			self.assertTrue(dotfile.startswith(b"\x89PNG\r\n"))
 
 	def test_render_dot_ps(self):
-		with tempfile.NamedTemporaryFile(mode = "w", prefix = "graph_", suffix = ".ps") as f:
-			SubprocessExecutor(self._x509sak + [ "graph", "--outfile", f.name, "x509sak/tests/data/johannes-bauer.com.crt" ]).run()
+		with tempfile.NamedTemporaryFile(prefix = "graph_", suffix = ".ps") as f, ResourceFileLoader("certs/ok/johannes-bauer.com.pem") as certfile:
+			SubprocessExecutor(self._x509sak + [ "graph", "--outfile", f.name, certfile ]).run()
 			with open(f.name, "rb") as f:
 				dotfile = f.read()
 			self.assertTrue(dotfile.startswith(b"%!PS-Adobe-3.0"))
 
 	def test_render_dot_pdf(self):
-		with tempfile.NamedTemporaryFile(mode = "w", prefix = "graph_", suffix = ".pdf") as f:
-			SubprocessExecutor(self._x509sak + [ "graph", "--outfile", f.name, "x509sak/tests/data/johannes-bauer.com.crt" ]).run()
+		with tempfile.NamedTemporaryFile(prefix = "graph_", suffix = ".pdf") as f, ResourceFileLoader("certs/ok/johannes-bauer.com.pem") as certfile:
+			SubprocessExecutor(self._x509sak + [ "graph", "--outfile", f.name, certfile ]).run()
 			with open(f.name, "rb") as f:
 				dotfile = f.read()
 			self.assertTrue(dotfile.startswith(b"%PDF"))
 
 	def test_render_unknown_ext(self):
-		with tempfile.NamedTemporaryFile(mode = "w", prefix = "graph_", suffix = ".xyz") as f:
-			SubprocessExecutor(self._x509sak + [ "graph", "--outfile", f.name, "x509sak/tests/data/johannes-bauer.com.crt" ], success_return_codes = [ 1 ]).run()
-			SubprocessExecutor(self._x509sak + [ "graph", "--outfile", f.name, "--format", "pdf", "x509sak/tests/data/johannes-bauer.com.crt" ]).run()
+		with tempfile.NamedTemporaryFile(prefix = "graph_", suffix = ".xyz") as f, ResourceFileLoader("certs/ok/johannes-bauer.com.pem") as certfile:
+			SubprocessExecutor(self._x509sak + [ "graph", "--outfile", f.name, certfile ], success_return_codes = [ 1 ]).run()
+			SubprocessExecutor(self._x509sak + [ "graph", "--outfile", f.name, "--format", "pdf", certfile ]).run()
 			with open(f.name, "rb") as f:
 				dotfile = f.read()
 			self.assertTrue(dotfile.startswith(b"%PDF"))
 
 	def test_render_multiple(self):
-		with tempfile.NamedTemporaryFile(mode = "w", prefix = "graph_", suffix = ".dot") as f:
-			SubprocessExecutor(self._x509sak + [ "graph", "--outfile", f.name, "x509sak/tests/data/johannes-bauer.com.crt", "x509sak/tests/data/johannes-bauer-intermediate.crt", "x509sak/tests/data/johannes-bauer-root.crt" ]).run()
+		with tempfile.NamedTemporaryFile(prefix = "graph_", suffix = ".dot") as f, ResourceFileLoader("certs/ok/johannes-bauer.com.pem", "certs/ok/johannes-bauer-intermediate.pem", "certs/ok/johannes-bauer-root.pem") as certfiles:
+			SubprocessExecutor(self._x509sak + [ "graph", "--outfile", f.name ] + list(certfiles)).run()

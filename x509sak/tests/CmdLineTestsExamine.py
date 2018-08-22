@@ -21,22 +21,20 @@
 
 import tempfile
 import json
-from x509sak.tests import BaseTest
+from x509sak.tests import BaseTest, ResourceFileLoader
 from x509sak.SubprocessExecutor import SubprocessExecutor
 
 class CmdLineTestsExamine(BaseTest):
 	def test_crt_with_custom_key_usage(self):
-		with tempfile.NamedTemporaryFile(prefix = "crt_", suffix = ".pem") as f:
-			self._load_crt("ecdsa_crt_custom_key_usage.crt").write_pemfile(f.name)
-			output = SubprocessExecutor(self._x509sak + [ "examine", f.name ]).run().stdout
+		with ResourceFileLoader("certs/ok/custom_key_usage.pem") as certfile:
+			output = SubprocessExecutor(self._x509sak + [ "examine", certfile ]).run().stdout
 			self.assertIn(b"CN = 0b239049", output)
 			self.assertIn(b"CN = \"Root CA\"", output)
 			self.assertIn(b"ECC on prime256v1", output)
 
 	def test_examine_write_json(self):
-		with tempfile.NamedTemporaryFile(prefix = "crt_", suffix = ".pem") as f, tempfile.NamedTemporaryFile(prefix = "crt_", suffix = ".json") as jsonfile:
-			self._load_crt("ecdsa_crt_custom_key_usage.crt").write_pemfile(f.name)
-			SubprocessExecutor(self._x509sak + [ "examine", "--write-json", jsonfile.name, f.name ]).run()
+		with ResourceFileLoader("certs/ok/custom_key_usage.pem") as crtfile, tempfile.NamedTemporaryFile(prefix = "crt_", suffix = ".json") as jsonfile:
+			SubprocessExecutor(self._x509sak + [ "examine", "--write-json", jsonfile.name, crtfile ]).run()
 			with open(jsonfile.name) as jsonfile:
 				json_data = json.load(jsonfile)
 			self.assertEqual(json_data[0]["issuer"]["rfc2253"], "CN=Root CA")

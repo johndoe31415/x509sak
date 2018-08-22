@@ -28,27 +28,27 @@ from x509sak.Exceptions import UnexpectedFileContentException
 
 class PrivateKeyTests(BaseTest):
 	def test_storage_load_key_pem(self):
-		with ResourceFileLoader("privkey_ecc_secp256r1.pem", "privkey_ed25519_rfc8032.pem", "privkey_eddsa_ed448.pem", "privkey_rsa_768.pem") as privkey_filenames:
+		with ResourceFileLoader("privkey/ok/ecc_secp256r1.pem", "privkey/ok/eddsa_ed25519_rfc8032.pem", "privkey/ok/eddsa_ed448.pem", "privkey/ok/rsa_768.pem") as privkey_filenames:
 			for privkey_filename in privkey_filenames:
 				pks = PrivateKeyStorage(PrivateKeyStorageForm.PEM_FILE, filename = privkey_filename)
 				privkey = pks.load_private_key()
 				self.assertIsInstance(privkey, (RSAPrivateKey, ECPrivateKey, EDPrivateKey))
 
 	def test_storage_load_key_der(self):
-		with ResourceFileLoader("privkey_ecc_secp256r1.der", "privkey_ed25519_rfc8032.der", "privkey_rsa_768.der") as privkey_filenames:
+		with ResourceFileLoader("privkey/ok/ecc_secp256r1.der", "privkey/ok/eddsa_ed25519_rfc8032.der", "privkey/ok/rsa_768.der") as privkey_filenames:
 			for privkey_filename in privkey_filenames:
 				pks = PrivateKeyStorage(PrivateKeyStorageForm.DER_FILE, filename = privkey_filename)
 				privkey = pks.load_private_key()
 				self.assertIsInstance(privkey, (RSAPrivateKey, ECPrivateKey, EDPrivateKey))
 
 	def test_storage_load_fails(self):
-		with ResourceFileLoader("johannes-bauer-root.crt") as cert_filename:
+		with ResourceFileLoader("certs/ok/johannes-bauer-root.pem") as cert_filename:
 			pks = PrivateKeyStorage(PrivateKeyStorageForm.PEM_FILE, filename = cert_filename)
 			with self.assertRaises(UnexpectedFileContentException):
 				pks.load_private_key()
 
 	def test_eddsa_ed25519_privkey(self):
-		with ResourceFileLoader("privkey_eddsa_ed25519.pem") as privkey_filename:
+		with ResourceFileLoader("privkey/ok/eddsa_ed25519.pem") as privkey_filename:
 			privkey = EDPrivateKey.read_pemfile(privkey_filename)[0]
 			self.assertIn("ed25519", str(privkey).lower())
 			self.assertEqual(privkey.priv, bytes.fromhex("6da749b74428d3b57ffe0de0ace76e23205be1ac2d855c92a882fd3596116f95"))

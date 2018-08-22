@@ -25,9 +25,9 @@ from x509sak.tests import BaseTest
 class CertificatePoolTests(BaseTest):
 	def test_empty_pool(self):
 		pool = CertificatePool()
-		server_cert = self._load_crt("johannes-bauer.com.crt")
-		intermediate_cert = self._load_crt("johannes-bauer-intermediate.crt")
-		root_cert = self._load_crt("johannes-bauer-root.crt")
+		server_cert = self._load_crt("ok/johannes-bauer.com")
+		intermediate_cert = self._load_crt("ok/johannes-bauer-intermediate")
+		root_cert = self._load_crt("ok/johannes-bauer-root")
 
 		chain = pool.find_chain(server_cert)
 		self.assertEqual(chain.root, None)
@@ -49,9 +49,9 @@ class CertificatePoolTests(BaseTest):
 
 	def test_fullchain(self):
 		pool = CertificatePool()
-		server_cert = self._load_crt("johannes-bauer.com.crt")
-		intermediate_cert = self._load_crt("johannes-bauer-intermediate.crt")
-		root_cert = self._load_crt("johannes-bauer-root.crt")
+		server_cert = self._load_crt("ok/johannes-bauer.com")
+		intermediate_cert = self._load_crt("ok/johannes-bauer-intermediate")
+		root_cert = self._load_crt("ok/johannes-bauer-root")
 		pool.add_certificate(server_cert)
 		pool.add_certificate(intermediate_cert)
 		pool.add_certificate(root_cert)
@@ -68,8 +68,8 @@ class CertificatePoolTests(BaseTest):
 
 	def test_partial_chain(self):
 		pool = CertificatePool()
-		server_cert = self._load_crt("johannes-bauer.com.crt")
-		intermediate_cert = self._load_crt("johannes-bauer-intermediate.crt")
+		server_cert = self._load_crt("ok/johannes-bauer.com")
+		intermediate_cert = self._load_crt("ok/johannes-bauer-intermediate")
 		pool.add_certificate(server_cert)
 		pool.add_certificate(intermediate_cert)
 

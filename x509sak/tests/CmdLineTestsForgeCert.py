@@ -37,7 +37,7 @@ class CmdLineTestsForgeCert(BaseTest):
 		self.assertNotEqual(original.pubkey, forgery.pubkey)
 
 	def test_forge_root(self):
-		root_crt = self._load_crt("johannes-bauer-root.crt")
+		root_crt = self._load_crt("ok/johannes-bauer-root")
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
 			root_crt.write_pemfile("root.crt")
 			SubprocessExecutor(self._x509sak + [ "forgecert", "root.crt" ]).run()
@@ -49,7 +49,7 @@ class CmdLineTestsForgeCert(BaseTest):
 			self.assertEqual(orig_ski, forged_ski)
 
 	def test_forge_root_new_ski(self):
-		root_crt = self._load_crt("johannes-bauer-root.crt")
+		root_crt = self._load_crt("ok/johannes-bauer-root")
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
 			root_crt.write_pemfile("root.crt")
 			SubprocessExecutor(self._x509sak + [ "forgecert", "--recalculate-keyids", "root.crt" ]).run()
@@ -61,9 +61,9 @@ class CmdLineTestsForgeCert(BaseTest):
 			self.assertNotEqual(orig_ski, forged_ski)
 
 	def test_forge_chain(self):
-		root_crt = self._load_crt("johannes-bauer-root.crt")
-		intermediate_crt = self._load_crt("johannes-bauer-intermediate.crt")
-		server_crt = self._load_crt("johannes-bauer.com.crt")
+		root_crt = self._load_crt("ok/johannes-bauer-root")
+		intermediate_crt = self._load_crt("ok/johannes-bauer-intermediate")
+		server_crt = self._load_crt("ok/johannes-bauer.com")
 		orig_crts = [ root_crt, intermediate_crt, server_crt ]
 
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
