@@ -37,7 +37,7 @@ from x509sak.actions.ActionExamineCert import ActionExamineCert
 from x509sak.actions.ActionForgeCert import ActionForgeCert
 from x509sak.actions.ActionScrape import ActionScrape
 from x509sak.actions.ActionHashPart import ActionHashPart
-from x509sak.CmdLineArgs import KeySpecArgument, KeyValue
+from x509sak.CmdLineArgs import KeyValue
 from x509sak.KeySpecification import KeySpecification
 from x509sak.Exceptions import UserErrorException, InvisibleUserErrorException, CmdExecutionFailedException
 from x509sak.SubprocessExecutor import SubprocessExecutor
@@ -47,7 +47,7 @@ from .MultiCommand import MultiCommand
 _default_so_search_path = "/usr/local/lib:/usr/lib:/usr/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu/openssl-1.0.2/engines:/usr/lib/x86_64-linux-gnu/engines-1.1"
 
 if "X509SAK_VERBOSE_EXECUTION" in os.environ:
-	SubprocessExecutor.set_verbose()
+	SubprocessExecutor.set_all_verbose()
 if "X509SAK_PAUSE_FAILED_EXECUTION" in os.environ:
 	SubprocessExecutor.pause_after_failed_execution()
 if "X509SAK_PAUSE_BEFORE_EXECUTION" in os.environ:

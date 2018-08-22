@@ -27,7 +27,6 @@ from x509sak.BaseAction import BaseAction
 from x509sak.PrivateKeyStorage import PrivateKeyStorage
 from x509sak.Exceptions import CmdExecutionFailedException, UnfulfilledPrerequisitesException, InvalidInputException
 from x509sak.KeySpecification import KeySpecification
-from x509sak.CmdLineArgs import KeySpecArgument
 
 class ActionCreateCSR(BaseAction):
 	def __init__(self, cmdname, args):

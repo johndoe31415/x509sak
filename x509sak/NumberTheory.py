@@ -208,7 +208,7 @@ class NumberTheory(object):
 				# x is a quartic non-residue mod p
 				sqrt = (sqrt_qr * pow(2, (p - 1) // 4, p)) % p
 		else:
-			raise NotImplementedError("Need to use Tonelli-Shanks algorithm to find quadratic residues for a p % 8 == %d" % (p % 8))
+			raise NotImplementedError("Need to use Tonelli-Shanks algorithm to find quadratic residues for a p %% 8 == %d" % (p % 8))
 
 		if ((sqrt * sqrt) % p) != (x % p):
 			raise InvalidInputException("Given input value has no quadratric residue modulo p.")

@@ -23,7 +23,6 @@ import tempfile
 from x509sak.tests import BaseTest
 from x509sak.WorkDir import WorkDir
 from x509sak.SubprocessExecutor import SubprocessExecutor
-from x509sak.Exceptions import CmdExecutionFailedException
 from x509sak.RSAPrivateKey import RSAPrivateKey
 from x509sak.PrimeDB import PrimeDB
 from x509sak.NumberTheory import NumberTheory

@@ -252,5 +252,5 @@ class X509ExtendedKeyUsageExtension(X509Extension):
 		return OIDDB.X509ExtendedKeyUsage.inverse("id_kp_serverAuth") in self._oids
 
 	def __repr__(self):
-		return "%s<CA = %s>" % (self.__class__.__name__, self.is_ca)
+		return "%s<Server = %s, Client = %s>" % (self.__class__.__name__, self.client_auth, self.server_auth)
 X509ExtensionRegistry.set_handler_class(X509ExtendedKeyUsageExtension)

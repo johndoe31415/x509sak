@@ -26,7 +26,6 @@ from x509sak import CAManager
 from x509sak.BaseAction import BaseAction
 from x509sak.PrivateKeyStorage import PrivateKeyStorage, PrivateKeyStorageForm
 from x509sak.KeySpecification import KeySpecification
-from x509sak.CmdLineArgs import KeySpecArgument
 from x509sak.OpenSSLTools import OpenSSLTools
 from x509sak.Exceptions import UnfulfilledPrerequisitesException, InvalidUsageException
 from x509sak.EDPrivateKey import EDPrivateKey

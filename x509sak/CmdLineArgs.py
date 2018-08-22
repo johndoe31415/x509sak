@@ -22,63 +22,6 @@
 import argparse
 import enum
 
-class KeySpecArgument(object):
-	class KeySpecification(enum.IntEnum):
-		RSA = 1
-		ECC = 2
-		HARDWARE_TOKEN = 3
-
-	def __init__(self, keyspec_str):
-		keyspec = keyspec_str.split(":")
-		if len(keyspec) < 2:
-			raise argparse.ArgumentTypeError("Keyspec needs to consist at least of two components, namely cryptosystem:params")
-
-		self._cryptosystem = {
-			"rsa":	self.KeySpecification.RSA,
-			"ecc":	self.KeySpecification.ECC,
-			"hw":	self.KeySpecification.HARDWARE_TOKEN,
-		}.get(keyspec[0].lower())
-		if self._cryptosystem is None:
-			raise argparse.ArgumentTypeError("Unknown cryptosystem: %s" % (keyspec[0]))
-
-		if self._cryptosystem == self.KeySpecification.RSA:
-			self._bitlen = int(keyspec[1])
-		elif self._cryptosystem == self.KeySpecification.ECC:
-			self._curve = keyspec[1]
-		elif self._cryptosystem == self.KeySpecification.HARDWARE_TOKEN:
-			self._key_id = int(keyspec[1])
-		else:
-			raise NotImplementedError(self._cryptosystem)
-
-	@property
-	def cryptosystem(self):
-		return self._cryptosystem
-
-	@property
-	def bitlen(self):
-		assert(self.cryptosystem == self.KeySpecification.RSA)
-		return self._bitlen
-
-	@property
-	def curve(self):
-		assert(self.cryptosystem == self.KeySpecification.ECC)
-		return self._curve
-
-	@property
-	def key_id(self):
-		assert(self.cryptosystem == self.KeySpecification.HARDWARE_TOKEN)
-		return self._key_id
-
-	def __repr__(self):
-		if self.cryptosystem == self.KeySpecification.RSA:
-			return "Keyspec(%s-%d)" % (self.cryptosystem.name, self.bitlen)
-		elif self.cryptosystem == self.KeySpecification.ECC:
-			return "Keyspec(%s on %s)" % (self.cryptosystem.name, self.curve)
-		elif self.cryptosystem == self.KeySpecification.HARDWARE_TOKEN:
-			return "Keyspec(Hardware key #%d)" % (self.key_id)
-		else:
-			raise NotImplementedError(self.cryptosystem)
-
 class KeyValue(object):
 	def __init__(self, keyvalue_str):
 		if not "=" in keyvalue_str:

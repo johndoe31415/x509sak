@@ -22,7 +22,6 @@
 import hashlib
 import collections
 import time
-from x509sak import CAManager
 from x509sak.BaseAction import BaseAction
 from x509sak.Exceptions import InvalidInputException
 

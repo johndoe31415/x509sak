@@ -25,7 +25,6 @@ import calendar
 import pyasn1.codec.der.decoder
 from x509sak.NumberTheory import NumberTheory
 from x509sak.ModulusDB import ModulusDB
-from x509sak.CurveDB import CurveDB
 from x509sak.OID import OIDDB, OID
 from x509sak.Exceptions import LazyDeveloperException
 from x509sak.AlgorithmDB import HashFunctions, SignatureAlgorithms
@@ -336,7 +335,7 @@ class SignatureSecurityEstimator(SecurityEstimator):
 
 		if signature_alg.value.hash_fnc is not None:
 			hash_fnc = signature_alg.value.hash_fnc
-		elif signature_alg == SignatureAlgortims.RSASSA_PSS:
+		elif signature_alg == SignatureAlgorithms.RSASSA_PSS:
 			# Need to look at parameters to determine hash function
 			(asn1, tail) = pyasn1.codec.der.decoder.decode(signature_alg_params, asn1Spec = ASN1Models.RSASSA_PSS_Params())
 			if asn1["hashAlgorithm"].hasValue():

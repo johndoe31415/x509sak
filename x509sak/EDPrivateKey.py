@@ -20,13 +20,13 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 from pyasn1.type import namedtype, univ
+from pyasn1_modules import rfc3280
 from x509sak.PEMDERObject import PEMDERObject
 from x509sak.OID import OID
 from x509sak.Exceptions import InvalidInputException
 from x509sak.AlgorithmDB import Cryptosystems, PublicKeyAlgorithms
 from x509sak.PublicKey import PublicKey
 from x509sak.CurveDB import CurveDB
-from pyasn1_modules import rfc3280
 
 class _EDPrivateKey(univ.Sequence):
 	"""Minimalistic draft-ietf-curdle-pkix-10 implementation. Not correct

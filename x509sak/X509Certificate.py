@@ -29,7 +29,7 @@ from pyasn1_modules import rfc2459
 from x509sak.SubprocessExecutor import SubprocessExecutor
 from x509sak.PEMDERObject import PEMDERObject
 from x509sak.DistinguishedName import DistinguishedName
-from x509sak.Tools import CmdTools, ASN1Tools
+from x509sak.Tools import ASN1Tools
 from x509sak.AlgorithmDB import SignatureAlgorithms
 from x509sak.OID import OID, OIDDB
 from x509sak.PublicKey import PublicKey

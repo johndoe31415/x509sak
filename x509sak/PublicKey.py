@@ -25,7 +25,7 @@ import pyasn1.codec.der.decoder
 from pyasn1_modules import rfc2459, rfc2437
 from x509sak.OID import OID, OIDDB
 from x509sak.PEMDERObject import PEMDERObject
-from x509sak.Tools import ASN1Tools, ECCTools
+from x509sak.Tools import ASN1Tools
 from x509sak.KeySpecification import KeySpecification
 from x509sak.Exceptions import UnknownAlgorithmException, LazyDeveloperException, InvalidUseException
 from x509sak.SecurityEstimator import SecurityEstimator

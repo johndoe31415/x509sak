@@ -22,7 +22,7 @@
 import collections
 import enum
 
-from x509sak.Exceptions import InvalidCAIndexFileEntry
+from x509sak.Exceptions import InvalidCAIndexFileEntry, InvalidInputException
 
 class CertificateStatus(enum.Enum):
 	Valid = "V"

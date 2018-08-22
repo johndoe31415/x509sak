@@ -52,7 +52,7 @@ class HexDump(object):
 
 			line += char
 			for spacer in self._spacers:
-				if ((charindex + 1) % spacer) == 0:					
+				if ((charindex + 1) % spacer) == 0:
 					line += " "
 
 		if self._strrep:
@@ -81,4 +81,3 @@ if __name__ == "__main__":
 	mydata = "Hallo das ist ein cooler Test und hier sehe ich den utf8 Ümläut!".encode("utf-8")
 	dumper = HexDump()
 	dumper.dump(mydata)
-
