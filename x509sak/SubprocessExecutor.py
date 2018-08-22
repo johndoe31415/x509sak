@@ -104,6 +104,7 @@ class SubprocessExecutor(object):
 
 	def __init__(self, cmd, success_return_codes = None, on_failure = "exception", stdin = None, env = None):
 		assert(on_failure in [ "exception", "pass", "exception-nopause" ])
+		assert(all(isinstance(arg, str) for arg in cmd))
 		self._cmd = cmd
 		self._success_return_codes = success_return_codes
 		self._on_failure = on_failure
