@@ -134,10 +134,35 @@ class CmdLineTestsBuildChain(BaseTest):
 			output = SubprocessExecutor([ "openssl", "pkcs12", "-passin", "pass:" ], stdin = pkcs12).run().stdout
 			self.assertOcurrences(output, b"-----BEGIN CERTIFICATE-----", 3)
 
-#	def test_pkcs12_passphrase(self):
-#		search_dir = os.path.realpath("x509sak/tests/data")
-#		crt_file = os.path.realpath("x509sak/tests/data/johannes-bauer.com.crt")
-#		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
-#			pkcs12 =  SubprocessExecutor(self._x509sak + [ "buildchain", "-s", search_dir, "--outform", "pkcs12", "--private-key", search_dir + "/privkey_rsa_768.pem", "--pkcs12-no-passphrase", crt_file ]).run()
-#			output = SubprocessExecutor([ "openssl", "pkcs12", "-passin", "pass:" ], stdin = pkcs12).run().stdout
-#			self.assertOcurrences(output, b"-----BEGIN CERTIFICATE-----", 3)
+	def test_pkcs12_passphrase_specify(self):
+		with tempfile.NamedTemporaryFile(mode = "w", suffix = ".txt") as passfile, ResourceFileLoader("certs/ok/ecc_secp256r1.pem", "privkey/ok/ecc_secp256r1.pem") as (certfile, keyfile):
+			print("foobar", file = passfile)
+			passfile.flush()
+			pkcs12 =  SubprocessExecutor(self._x509sak + [ "buildchain", "--outform", "pkcs12", "--private-key", keyfile, "--pkcs12-passphrase-file", passfile.name, certfile ]).run().stdout
+
+			# Fails with wrong passphrase
+			SubprocessExecutor([ "openssl", "pkcs12", "-passin", "-nodes", "pass:" ], stdin = pkcs12, success_return_codes = [ 1 ]).run()
+			SubprocessExecutor([ "openssl", "pkcs12", "-passin", "-nodes", "pass:abcdef" ], stdin = pkcs12, success_return_codes = [ 1 ]).run()
+
+			# Works with right passphrase
+			output = SubprocessExecutor([ "openssl", "pkcs12", "-nodes", "-passin", "pass:foobar" ], stdin = pkcs12).run().stdout
+			self.assertOcurrences(output, b"-----BEGIN CERTIFICATE-----", 1)
+			self.assertOcurrences(output, b"-----BEGIN PRIVATE KEY-----", 1)
+
+	def test_pkcs12_passphrase_autogen(self):
+		with ResourceFileLoader("certs/ok/ecc_secp256r1.pem", "privkey/ok/ecc_secp256r1.pem") as (certfile, keyfile):
+			result = SubprocessExecutor(self._x509sak + [ "buildchain", "--outform", "pkcs12", "--private-key", keyfile, certfile ]).run()
+
+			pkcs12 = result.stdout
+			stderr = result.stderr_text.rstrip("\r\n")
+			self.assertTrue(stderr.startswith("Passphrase: "))
+			passphrase = stderr[12:]
+
+			# Fails with wrong passphrase
+			SubprocessExecutor([ "openssl", "pkcs12", "-passin", "-nodes", "pass:" ], stdin = pkcs12, success_return_codes = [ 1 ]).run()
+			SubprocessExecutor([ "openssl", "pkcs12", "-passin", "-nodes", "pass:abcdef" ], stdin = pkcs12, success_return_codes = [ 1 ]).run()
+
+			# Works with right passphrase
+			output = SubprocessExecutor([ "openssl", "pkcs12", "-nodes", "-passin", "pass:" + passphrase ], stdin = pkcs12).run().stdout
+			self.assertOcurrences(output, b"-----BEGIN CERTIFICATE-----", 1)
+			self.assertOcurrences(output, b"-----BEGIN PRIVATE KEY-----", 1)
