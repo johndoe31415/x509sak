@@ -23,7 +23,7 @@ import hashlib
 import pyasn1.codec.der.decoder
 import pyasn1.codec.der.encoder
 from x509sak.Tools import PEMDataTools
-from x509sak.Exceptions import LazyDeveloperException
+from x509sak.Exceptions import LazyDeveloperException, UnexpectedFileContentException
 
 class PEMDERObject(object):
 	_PEM_MARKER = None
@@ -32,9 +32,12 @@ class PEMDERObject(object):
 	def __init__(self, der_data, source = None):
 		assert(isinstance(der_data, bytes))
 		self._der_data = der_data
-		(self._asn1, tail) = pyasn1.codec.der.decoder.decode(der_data, asn1Spec = self._ASN1_MODEL())
+		try:
+			(self._asn1, tail) = pyasn1.codec.der.decoder.decode(der_data, asn1Spec = self._ASN1_MODEL())
+		except pyasn1.error.PyAsn1Error as e:
+			raise UnexpectedFileContentException("Could not decode ASN.1 blob of length %d as %s: %s" % (len(der_data), self.__class__.__name__, str(e)))
 		if len(tail) > 0:
-			raise Exception("Trailing DER data found.")
+			raise UnexpectedFileContentException("%d bytes of trailing DER data found while decoding %d length %s blob." % (len(tail), len(der_data), self.__class__.__name__))
 		self._hashval = hashlib.sha256(self._der_data).digest()
 		self._source = source
 		self._post_decode_hook()

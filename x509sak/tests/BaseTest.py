@@ -23,8 +23,36 @@ import os
 import unittest
 import pkgutil
 import gzip
+import tempfile
 from x509sak import X509Certificate
 from x509sak.PublicKey import PublicKey
+
+class ResourceFileLoader(object):
+	def __init__(self, *resource_names):
+		self._data = [ self.load_data(resource_name) for resource_name in resource_names ]
+		self._tempfiles = None
+
+	@classmethod
+	def load_data(cls, filename, auto_decompress = True):
+		data = pkgutil.get_data("x509sak.tests.data", filename)
+		if auto_decompress and filename.endswith(".gz"):
+			data = gzip.decompress(data)
+		return data
+
+	def __enter__(self):
+		self._tempfiles = [ tempfile.NamedTemporaryFile(mode = "wb") for i in range(len(self._data)) ]
+		for (data, tmpfile) in zip(self._data, self._tempfiles):
+			tmpfile.write(data)
+			tmpfile.flush()
+		filenames = [ tmpfile.name for tmpfile in self._tempfiles ]
+		if len(filenames) == 1:
+			return filenames[0]
+		else:
+			return filenames
+
+	def __exit__(self, *args):
+		for tmpfile in self._tempfiles:
+			tmpfile.close()
 
 class BaseTest(unittest.TestCase):
 	def __init__(self, *args, **kwargs):
@@ -36,10 +64,7 @@ class BaseTest(unittest.TestCase):
 
 	@staticmethod
 	def _load_data(filename):
-		data = pkgutil.get_data("x509sak.tests.data", filename)
-		if filename.endswith(".gz"):
-			data = gzip.decompress(data)
-		return data
+		return ResourceFileLoader.load_data(filename, auto_decompress = True)
 
 	def _load_text(self, filename):
 		return self._load_data(filename).decode("ascii")

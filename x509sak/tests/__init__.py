@@ -21,7 +21,7 @@
 
 import pkgutil
 import importlib
-from .BaseTest import BaseTest
+from .BaseTest import BaseTest, ResourceFileLoader
 
 for (_module_info_module_finder, _module_info_name, _module_info_ispkg) in pkgutil.iter_modules([ "x509sak/tests" ]):
 	if _module_info_ispkg:

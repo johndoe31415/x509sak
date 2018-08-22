@@ -151,8 +151,6 @@ class PrivateKeyStorage(object):
 				else:
 					raise LazyDeveloperException(NotImplemented, self.storage_form)
 			except UnexpectedFileContentException:
-				# TODO: read_derfile() will probably throw a pyasn1 decode
-				# Exception which we don't catch here.
 				continue
 			return privkey
 		raise UnexpectedFileContentException("Could not load key material from %s." % (self.full_filename))

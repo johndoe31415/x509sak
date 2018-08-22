@@ -27,7 +27,7 @@ from x509sak.OID import OID, OIDDB
 from x509sak.PEMDERObject import PEMDERObject
 from x509sak.Tools import ASN1Tools, ECCTools
 from x509sak.KeySpecification import KeySpecification
-from x509sak.Exceptions import UnknownAlgorithmException, LazyDeveloperException
+from x509sak.Exceptions import UnknownAlgorithmException, LazyDeveloperException, InvalidUseException
 from x509sak.SecurityEstimator import SecurityEstimator
 from x509sak.CurveDB import CurveDB
 from x509sak.AlgorithmDB import PublicKeyAlgorithms, Cryptosystems
@@ -59,6 +59,12 @@ class PublicKey(PEMDERObject):
 			return KeySpecification(cryptosystem = self.pk_alg.value.cryptosystem, parameters = { "curvename": self.curve.name })
 		else:
 			raise LazyDeveloperException(NotImplemented, self.cryptosystem)
+
+	@property
+	def point(self):
+		if not all(element in self._key for element in [ "curve", "x", "y" ]):
+			raise InvalidUseException("To return a public key point, there needs to be a curve, x and y coordinate set.")
+		return self.curve.point(self.x, self.y)
 
 	def _post_decode_hook(self):
 		alg_oid = OID.from_asn1(self.asn1["algorithm"]["algorithm"])

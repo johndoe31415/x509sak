@@ -51,8 +51,8 @@ class EDPrivateKey(PEMDERObject):
 		self._curve = CurveDB().instanciate(oid = curve_oid)
 		self._prehash = pk_alg.value.fixed_params["prehash"]
 		private_key = bytes(self._asn1["privateKey"])
-		if (private_key[0] != 0x04) and (private_key[1] != self.curve.element_octet_cnt):
-			raise InvalidInputException("EdDSA private key does start with 04 %02x, but with %02x, %02x." % (self.curve.element_octet_cnt, private_key[0], private_key[1]))
+		if (private_key[0] != 0x04) or (private_key[1] != self.curve.element_octet_cnt):
+			raise InvalidInputException("EdDSA private key does start with 04 %02x, but with %02x %02x." % (self.curve.element_octet_cnt, private_key[0], private_key[1]))
 		if len(private_key) != self.curve.element_octet_cnt + 2:
 			raise InvalidInputException("EdDSA private key length expected to be %d octets, but was %d octets." % (self.curve.element_octet_cnt + 2, len(private_key[0])))
 		self._priv = private_key[2:]

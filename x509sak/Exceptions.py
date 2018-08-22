@@ -37,6 +37,7 @@ class CurveNotFoundException(UserErrorException): pass
 class UnexpectedFileContentException(UserErrorException): pass
 class UnsupportedEncodingException(UserErrorException): pass
 class KeyCorruptException(UserErrorException): pass
+class InvalidUseException(UserErrorException): pass
 
 class CmdExecutionFailedException(InvisibleUserErrorException):
 	def __init__(self, msg, execution_result):
