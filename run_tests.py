@@ -309,6 +309,8 @@ class SelectiveTestRunner(object):
 				"instance":		str(testcase),
 				"result":		"success",
 			}
+			if self._args.fail_fast and (not self._test_result.wasSuccessful()):
+				break
 		t1_total = time.time()
 		runtime = t1_total - t0_total
 
@@ -347,6 +349,8 @@ class SelectiveTestRunner(object):
 			else:
 				cmdline = [ ]
 			cmdline += [ "./run_tests.py", "--parallel", "1", "--subprocess", "--dump-json", result_tempfile.name ]
+			if self._args.fail_fast:
+				cmdline += [ "--fail-fast" ]
 			if self._args.coverage > 0:
 				coverage_tempfile = tempfile.NamedTemporaryFile(prefix = "bucket_%02d_" % (bid), suffix = ".txt", delete = False)
 				os.unlink(coverage_tempfile.name)
@@ -394,6 +398,7 @@ parser.add_argument("-i", "--full-id", metavar = "tcid", default = [ ], action =
 parser.add_argument("-c", "--coverage", action = "count", default = 0, help = "Run all subprocesses through code coverage measurement. Specify twice to also show text report in console after run and three times to render HTML page and open up browser.")
 parser.add_argument("--dump-json", metavar = "filename", type = str, help = "Create a JSON dump of all testcase data and write it to the given file instead of printing results to stdout.")
 parser.add_argument("--subprocess", action = "store_true", help = argparse.SUPPRESS)
+parser.add_argument("-f", "--fail-fast", action = "store_true", help = "Fail fast, i.e., do not continue testing after the first test fails.")
 parser.add_argument("-p", "--parallel", metavar = "processes", type = int, default = 12, help = "Split up testbench and concurrently run on multiple threads. Defaults to %(default)s.")
 parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity.")
 parser.add_argument("target", metavar = "classname", type = str, nargs = "*", help = "Target for testing; can be a regex matching the \"{classname}.{testname}\" specifiers. By default, all are included.")
