@@ -1,27 +1,23 @@
-#!/usr/bin/python3
+#	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
+#	Copyright (C) 2018-2018 Johannes Bauer
 #
-#	HexDump - Dump data in hex format
-#	Copyright (C) 2011-2013 Johannes Bauer
+#	This file is part of x509sak.
 #
-#	This file is part of jpycommon.
-#
-#	jpycommon is free software; you can redistribute it and/or modify
+#	x509sak is free software; you can redistribute it and/or modify
 #	it under the terms of the GNU General Public License as published by
 #	the Free Software Foundation; this program is ONLY licensed under
 #	version 3 of the License, later versions are explicitly excluded.
 #
-#	jpycommon is distributed in the hope that it will be useful,
+#	x509sak is distributed in the hope that it will be useful,
 #	but WITHOUT ANY WARRANTY; without even the implied warranty of
 #	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #	GNU General Public License for more details.
 #
 #	You should have received a copy of the GNU General Public License
-#	along with jpycommon; if not, write to the Free Software
+#	along with x509sak; if not, write to the Free Software
 #	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
-#
-#	File UUID 941e5121-2571-4c39-a58b-975600045055
 
 class HexDump(object):
 	def __init__(self):
@@ -35,9 +31,7 @@ class HexDump(object):
 		assert(len(self._misschar) == 1)
 		assert(len(self._noasciichar) == 1)
 
-	def _dumpline(self, offset, data, markers = None):
-		if markers is None:
-			markers = { }
+	def _dumpline(self, offset, data):
 		line = ""
 
 		if self._addr:
@@ -47,8 +41,7 @@ class HexDump(object):
 			if charindex >= len(data):
 				char = self._misschar * 3
 			else:
-				char = markers.get(offset + charindex, " ")
-				char += "%02x" % (data[charindex])
+				char = " %02x" % (data[charindex])
 
 			line += char
 			for spacer in self._spacers:
@@ -70,14 +63,12 @@ class HexDump(object):
 
 		return line
 
-	def dumpstr(self, data, markers = None):
-		return [ self._dumpline(i, data[i : i + self._width], markers) for i in range(0, len(data), self._width) ]
+	def as_lines(self, data):
+		assert(isinstance(data, (bytes, bytearray)))
+		yield from (self._dumpline(i, data[i : i + self._width]) for i in range(0, len(data), self._width))
 
-	def dump(self, data, markers = None):
-		for line in self.dumpstr(data, markers):
-			print(line)
+	def as_str(self, data):
+		return "\n".join(self.as_lines(data))
 
-if __name__ == "__main__":
-	mydata = "Hallo das ist ein cooler Test und hier sehe ich den utf8 Ümläut!".encode("utf-8")
-	dumper = HexDump()
-	dumper.dump(mydata)
+	def dump(self, data, fp = None):
+		print(self.as_str(data), file = fp)
