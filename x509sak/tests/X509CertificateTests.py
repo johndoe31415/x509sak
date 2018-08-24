@@ -43,7 +43,7 @@ class X509CertificateTests(BaseTest):
 	def test_distinguished_names(self):
 		cert = self._load_crt("ok/johannes-bauer-intermediate")
 		self.assertEqual(cert.issuer.rfc2253_str, "CN=DST Root CA X3,O=Digital Signature Trust Co.")
-		self.assertEqual(cert.subject.rfc2253_str, "CN=Let's Encrypt Authority X3,C=US,O=Let's Encrypt")
+		self.assertEqual(cert.subject.rfc2253_str, "CN=Let's Encrypt Authority X3,O=Let's Encrypt,C=US")
 
 		cert = self._load_crt("ok/johannes-bauer-root")
 		self.assertEqual(cert.subject, cert.issuer)

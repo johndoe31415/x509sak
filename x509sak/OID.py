@@ -21,6 +21,7 @@
 
 import pyasn1.type.univ
 from x509sak.BijectiveDict import BijectiveDict
+from x509sak.Exceptions import InvalidInputException
 
 class OID(object):
 	def __init__(self, oid_value):
@@ -43,7 +44,13 @@ class OID(object):
 
 	@classmethod
 	def from_str(cls, oid_string):
-		return cls([ int(value) for value in oid_string.split(".") ])
+		assert(isinstance(oid_string, str))
+		split_string = oid_string.split(".")
+		try:
+			int_string = [ int(value) for value in split_string ]
+		except ValueError:
+			raise InvalidInputException("Cannot parse \"%s\" as a string OID." % (oid_string))
+		return cls(int_string)
 
 	@classmethod
 	def from_asn1(cls, oid_asn1):
@@ -87,7 +94,7 @@ class OIDDB(object):
 		OID.from_str("2.5.4.1"):					"aliasedEntryName",
 		OID.from_str("2.5.4.2"):					"knowledgeinformation",
 		OID.from_str("2.5.4.3"):					"CN",
-		OID.from_str("2.5.4.4"):					"surname",
+		OID.from_str("2.5.4.4"):					"SN",
 		OID.from_str("2.5.4.5"):					"serialNumber",
 		OID.from_str("2.5.4.6"):					"C",
 		OID.from_str("2.5.4.7"):					"L",

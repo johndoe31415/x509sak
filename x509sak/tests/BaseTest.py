@@ -24,6 +24,7 @@ import unittest
 import pkgutil
 import gzip
 import tempfile
+import json
 from x509sak import X509Certificate
 from x509sak.PublicKey import PublicKey
 from x509sak.RSAPrivateKey import RSAPrivateKey
@@ -104,3 +105,6 @@ class BaseTest(unittest.TestCase):
 	def _load_privkey(self, keyname):
 		privkey_text = self._load_text("privkey/" + keyname + ".pem")
 		return RSAPrivateKey.from_pem_data(privkey_text)[0]
+
+	def _load_json(self, filename):
+		return json.loads(self._load_text(filename))

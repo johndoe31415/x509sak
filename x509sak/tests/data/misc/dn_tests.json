@@ -1,0 +1,205 @@
+[
+    {
+        "multivalue_rdn": true,
+        "openssl_input": "/CN=Foobar",
+        "rdn_sequence": "MBExDzANBgNVBAMMBkZvb2Jhcg==",
+        "rfc2253": "CN=Foobar",
+        "utf-8": false
+    },
+    {
+        "multivalue_rdn": true,
+        "openssl_input": "/CN=Foo Bar",
+        "rdn_sequence": "MBIxEDAOBgNVBAMMB0ZvbyBCYXI=",
+        "rfc2253": "CN=Foo Bar",
+        "utf-8": false
+    },
+    {
+        "multivalue_rdn": true,
+        "openssl_input": "/CN=Foo Bar Moo \\/ Koo",
+        "rdn_sequence": "MBwxGjAYBgNVBAMMEUZvbyBCYXIgTW9vIC8gS29v",
+        "rfc2253": "CN=Foo Bar Moo / Koo",
+        "utf-8": false
+    },
+    {
+        "multivalue_rdn": true,
+        "openssl_input": "/CN=Foobar\\\\",
+        "rdn_sequence": "MBIxEDAOBgNVBAMMB0Zvb2Jhclw=",
+        "rfc2253": "CN=Foobar\\\\",
+        "utf-8": false
+    },
+    {
+        "multivalue_rdn": true,
+        "openssl_input": "/CN=Foobar\\/",
+        "rdn_sequence": "MBIxEDAOBgNVBAMMB0Zvb2Jhci8=",
+        "rfc2253": "CN=Foobar/",
+        "utf-8": false
+    },
+    {
+        "multivalue_rdn": true,
+        "openssl_input": "/CN=One/CN=Two/CN=Three",
+        "rdn_sequence": "MCwxDDAKBgNVBAMMA09uZTEMMAoGA1UEAwwDVHdvMQ4wDAYDVQQDDAVUaHJlZQ==",
+        "rfc2253": "CN=Three,CN=Two,CN=One",
+        "utf-8": false
+    },
+    {
+        "multivalue_rdn": true,
+        "openssl_input": "/CN=A+CN=B",
+        "rdn_sequence": "MBYxFDAIBgNVBAMMAUEwCAYDVQQDDAFC",
+        "rfc2253": "CN=B+CN=A",
+        "utf-8": false
+    },
+    {
+        "multivalue_rdn": true,
+        "openssl_input": "/CN=A+CN=A",
+        "rdn_sequence": "MBYxFDAIBgNVBAMMAUEwCAYDVQQDDAFB",
+        "rfc2253": "CN=A+CN=A",
+        "utf-8": false
+    },
+    {
+        "multivalue_rdn": true,
+        "openssl_input": "/CN=A/CN=B/CN=C/OU=D/ST=E/SN=F",
+        "rdn_sequence": "MEgxCjAIBgNVBAMMAUExCjAIBgNVBAMMAUIxCjAIBgNVBAMMAUMxCjAIBgNVBAsMAUQxCjAIBgNVBAgMAUUxCjAIBgNVBAQMAUY=",
+        "rfc2253": "SN=F,ST=E,OU=D,CN=C,CN=B,CN=A",
+        "utf-8": false
+    },
+    {
+        "multivalue_rdn": true,
+        "openssl_input": "/CN=A+OU=A/CN=B1+CN=B2+CN=B1",
+        "rdn_sequence": "MDkxFDAIBgNVBAMMAUEwCAYDVQQLDAFBMSEwCQYDVQQDDAJCMTAJBgNVBAMMAkIxMAkGA1UEAwwCQjI=",
+        "rfc2253": "CN=B2+CN=B1+CN=B1,OU=A+CN=A",
+        "utf-8": false
+    },
+    {
+        "multivalue_rdn": true,
+        "openssl_input": "/CN=A+OU=A/CN=B+OU=B/OU=C+CN=C",
+        "rdn_sequence": "MEIxFDAIBgNVBAMMAUEwCAYDVQQLDAFBMRQwCAYDVQQDDAFCMAgGA1UECwwBQjEUMAgGA1UEAwwBQzAIBgNVBAsMAUM=",
+        "rfc2253": "OU=C+CN=C,OU=B+CN=B,OU=A+CN=A",
+        "utf-8": false
+    },
+    {
+        "multivalue_rdn": true,
+        "openssl_input": "/CN=\"foo\"",
+        "rdn_sequence": "MBAxDjAMBgNVBAMMBSJmb28i",
+        "rfc2253": "CN=\\\"foo\\\"",
+        "utf-8": false
+    },
+    {
+        "multivalue_rdn": true,
+        "openssl_input": "/CN=#\\+\"\\\\<>;,=",
+        "rdn_sequence": "MBQxEjAQBgNVBAMMCSMrIlw8PjssPQ==",
+        "rfc2253": "CN=\\#\\+\\\"\\\\\\<\\>\\;\\,=",
+        "utf-8": false
+    },
+    {
+        "multivalue_rdn": true,
+        "openssl_input": "/CN=X#\\+\"\\\\<>;,=",
+        "rdn_sequence": "MBUxEzARBgNVBAMMClgjKyJcPD47LD0=",
+        "rfc2253": "CN=X#\\+\\\"\\\\\\<\\>\\;\\,=",
+        "utf-8": false
+    },
+    {
+        "multivalue_rdn": true,
+        "openssl_input": "/CN=\\\\",
+        "rdn_sequence": "MAwxCjAIBgNVBAMMAVw=",
+        "rfc2253": "CN=\\\\",
+        "utf-8": false
+    },
+    {
+        "multivalue_rdn": true,
+        "openssl_input": "/CN= foo",
+        "rdn_sequence": "MA8xDTALBgNVBAMMBCBmb28=",
+        "rfc2253": "CN=\\ foo",
+        "utf-8": false
+    },
+    {
+        "multivalue_rdn": true,
+        "openssl_input": "/CN=foo ",
+        "rdn_sequence": "MA8xDTALBgNVBAMMBGZvbyA=",
+        "rfc2253": "CN=foo\\ ",
+        "utf-8": false
+    },
+    {
+        "multivalue_rdn": true,
+        "openssl_input": "/CN=#3033",
+        "rdn_sequence": "MBAxDjAMBgNVBAMMBSMzMDMz",
+        "rfc2253": "CN=\\#3033",
+        "utf-8": false
+    },
+    {
+        "multivalue_rdn": true,
+        "openssl_input": "/CN=CN+OU=OU",
+        "rdn_sequence": "MBgxFjAJBgNVBAMMAkNOMAkGA1UECwwCT1U=",
+        "rfc2253": "OU=OU+CN=CN",
+        "utf-8": false
+    },
+    {
+        "multivalue_rdn": true,
+        "openssl_input": "/OU=OU+CN=CN",
+        "rdn_sequence": "MBgxFjAJBgNVBAMMAkNOMAkGA1UECwwCT1U=",
+        "rfc2253": "OU=OU+CN=CN",
+        "utf-8": false
+    },
+    {
+        "multivalue_rdn": true,
+        "openssl_input": "/OU=OU\\+CN=CN",
+        "rdn_sequence": "MBMxETAPBgNVBAsMCE9VK0NOPUNO",
+        "rfc2253": "OU=OU\\+CN=CN",
+        "utf-8": false
+    },
+    {
+        "multivalue_rdn": true,
+        "openssl_input": "/CN=M\u00fch",
+        "rdn_sequence": "MBExDzANBgNVBAMMBk3Dg8K8aA==",
+        "rfc2253": "CN=M\\C3\\83\\C2\\BCh",
+        "utf-8": false
+    },
+    {
+        "multivalue_rdn": true,
+        "openssl_input": "/CN=M\u00fch",
+        "rdn_sequence": "MA8xDTALBgNVBAMMBE3DvGg=",
+        "rfc2253": "CN=M\\C3\\BCh",
+        "utf-8": true
+    },
+    {
+        "multivalue_rdn": true,
+        "openssl_input": "/CN=A\nB",
+        "rdn_sequence": "MA4xDDAKBgNVBAMMA0EKQg==",
+        "rfc2253": "CN=A\\0AB",
+        "utf-8": false
+    },
+    {
+        "multivalue_rdn": true,
+        "openssl_input": "/CN=\u007f",
+        "rdn_sequence": "MAwxCjAIBgNVBAMMAX8=",
+        "rfc2253": "CN=\\7F",
+        "utf-8": false
+    },
+    {
+        "multivalue_rdn": true,
+        "openssl_input": "/CN=\u0001\u0002\u0003\u0004\u0005\u0006\u0007\b\t\n\u000b\f\r\u000e\u000f\u0010\u0011\u0012\u0013\u0014\u0015\u0016\u0017\u0018\u0019\u001a\u001b\u001c\u001d\u001e\u001f",
+        "rdn_sequence": "MCoxKDAmBgNVBAMMHwECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=",
+        "rfc2253": "CN=\\01\\02\\03\\04\\05\\06\\07\\08\\09\\0A\\0B\\0C\\0D\\0E\\0F\\10\\11\\12\\13\\14\\15\\16\\17\\18\\19\\1A\\1B\\1C\\1D\\1E\\1F",
+        "utf-8": false
+    },
+    {
+        "multivalue_rdn": true,
+        "openssl_input": "/CN= !\"#$%&'()*\\+,-.\\/0123456789:;<=>?",
+        "rdn_sequence": "MCsxKTAnBgNVBAMMICAhIiMkJSYnKCkqKywtLi8wMTIzNDU2Nzg5Ojs8PT4/",
+        "rfc2253": "CN=\\ !\\\"#$%&'()*\\+\\,-./0123456789:\\;\\<=\\>?",
+        "utf-8": false
+    },
+    {
+        "multivalue_rdn": true,
+        "openssl_input": "/CN=@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_",
+        "rdn_sequence": "MCoxKDAmBgNVBAMMH0BBQkNERUZHSElKS0xNTk9QUVJTVFVWV1hZWltdXl8=",
+        "rfc2253": "CN=@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_",
+        "utf-8": false
+    },
+    {
+        "multivalue_rdn": true,
+        "openssl_input": "/CN=`abcdefghijklmnopqrstuvwxyz{|}~\u007f",
+        "rdn_sequence": "MCsxKTAnBgNVBAMMIGBhYmNkZWZnaGlqa2xtbm9wcXJzdHV2d3h5ent8fX5/",
+        "rfc2253": "CN=`abcdefghijklmnopqrstuvwxyz{|}~\\7F",
+        "utf-8": false
+    }
+]

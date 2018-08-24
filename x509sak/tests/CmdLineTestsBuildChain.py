@@ -51,14 +51,14 @@ class CmdLineTestsBuildChain(BaseTest):
 			output = SubprocessExecutor(self._x509sak + [ "buildchain", "--allow-partial-chain", certfile ]).run().stdout
 		self.assertOcurrences(output, b"-----BEGIN CERTIFICATE-----", 1)
 		crts = X509Certificate.from_pem_data(output)
-		self.assertEqual(crts[0].subject.rfc2253_str, "CN=Let's Encrypt Authority X3,C=US,O=Let's Encrypt")
+		self.assertEqual(crts[0].subject.rfc2253_str, "CN=Let's Encrypt Authority X3,O=Let's Encrypt,C=US")
 
 		with ResourceFileLoader([ "certs/ok/johannes-bauer-root.pem" ], "certs/ok/johannes-bauer-intermediate.pem") as (searchdir, certfile):
 			output = SubprocessExecutor(self._x509sak + [ "buildchain", "-s", searchdir, certfile ]).run().stdout
 		self.assertOcurrences(output, b"-----BEGIN CERTIFICATE-----", 2)
 		crts = X509Certificate.from_pem_data(output.decode("ascii"))
 		self.assertEqual(crts[0].subject.rfc2253_str, "CN=DST Root CA X3,O=Digital Signature Trust Co.")
-		self.assertEqual(crts[1].subject.rfc2253_str, "CN=Let's Encrypt Authority X3,C=US,O=Let's Encrypt")
+		self.assertEqual(crts[1].subject.rfc2253_str, "CN=Let's Encrypt Authority X3,O=Let's Encrypt,C=US")
 
 	def test_der_input(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
@@ -81,14 +81,14 @@ class CmdLineTestsBuildChain(BaseTest):
 			output = SubprocessExecutor(self._x509sak + [ "buildchain", "-s", searchdir, "--outform", "intermediates", certfile ]).run().stdout
 		self.assertOcurrences(output, b"-----BEGIN CERTIFICATE-----", 1)
 		crts = X509Certificate.from_pem_data(output.decode("ascii"))
-		self.assertEqual(crts[0].subject.rfc2253_str, "CN=Let's Encrypt Authority X3,C=US,O=Let's Encrypt")
+		self.assertEqual(crts[0].subject.rfc2253_str, "CN=Let's Encrypt Authority X3,O=Let's Encrypt,C=US")
 
 	def test_all_except_root(self):
 		with ResourceFileLoader([ "certs/ok/johannes-bauer-root.pem", "certs/ok/johannes-bauer-intermediate.pem" ], "certs/ok/johannes-bauer.com.pem") as (searchdir, certfile):
 			output = SubprocessExecutor(self._x509sak + [ "buildchain", "-s", searchdir, "--outform", "all-except-root", certfile ]).run().stdout
 		self.assertOcurrences(output, b"-----BEGIN CERTIFICATE-----", 2)
 		crts = X509Certificate.from_pem_data(output.decode("ascii"))
-		self.assertEqual(crts[0].subject.rfc2253_str, "CN=Let's Encrypt Authority X3,C=US,O=Let's Encrypt")
+		self.assertEqual(crts[0].subject.rfc2253_str, "CN=Let's Encrypt Authority X3,O=Let's Encrypt,C=US")
 		self.assertEqual(crts[1].subject.rfc2253_str, "CN=johannes-bauer.com")
 
 	def test_all_except_root_stdout(self):
@@ -96,19 +96,19 @@ class CmdLineTestsBuildChain(BaseTest):
 			output = SubprocessExecutor(self._x509sak + [ "buildchain", "-s", searchdir, "--outform", "all-except-root", "--outfile", outfile.name, certfile ]).run().stdout
 			self.assertOcurrences(output, b"-----BEGIN CERTIFICATE-----", 0)
 			crts = X509Certificate.read_pemfile(outfile.name)
-			self.assertEqual(crts[0].subject.rfc2253_str, "CN=Let's Encrypt Authority X3,C=US,O=Let's Encrypt")
+			self.assertEqual(crts[0].subject.rfc2253_str, "CN=Let's Encrypt Authority X3,O=Let's Encrypt,C=US")
 			self.assertEqual(crts[1].subject.rfc2253_str, "CN=johannes-bauer.com")
 
 	def test_multifile_all_except_root(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir), ResourceFileLoader([ "certs/ok/johannes-bauer-root.pem", "certs/ok/johannes-bauer-intermediate.pem" ], "certs/ok/johannes-bauer.com.pem") as (searchdir, certfile):
 			SubprocessExecutor(self._x509sak + [ "buildchain", "-s", searchdir, "--outform", "multifile", "--outfile", "outcrt%02d.pem", certfile ]).run()
 			self.assertEqual(X509Certificate.read_pemfile("outcrt00.pem")[0].subject.rfc2253_str, "CN=DST Root CA X3,O=Digital Signature Trust Co.")
-			self.assertEqual(X509Certificate.read_pemfile("outcrt01.pem")[0].subject.rfc2253_str, "CN=Let's Encrypt Authority X3,C=US,O=Let's Encrypt")
+			self.assertEqual(X509Certificate.read_pemfile("outcrt01.pem")[0].subject.rfc2253_str, "CN=Let's Encrypt Authority X3,O=Let's Encrypt,C=US")
 			self.assertEqual(X509Certificate.read_pemfile("outcrt02.pem")[0].subject.rfc2253_str, "CN=johannes-bauer.com")
 
 			SubprocessExecutor(self._x509sak + [ "buildchain", "-s", searchdir, "--outform", "multifile", "--order-leaf-to-root", "--outfile", "rev_outcrt%02d.pem", certfile ]).run()
 			self.assertEqual(X509Certificate.read_pemfile("rev_outcrt00.pem")[0].subject.rfc2253_str, "CN=johannes-bauer.com")
-			self.assertEqual(X509Certificate.read_pemfile("rev_outcrt01.pem")[0].subject.rfc2253_str, "CN=Let's Encrypt Authority X3,C=US,O=Let's Encrypt")
+			self.assertEqual(X509Certificate.read_pemfile("rev_outcrt01.pem")[0].subject.rfc2253_str, "CN=Let's Encrypt Authority X3,O=Let's Encrypt,C=US")
 			self.assertEqual(X509Certificate.read_pemfile("rev_outcrt02.pem")[0].subject.rfc2253_str, "CN=DST Root CA X3,O=Digital Signature Trust Co.")
 
 	def test_pkcs12(self):

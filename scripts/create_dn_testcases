@@ -1,0 +1,105 @@
+#!/usr/bin/env python3
+#	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
+#	Copyright (C) 2018-2018 Johannes Bauer
+#
+#	This file is part of x509sak.
+#
+#	x509sak is free software; you can redistribute it and/or modify
+#	it under the terms of the GNU General Public License as published by
+#	the Free Software Foundation; this program is ONLY licensed under
+#	version 3 of the License, later versions are explicitly excluded.
+#
+#	x509sak is distributed in the hope that it will be useful,
+#	but WITHOUT ANY WARRANTY; without even the implied warranty of
+#	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#	GNU General Public License for more details.
+#
+#	You should have received a copy of the GNU General Public License
+#	along with x509sak; if not, write to the Free Software
+#	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+#	Johannes Bauer <JohannesBauer@gmx.de>
+
+import json
+import base64
+import tempfile
+import subprocess
+import collections
+import pyasn1.codec.der.decoder
+import pyasn1.codec.der.encoder
+from pyasn1_modules import rfc2459, rfc3280
+
+def generate_cert(keyfilename, testcase):
+	cmd = [ "openssl", "req", "-x509", "-new", "-key", keyfilename, "-subj", testcase.subject, "-outform", "der" ]
+	if testcase.utf8:
+		cmd += [ "-utf8" ]
+	if testcase.multivalue_rdn:
+		cmd += [ "-multivalue-rdn" ]
+	der_data = subprocess.check_output(cmd)
+	return der_data
+
+def subject_rfc2253(der_cert):
+	subject = subprocess.check_output([ "openssl", "x509", "-inform", "der", "-noout", "-subject", "-nameopt", "RFC2253" ], input = der_cert)
+	subject = subject.decode("ascii")
+	assert(subject.startswith("subject="))
+	assert(subject.endswith("\n"))
+	subject = subject.rstrip("\r\n")
+	subject = subject[8:]
+	return subject
+
+Testcase = collections.namedtuple("Testcase", [ "subject", "utf8", "multivalue_rdn" ])
+testcases_input = [
+	Testcase(subject = "/CN=Foobar", utf8 = False, multivalue_rdn = True),
+	Testcase(subject = "/CN=Foo Bar", utf8 = False, multivalue_rdn = True),
+	Testcase(subject = "/CN=Foo Bar Moo \\/ Koo", utf8 = False, multivalue_rdn = True),
+	Testcase(subject = "/CN=Foobar\\\\", utf8 = False, multivalue_rdn = True),
+	Testcase(subject = "/CN=Foobar\\/", utf8 = False, multivalue_rdn = True),
+	Testcase(subject = "/CN=One/CN=Two/CN=Three", utf8 = False, multivalue_rdn = True),
+	Testcase(subject = "/CN=A+CN=B", utf8 = False, multivalue_rdn = True),
+	Testcase(subject = "/CN=A+CN=A", utf8 = False, multivalue_rdn = True),
+	Testcase(subject = "/CN=A/CN=B/CN=C/OU=D/ST=E/SN=F", utf8 = False, multivalue_rdn = True),
+	Testcase(subject = "/CN=A+OU=A/CN=B1+CN=B2+CN=B1", utf8 = False, multivalue_rdn = True),
+	Testcase(subject = "/CN=A+OU=A/CN=B+OU=B/OU=C+CN=C", utf8 = False, multivalue_rdn = True),
+	Testcase(subject = "/CN=\"foo\"", utf8 = False, multivalue_rdn = True),
+	Testcase(subject = "/CN=#\\+\"\\\\<>;,=", utf8 = False, multivalue_rdn = True),
+	Testcase(subject = "/CN=X#\\+\"\\\\<>;,=", utf8 = False, multivalue_rdn = True),
+	Testcase(subject = "/CN=\\\\", utf8 = False, multivalue_rdn = True),
+	Testcase(subject = "/CN= foo", utf8 = False, multivalue_rdn = True),
+	Testcase(subject = "/CN=foo ", utf8 = False, multivalue_rdn = True),
+	Testcase(subject = "/CN=#3033", utf8 = False, multivalue_rdn = True),
+	Testcase(subject = "/CN=CN+OU=OU", utf8 = False, multivalue_rdn = True),
+	Testcase(subject = "/OU=OU+CN=CN", utf8 = False, multivalue_rdn = True),
+	Testcase(subject = "/OU=OU\\+CN=CN", utf8 = False, multivalue_rdn = True),
+	Testcase(subject = "/CN=Müh", utf8 = False, multivalue_rdn = True),
+	Testcase(subject = "/CN=Müh", utf8 = True, multivalue_rdn = True),
+	Testcase(subject = "/CN=A\nB", utf8 = False, multivalue_rdn = True),
+	Testcase(subject = "/CN=\x7f", utf8 = False, multivalue_rdn = True),
+]
+for i in range(0, 128, 32):
+	raw = "".join(chr(i) for i in range(max(i, 1), i + 32))
+	escaped = raw.replace("/", "\\/").replace("+", "\\+")
+	testcases_input.append(Testcase(subject = "/CN=" + escaped, utf8 = False, multivalue_rdn = True))
+
+testcases = [ ]
+
+with tempfile.NamedTemporaryFile(prefix = "privkey_", suffix = ".pem") as privkey:
+	subprocess.check_call([ "openssl", "ecparam", "-genkey", "-name", "secp112r1", "-out", privkey.name ])
+
+	for testcase in testcases_input:
+		der_cert = generate_cert(privkey.name, testcase)
+		
+		(asn1, tail) = pyasn1.codec.der.decoder.decode(der_cert, asn1Spec = rfc2459.Certificate())
+		rdn_sequence = asn1[0][3]
+		rdn_derdata = pyasn1.codec.der.encoder.encode(rdn_sequence, asn1Spec = rfc2459.Name())
+	
+		subject = subject_rfc2253(der_cert)
+		testcase = {
+			"openssl_input":	testcase.subject,
+			"utf-8":			testcase.utf8,
+			"multivalue_rdn":	testcase.multivalue_rdn,
+			"rdn_sequence":		base64.b64encode(rdn_derdata).decode("ascii"),
+			"rfc2253":			subject,
+		}
+		#print("%-40s %s" % (openssl_input, subject))
+		testcases.append(testcase)
+print(json.dumps(testcases, indent = 4, sort_keys = True))
