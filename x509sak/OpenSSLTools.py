@@ -93,7 +93,7 @@ class OpenSSLTools(object):
 		openssl_config = cls.__get_config(private_key_storage = private_key_storage, x509_extensions = x509_extensions, subject_alternative_dns_names = subject_alternative_dns_names, subject_alternative_ip_addresses = subject_alternative_ip_addresses)
 		with tempfile.NamedTemporaryFile("w", prefix = "config_", suffix = ".cnf") as config_file:
 			openssl_config.write_to(config_file.name)
-			cmd = [ "openssl", "req", "-new" ]
+			cmd = [ "openssl", "req", "-utf8", "-new" ]
 			if validity_days is not None:
 				cmd += [ "-x509", "-days", str(validity_days) ]
 			if signing_hash is not None:
@@ -138,7 +138,7 @@ class OpenSSLTools(object):
 		openssl_config = cls.__get_config(private_key_storage = ca_manager.private_key_storage, x509_extensions = x509_extensions, subject_alternative_dns_names = subject_alternative_dns_names, subject_alternative_ip_addresses = subject_alternative_ip_addresses)
 		with WorkDir(ca_manager.capath), tempfile.NamedTemporaryFile("w", prefix = "config_", suffix = ".cnf") as config_file:
 			openssl_config.write_to(config_file.name)
-			cmd = [ "openssl", "ca", "-in", csr_absfilename, "-batch", "-notext", "-out", crt_absfilename ]
+			cmd = [ "openssl", "ca", "-utf8", "-in", csr_absfilename, "-batch", "-notext", "-out", crt_absfilename ]
 			cmd += cls._privkey_option(ca_manager.private_key_storage, key_option = "keyfile")
 			if subject_dn is not None:
 				cmd += [ "-subj", subject_dn ]
