@@ -84,6 +84,10 @@ class BaseTest(unittest.TestCase):
 		else:
 			self._x509sak = [ "coverage", "run", "--append", "--omit", "/usr/*", os.path.realpath("x509sak.py") ]
 
+	def assertOcurrences(self, haystack, needle, expected_count):
+		count = haystack.count(needle)
+		self.assertEqual(count, expected_count)
+
 	@staticmethod
 	def _load_data(filename):
 		return ResourceFileLoader.load_data(filename, auto_decompress = True)

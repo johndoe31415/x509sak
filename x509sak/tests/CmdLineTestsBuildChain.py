@@ -27,10 +27,6 @@ from x509sak.SubprocessExecutor import SubprocessExecutor
 from x509sak.X509Certificate import X509Certificate
 
 class CmdLineTestsBuildChain(BaseTest):
-	def assertOcurrences(self, haystack, needle, expected_count):
-		count = haystack.count(needle)
-		self.assertEqual(count, expected_count)
-
 	def test_root_only_out_default(self):
 		with ResourceFileLoader("certs/ok/johannes-bauer-root.pem") as certfile:
 			output = SubprocessExecutor(self._x509sak + [ "buildchain", certfile ]).run().stdout
