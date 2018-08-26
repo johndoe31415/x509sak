@@ -64,7 +64,7 @@ class ActionDumpKey(BaseAction):
 			elif self._args.key_type == "eddsa":
 				key = EDPrivateKey.read_pemfile(self._args.key_filename)[0]
 				pubkey = key.pubkey
-				print("# ECC prviate key on Twisted Edwards curve %s %s prehashing (key ID %s)" % (key.curve.name, "with" if key.prehash else "without", pubkey.keyid().hex()))
+				print("# ECC private key on Twisted Edwards curve %s %s prehashing (key ID %s)" % (key.curve.name, "with" if key.prehash else "without", pubkey.keyid().hex()))
 				print("curve_name = \"%s\"" % (key.curve.name))
 				print("prehash = %s" % (key.prehash))
 				print("priv = bytes.fromhex(\"%s\")" % (key.priv.hex()))

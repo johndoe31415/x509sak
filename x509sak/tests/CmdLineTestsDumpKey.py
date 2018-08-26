@@ -51,3 +51,23 @@ class CmdLineTestsDumpKey(BaseTest):
 			output = SubprocessExecutor(self._x509sak + [ "dumpkey", "--key-type", "ecc", "--public-key", keyfile ]).run().stdout
 		self.assertIn(b"ECC public key on prime256v1", output)
 		self.assertIn(b"(x, y) = (0x4774531f884fd64bf4ad6f2eaf6f1b777b5f4e163c6a354449af98bb3151d2af, 0x4b17e06b9f14831069356e9f5f511163a1a7032c59d8bbea304339ac86d84cb5)", output)
+
+	def test_dump_eddsa_pubkey(self):
+		with ResourceFileLoader("pubkey/ok/eddsa_ed25519.pem") as keyfile:
+			output = SubprocessExecutor(self._x509sak + [ "dumpkey", "--key-type", "eddsa", "--public-key", keyfile ]).run().stdout_text
+		self.assertIn("ECC public key on Twisted Edwards", output)
+		self.assertIn("25519", output)
+		# Data generated from EdDSA RFC sample code
+		(x, y) = (41813759258201104901177976525237306556409505649727048514495581204412188724937, 31506162238578656787028761145192509467375405779266640356453115396763494432732)
+		self.assertIn("(x, y) = (0x%x, 0x%x)" % (x, y), output)
+
+	def test_dump_eddsa_privkey(self):
+		with ResourceFileLoader("privkey/ok/eddsa_ed25519.pem") as keyfile:
+			output = SubprocessExecutor(self._x509sak + [ "dumpkey", "--key-type", "eddsa", keyfile ]).run().stdout_text
+		self.assertIn("ECC private key on Twisted Edwards", output)
+		self.assertIn("25519", output)
+		# Data generated from EdDSA RFC sample code
+		(x, y) = (41813759258201104901177976525237306556409505649727048514495581204412188724937, 31506162238578656787028761145192509467375405779266640356453115396763494432732)
+		a = 44908355547921110221441252462696832399707573104554503641423314681972008958608
+		self.assertIn("(x, y) = (0x%x, 0x%x)" % (x, y), output)
+		self.assertIn("a = 0x%x" % (a), output)
