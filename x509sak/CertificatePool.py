@@ -21,6 +21,7 @@
 
 import os
 import collections
+import datetime
 import logging
 from .X509Certificate import X509Certificate
 
@@ -35,17 +36,20 @@ class CertificatePool(object):
 	def certificate_count(self):
 		return sum(len(certs) for certs in self._pool.values())
 
-	def find_chain(self, certificate):
+	def find_chain(self, certificate, max_depth = 100):
+		now = datetime.datetime.utcnow()
 		leaf = certificate
 		chain = [ ]
-		for _ in range(100):
+		for _ in range(max_depth):
 			issuers = list(self.find_issuers(certificate))
 			if len(issuers) == 0:
 				issuer = None
 				break
 
-			# TODO: With multiple issuers, choose the correct (best) one
-			# instead of simply the first.
+			# If there's multiple issuers, prefer those which are currently
+			# valid and, as a second criterion, those which are valid for the
+			# longest time period.
+			issuers.sort(key = lambda crt: (not crt.is_time_valid(now), -crt.seconds_until_expires(now)))
 			issuer = issuers[0]
 			if issuer == certificate:
 				break

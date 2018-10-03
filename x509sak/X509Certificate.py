@@ -21,6 +21,7 @@
 
 import re
 import logging
+import datetime
 import tempfile
 import base64
 import enum
@@ -101,6 +102,16 @@ class X509Certificate(PEMDERObject):
 	def signature(self):
 		signature = ASN1Tools.bitstring2bytes(self._asn1["signatureValue"])
 		return signature
+
+	def is_time_valid(self, now = None):
+		if now is None:
+			now = datetime.datetime.utcnow()
+		return self.valid_not_before <= now <= self.valid_not_after
+
+	def seconds_until_expires(self, now = None):
+		if now is None:
+			now = datetime.datetime.utcnow()
+		return (self.valid_not_after - now).total_seconds()
 
 	def get_extensions(self):
 		result = [ ]

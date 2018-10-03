@@ -162,3 +162,29 @@ class CmdLineTestsBuildChain(BaseTest):
 			output = SubprocessExecutor([ "openssl", "pkcs12", "-nodes", "-passin", "pass:" + passphrase ], stdin = pkcs12).run().stdout
 			self.assertOcurrences(output, b"-----BEGIN CERTIFICATE-----", 1)
 			self.assertOcurrences(output, b"-----BEGIN PRIVATE KEY-----", 1)
+
+	def test_multi_intermediate(self):
+		with ResourceFileLoader("certs/ok/multi_intermediate/root.crt", "certs/ok/multi_intermediate/interm1.crt", "certs/ok/multi_intermediate/interm2.crt", "certs/ok/multi_intermediate/client.crt") as (root_file, interm1_file, interm2_file, client_file):
+			# Assert that without any intermediate certificate, building a chain fails
+			SubprocessExecutor(self._x509sak + [ "buildchain", "-s", root_file, client_file ], success_return_codes = [ 1 ]).run()
+
+			interm1_crt = X509Certificate.read_pemfile(interm1_file)[0]
+			interm2_crt = X509Certificate.read_pemfile(interm2_file)[0]
+
+			# With intermediate 1, it works.
+			output = SubprocessExecutor(self._x509sak + [ "buildchain", "-s", root_file, "-s", interm1_file, client_file ]).run().stdout
+			certs = X509Certificate.from_pem_data(output)
+			self.assertEqual(len(certs), 3)
+			self.assertEqual(certs[1], interm1_crt)
+
+			# Similarly, with intermedaite 2, it works.
+			output = SubprocessExecutor(self._x509sak + [ "buildchain", "-s", root_file, "-s", interm2_file, client_file ]).run().stdout
+			certs = X509Certificate.from_pem_data(output)
+			self.assertEqual(len(certs), 3)
+			self.assertEqual(certs[1], interm2_crt)
+
+			# But if both are accepted, intemediate 2 wins (it's newer)
+			output = SubprocessExecutor(self._x509sak + [ "buildchain", "-s", root_file, "-s", interm1_file, "-s", interm2_file, client_file ]).run().stdout
+			certs = X509Certificate.from_pem_data(output)
+			self.assertEqual(len(certs), 3)
+			self.assertEqual(certs[1], interm2_crt)
