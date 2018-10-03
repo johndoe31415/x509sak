@@ -19,6 +19,7 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
+import math
 import random
 from x509sak.Exceptions import InvalidInputException
 
@@ -182,18 +183,10 @@ class NumberTheory(object):
 		return x
 
 	@classmethod
-	def hamming_weight(cls, x):
-		assert(isinstance(x, int))
-		assert(x >= 0)
-		weight = 0
-		while x > 0:
-			if x & 1:
-				weight += 1
-			x >>= 1
-		return weight
-
-	@classmethod
 	def sqrt_mod_p(cls, x, p):
+		"""Calculates the quadratic residue of x modulo p. Not a generic
+		Tonelli-Shanks implementation, works only for p thats's 3 mod 4 or 5
+		mod 8."""
 		x %= p
 		if (p % 4) == 3:
 			sqrt = pow(x, (p + 1) // 4, p)
@@ -217,3 +210,40 @@ class NumberTheory(object):
 			return (sqrt, p - sqrt)
 		else:
 			return (p - sqrt, sqrt)
+
+	@classmethod
+	def hamming_weight(cls, x):
+		assert(isinstance(x, int))
+		assert(x >= 0)
+		weight = 0
+		while x > 0:
+			if x & 1:
+				weight += 1
+			x >>= 1
+		return weight
+
+	@classmethod
+	def hamming_weight_margin(cls, bits):
+		"""When a bitstring of length 'bits' is randomly generated, returns the
+		Hamming weight margin in which 99.99% of all values fall. I.e., in
+		99.99% of all values, the Hamming weight is between (bits / 2 - margin)
+		and (bits / 2 + margin). This is a reasonable approximation that was
+		calculated using fityk."""
+		a0 = 8.885572
+		a1 = 0.1179226
+		a2 = 0.02057742
+		margin = math.ceil(a0 * math.log(a1 * bits) + a2 * bits)
+		if margin < 1:
+			margin = 1
+		return margin
+
+	@classmethod
+	def plausibly_random(cls, value):
+		"""Determines if a value is plausibly random with an error probability
+		of around 0.01%."""
+		bits = value.bit_length()
+		margin = cls.hamming_weight_margin(bits)
+		min_weight = (bits // 2) - margin
+		max_weight = (bits // 2) + margin
+		hweight = cls.hamming_weight(value)
+		return min_weight <= hweight <= max_weight

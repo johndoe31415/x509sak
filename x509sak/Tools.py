@@ -164,16 +164,25 @@ class JSONTools(object):
 	class Encoder(json.JSONEncoder):
 		def _translate(self, obj):
 			if isinstance(obj, dict):
-				return { key: self._translate(value) for (key, value) in obj.items() }
+				translated = { key: self._translate(value) for (key, value) in obj.items() }
 			elif isinstance(obj, (list, tuple)):
-				return [ self._translate(value) for value in obj ]
+				translated = [ self._translate(value) for value in obj ]
+			elif isinstance(obj, set):
+				translated = sorted(self._translate(value) for value in obj)
 			elif isinstance(obj, enum.IntEnum):
-				return {
+				translated = {
 					"name":		obj.name,
 					"value":	obj.value,
 				}
+			elif isinstance(obj, datetime.datetime):
+				return obj.strftime("%Y-%m-%d %H:%M:%S")
 			else:
-				return obj
+				dict_converter = getattr(obj, "to_dict", None)
+				if dict_converter is not None:
+					translated = self._translate(dict_converter())
+				else:
+					translated = obj
+			return translated
 
 		def iterencode(self, obj, _one_shot = False):
 			# We need to have a pre-translate step because the stupid Python
@@ -182,14 +191,6 @@ class JSONTools(object):
 			# therefore it's always encoded as a number.
 			obj = self._translate(obj)
 			return super().iterencode(obj, _one_shot)
-
-		def default(self, obj):
-			if isinstance(obj, datetime.datetime):
-				return obj.strftime("%Y-%m-%d %H:%M:%S")
-			elif isinstance(obj, set):
-				return sorted(list(obj))
-			else:
-				raise TypeError("Unable to encode type as JSON: %s" % (type(obj)))
 
 	@classmethod
 	def serialize(cls, data):

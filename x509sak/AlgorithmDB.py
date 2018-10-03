@@ -41,23 +41,22 @@ def _to_enum(enum_name, items):
 
 Derating = collections.namedtuple("Derating", [ "security_lvl_bits", "reason" ])
 
-HashFunction = collections.namedtuple("HashFunction", [ "name", "output_bits", "derating" ])
+HashFunction = collections.namedtuple("HashFunction", [ "name", "pretty_name", "output_bits", "derating", "oid" ])
 HashFunctions = _to_enum("HashFunctions", [
-	HashFunction(name = "md2", output_bits = 128, derating = Derating(security_lvl_bits = 0, reason = "Søren S. Thomsen (2008). \"An improved preimage attack on MD2\"")),
-	HashFunction(name = "md4", output_bits = 128, derating = Derating(security_lvl_bits = 0, reason = "Yu Sasaki; et al. (2007). \"New message difference for MD4\"")),
-	HashFunction(name = "md5", output_bits = 128, derating = Derating(security_lvl_bits = 0, reason = "Xie Tao; Fanbao Liu & Dengguo Feng (2013). \"Fast Collision Attack on MD5\"")),
-	HashFunction(name = "sha0", output_bits = 160, derating = Derating(security_lvl_bits = 0, reason = "Manuel, Stéphane; Peyrin, Thomas (2008). \"Collisions on SHA-0 in One Hour\"")),
-	HashFunction(name = "sha1", output_bits = 160, derating = Derating(security_lvl_bits = 0, reason = "Stevens, Marc; Bursztein, Elie; Karpman, Pierre; Albertini, Ange; Markov, Yarik. \"The first collision for full SHA-1\"")),
-	HashFunction(name = "sha224", output_bits = 224, derating = None),
-	HashFunction(name = "sha256", output_bits = 256, derating = None),
-	HashFunction(name = "sha384", output_bits = 384, derating = None),
-	HashFunction(name = "sha512", output_bits = 512, derating = None),
-	HashFunction(name = "sha3-224", output_bits = 224, derating = None),
-	HashFunction(name = "sha3-256", output_bits = 256, derating = None),
-	HashFunction(name = "sha3-384", output_bits = 384, derating = None),
-	HashFunction(name = "sha3-512", output_bits = 512, derating = None),
-	HashFunction(name = "sha3-512", output_bits = 512, derating = None),
-	HashFunction(name = "shake256-912", output_bits = 912, derating = None),
+	HashFunction(name = "md2", pretty_name = "MD2", output_bits = 128, derating = Derating(security_lvl_bits = 0, reason = "Søren S. Thomsen (2008). \"An improved preimage attack on MD2\""), oid = None),
+	HashFunction(name = "md4", pretty_name = "MD4", output_bits = 128, derating = Derating(security_lvl_bits = 0, reason = "Yu Sasaki; et al. (2007). \"New message difference for MD4\""), oid = None),
+	HashFunction(name = "md5", pretty_name = "MD5", output_bits = 128, derating = Derating(security_lvl_bits = 0, reason = "Xie Tao; Fanbao Liu & Dengguo Feng (2013). \"Fast Collision Attack on MD5\""), oid = None),
+	HashFunction(name = "sha0", pretty_name = "SHA0", output_bits = 160, derating = Derating(security_lvl_bits = 0, reason = "Manuel, Stéphane; Peyrin, Thomas (2008). \"Collisions on SHA-0 in One Hour\""), oid = None),
+	HashFunction(name = "sha1", pretty_name = "SHA-1", output_bits = 160, derating = Derating(security_lvl_bits = 0, reason = "Stevens, Marc; Bursztein, Elie; Karpman, Pierre; Albertini, Ange; Markov, Yarik. \"The first collision for full SHA-1\""), oid = OIDDB.HashFunctions.inverse("sha1")),
+	HashFunction(name = "sha224", pretty_name = "SHA-224", output_bits = 224, derating = None, oid = OIDDB.HashFunctions.inverse("sha224")),
+	HashFunction(name = "sha256", pretty_name = "SHA-256", output_bits = 256, derating = None, oid = OIDDB.HashFunctions.inverse("sha256")),
+	HashFunction(name = "sha384", pretty_name = "SHA-384", output_bits = 384, derating = None, oid = OIDDB.HashFunctions.inverse("sha384")),
+	HashFunction(name = "sha512", pretty_name = "SHA-512", output_bits = 512, derating = None, oid = OIDDB.HashFunctions.inverse("sha512")),
+	HashFunction(name = "sha3-224", pretty_name = "SHA3-224", output_bits = 224, derating = None, oid = OIDDB.HashFunctions.inverse("sha3-224")),
+	HashFunction(name = "sha3-256", pretty_name = "SHA3-256", output_bits = 256, derating = None, oid = OIDDB.HashFunctions.inverse("sha3-256")),
+	HashFunction(name = "sha3-384", pretty_name = "SHA3-384", output_bits = 384, derating = None, oid = OIDDB.HashFunctions.inverse("sha3-384")),
+	HashFunction(name = "sha3-512", pretty_name = "SHA3-512", output_bits = 512, derating = None, oid = OIDDB.HashFunctions.inverse("sha3-512")),
+	HashFunction(name = "shake256-912", pretty_name = "Shake256-912", output_bits = 912, derating = None, oid = None),
 ])
 
 Cryptosystem = collections.namedtuple("Cryptosystem", [ "name", "shortcut", "spec_parameters" ])
@@ -68,12 +67,12 @@ Cryptosystems = _to_enum("Cryptosystems", [
 	Cryptosystem(name = "ECC/ECDH", shortcut = "ed-ecdh", spec_parameters = [ ("curvename", str) ]),
 ])
 
-SignatureFunction = collections.namedtuple("SignatureFunction", [ "name", "cryptosystem" ])
+SignatureFunction = collections.namedtuple("SignatureFunction", [ "name", "pretty_name", "cryptosystem" ])
 SignatureFunctions = _to_enum("SignatureFunctions", [
-	SignatureFunction(name = "rsa-encryption", cryptosystem = Cryptosystems.RSA),
-	SignatureFunction(name = "rsa-ssa-pss", cryptosystem = Cryptosystems.RSA),
-	SignatureFunction(name = "ecdsa", cryptosystem = Cryptosystems.ECC_ECDSA),
-	SignatureFunction(name = "eddsa", cryptosystem = Cryptosystems.ECC_EdDSA),
+	SignatureFunction(name = "rsa-encryption", pretty_name = "RSA", cryptosystem = Cryptosystems.RSA),
+	SignatureFunction(name = "rsa-ssa-pss", pretty_name = "RSA/PSS", cryptosystem = Cryptosystems.RSA),
+	SignatureFunction(name = "ecdsa", pretty_name = "ECDSA", cryptosystem = Cryptosystems.ECC_ECDSA),
+	SignatureFunction(name = "eddsa", pretty_name = "EdDSA", cryptosystem = Cryptosystems.ECC_EdDSA),
 ])
 
 EdDSAParams = collections.namedtuple("EdDSAParams", [ "curve", "prehash" ])

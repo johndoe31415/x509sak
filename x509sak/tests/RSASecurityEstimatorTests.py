@@ -48,5 +48,5 @@ class RSASecurityEstimatorTests(BaseTest):
 				# Skip this for large moduli, too slow.
 				analysis_options = AnalysisOptions(rsa_testing = AnalysisOptions.RSATesting.Fast)
 			analysis = RSASecurityEstimator(analysis_options).analyze_n(n)
-			deviation = analysis["bits"] - expected_security
+			deviation = analysis.bits - expected_security
 			self.assertLessEqual(abs(deviation), 8)

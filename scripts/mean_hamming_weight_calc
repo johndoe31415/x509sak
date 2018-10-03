@@ -1,0 +1,62 @@
+#!/usr/bin/env python3
+#	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
+#	Copyright (C) 2018-2018 Johannes Bauer
+#
+#	This file is part of x509sak.
+#
+#	x509sak is free software; you can redistribute it and/or modify
+#	it under the terms of the GNU General Public License as published by
+#	the Free Software Foundation; this program is ONLY licensed under
+#	version 3 of the License, later versions are explicitly excluded.
+#
+#	x509sak is distributed in the hope that it will be useful,
+#	but WITHOUT ANY WARRANTY; without even the implied warranty of
+#	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#	GNU General Public License for more details.
+#
+#	You should have received a copy of the GNU General Public License
+#	along with x509sak; if not, write to the Free Software
+#	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+#	Johannes Bauer <JohannesBauer@gmx.de>
+
+# This script tries to answer the question:
+#    When a bitstring is randomly generated, what hamming weight do 99.99% of
+#    all bitstrings have?
+#
+# We use this for checking randomly generated values for plausibility. It emits
+# a tuple of (bitstring, distance from midpoint).
+
+import math
+
+def nPr(n, r):
+	"""Gives the number of permutations of r out of n."""
+	return math.factorial(n) // math.factorial(n - r)
+
+def nCr(n, r):
+	"""Gives the number of combinations of r out of n."""
+	return nPr(n, r) // math.factorial(r)
+
+for bits in range(3, 8192):
+	total = 1 << bits
+	mid_l = (bits // 2)
+	if (bits % 2) == 0:
+		mid_r = mid_l
+		mid_l -= 1
+	else:
+		mid_r = mid_l
+	distance = 0
+	
+	options = 0
+	while mid_l >= 0:
+		distance += 1
+		options += nCr(bits, mid_l)
+		if mid_l != mid_r:
+			options += nCr(bits, mid_r)
+		mid_l -= 1
+		mid_r += 1
+		
+		if (options / total) > 0.9999:
+			break
+
+	print(bits, distance)

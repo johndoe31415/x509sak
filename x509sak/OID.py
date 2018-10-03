@@ -156,6 +156,17 @@ class OIDDB(object):
 	HashFunctions = BijectiveDict({
 		OID.from_str("1.3.14.3.2.26"):				"sha1",
 		OID.from_str("2.16.840.1.101.3.4.2.1"):		"sha256",
+		OID.from_str("2.16.840.1.101.3.4.2.2"):		"sha384",
+		OID.from_str("2.16.840.1.101.3.4.2.3"):		"sha512",
+		OID.from_str("2.16.840.1.101.3.4.2.4"):		"sha224",
+		OID.from_str("2.16.840.1.101.3.4.2.5"):		"sha512-224",
+		OID.from_str("2.16.840.1.101.3.4.2.6"):		"sha512-256",
+		OID.from_str("2.16.840.1.101.3.4.2.7"):		"sha3-224",
+		OID.from_str("2.16.840.1.101.3.4.2.8"):		"sha3-256",
+		OID.from_str("2.16.840.1.101.3.4.2.9"):		"sha3-384",
+		OID.from_str("2.16.840.1.101.3.4.2.10"):	"sha3-512",
+		OID.from_str("2.16.840.1.101.3.4.2.11"):	"shake128",
+		OID.from_str("2.16.840.1.101.3.4.2.12"):	"shake256",
 	})
 
 	"""X.509 Extension Extended Key Usage."""

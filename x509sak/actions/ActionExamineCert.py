@@ -56,6 +56,10 @@ class ActionExamineCert(BaseAction):
 			print("Subject   : %s" % (analysis["subject"]["pretty"]))
 			print("Issuer    : %s" % (analysis["issuer"]["pretty"]))
 			print("Public key: %s" % (analysis["pubkey"]["pretty"]))
+#			print("Validity  : %s to %s" % (a
+			#print("Signature : %s" % (analysis["signature"]["pretty"]))
+			print("   Hash function: %s" % (analysis["signature"]["hash_fnc"]["name"]))
+			print("   Signature algorithm: %s" % (analysis["signature"]["sig_fnc"]["name"]))
 		return analysis
 #		print(crt.signature_algorithm)
 #		print(crt.extensions)
