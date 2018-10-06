@@ -21,11 +21,14 @@
 
 import math
 import random
+import collections
 from x509sak.Exceptions import InvalidInputException
 
 class NumberTheory(object):
 	"""Collection of number theoretic functions and modular arithmetic
 	helpers."""
+
+	_HammingWeightAnalysis = collections.namedtuple("HammingWeightAnalysis", [ "value", "bitlen", "hweight", "rnd_min_hweight", "rnd_max_hweight", "plausibly_random" ])
 
 	@classmethod
 	def lcm(cls, a, b):
@@ -238,12 +241,13 @@ class NumberTheory(object):
 		return margin
 
 	@classmethod
-	def plausibly_random(cls, value):
+	def hamming_weight_analysis(cls, value):
 		"""Determines if a value is plausibly random with an error probability
 		of around 0.01%."""
-		bits = value.bit_length()
-		margin = cls.hamming_weight_margin(bits)
-		min_weight = (bits // 2) - margin
-		max_weight = (bits // 2) + margin
+		bitlen = value.bit_length()
+		margin = cls.hamming_weight_margin(bitlen)
+		rnd_min_hweight = (bitlen // 2) - margin
+		rnd_max_hweight = (bitlen // 2) + margin
 		hweight = cls.hamming_weight(value)
-		return min_weight <= hweight <= max_weight
+		plausibly_random = rnd_min_hweight <= hweight <= rnd_max_hweight
+		return cls._HammingWeightAnalysis(value = value, bitlen = bitlen, hweight = hweight, rnd_min_hweight = rnd_min_hweight, rnd_max_hweight = rnd_max_hweight, plausibly_random = plausibly_random)

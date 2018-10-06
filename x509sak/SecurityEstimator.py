@@ -219,12 +219,9 @@ class RSASecurityEstimator(SecurityEstimator):
 			return SecurityJudgement("Modulus is known to be compromised: %s" % (match.text), bits = 0)
 
 		judgement = None
-		if not NumberTheory.plausibly_random(n):
-			hweight = NumberTheory.hamming_weight(n)
-			margin = NumberTheory.hamming_weight_margin(n.bit_length())
-			weight_min = (n.bit_lenght() // 2) - margin
-			weight_max = (n.bit_lenght() // 2) + margin
-			judgement = SecurityJudgement("Modulus does not appear to be random. Expected a Hamming weight between %d and %d for a %d bit modulus, but found Hamming weight %d." % (weight_min, weight_max, n.bit_length(), hweight), commonness = Commonness.HIGHLY_UNUSUAL)
+		hweight_analysis = NumberTheory.hamming_weight_analysis(n)
+		if not hweight_analysis.plausibly_random:
+			judgement = SecurityJudgement("Modulus does not appear to be random. Expected a Hamming weight between %d and %d for a %d bit modulus, but found Hamming weight %d." % (hweight_analysis.rnd_min_hweight, hweight_analysis.rnd_max_hweight, hweight_analysis.bitlen, hweight_analysis.hweight), commonness = Commonness.HIGHLY_UNUSUAL)
 
 		# We estimate the complexity of factoring the modulus by the asymptotic
 		# complexity of the GNFS.
@@ -294,11 +291,13 @@ class ECCSecurityEstimator(SecurityEstimator):
 		if ((field_len - x_len) >= 32) or ((field_len - y_len) >= 32):
 			security_estimate += SecurityJudgement("Affine public key field element lengths (x = %d bit, y = %d bit) differ from field element width of %d bits more than 32 bits; this is likely not coincidential." % (x_len, y_len, field_len), commonness = Commonness.HIGHLY_UNUSUAL)
 
-		avg_weight = field_len // 2
-		x_weight = NumberTheory.hamming_weight(pubkey.x)
-		y_weight = NumberTheory.hamming_weight(pubkey.y)
-		if (abs(avg_weight - x_weight) >= 32) or (abs(avg_weight - y_weight) >= 32):
-			security_estimate += SecurityJudgement("Hamming weight of public key field element lengths (H_x = %d, H_y = %d) differs from expected average of %d more than 32; this is likely not coincidential." % (x_weight, y_weight, avg_weight), commonness = Commonness.HIGHLY_UNUSUAL)
+		hweight_analysis = NumberTheory.hamming_weight_analysis(pubkey.x)
+		if not hweight_analysis.plausibly_random:
+			security_estimate += SecurityJudgement("Hamming weight of public key field element's X coordinate is %d at bitlength %d, but expected a weight between %d and %d when randomly chosen; this is likely not coincidential." % (hweight_analysis.hweight, hweight_analysis.bitlen, hweight_analysis.rnd_min_hweight, hweight_analysis.rnd_max_hweight), commonness = Commonness.HIGHLY_UNUSUAL)
+
+		hweight_analysis = NumberTheory.hamming_weight_analysis(pubkey.y)
+		if not hweight_analysis.plausibly_random:
+			security_estimate += SecurityJudgement("Hamming weight of public key field element's Y coordinate is %d at bitlength %d, but expected a weight between %d and %d when randomly chosen; this is likely not coincidential." % (hweight_analysis.hweight, hweight_analysis.bitlen, hweight_analysis.rnd_min_hweight, hweight_analysis.rnd_max_hweight), commonness = Commonness.HIGHLY_UNUSUAL)
 
 		return security_estimate
 SecurityEstimator.register(ECCSecurityEstimator)

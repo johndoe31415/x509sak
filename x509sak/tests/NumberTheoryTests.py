@@ -19,6 +19,7 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
+import os
 import random
 from x509sak.tests import BaseTest
 from x509sak.NumberTheory import NumberTheory
@@ -128,3 +129,10 @@ class NumberTheoryTests(BaseTest):
 				self.assertEqual((sqrt_pos & 1), 0)
 				self.assertEqual((sqrt_neg & 1), 1)
 				self.assertEqual((sqrt_pos * sqrt_pos) % p, sqr)
+
+	def test_hweight_margin(self):
+		r = int.from_bytes(os.urandom(16), byteorder = "little")
+		self.assertTrue(NumberTheory.hamming_weight_analysis(r).plausibly_random)
+
+		n = 0x10000000000000
+		self.assertFalse(NumberTheory.hamming_weight_analysis(n).plausibly_random)
