@@ -23,9 +23,10 @@ import pyasn1.codec.der.decoder
 import pyasn1.error
 import pyasn1.type.univ
 from pyasn1.type import tag
-from pyasn1_modules import rfc2459
+from pyasn1_modules import rfc2459, rfc5280
 from x509sak.OID import OID, OIDDB
 from x509sak.SecurityEstimator import SecurityEstimator
+from x509sak import ASN1Models
 
 class X509Extensions(object):
 	def __init__(self, extensions):
@@ -70,9 +71,6 @@ class X509Extensions(object):
 		extensions_asn1 = rfc2459.Extensions().subtype(explicitTag = tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 3))
 		extensions_asn1.setComponents(*extension_list)
 		return extensions_asn1
-
-	def analyze(self, analysis_options = None):
-		return SecurityEstimator.algorithm("crt_exts", analysis_options = analysis_options).analyze(self)
 
 	def __getitem__(self, index):
 		return self._exts[index]
@@ -165,12 +163,20 @@ class X509Extension(object):
 	def format_value(self):
 		return self.data.hex()
 
-	def __repr__(self):
-		if self.oid in OIDDB.X509Extensions:
+	@property
+	def known(self):
+		return self.oid in OIDDB.X509Extensions
+
+	@property
+	def name(self):
+		if self.known:
 			name = OIDDB.X509Extensions[self.oid]
 		else:
 			name = str(self.oid)
-		return "%s<%s = %s>" % (self.__class__.__name__, name, self.format_value)
+		return name
+
+	def __repr__(self):
+		return "%s<%s = %s>" % (self.__class__.__name__, self.name, self.format_value)
 X509ExtensionRegistry.set_default_class(X509Extension)
 
 class X509SubjectKeyIdentifierExtension(X509Extension):
@@ -254,3 +260,71 @@ class X509ExtendedKeyUsageExtension(X509Extension):
 	def __repr__(self):
 		return "%s<Server = %s, Client = %s>" % (self.__class__.__name__, self.client_auth, self.server_auth)
 X509ExtensionRegistry.set_handler_class(X509ExtendedKeyUsageExtension)
+
+
+class X509SubjectAlternativeNameExtension(X509Extension):
+	_HANDLER_OID = OIDDB.X509Extensions.inverse("SubjectAlternativeName")
+	_ASN1_MODEL = rfc5280.SubjectAltName
+
+	def _decode_hook(self):
+		self._known_names = [ ]
+		for altname in self.asn1:
+			for known_namedtypes in altname.componentType.namedTypes:
+				name = known_namedtypes.name
+				value = altname.getComponentByName(known_namedtypes.name, None, instantiate = False)
+				if value is not None:
+					self._known_names.append((name, str(value)))
+					break
+
+	def get_all(self, name_type):
+		return [ value for (key, value) in self._known_names if (key == name_type) ]
+
+	def __repr__(self):
+		return "%s<%s>" % (self.__class__.__name__, ", ".join("%s = %s" % (key, value) for (key, value) in self._known_names))
+X509ExtensionRegistry.set_handler_class(X509SubjectAlternativeNameExtension)
+
+
+class X509KeyUsageExtension(X509Extension):
+	_HANDLER_OID = OIDDB.X509Extensions.inverse("KeyUsage")
+	_ASN1_MODEL = rfc5280.KeyUsage
+
+	@property
+	def flags(self):
+		return self._flags
+
+	def _decode_hook(self):
+		self._flags = set()
+		for (name, bit) in self._ASN1_MODEL.namedValues.items():
+			if (len(self._asn1) > bit) and self._asn1[bit]:
+				self._flags.add(name)
+
+	def __repr__(self):
+		return "%s<%s>" % (self.__class__.__name__, ", ".join(sorted(self._flags)))
+X509ExtensionRegistry.set_handler_class(X509KeyUsageExtension)
+
+
+class X509NetscapeCertificateTypeExtension(X509Extension):
+	_HANDLER_OID = OIDDB.X509Extensions.inverse("NetscapeCertificateType")
+	_ASN1_MODEL = ASN1Models.NetscapeCertificateType
+
+	@property
+	def ssl_server(self):
+		return "server" in self.flags
+
+	@property
+	def ssl_client(self):
+		return "client" in self.flags
+
+	@property
+	def flags(self):
+		return self._flags
+
+	def _decode_hook(self):
+		self._flags = set()
+		for (name, bit) in self._ASN1_MODEL.namedValues.items():
+			if (len(self._asn1) > bit) and self._asn1[bit]:
+				self._flags.add(name)
+
+	def __repr__(self):
+		return "%s<%s>" % (self.__class__.__name__, ", ".join(sorted(self._flags)))
+X509ExtensionRegistry.set_handler_class(X509NetscapeCertificateTypeExtension)

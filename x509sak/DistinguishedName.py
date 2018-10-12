@@ -47,6 +47,21 @@ class RelativeDistinguishedName(object):
 		return cls(rdn_list)
 
 	@property
+	def component_cnt(self):
+		return len(self._rdn_list)
+
+	def has_component(self, oid):
+		assert(isinstance(oid, OID))
+		return any(oid == element_oid for (element_oid, value) in self._rdn_list)
+
+	def get_value(self, oid):
+		assert(isinstance(oid, OID))
+		for (element_oid, value) in self._rdn_list:
+			if element_oid == oid:
+				return value
+		return None
+
+	@property
 	def rfc2253_str(self):
 		def char_needs_hex_escaping(char):
 			try:
@@ -102,11 +117,18 @@ class RelativeDistinguishedName(object):
 	def __neq__(self, other):
 		return not (self == other)
 
+	def __str__(self):
+		return "RDN<%s>" % (self.rfc2253_str)
+
 class DistinguishedName(object):
 	def __init__(self, rdns):
 		assert(isinstance(rdns, (list, tuple)))
 		assert(all(isinstance(rdn, RelativeDistinguishedName) for rdn in rdns))
 		self._rdns = tuple(rdns)
+
+	def get_all(self, oid):
+		assert(isinstance(oid, OID))
+		return [ rdn for rdn in self._rdns if rdn.has_component(oid) ]
 
 	@classmethod
 	def from_asn1(cls, asn1):

@@ -172,7 +172,6 @@ class OpenSSLTools(object):
 
 	@classmethod
 	def sign_data(cls, signing_algorithm, private_key_filename, payload):
-		print(signing_algorithm)
 		cmd = [ "openssl", "dgst", "-sign", private_key_filename, "-%s" % (signing_algorithm.value.hash_fnc.value.name) ]
 		signature = SubprocessExecutor(cmd, stdin = payload).run().stdout
 		return signature

@@ -69,7 +69,7 @@ Cryptosystems = _to_enum("Cryptosystems", [
 
 SignatureFunction = collections.namedtuple("SignatureFunction", [ "name", "pretty_name", "cryptosystem" ])
 SignatureFunctions = _to_enum("SignatureFunctions", [
-	SignatureFunction(name = "rsa-encryption", pretty_name = "RSA", cryptosystem = Cryptosystems.RSA),
+	SignatureFunction(name = "rsa-encryption", pretty_name = "RSA encryption", cryptosystem = Cryptosystems.RSA),
 	SignatureFunction(name = "rsa-ssa-pss", pretty_name = "RSA/PSS", cryptosystem = Cryptosystems.RSA),
 	SignatureFunction(name = "ecdsa", pretty_name = "ECDSA", cryptosystem = Cryptosystems.ECC_ECDSA),
 	SignatureFunction(name = "eddsa", pretty_name = "EdDSA", cryptosystem = Cryptosystems.ECC_EdDSA),

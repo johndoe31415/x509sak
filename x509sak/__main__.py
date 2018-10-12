@@ -177,10 +177,12 @@ def genparser(parser):
 mc.register("dumpkey", "Dump a key in text form", genparser, action = ActionDumpKey)
 
 def genparser(parser):
+	parser.add_argument("-p", "--purpose", choices = [ "ca", "tls-server", "tls-client" ], action = "append", default = [ ], help = "Check if the certificate is fit for the given purpose. Can be any of %(choices)s, can be specified multiple times.")
 	parser.add_argument("-n", "--server-name", metavar = "fqdn", type = str, help = "Check if the certificate is valid for the given hostname.")
 	parser.add_argument("--fast-rsa", action = "store_true", help = "Skip some time-intensive number theoretical tests for RSA moduli in order to speed up checking. Less thorough, but much faster.")
 	parser.add_argument("--include-raw-data", action = "store_true", help = "Add the raw data such as base64-encoded certificate and signatures into the result as well.")
-	parser.add_argument("--print-raw", action = "store_true", help = "Instead of printing the human-readable version of the analysis, print the raw JSON data.")
+	parser.add_argument("--no-ansi", action = "store_true", help = "Do not use ANSI escape sequences to generate colored output on the terminal.")
+	parser.add_argument("-r", "--print-raw", action = "store_true", help = "Instead of printing the human-readable version of the analysis, print the raw JSON data.")
 	parser.add_argument("-w", "--write-json", metavar = "filename", type = str, help = "Write a JSON output document with detailed information about the checked certificate in the filename.")
 	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
 	parser.add_argument("crt_filenames", metavar = "crt_filename", type = str, nargs = "+", help = "Filename of the input certificate or certificates in PEM format.")

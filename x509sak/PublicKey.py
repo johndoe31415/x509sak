@@ -131,13 +131,13 @@ class PublicKey(PEMDERObject):
 		}
 		if self.pk_alg.value.cryptosystem == Cryptosystems.RSA:
 			result["pretty"] = "RSA with %d bit modulus" % (self.n.bit_length())
-			result["specific"] = SecurityEstimator.algorithm("rsa", analysis_options = analysis_options).analyze(self)
+			result.update(SecurityEstimator.algorithm("rsa", analysis_options = analysis_options).analyze(self))
 		elif self.pk_alg.value.cryptosystem == Cryptosystems.ECC_ECDSA:
 			result["pretty"] = "ECC on %s" % (self.curve.name)
-			result["specific"] = SecurityEstimator.algorithm("ecc", analysis_options = analysis_options).analyze(self)
+			result.update(SecurityEstimator.algorithm("ecc", analysis_options = analysis_options).analyze(self))
 		elif self.pk_alg.value.cryptosystem == Cryptosystems.ECC_EdDSA:
 			result["pretty"] = "EdDSA on %s" % (self.curve.name)
-			result["specific"] = SecurityEstimator.algorithm("eddsa", analysis_options = analysis_options).analyze(self)
+			result.update(SecurityEstimator.algorithm("eddsa", analysis_options = analysis_options).analyze(self))
 		else:
 			raise LazyDeveloperException(NotImplemented, self.cryptosystem)
 		return result

@@ -209,3 +209,15 @@ class RSASSA_PSS_Params(univ.Sequence):
 		namedtype.DefaultedNamedType("saltLength", univ.Integer().subtype(explicitTag = tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 2))),
 		namedtype.DefaultedNamedType("trailerField", TrailerField().subtype(explicitTag = tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 3))),
 	)
+
+class NetscapeCertificateType(univ.BitString):
+    namedValues = namedval.NamedValues(
+        ("client", 0),
+        ("server", 1),
+        ("email", 2),
+        ("objsign", 3),
+        ("reserved", 4),
+        ("sslCA", 5),
+        ("emailCA", 6),
+        ("objCA", 7),
+    )

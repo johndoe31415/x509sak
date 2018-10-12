@@ -169,10 +169,11 @@ class X509Certificate(PEMDERObject):
 		result = {
 			"subject":		self.subject.analyze(analysis_options = analysis_options),
 			"issuer":		self.issuer.analyze(analysis_options = analysis_options),
-			"validity":		SecurityEstimator.algorithm("crt_validity", analysis_options = analysis_options).analyze(self.valid_not_before, self.valid_not_after),
+			"validity":		SecurityEstimator.algorithm("crt_validity", analysis_options = analysis_options).analyze(self),
 			"pubkey":		self.pubkey.analyze(analysis_options = analysis_options),
-			"extensions":	self.get_extensions().analyze(analysis_options = analysis_options),
+			"extensions":	SecurityEstimator.algorithm("crt_exts", analysis_options = analysis_options).analyze(self),
 			"signature":	SecurityEstimator.algorithm("sig", analysis_options = analysis_options).analyze(self.signature_alg_oid, self.signature_alg_params, self.signature),
+			"purpose":		SecurityEstimator.algorithm("purpose", analysis_options = analysis_options).analyze(self),
 		}
 		if (analysis_options is not None) and analysis_options.include_raw_data:
 			result["raw"] = base64.b64encode(self.der_data).decode("ascii")
@@ -184,7 +185,9 @@ class X509Certificate(PEMDERObject):
 		if len(extensions) == 0:
 			return True
 		else:
-			# TODO: What if present multiple times?
+			# RFC5280, 4.2: "A certificate MUST NOT include more than one
+			# instance of a particular extension." -- we assume the certificate
+			# is sane and elect to get the first extension.
 			basic_constraints = extensions.get_first(OIDDB.X509Extensions.inverse("BasicConstraints"))
 			if basic_constraints is None:
 				return True
