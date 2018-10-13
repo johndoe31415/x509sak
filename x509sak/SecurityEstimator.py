@@ -158,6 +158,14 @@ class RSASecurityEstimator(SecurityEstimator):
 	def analyze_n(self, n):
 		judgements = SecurityJudgements()
 
+		if n < 0:
+			judgements += SecurityJudgement(JudgementCode.RSA_Modulus_Negative, "Modulus uses incorrect encoding, representation is a negative integer.", commonness = Commonness.HIGHLY_UNUSUAL)
+
+			# Fix up n so it's a positive integer for the rest of the tests
+			bitlen = (n.bit_length() + 7) // 8 * 8
+			mask = (1 << bitlen) - 1
+			n = n & mask
+
 		if self._test_probable_prime:
 			if NumberTheory.is_probable_prime(n):
 				judgements += SecurityJudgement(JudgementCode.RSA_Modulus_Prime, "Modulus is prime, not a compound integer as we would expect for RSA.", bits = 0)

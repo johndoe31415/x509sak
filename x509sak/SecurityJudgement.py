@@ -27,6 +27,7 @@ class JudgementCode(enum.Enum):
 	RSA_Exponent_SmallUnusual = ("RSA Exponent", "e is small and uncommon")
 	RSA_Exponent_Is_0x10001 = ("RSA Exponent", "e is 0x10001")
 	RSA_Exponent_Large = ("RSA Exponent", "e is unusually large")
+	RSA_Modulus_Negative = ("RSA Modulus", "n is negative")
 	RSA_Modulus_Prime = ("RSA Modulus", "n is prime")
 	RSA_Modulus_Factorable = ("RSA Modulus", "n has small factors")
 	RSA_Modulus_Known = ("RSA Modulus", "factorization of n is public")
