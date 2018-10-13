@@ -27,7 +27,7 @@ from x509sak import X509Certificate
 from x509sak.Tools import JSONTools
 from x509sak.SecurityEstimator import AnalysisOptions
 from x509sak.ConsolePrinter import ConsolePrinter
-from x509sak.SecurityJudgement import SecurityJudgement, Commonness, Verdict
+from x509sak.SecurityJudgement import SecurityJudgement, Commonness, Verdict, Compatibility
 from x509sak.FileWriter import FileWriter
 from x509sak.OpenSSLTools import OpenSSLTools
 
@@ -115,20 +115,26 @@ class ActionExamineCert(BaseAction):
 			textual_verdict.append("%d bits" % (judgement.bits))
 		if judgement.verdict is not None:
 			textual_verdict.append({
-				Verdict.BEST_IN_CLASS:		"best-in-class security",
-				Verdict.HIGH:				"high security",
-				Verdict.MEDIUM:				"medium security",
-				Verdict.WEAK:				"weak security",
-				Verdict.BROKEN:				"broken security",
-				Verdict.NO_SECURITY:		"no security",
+				Verdict.BEST_IN_CLASS:				"best-in-class security",
+				Verdict.HIGH:						"high security",
+				Verdict.MEDIUM:						"medium security",
+				Verdict.WEAK:						"weak security",
+				Verdict.BROKEN:						"broken security",
+				Verdict.NO_SECURITY:				"no security",
 			}[judgement.verdict])
 		if judgement.commonness is not None:
 			textual_verdict.append({
-				Commonness.COMMON:			"common",
-				Commonness.FAIRLY_COMMON:	"fairly common",
-				Commonness.UNUSUAL:			"unusual",
-				Commonness.HIGHLY_UNUSUAL:	"highly unusual",
+				Commonness.COMMON:					"common",
+				Commonness.FAIRLY_COMMON:			"fairly common",
+				Commonness.UNUSUAL:					"unusual",
+				Commonness.HIGHLY_UNUSUAL:			"highly unusual",
 			}[judgement.commonness])
+		if judgement.compatibility is not None:
+			textual_verdict.append({
+				Compatibility.FULLY_COMPLIANT:		"fully standards compliant",
+				Compatibility.LIMITED_SUPPORT:		"limited support",
+				Compatibility.STANDARDS_VIOLATION:	"standards violation",
+			}[judgement.compatibility])
 
 		if len(textual_verdict) == 0:
 			return None
@@ -139,11 +145,11 @@ class ActionExamineCert(BaseAction):
 		color = "end"
 		if judgement.verdict in [ Verdict.BEST_IN_CLASS, Verdict.HIGH ]:
 			color = "good"
-		if (judgement.verdict == Verdict.MEDIUM) or (judgement.commonness == Commonness.UNUSUAL):
+		if (judgement.verdict == Verdict.MEDIUM) or (judgement.commonness == Commonness.UNUSUAL) or (judgement.compatibility == Compatibility.LIMITED_SUPPORT):
 			color = "warn"
 		if (judgement.verdict in [ Verdict.WEAK, Verdict.BROKEN ]) or (judgement.commonness == Commonness.HIGHLY_UNUSUAL):
 			color = "error"
-		if judgement.verdict == Verdict.NO_SECURITY:
+		if (judgement.verdict == Verdict.NO_SECURITY) or (judgement.compatibility == Compatibility.STANDARDS_VIOLATION):
 			color = "insecure"
 		return color
 

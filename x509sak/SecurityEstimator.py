@@ -29,7 +29,7 @@ from x509sak.ModulusDB import ModulusDB
 from x509sak.OID import OIDDB, OID
 from x509sak.Exceptions import LazyDeveloperException, UnknownAlgorithmException
 from x509sak.AlgorithmDB import HashFunctions, SignatureAlgorithms, SignatureFunctions
-from x509sak.SecurityJudgement import JudgementCode, SecurityJudgements, SecurityJudgement, Verdict, Commonness
+from x509sak.SecurityJudgement import JudgementCode, SecurityJudgements, SecurityJudgement, Verdict, Commonness, Compatibility
 import x509sak.ASN1Models as ASN1Models
 
 class AnalysisOptions(object):
@@ -211,18 +211,15 @@ class RSASecurityEstimator(SecurityEstimator):
 		}
 
 		if pubkey.params is None:
-			# TODO: Add a "compatibility" rating for this as well?
-			judgements += SecurityJudgement(JudgementCode.RSA_Parameter_Field_Not_Present, "RSA parameter field should be present and should be of Null type, but is not present at all. This is a direct violation of RFC3279, Sect. 2.2.1.", commonness = Commonness.HIGHLY_UNUSUAL)
+			judgements += SecurityJudgement(JudgementCode.RSA_Parameter_Field_Not_Present, "RSA parameter field should be present and should be of Null type, but is not present at all. This is a direct violation of RFC3279, Sect. 2.2.1.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION)
 		else:
 			# There is a parameters field present, it must be NULL
 			try:
 				(asn1_params, tail) = pyasn1.codec.der.decoder.decode(bytes(pubkey.params))
 				if not isinstance(asn1_params, pyasn1.type.univ.Null):
-					# TODO: Add a "compatibility" rating for this as well?
-					judgements += SecurityJudgement(JudgementCode.RSA_Parameter_Field_Not_Null, "RSA parameter field should be present and should be of Null type, but has different ASN.1 type. This is a direct violation of RFC3279, Sect. 2.2.1.", commonness = Commonness.HIGHLY_UNUSUAL)
+					judgements += SecurityJudgement(JudgementCode.RSA_Parameter_Field_Not_Null, "RSA parameter field should be present and should be of Null type, but has different ASN.1 type. This is a direct violation of RFC3279, Sect. 2.2.1.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION)
 			except pyasn1.error.PyAsn1Error:
-					# TODO: Add a "compatibility" rating for this as well?
-					judgements += SecurityJudgement(JudgementCode.RSA_Parameter_Field_Not_Null, "RSA parameter field should be present and should be of Null type, but has different non-DER type. This is a direct violation of RFC3279, Sect. 2.2.1.", commonness = Commonness.HIGHLY_UNUSUAL)
+					judgements += SecurityJudgement(JudgementCode.RSA_Parameter_Field_Not_Null, "RSA parameter field should be present and should be of Null type, but has different non-DER type. This is a direct violation of RFC3279, Sect. 2.2.1.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION)
 
 		judgements += result["specific"]["n"]["security"]
 		judgements += result["specific"]["e"]["security"]
@@ -390,7 +387,7 @@ class CrtExtensionsSecurityEstimator(SecurityEstimator):
 
 		for extension in extensions:
 			if extension.oid in have_oids:
-				judgement = SecurityJudgement(JudgementCode.Cert_X509Ext_Duplicate, "X.509 extension %s (OID %s) is present at least twice. This is a direct violation of RFC5280, Sect. 4.2." % (extension.name, str(extension.oid)), bits = 0)
+				judgement = SecurityJudgement(JudgementCode.Cert_X509Ext_Duplicate, "X.509 extension %s (OID %s) is present at least twice. This is a direct violation of RFC5280, Sect. 4.2." % (extension.name, str(extension.oid)), compatibility = Compatibility.STANDARDS_VIOLATION)
 			have_oids.add(extension.oid)
 		else:
 			judgement = SecurityJudgement(JudgementCode.Cert_X509Ext_All_Unique, "All X.509 extensions are unique.", commonness = Commonness.COMMON)
@@ -456,9 +453,9 @@ class SignatureFunctionSecurityEstimator(SecurityEstimator):
 	def analyze(self, sig_fnc):
 		judgements = SecurityJudgements()
 		if sig_fnc.value.name == "rsa-ssa-pss":
-			judgements += SecurityJudgement(JudgementCode.SignatureFunction_UncommonPaddingScheme, "Not widely used padding scheme for RSA.", commonness = Commonness.UNUSUAL)
+			judgements += SecurityJudgement(JudgementCode.SignatureFunction_UncommonPaddingScheme, "Not widely used padding scheme for RSA.", compatibility = Compatibility.LIMITED_SUPPORT)
 		elif sig_fnc.value.name == "eddsa":
-			judgements += SecurityJudgement(JudgementCode.SignatureFunction_UncommonCryptosystem, commonness = Commonness.UNUSUAL, verdict = Verdict.BEST_IN_CLASS)
+			judgements += SecurityJudgement(JudgementCode.SignatureFunction_UncommonCryptosystem, verdict = Verdict.BEST_IN_CLASS, compatibility = Compatibility.LIMITED_SUPPORT)
 		else:
 			judgements += SecurityJudgement(JudgementCode.SignatureFunction_Common, "Commonly used signature function.", commonness = Commonness.COMMON)
 

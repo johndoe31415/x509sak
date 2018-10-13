@@ -100,17 +100,24 @@ class Commonness(enum.IntEnum):
 	FAIRLY_COMMON = 2
 	COMMON = 3
 
+class Compatibility(enum.IntEnum):
+	STANDARDS_VIOLATION = 0
+	LIMITED_SUPPORT = 1
+	FULLY_COMPLIANT = 2
+
 class SecurityJudgement(object):
-	def __init__(self, code, text, bits = None, verdict = None, commonness = None):
+	def __init__(self, code, text, bits = None, verdict = None, commonness = None, compatibility = None):
 		assert((code is None) or isinstance(code, JudgementCode))
 		assert((bits is None) or isinstance(bits, (int, float)))
 		assert((verdict is None) or isinstance(verdict, Verdict))
 		assert((commonness is None) or isinstance(commonness, Commonness))
+		assert((compatibility is None) or isinstance(compatibility, Compatibility))
 		self._code = code
 		self._text = text
 		self._bits = bits
 		self._verdict = verdict
 		self._commonness = commonness
+		self._compatibility = compatibility
 		if self._bits == 0:
 			if self._verdict is None:
 				self._verdict = Verdict.NO_SECURITY
@@ -131,7 +138,10 @@ class SecurityJudgement(object):
 		commonness = judgement_data.get("commonness")
 		if commonness is not None:
 			commonness = Commonness(commonness["value"])
-		return cls(code = code, text = text, bits = bits, verdict = verdict, commonness = commonness)
+		compatibility = judgement_data.get("compatibility")
+		if compatibility is not None:
+			compatibility = Compatibility(compatibility["value"])
+		return cls(code = code, text = text, bits = bits, verdict = verdict, commonness = commonness, compatibility = compatibility)
 
 	@property
 	def component_cnt(self):
@@ -161,15 +171,20 @@ class SecurityJudgement(object):
 	def commonness(self):
 		return self._commonness
 
+	@property
+	def compatibility(self):
+		return self._compatibility
+
 	def to_dict(self):
 		result = {
-			"code":			self.code.name,
-			"topic":		self.code.topic,
-			"short_text":	self.code.short_text,
-			"text":			self.text,
-			"bits":			self.bits,
-			"verdict":		self.verdict,
-			"commonness":	self.commonness,
+			"code":				self.code.name,
+			"topic":			self.code.topic,
+			"short_text":		self.code.short_text,
+			"text":				self.text,
+			"bits":				self.bits,
+			"verdict":			self.verdict,
+			"commonness":		self.commonness,
+			"compatibility":	self.compatibility,
 		}
 		return { key: value for (key, value) in result.items() if value is not None }
 
@@ -222,6 +237,13 @@ class SecurityJudgements(object):
 			result = self._minof(result, judgement.commonness)
 		return result
 
+	@property
+	def compatibility(self):
+		result = None
+		for judgement in self._judgements:
+			result = self._minof(result, judgement.compatibility)
+		return result
+
 	def __iadd__(self, judgement):
 		assert(isinstance(judgement, (SecurityJudgement, SecurityJudgements)))
 		self._judgements.append(judgement)
@@ -243,11 +265,12 @@ class SecurityJudgements(object):
 
 	def to_dict(self):
 		result = {
-			"text":			self.text,
-			"bits":			self.bits,
-			"verdict":		self.verdict,
-			"commonness":	self.commonness,
-			"components":	self._judgements,
+			"text":				self.text,
+			"bits":				self.bits,
+			"verdict":			self.verdict,
+			"commonness":		self.commonness,
+			"compatibility":	self.compatibility,
+			"components":		self._judgements,
 		}
 		return { key: value for (key, value) in result.items() if value is not None }
 
