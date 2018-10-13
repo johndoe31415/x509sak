@@ -37,11 +37,9 @@ def execute(domain, infile, outfile):
 	except FileExistsError:
 		pass
 
-	with tempfile.NamedTemporaryFile(prefix = domain + "_", suffix = ".pem") as pemfile:
-		subprocess.check_call([ "openssl", "x509", "-inform", "der", "-in", infile, "-out", pemfile.name ])
-		cmd = [ "../x509sak.py", "examine", "-p", "tls-server", "-n", domain, "-f", "json", "-o", outfile, pemfile.name ]
-		print(" ".join(cmd))
-		output = subprocess.check_call(cmd)
+	cmd = [ "../x509sak.py", "examine", "-p", "tls-server", "-n", domain, "-f", "json", "-o", outfile, "-i", "dercrt", infile ]
+	print(" ".join(cmd))
+	output = subprocess.check_call(cmd)
 	threads.release()
 
 for (dirname, subdirs, files) in os.walk(corpus_directory):
