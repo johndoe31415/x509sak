@@ -28,6 +28,7 @@ from x509sak.WorkDir import WorkDir
 from x509sak.OpenSSLConfig import OpenSSLConfig
 from x509sak.TempUMask import TempUMask
 from x509sak.AlgorithmDB import Cryptosystems
+from x509sak.X509Certificate import X509Certificate
 
 class OpenSSLTools(object):
 	@classmethod
@@ -208,3 +209,9 @@ class OpenSSLTools(object):
 			pem_certificates = "\n".join(certificate.to_pem_data() for certificate in certificates)
 			output = SubprocessExecutor(cmd, stdin = pem_certificates.encode("ascii")).run().stdout
 			return output
+
+	@classmethod
+	def get_tls_server_cert(cls, hostname, port = 443):
+		result = SubprocessExecutor([ "openssl", "s_client", "-connect", "%s:%d" % (hostname, port), "-servername", hostname ]).run()
+		certificates = X509Certificate.from_pem_data(result.stdout.decode())
+		return certificates[0]

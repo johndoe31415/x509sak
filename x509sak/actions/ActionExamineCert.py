@@ -21,6 +21,7 @@
 
 import json
 import datetime
+import collections
 from x509sak.BaseAction import BaseAction
 from x509sak import X509Certificate
 from x509sak.Tools import JSONTools
@@ -28,29 +29,56 @@ from x509sak.SecurityEstimator import AnalysisOptions
 from x509sak.ConsolePrinter import ConsolePrinter
 from x509sak.SecurityJudgement import SecurityJudgement, Commonness, Verdict
 from x509sak.FileWriter import FileWriter
+from x509sak.OpenSSLTools import OpenSSLTools
 
 class ActionExamineCert(BaseAction):
+	_CrtSource = collections.namedtuple("CrtSource", [ "source", "source_type", "crts" ])
+
 	def __init__(self, cmdname, args):
 		BaseAction.__init__(self, cmdname, args)
-		if not self._args.json_input:
-			analysis = self._analyze_certificates()
-		else:
+		if self._args.in_format in [ "pemcrt", "dercrt", "host" ]:
+			crt_sources = self._load_certificates()
+			analysis = self._analyze_certificates(crt_sources)
+		elif self._args.in_format == "json":
 			analysis = self._read_json()
+		else:
+			raise NotImplementedError(self._args.in_format)
 
 		output = self._args.output or "-"
 		with FileWriter(output, "w") as f:
 			self._show_analysis(f, analysis)
 
-	def _analyze_certificates(self):
+	def _load_certificates(self):
+		sources = [ ]
+		for crt_filename in self._args.infiles:
+			if self._args.in_format == "pemcrt":
+				self._log.debug("Reading PEM certificate from %s", crt_filename)
+				crts = X509Certificate.read_pemfile(crt_filename)
+			elif self._args.in_format == "dercrt":
+				self._log.debug("Reading DER certificate from %s", crt_filename)
+				crts = [ X509Certificate.read_derfile(crt_filename) ]
+			elif self._args.in_format == "host":
+				host_port = crt_filename.split(":", maxsplit = 1)
+				if len(host_port) == 1:
+					host_port.append("443")
+				(host, port) = host_port
+				port = int(port)
+				self._log.debug("Querying TLS server at %s port %d", host, port)
+				crts = [ OpenSSLTools.get_tls_server_cert(host, port) ]
+			else:
+				raise NotImplementedError(self._args.in_format)
+			source = self._CrtSource(source = crt_filename, crts = crts, source_type = self._args.in_format)
+			sources.append(source)
+		return sources
+
+	def _analyze_certificates(self, crt_sources):
 		utcnow = datetime.datetime.utcnow()
 		analyses = {
 			"timestamp_utc":	utcnow,
 			"data":				[ ],
 		}
-		for crt_filename in self._args.crt_filenames:
-			self._log.debug("Reading %s", crt_filename)
-			crts = X509Certificate.read_pemfile(crt_filename)
-			for (crtno, crt) in enumerate(crts, 1):
+		for crt_source in crt_sources:
+			for (crtno, crt) in enumerate(crt_source.crts, 1):
 				analysis_options = {
 					"rsa_testing":			AnalysisOptions.RSATesting.Fast if self._args.fast_rsa else AnalysisOptions.RSATesting.Full,
 					"include_raw_data":		self._args.include_raw_data,
@@ -61,9 +89,10 @@ class ActionExamineCert(BaseAction):
 				analysis_options = AnalysisOptions(**analysis_options)
 				analysis = crt.analyze(analysis_options = analysis_options)
 				analysis["source"] = {
-					"filename":		crt_filename,
+					"name":			crt_source.source,
+					"srctype":		crt_source.source_type,
 					"cert_no":		crtno,
-					"certs_total":	len(crts),
+					"certs_total":	len(crt_source.crts),
 				}
 				analyses["data"].append(analysis)
 		analyses = JSONTools.translate(analyses)
@@ -71,7 +100,7 @@ class ActionExamineCert(BaseAction):
 
 	def _read_json(self):
 		merged_analyses = None
-		for json_filename in self._args.crt_filenames:
+		for json_filename in self._args.infiles:
 			with open(json_filename) as f:
 				analyses = json.load(f)
 				if merged_analyses is None:
@@ -150,9 +179,9 @@ class ActionExamineCert(BaseAction):
 		for analysis in analyses["data"]:
 			printer.heading("Metadata")
 			if analysis["source"]["certs_total"] == 1:
-				printer.print("Source : %s" % (analysis["source"]["filename"]))
+				printer.print("Source : %s" % (analysis["source"]["name"]))
 			else:
-				printer.print("Source : %s (certificate %d of %d)" % (analysis["source"]["filename"], analysis["source"]["cert_no"], analysis["source"]["certs_total"]))
+				printer.print("Source : %s (certificate %d of %d)" % (analysis["source"]["name"], analysis["source"]["cert_no"], analysis["source"]["certs_total"]))
 			printer.print("Issuer : %s" % (analysis["issuer"]["pretty"]))
 			printer.print("Subject: %s" % (analysis["subject"]["pretty"]))
 			printer.print()
@@ -195,7 +224,7 @@ class ActionExamineCert(BaseAction):
 				printer.print()
 
 	def _show_analysis(self, output, analyses):
-		if self._args.format == "ansitext":
+		if self._args.out_format == "ansitext":
 			printer = ConsolePrinter(output).add_subs({
 				"<good>":		"\x1b[32m",
 				"<warn>":		"\x1b[33m",
@@ -204,7 +233,7 @@ class ActionExamineCert(BaseAction):
 				"<end>":		"\x1b[0m",
 			})
 			self._print_analysis(printer, analyses)
-		elif self._args.format == "text":
+		elif self._args.out_format == "text":
 			printer = ConsolePrinter(output).add_subs({
 				"<good>":		"",
 				"<warn>":		"",
@@ -213,7 +242,7 @@ class ActionExamineCert(BaseAction):
 				"<end>":		"",
 			})
 			self._print_analysis(printer, analyses)
-		elif self._args.format == "json":
+		elif self._args.out_format == "json":
 			JSONTools.write_to_fp(analyses, output)
 		else:
-			raise NotImplementedError(self._args.format)
+			raise NotImplementedError(self._args.out_format)
