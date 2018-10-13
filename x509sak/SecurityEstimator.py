@@ -28,7 +28,7 @@ from x509sak.NumberTheory import NumberTheory
 from x509sak.ModulusDB import ModulusDB
 from x509sak.OID import OIDDB, OID
 from x509sak.Exceptions import LazyDeveloperException, UnknownAlgorithmException
-from x509sak.AlgorithmDB import HashFunctions, SignatureAlgorithms
+from x509sak.AlgorithmDB import HashFunctions, SignatureAlgorithms, SignatureFunctions
 from x509sak.SecurityJudgement import JudgementCode, SecurityJudgements, SecurityJudgement, Verdict, Commonness
 import x509sak.ASN1Models as ASN1Models
 
@@ -195,6 +195,7 @@ class RSASecurityEstimator(SecurityEstimator):
 		return judgements
 
 	def analyze(self, pubkey):
+		judgements = SecurityJudgements()
 		result = {
 			"cryptosystem":	"rsa",
 			"specific": {
@@ -205,9 +206,27 @@ class RSASecurityEstimator(SecurityEstimator):
 				"e": {
 					"security":	self.analyze_e(pubkey.e),
 				},
-			}
+			},
+			"security": judgements,
 		}
-		result["security"] = result["specific"]["n"]["security"] + result["specific"]["e"]["security"]
+
+		if pubkey.params is None:
+			# TODO: Add a "compatibility" rating for this as well?
+			judgements += SecurityJudgement(JudgementCode.RSA_Parameter_Field_Not_Present, "RSA parameter field should be present and should be of Null type, but is not present at all. This is a direct violation of RFC3279, Sect. 2.2.1.", commonness = Commonness.HIGHLY_UNUSUAL)
+		else:
+			# There is a parameters field present, it must be NULL
+			try:
+				(asn1_params, tail) = pyasn1.codec.der.decoder.decode(bytes(pubkey.params))
+				if not isinstance(asn1_params, pyasn1.type.univ.Null):
+					# TODO: Add a "compatibility" rating for this as well?
+					judgements += SecurityJudgement(JudgementCode.RSA_Parameter_Field_Not_Null, "RSA parameter field should be present and should be of Null type, but has different ASN.1 type. This is a direct violation of RFC3279, Sect. 2.2.1.", commonness = Commonness.HIGHLY_UNUSUAL)
+			except pyasn1.error.PyAsn1Error:
+					# TODO: Add a "compatibility" rating for this as well?
+					judgements += SecurityJudgement(JudgementCode.RSA_Parameter_Field_Not_Null, "RSA parameter field should be present and should be of Null type, but has different non-DER type. This is a direct violation of RFC3279, Sect. 2.2.1.", commonness = Commonness.HIGHLY_UNUSUAL)
+
+		judgements += result["specific"]["n"]["security"]
+		judgements += result["specific"]["e"]["security"]
+
 		if self._analysis_options.include_raw_data:
 			result["n"]["value"] = pubkey.n
 			result["e"]["value"] = pubkey.e
@@ -320,6 +339,7 @@ class SignatureSecurityEstimator(SecurityEstimator):
 	_ALG_NAME = "sig"
 
 	def analyze(self, signature_alg_oid, signature_alg_params, signature):
+		judgements = SecurityJudgements()
 		signature_alg = SignatureAlgorithms.lookup("oid", signature_alg_oid)
 		if signature_alg is None:
 			raise UnknownAlgorithmException("Unsupported signature algorithm used (OID %s), cannot make security determination." % (signature_alg_oid))
@@ -338,6 +358,8 @@ class SignatureSecurityEstimator(SecurityEstimator):
 			else:
 				# Default for RSASSA-PSS is SHA-1
 				hash_fnc = HashFunctions["sha1"]
+
+			# TODO: Also determine size of nonce
 		else:
 			raise LazyDeveloperException("Unable to determine hash function for signature algorithm %s." % (signature_alg.name))
 
@@ -346,10 +368,8 @@ class SignatureSecurityEstimator(SecurityEstimator):
 			"pretty":		signature_alg.value.sig_fnc.value.pretty_name + " with " + signature_alg.value.hash_fnc.value.pretty_name,
 			"sig_fnc":		self.algorithm("sig_fnc", analysis_options = self._analysis_options).analyze(signature_alg.value.sig_fnc),
 			"hash_fnc":		self.algorithm("hash_fnc", analysis_options = self._analysis_options).analyze(hash_fnc),
+			"security":		judgements,
 		}
-		result["security"] = SecurityJudgements()
-		result["security"] += result["sig_fnc"]["security"]
-		result["security"] += result["hash_fnc"]["security"]
 		return result
 
 SecurityEstimator.register(SignatureSecurityEstimator)

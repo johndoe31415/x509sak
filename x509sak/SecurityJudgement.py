@@ -22,6 +22,8 @@
 import enum
 
 class JudgementCode(enum.Enum):
+	RSA_Parameter_Field_Not_Present = ("RSA pubkey", "parameter field not present")
+	RSA_Parameter_Field_Not_Null = ("RSA pubkey", "parameter field not NULL")
 	RSA_Exponent_Is_0x1 = ("RSA Exponent", "e is 1")
 	RSA_Exponent_Small = ("RSA Exponent", "e is small")
 	RSA_Exponent_SmallUnusual = ("RSA Exponent", "e is small and uncommon")

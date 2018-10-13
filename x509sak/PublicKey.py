@@ -76,8 +76,9 @@ class PublicKey(PEMDERObject):
 		if self.pk_alg.value.cryptosystem == Cryptosystems.RSA:
 			(key, _) = pyasn1.codec.der.decoder.decode(inner_key, asn1Spec = rfc2437.RSAPublicKey())
 			self._key = {
-				"n":	int(key["modulus"]),
-				"e":	int(key["publicExponent"]),
+				"n":		int(key["modulus"]),
+				"e":		int(key["publicExponent"]),
+				"params":	self.asn1["algorithm"]["parameters"] if self.asn1["algorithm"]["parameters"].hasValue() else None,
 			}
 		elif self.pk_alg.value.cryptosystem == Cryptosystems.ECC_ECDSA:
 			(alg_oid, _) = pyasn1.codec.der.decoder.decode(self.asn1["algorithm"]["parameters"])
