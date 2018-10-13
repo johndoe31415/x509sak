@@ -161,35 +161,36 @@ class PathTools(object):
 		return None
 
 class JSONTools(object):
-	class Encoder(json.JSONEncoder):
-		def _translate(self, obj):
-			if isinstance(obj, dict):
-				translated = { key: self._translate(value) for (key, value) in obj.items() }
-			elif isinstance(obj, (list, tuple)):
-				translated = [ self._translate(value) for value in obj ]
-			elif isinstance(obj, set):
-				translated = sorted(self._translate(value) for value in obj)
-			elif isinstance(obj, enum.IntEnum):
-				translated = {
-					"name":		obj.name,
-					"value":	obj.value,
-				}
-			elif isinstance(obj, datetime.datetime):
-				return obj.strftime("%Y-%m-%d %H:%M:%S")
+	@classmethod
+	def translate(cls, obj):
+		if isinstance(obj, dict):
+			translated = { key: cls.translate(value) for (key, value) in obj.items() }
+		elif isinstance(obj, (list, tuple)):
+			translated = [ cls.translate(value) for value in obj ]
+		elif isinstance(obj, set):
+			translated = sorted(cls.translate(value) for value in obj)
+		elif isinstance(obj, enum.IntEnum):
+			translated = {
+				"name":		obj.name,
+				"value":	obj.value,
+			}
+		elif isinstance(obj, datetime.datetime):
+			return obj.strftime("%Y-%m-%d %H:%M:%S")
+		else:
+			dict_converter = getattr(obj, "to_dict", None)
+			if dict_converter is not None:
+				translated = cls.translate(dict_converter())
 			else:
-				dict_converter = getattr(obj, "to_dict", None)
-				if dict_converter is not None:
-					translated = self._translate(dict_converter())
-				else:
-					translated = obj
-			return translated
+				translated = obj
+		return translated
 
+	class Encoder(json.JSONEncoder):
 		def iterencode(self, obj, _one_shot = False):
 			# We need to have a pre-translate step because the stupid Python
 			# standard encoder supplies no way of intercepting known data types
 			# such as int. IntEnum is an instance of int, unfortunately,
 			# therefore it's always encoded as a number.
-			obj = self._translate(obj)
+			obj = JSONTools.translate(obj)
 			return super().iterencode(obj, _one_shot)
 
 	@classmethod
@@ -197,9 +198,14 @@ class JSONTools(object):
 		return json.dumps(data, indent = 4, sort_keys = True, cls = cls.Encoder)
 
 	@classmethod
+	def write_to_fp(cls, data, fp):
+		json.dump(data, fp = fp, indent = 4, sort_keys = True, cls = cls.Encoder)
+		print(file = fp)
+
+	@classmethod
 	def write_to_file(cls, data, filename):
-		with open(filename, "w") as f:
-			json.dump(data, fp = f, indent = 4, sort_keys = True, cls = cls.Encoder)
+		with open(filename, "w") as fp:
+			cls.write_to_fp(data, fp)
 
 	@classmethod
 	def load_internal(cls, pkgname, filename):

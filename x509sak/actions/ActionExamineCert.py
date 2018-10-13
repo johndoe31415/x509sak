@@ -19,61 +19,66 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
+import json
 import datetime
 from x509sak.BaseAction import BaseAction
 from x509sak import X509Certificate
 from x509sak.Tools import JSONTools
 from x509sak.SecurityEstimator import AnalysisOptions
 from x509sak.ConsolePrinter import ConsolePrinter
-from x509sak.SecurityJudgement import Commonness, Verdict
+from x509sak.SecurityJudgement import SecurityJudgement, Commonness, Verdict
+from x509sak.FileWriter import FileWriter
 
 class ActionExamineCert(BaseAction):
 	def __init__(self, cmdname, args):
 		BaseAction.__init__(self, cmdname, args)
-
-		self._printer = ConsolePrinter()
-		if not self._args.no_ansi:
-			self._printer.add_subs({
-				"<good>":		"\x1b[32m",
-				"<warn>":		"\x1b[33m",
-				"<error>":		"\x1b[31m",
-				"<insecure>":	"\x1b[41m",
-				"<end>":		"\x1b[0m",
-			})
+		if not self._args.json_input:
+			analysis = self._analyze_certificates()
 		else:
-			self._printer.add_subs({
-				"<good>":		"",
-				"<warn>":		"",
-				"<error>":		"",
-				"<insecure>":	"",
-				"<end>":		"",
-			})
+			analysis = self._read_json()
 
-		analyses = [ ]
+		output = self._args.output or "-"
+		with FileWriter(output, "w") as f:
+			self._show_analysis(f, analysis)
+
+	def _analyze_certificates(self):
+		utcnow = datetime.datetime.utcnow()
+		analyses = {
+			"timestamp_utc":	utcnow,
+			"data":				[ ],
+		}
 		for crt_filename in self._args.crt_filenames:
 			self._log.debug("Reading %s", crt_filename)
 			crts = X509Certificate.read_pemfile(crt_filename)
 			for (crtno, crt) in enumerate(crts, 1):
-				if len(crts) > 1:
-					print("%s #%d:" % (crt_filename, crtno))
-				else:
-					print("%s:" % (crt_filename))
 				analysis_options = {
 					"rsa_testing":			AnalysisOptions.RSATesting.Fast if self._args.fast_rsa else AnalysisOptions.RSATesting.Full,
 					"include_raw_data":		self._args.include_raw_data,
 					"purposes":				[ AnalysisOptions.CertificatePurpose(purpose) for purpose in self._args.purpose ],
 					"fqdn":					self._args.server_name,
+					"utcnow":				utcnow,
 				}
 				analysis_options = AnalysisOptions(**analysis_options)
-				analysis = self._analyze_crt(crt, analysis_options = analysis_options)
+				analysis = crt.analyze(analysis_options = analysis_options)
 				analysis["source"] = {
 					"filename":		crt_filename,
-					"index":		crtno - 1,
+					"cert_no":		crtno,
+					"certs_total":	len(crts),
 				}
-				analyses.append(analysis)
+				analyses["data"].append(analysis)
+		analyses = JSONTools.translate(analyses)
+		return analyses
 
-		if self._args.write_json:
-			JSONTools.write_to_file(analyses, self._args.write_json)
+	def _read_json(self):
+		merged_analyses = None
+		for json_filename in self._args.crt_filenames:
+			with open(json_filename) as f:
+				analyses = json.load(f)
+				if merged_analyses is None:
+					merged_analyses = analyses
+				else:
+					merged_analyses["data"] += analyses["data"]
+		return merged_analyses
 
 	def _fmt_textual_verdict(self, judgement):
 		textual_verdict = [ ]
@@ -122,66 +127,93 @@ class ActionExamineCert(BaseAction):
 			text = "%s {%s}" % (judgement.text, textual_verdict)
 		return "<%s>%s<end>" % (color, text)
 
-	def _print_verdict(self, judgements, indent = ""):
-		component_cnt = judgements.component_cnt
+	def _print_verdict(self, printer, judgements, indent = ""):
+		component_cnt = len(judgements["components"])
 		if component_cnt == 0:
-			self._printer.print("%sNo comments regarding this check." % (indent))
+			printer.print("%sNo comments regarding this check." % (indent))
 		elif component_cnt == 1:
-			self._printer.print("%s%s" % (indent, self._fmt_verdict(judgements)))
+			judgement = SecurityJudgement.from_dict(judgements["components"][0])
+			printer.print("%s%s" % (indent, self._fmt_verdict(judgement)))
 		else:
-			for (jid, judgement) in enumerate(judgements, 1):
-				self._printer.print("%s%d / %d: %s" % (indent, jid, component_cnt, self._fmt_verdict(judgement)))
-			color = self._fmt_color(judgements)
-			self._printer.print("%s    -> Summary: <%s>%s<end>" % (indent, color, self._fmt_textual_verdict(judgements)))
+			for (jid, judgement_data) in enumerate(judgements["components"], 1):
+				judgement = SecurityJudgement.from_dict(judgement_data)
+				printer.print("%s%d / %d: %s" % (indent, jid, component_cnt, self._fmt_verdict(judgement)))
+			summary_judgement = SecurityJudgement.from_dict(judgements)
+			color = self._fmt_color(summary_judgement)
+			printer.print("%s    -> Summary: <%s>%s<end>" % (indent, color, self._fmt_textual_verdict(summary_judgement)))
 
 	def _fmt_time(self, isotime):
 		ts = datetime.datetime.strptime(isotime, "%Y-%m-%dT%H:%M:%SZ")
 		return ts.strftime("%c UTC")
 
-	def _analyze_crt(self, crt, analysis_options = None):
-		analysis = crt.analyze(analysis_options = analysis_options)
-		if self._args.print_raw:
-			print(JSONTools.serialize(analysis))
-		else:
-			self._printer.heading("Metadata")
-			self._printer.print("Issuer : %s" % (analysis["issuer"]["pretty"]))
-			self._printer.print("Subject: %s" % (analysis["subject"]["pretty"]))
-			self._printer.print()
+	def _print_analysis(self, printer, analyses):
+		for analysis in analyses["data"]:
+			printer.heading("Metadata")
+			if analysis["source"]["certs_total"] == 1:
+				printer.print("Source : %s" % (analysis["source"]["filename"]))
+			else:
+				printer.print("Source : %s (certificate %d of %d)" % (analysis["source"]["filename"], analysis["source"]["cert_no"], analysis["source"]["certs_total"]))
+			printer.print("Issuer : %s" % (analysis["issuer"]["pretty"]))
+			printer.print("Subject: %s" % (analysis["subject"]["pretty"]))
+			printer.print()
 
-			self._printer.heading("Validity")
-			self._printer.print("Valid from : %s" % (self._fmt_time(analysis["validity"]["not_before"]["iso"])))
-			self._printer.print("Valid until: %s" % (self._fmt_time(analysis["validity"]["not_after"]["iso"])))
-			self._printer.print("Lifetime   : %.1f years" % (analysis["validity"]["validity_days"] / 365))
-			self._print_verdict(analysis["validity"]["security"], indent = "  ")
-			self._printer.print()
+			printer.heading("Validity")
+			printer.print("Valid from : %s" % (self._fmt_time(analysis["validity"]["not_before"]["iso"])))
+			printer.print("Valid until: %s" % (self._fmt_time(analysis["validity"]["not_after"]["iso"])))
+			printer.print("Lifetime   : %.1f years" % (analysis["validity"]["validity_days"] / 365))
+			self._print_verdict(printer, analysis["validity"]["security"], indent = "  ")
+			printer.print()
 
-			self._printer.heading("Public Key")
-			self._printer.print("Used cryptography: %s" % (analysis["pubkey"]["pretty"]))
-			self._print_verdict(analysis["pubkey"]["security"], indent = "    ")
-			self._printer.print()
+			printer.heading("Public Key")
+			printer.print("Used cryptography: %s" % (analysis["pubkey"]["pretty"]))
+			self._print_verdict(printer, analysis["pubkey"]["security"], indent = "    ")
+			printer.print()
 
-			self._printer.heading("Signature")
-			self._printer.print("Signature algorithm: %s" % (analysis["signature"]["pretty"]))
-			self._printer.print("Hash function      : %s" % (analysis["signature"]["hash_fnc"]["name"]))
-			self._print_verdict(analysis["signature"]["hash_fnc"]["security"], indent = "    ")
-			self._printer.print("Signature function : %s" % (analysis["signature"]["sig_fnc"]["name"]))
-			self._print_verdict(analysis["signature"]["sig_fnc"]["security"], indent = "    ")
-			self._printer.print()
+			printer.heading("Signature")
+			printer.print("Signature algorithm: %s" % (analysis["signature"]["pretty"]))
+			printer.print("Hash function      : %s" % (analysis["signature"]["hash_fnc"]["name"]))
+			self._print_verdict(printer, analysis["signature"]["hash_fnc"]["security"], indent = "    ")
+			printer.print("Signature function : %s" % (analysis["signature"]["sig_fnc"]["name"]))
+			self._print_verdict(printer, analysis["signature"]["sig_fnc"]["security"], indent = "    ")
+			printer.print()
 
-			self._printer.heading("X.509 Extensions")
-			self._print_verdict(analysis["extensions"]["security"], indent = "    ")
-			self._printer.print()
+			printer.heading("X.509 Extensions")
+			self._print_verdict(printer, analysis["extensions"]["security"], indent = "    ")
+			printer.print()
 
 			if len(analysis["purpose"]) > 0:
-				self._printer.heading("Certificate Purpose")
+				printer.heading("Certificate Purpose")
 				for purpose_check in analysis["purpose"]:
 					if purpose_check["type"] == "name_match":
-						self._printer.print("   Name match '%s':" % (purpose_check["name"]))
-						self._print_verdict(purpose_check["security"], indent = "       ")
+						printer.print("   Name match '%s':" % (purpose_check["name"]))
+						self._print_verdict(printer, purpose_check["security"], indent = "       ")
 					elif purpose_check["type"] == "purpose_match":
-						self._printer.print("   Purpose %s:" % (purpose_check["purpose"].name))
-						self._print_verdict(purpose_check["security"], indent = "       ")
+						printer.print("   Purpose %s:" % (purpose_check["purpose"]))
+						self._print_verdict(printer, purpose_check["security"], indent = "       ")
 					else:
 						raise NotImplementedError(purpose_check["type"])
-				self._printer.print()
-		return analysis
+				printer.print()
+
+	def _show_analysis(self, output, analyses):
+		if self._args.format == "ansitext":
+			printer = ConsolePrinter(output).add_subs({
+				"<good>":		"\x1b[32m",
+				"<warn>":		"\x1b[33m",
+				"<error>":		"\x1b[31m",
+				"<insecure>":	"\x1b[41m",
+				"<end>":		"\x1b[0m",
+			})
+			self._print_analysis(printer, analyses)
+		elif self._args.format == "text":
+			printer = ConsolePrinter(output).add_subs({
+				"<good>":		"",
+				"<warn>":		"",
+				"<error>":		"",
+				"<insecure>":	"",
+				"<end>":		"",
+			})
+			self._print_analysis(printer, analyses)
+		elif self._args.format == "json":
+			JSONTools.write_to_fp(analyses, output)
+		else:
+			raise NotImplementedError(self._args.format)

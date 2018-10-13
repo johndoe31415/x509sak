@@ -19,28 +19,29 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-class ConsolePrinter(object):
-	def __init__(self, fp = None):
-		self._subs = [ ]
-		self._fp = fp
+import sys
 
-	def add_sub(self, text, replacement):
-		self._subs.append((text, replacement))
-		return self
+class FileWriter(object):
+	def __init__(self, filename, mode = "w"):
+		assert(isinstance(filename, str))
+		assert(mode in [ "w", "wb" ])
+		self._filename = filename
+		self._mode = mode
+		self._f = None
 
-	def add_subs(self, substitutions):
-		for (text, replacement) in substitutions.items():
-			self.add_sub(text, replacement)
-		return self
+	def __enter__(self):
+		assert(self._f is None)
+		if self._filename != "-":
+			self._f = open(self._filename, self._mode)
+		else:
+			if self._mode == "w":
+				self._f = sys.stdout
+			else:
+				self._f = sys.stdout.buffer
+		return self._f
 
-	def sub(self, line):
-		for (text, replacement) in self._subs:
-			line = line.replace(text, replacement)
-		return line
-
-	def heading(self, line = ""):
-		print(line, file = self._fp)
-		print((len(line) * "-"), file = self._fp)
-
-	def print(self, line = ""):
-		print(self.sub(line), file = self._fp)
+	def __exit__(self, *args):
+		if self._filename != "-":
+			self._f.close()
+		else:
+			self._f.flush()

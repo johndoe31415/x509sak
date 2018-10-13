@@ -46,12 +46,13 @@ class AnalysisOptions(object):
 		def to_dict(self):
 			return self.name
 
-	def __init__(self, rsa_testing = RSATesting.Full, include_raw_data = False, purposes = None, fqdn = None):
+	def __init__(self, rsa_testing = RSATesting.Full, include_raw_data = False, purposes = None, fqdn = None, utcnow = None):
 		assert(isinstance(rsa_testing, self.RSATesting))
 		self._rsa_testing = rsa_testing
 		self._include_raw_data = include_raw_data
 		self._purposes = purposes
 		self._fqdn = fqdn
+		self._utcnow = utcnow or datetime.datetime.utcnow()
 
 	@property
 	def rsa_testing(self):
@@ -68,6 +69,10 @@ class AnalysisOptions(object):
 	@property
 	def fqdn(self):
 		return self._fqdn
+
+	@property
+	def utcnow(self):
+		return self._utcnow
 
 class SecurityEstimator(object):
 	_KNOWN_ALGORITHMS = { }

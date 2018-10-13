@@ -99,7 +99,7 @@ class Commonness(enum.IntEnum):
 
 class SecurityJudgement(object):
 	def __init__(self, code, text, bits = None, verdict = None, commonness = None):
-		assert(isinstance(code, JudgementCode))
+		assert((code is None) or isinstance(code, JudgementCode))
 		assert((bits is None) or isinstance(bits, (int, float)))
 		assert((verdict is None) or isinstance(verdict, Verdict))
 		assert((commonness is None) or isinstance(commonness, Commonness))
@@ -113,6 +113,22 @@ class SecurityJudgement(object):
 				self._verdict = Verdict.NO_SECURITY
 			if self._commonness is None:
 				self._commonness = Commonness.HIGHLY_UNUSUAL
+
+	@classmethod
+	def from_dict(cls, judgement_data):
+		if "code" in judgement_data:
+			code = getattr(JudgementCode, judgement_data["code"])
+		else:
+			code = None
+		text = judgement_data["text"]
+		bits = judgement_data.get("bits")
+		verdict = judgement_data.get("verdict")
+		if verdict is not None:
+			verdict = Verdict(verdict["value"])
+		commonness = judgement_data.get("commonness")
+		if commonness is not None:
+			commonness = Commonness(commonness["value"])
+		return cls(code = code, text = text, bits = bits, verdict = verdict, commonness = commonness)
 
 	@property
 	def component_cnt(self):
