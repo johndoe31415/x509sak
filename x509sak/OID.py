@@ -140,16 +140,45 @@ class OIDDB(object):
 		OID.from_str("2.5.29.54"):					"X509Version3CertificateExtensionInhibitAnyPolicy",
 
 		OID.from_str("1.2.840.113533.7.65.0"):		"EntrustVersionExtension",
+
+		OID.from_str("1.2.840.113549.1.9.15"):		"SMIMECapabilities",
+
 		OID.from_str("1.3.6.1.4.1.311.20.2"):		"CertificateTemplateNameDomainController",
-		OID.from_str("2.16.840.1.113730.1.1"):		"NetscapeCertificateType",
 		OID.from_str("1.3.6.1.4.1.311.21.1"):		"CertSRVCAVersion",
+
+		OID.from_str("1.3.6.1.4.1.11129.2.4.2"):	"CertificateTransparency",
+
 		OID.from_str("2.23.42.7.0"):				"hashedRootKey",
+
 		OID.from_str("1.3.6.1.5.5.7.1.1"):			"id-pe-authorityInfoAccess",
 		OID.from_str("1.3.6.1.5.5.7.1.2"):			"id-pe-biometricInfo",
 		OID.from_str("1.3.6.1.5.5.7.1.3"):			"id-pe-qcStatements",
 		OID.from_str("1.3.6.1.5.5.7.1.12"):			"id-pe-logotype",
 		OID.from_str("1.3.6.1.5.5.7.1.23"):			"NSACertificateExtension",
 		OID.from_str("1.3.6.1.5.5.7.1.24"):			"TLSFeature",
+
+		# Microsoft-specific extensions
+		OID.from_str("1.3.6.1.4.1.311.21.7"):		"szOID_CERTIFICATE_TEMPLATE",
+		OID.from_str("1.3.6.1.4.1.311.21.10"):		"szOID_APPLICATION_CERT_POLICIES",
+
+		# Netscape-specific extensions
+		OID.from_str("2.16.840.1.113730.1.1"):		"NetscapeCertificateType",
+		OID.from_str("2.16.840.1.113730.1.2"):		"NetscapeBaseUrl",
+		OID.from_str("2.16.840.1.113730.1.3"):		"NetscapeRevocationUrl",
+		OID.from_str("2.16.840.1.113730.1.4"):		"NetscapeCARevocationUrl",
+		OID.from_str("2.16.840.1.113730.1.5"):		"NetscapeCACRLUrl",
+		OID.from_str("2.16.840.1.113730.1.6"):		"NetscapeCACertUrl",
+		OID.from_str("2.16.840.1.113730.1.7"):		"NetscapeRenewalUrl",
+		OID.from_str("2.16.840.1.113730.1.8"):		"NetscapeCAPolicyUrl",
+		OID.from_str("2.16.840.1.113730.1.9"):		"NetscapeHomepageUrl",
+		OID.from_str("2.16.840.1.113730.1.10"):		"NetscapeEntityLogo",
+		OID.from_str("2.16.840.1.113730.1.11"):		"NetscapeUserPicture",
+		OID.from_str("2.16.840.1.113730.1.12"):		"NetscapeSSLServerName",
+		OID.from_str("2.16.840.1.113730.1.13"):		"NetscapeComment",
+		OID.from_str("2.16.840.1.113730.1.14"):		"NetscapeLostPasswordUrl",
+		OID.from_str("2.16.840.1.113730.1.15"):		"NetscapeCertRenewalTime",
+		OID.from_str("2.16.840.1.113730.1.16"):		"NetscapeAuthorityInformationAccess",
+		OID.from_str("2.16.840.1.113730.1.17"):		"NetscapeCertScopeOfUse",
 	})
 
 	"""Hash functions."""
