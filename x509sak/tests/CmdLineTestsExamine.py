@@ -34,10 +34,10 @@ class CmdLineTestsExamine(BaseTest):
 
 	def test_examine_write_json(self):
 		with ResourceFileLoader("certs/ok/custom_key_usage.pem") as crtfile, tempfile.NamedTemporaryFile(prefix = "crt_", suffix = ".json") as jsonfile:
-			SubprocessExecutor(self._x509sak + [ "examine", "--write-json", jsonfile.name, crtfile ]).run()
+			SubprocessExecutor(self._x509sak + [ "examine", "-f", "json", "-o", jsonfile.name, crtfile ]).run()
 			with open(jsonfile.name) as jsonfile:
 				json_data = json.load(jsonfile)
-			self.assertEqual(json_data[0]["issuer"]["rfc2253"], "CN=Root CA")
-			self.assertEqual(json_data[0]["subject"]["rfc2253"], "CN=0b239049-3d65-46c2-8fdd-90f13cadc70b")
-			self.assertEqual(json_data[0]["validity"]["not_before"]["iso"], "2018-07-14T16:00:53Z")
-			self.assertEqual(json_data[0]["validity"]["not_after"]["iso"], "2019-07-14T16:00:53Z")
+			self.assertEqual(json_data["data"][0]["issuer"]["rfc2253"], "CN=Root CA")
+			self.assertEqual(json_data["data"][0]["subject"]["rfc2253"], "CN=0b239049-3d65-46c2-8fdd-90f13cadc70b")
+			self.assertEqual(json_data["data"][0]["validity"]["not_before"]["iso"], "2018-07-14T16:00:53Z")
+			self.assertEqual(json_data["data"][0]["validity"]["not_after"]["iso"], "2019-07-14T16:00:53Z")
