@@ -22,10 +22,26 @@
 
 import os
 import json
+import collections
 
 input_dir = "examine"
 
+unknown_ext_cnt = collections.Counter()
 unknown_ext = { }
+code_example = { }
+code_cnt = collections.Counter()
+
+def traverse(ffilename, structure):
+	if isinstance(structure, list):
+		for item in structure:
+			traverse(ffilename, item)
+	elif isinstance(structure, dict):
+		if "code" in structure:
+			code_example[structure["code"]] = ffilename
+			code_cnt[structure["code"]] += 1
+		for (key, value) in structure.items():
+			traverse(ffilename, value)
+
 for (dirname, subdirs, files) in os.walk(input_dir):
 	for filename in files:
 		if not filename.endswith(".json"):
@@ -36,8 +52,15 @@ for (dirname, subdirs, files) in os.walk(input_dir):
 		for ext in data["data"][0]["extensions"]["individual"]:
 			if not ext["known"]:
 				unknown_ext[ext["oid"]] = ffilename
+				unknown_ext_cnt[ext["oid"]] += 1
+		traverse(ffilename, data["data"])
+#		print(data["data"][0])
 
 print("Currently unknown X.509 extensions:")
 for (oid, jsonfile) in sorted(unknown_ext.items()):
-	print("%-30s %s" % (oid, jsonfile))
+	print("%6d %-60s %s" % (unknown_extension_cnt[oid], oid, jsonfile))
+print()
 
+print("Found codes:")
+for (code, count) in code_cnt.most_common():
+	print("%6d %-60s %s" % (count, code, code_example[code]))
