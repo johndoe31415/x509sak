@@ -241,10 +241,12 @@ class NumberTheory(object):
 		return margin
 
 	@classmethod
-	def hamming_weight_analysis(cls, value):
+	def hamming_weight_analysis(cls, value, min_bit_length = None):
 		"""Determines if a value is plausibly random with an error probability
 		of around 0.01%."""
 		bitlen = value.bit_length()
+		if min_bit_length is not None:
+			bitlen = max(min_bit_length, bitlen)
 		margin = cls.hamming_weight_margin(bitlen)
 		rnd_min_hweight = (bitlen // 2) - margin
 		rnd_max_hweight = (bitlen // 2) + margin

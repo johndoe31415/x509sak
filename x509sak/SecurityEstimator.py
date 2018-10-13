@@ -228,23 +228,14 @@ class ECCSecurityEstimator(SecurityEstimator):
 
 		# Check if the affine X/Y coordinates of the public key are about the
 		# same length as the curve order. If randomly generated, both X and Y
-		# should be about the same		bitlength as the generator order. We're
-		# warning for the topmost 32 bits cleared, i.e.  false positive rate
-		# should be about p = 2^(-32) = 0.2 ppb = 1 : 4 billion.  This isn't
-		# necessarily a security issue, but it is uncommon and unusual,
-		# therefore we report it.
-		field_len = curve.field_bits
-		x_len = pubkey.x.bit_length()
-		y_len = pubkey.y.bit_length()
-		if ((field_len - x_len) >= 32) or ((field_len - y_len) >= 32):
-			# TODO: Merge this with the hamming weight analysis function!
-			judgements += SecurityJudgement(JudgementCode.ECC_Pubkey_X_BitBias, "Affine public key field element lengths (x = %d bit, y = %d bit) differ from field element width of %d bits more than 32 bits; this is likely not coincidential." % (x_len, y_len, field_len), commonness = Commonness.HIGHLY_UNUSUAL)
-
-		hweight_analysis = NumberTheory.hamming_weight_analysis(pubkey.x)
+		# should be about the same bitlength as the generator order and the
+		# hamming weight should be roughly half of the bitlength of the curve
+		# order.
+		hweight_analysis = NumberTheory.hamming_weight_analysis(pubkey.x, min_bit_length = curve.field_bits)
 		if not hweight_analysis.plausibly_random:
 			judgements += SecurityJudgement(JudgementCode.ECC_Pubkey_X_BitBias, "Hamming weight of public key field element's X coordinate is %d at bitlength %d, but expected a weight between %d and %d when randomly chosen; this is likely not coincidential." % (hweight_analysis.hweight, hweight_analysis.bitlen, hweight_analysis.rnd_min_hweight, hweight_analysis.rnd_max_hweight), commonness = Commonness.HIGHLY_UNUSUAL)
 
-		hweight_analysis = NumberTheory.hamming_weight_analysis(pubkey.y)
+		hweight_analysis = NumberTheory.hamming_weight_analysis(pubkey.y, min_bit_length = curve.field_bits)
 		if not hweight_analysis.plausibly_random:
 			judgements += SecurityJudgement(JudgementCode.ECC_Pubkey_Y_BitBias, "Hamming weight of public key field element's Y coordinate is %d at bitlength %d, but expected a weight between %d and %d when randomly chosen; this is likely not coincidential." % (hweight_analysis.hweight, hweight_analysis.bitlen, hweight_analysis.rnd_min_hweight, hweight_analysis.rnd_max_hweight), commonness = Commonness.HIGHLY_UNUSUAL)
 
