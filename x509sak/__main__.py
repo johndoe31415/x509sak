@@ -181,6 +181,7 @@ def genparser(parser):
 	parser.add_argument("-n", "--server-name", metavar = "fqdn", type = str, help = "Check if the certificate is valid for the given hostname.")
 	parser.add_argument("-f", "--out-format", choices = [ "ansitext", "text", "json" ], default = "ansitext", help = "Determine the output format. Can be one of %(choices)s, defaults to %(default)s.")
 	parser.add_argument("-i", "--in-format", choices = [ "pemcrt", "dercrt", "json", "host" ], default = "pemcrt", help = "Specifies the type of file that is read in. Can be either certificate files in PEM or DER format, a pre-processed JSON output from a previous run or a hostname[:port] combination to query a TLS server directly (port defaults to 443 if omitted). Valid choices are %(choices)s, defaults to %(default)s.")
+	parser.add_argument("--no-automatic-host-check", action = "store_true", help = "By default, when the input format is a given hostname, the server name is assumed as well and the purpose is assumed to be a TLS server. When this option is specified, these automatic checks are omitted.")
 	parser.add_argument("--fast-rsa", action = "store_true", help = "Skip some time-intensive number theoretical tests for RSA moduli in order to speed up checking. Less thorough, but much faster.")
 	parser.add_argument("--include-raw-data", action = "store_true", help = "Add the raw data such as base64-encoded certificate and signatures into the result as well.")
 	parser.add_argument("-o", "--output", metavar = "filename", help = "Specify the output file. Defaults to stdout.")

@@ -48,6 +48,19 @@ class ActionExamineCert(BaseAction):
 		with FileWriter(output, "w") as f:
 			self._show_analysis(f, analysis)
 
+	def _check_purposes(self):
+		purposes = [ AnalysisOptions.CertificatePurpose(purpose) for purpose in self._args.purpose ]
+		if (len(self._args.purpose) == 0) and (self._args.in_format == "host") and (not self._args.no_automatic_host_check):
+			purposes.append(AnalysisOptions.CertificatePurpose.TLSServerCertificate)
+		return purposes
+
+	def _check_name(self, crt_source):
+		if (self._args.server_name is None) and (self._args.in_format == "host") and (not self._args.no_automatic_host_check):
+			host_port = crt_source.source.split(":")
+			return host_port[0]
+		else:
+			return self._args.server_name
+
 	def _load_certificates(self):
 		sources = [ ]
 		for crt_filename in self._args.infiles:
@@ -82,8 +95,8 @@ class ActionExamineCert(BaseAction):
 				analysis_options = {
 					"rsa_testing":			AnalysisOptions.RSATesting.Fast if self._args.fast_rsa else AnalysisOptions.RSATesting.Full,
 					"include_raw_data":		self._args.include_raw_data,
-					"purposes":				[ AnalysisOptions.CertificatePurpose(purpose) for purpose in self._args.purpose ],
-					"fqdn":					self._args.server_name,
+					"purposes":				self._check_purposes(),
+					"fqdn":					self._check_name(crt_source),
 					"utcnow":				utcnow,
 				}
 				analysis_options = AnalysisOptions(**analysis_options)
