@@ -43,6 +43,9 @@ class AnalysisOptions(object):
 		TLSServerCertificate = "tls-server"
 		TLSClientCertificate = "tls-client"
 
+		def to_dict(self):
+			return self.name
+
 	def __init__(self, rsa_testing = RSATesting.Full, include_raw_data = False, purposes = None, fqdn = None):
 		assert(isinstance(rsa_testing, self.RSATesting))
 		self._rsa_testing = rsa_testing
