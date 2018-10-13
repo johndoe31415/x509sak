@@ -107,20 +107,20 @@ class BitsSecurityEstimator(SecurityEstimator):
 
 	def analyze(self, code, bits):
 		if bits < 64:
-			judgement = SecurityJudgement(code, "Breakable with little effort (commercial-off-the-shelf hardware).", bits = bits, verdict = Verdict.NO_SECURITY, commonness = Commonness.HIGHLY_UNUSUAL)
+			judgement = SecurityJudgement(code, "Breakable with little effort (commercial-off-the-shelf hardware).", bits = bits, verdict = Verdict.NO_SECURITY, commonness = Commonness.HIGHLY_UNUSUAL, prefix_topic = True)
 		elif bits < 80:
-			judgement = SecurityJudgement(code, "Probably breakable with specialized hardware (limited purpose computers).", bits = bits, verdict = Verdict.WEAK, commonness = Commonness.UNUSUAL)
+			judgement = SecurityJudgement(code, "Probably breakable with specialized hardware (limited purpose computers).", bits = bits, verdict = Verdict.WEAK, commonness = Commonness.UNUSUAL, prefix_topic = True)
 		elif bits < 104:
-			judgement = SecurityJudgement(code, "Nontrivial to break, but comparatively weak.", bits = bits, verdict = Verdict.WEAK, commonness = Commonness.UNUSUAL)
+			judgement = SecurityJudgement(code, "Nontrivial to break, but comparatively weak.", bits = bits, verdict = Verdict.WEAK, commonness = Commonness.UNUSUAL, prefix_topic = True)
 		elif bits < 160:
 			# 128 Bit security level
-			judgement = SecurityJudgement(code, "High level of security.", bits = bits, verdict = Verdict.HIGH, commonness = Commonness.COMMON)
+			judgement = SecurityJudgement(code, "High level of security.", bits = bits, verdict = Verdict.HIGH, commonness = Commonness.COMMON, prefix_topic = True)
 		elif bits < 224:
 			# 192 Bit security level
-			judgement = SecurityJudgement(code, "Very high level of security.", bits = bits, verdict = Verdict.HIGH, commonness = Commonness.COMMON)
+			judgement = SecurityJudgement(code, "Very high level of security.", bits = bits, verdict = Verdict.HIGH, commonness = Commonness.COMMON, prefix_topic = True)
 		else:
 			# 256 bit security level
-			judgement = SecurityJudgement(code, "Exceptionally high level of security.", bits = bits, verdict = Verdict.BEST_IN_CLASS, commonness = Commonness.COMMON)
+			judgement = SecurityJudgement(code, "Exceptionally high level of security.", bits = bits, verdict = Verdict.BEST_IN_CLASS, commonness = Commonness.COMMON, prefix_topic = True)
 		return judgement
 SecurityEstimator.register(BitsSecurityEstimator)
 
@@ -358,13 +358,17 @@ class SignatureSecurityEstimator(SecurityEstimator):
 				# Default for RSASSA-PSS is SHA-1
 				hash_fnc = HashFunctions["sha1"]
 
-			# TODO: Also determine size of nonce
+			if asn1["saltLength"].hasValue():
+				saltlen = int(asn1["saltLength"])
+			else:
+				saltlen = 20
+			judgements += self.algorithm("bits").analyze(JudgementCode.RSA_PSS_Salt_Length, saltlen * 8)
 		else:
 			raise LazyDeveloperException("Unable to determine hash function for signature algorithm %s." % (signature_alg.name))
 
 		result = {
 			"name":			signature_alg.name,
-			"pretty":		signature_alg.value.sig_fnc.value.pretty_name + " with " + signature_alg.value.hash_fnc.value.pretty_name,
+			"pretty":		signature_alg.value.sig_fnc.value.pretty_name + " with " + hash_fnc.value.pretty_name,
 			"sig_fnc":		self.algorithm("sig_fnc", analysis_options = self._analysis_options).analyze(signature_alg.value.sig_fnc),
 			"hash_fnc":		self.algorithm("hash_fnc", analysis_options = self._analysis_options).analyze(hash_fnc),
 			"security":		judgements,

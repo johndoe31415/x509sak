@@ -36,6 +36,7 @@ class JudgementCode(enum.Enum):
 	RSA_Modulus_Known = ("RSA Modulus", "factorization of n is public")
 	RSA_Modulus_BitBias = ("RSA Modulus", "n has bit bias")
 	RSA_Modulus_Length = ("RSA Modulus", "length of n")
+	RSA_PSS_Salt_Length = ("RSA/PSS Salt", "length of salt")
 	ECC_Pubkey_CurveOrder = ("ECC pubkey", "curve order")
 	ECC_Pubkey_Not_On_Curve = ("ECC pubkey", "point not on curve")
 	ECC_Pubkey_Is_G = ("ECC pubkey", "point is generator")
@@ -107,7 +108,7 @@ class Compatibility(enum.IntEnum):
 	FULLY_COMPLIANT = 2
 
 class SecurityJudgement(object):
-	def __init__(self, code, text, bits = None, verdict = None, commonness = None, compatibility = None):
+	def __init__(self, code, text, bits = None, verdict = None, commonness = None, compatibility = None, prefix_topic = False):
 		assert((code is None) or isinstance(code, JudgementCode))
 		assert((bits is None) or isinstance(bits, (int, float)))
 		assert((verdict is None) or isinstance(verdict, Verdict))
@@ -119,6 +120,7 @@ class SecurityJudgement(object):
 		self._verdict = verdict
 		self._commonness = commonness
 		self._compatibility = compatibility
+		self._prefix_topic = prefix_topic
 		if self._bits == 0:
 			if self._verdict is None:
 				self._verdict = Verdict.NO_SECURITY
@@ -154,11 +156,14 @@ class SecurityJudgement(object):
 
 	@property
 	def text(self):
-		return self._text
+		if self._prefix_topic:
+			return "%s: %s" % (self.code.topic, self._text)
+		else:
+			return self._text
 
 	@property
 	def topic_text(self):
-		return "%s: %s" % (self.code.topic, self.text)
+		return "%s: %s" % (self.code.topic, self._text)
 
 	@property
 	def bits(self):
