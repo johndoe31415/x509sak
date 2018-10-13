@@ -384,11 +384,23 @@ class CrtExtensionsSecurityEstimator(SecurityEstimator):
 		if ski is None:
 			judgement = SecurityJudgement("X.509 Subject Key Identifier Extension", "SubjectKeyIdentifier extension is missing.", commonness = Commonness.UNUSUAL)
 		else:
-			expected_ski = pubkey.keyid()
-			if expected_ski != ski.keyid:
-				judgement = SecurityJudgement("X.509 Subject Key Identifier Extension", "SubjectKeyIdentifier key ID (%s) does not match the SHA-1 of the contained public key (%s)." % (ski.keyid.hex(), expected_ski.hex()), commonness = Commonness.HIGHLY_UNUSUAL)
+			check_hashfncs = [ HashFunctions.sha1, HashFunctions.sha256, HashFunctions.sha224, HashFunctions.sha384, HashFunctions.sha512, HashFunctions.md5, HashFunctions.sha3_256, HashFunctions.sha3_384, HashFunctions.sha3_512 ]
+			tried_hashfncs = [ ]
+			cert_ski = ski.keyid
+			for hashfnc in check_hashfncs:
+				try:
+					computed_ski = pubkey.keyid(hashfnc = hashfnc.name)
+					if cert_ski == computed_ski:
+						if hashfnc == HashFunctions.sha1:
+							judgement = SecurityJudgement("X.509 Subject Key Identifier Extension", "SubjectKeyIdentifier present and matches SHA-1 of contained public key.", commonness = Commonness.COMMON)
+						else:
+							judgement = SecurityJudgement("X.509 Subject Key Identifier Extension", "SubjectKeyIdentifier present and matches %s of contained public key." % (hashfnc.value.pretty_name), commonness = Commonness.UNUSUAL)
+						break
+					tried_hashfncs.append(hashfnc)
+				except ValueError:
+					pass
 			else:
-				judgement = SecurityJudgement("X.509 Subject Key Identifier Extension", "SubjectKeyIdentifier present and matches SHA-1 of contained public key.", commonness = Commonness.COMMON)
+				judgement = SecurityJudgement("X.509 Subject Key Identifier Extension", "SubjectKeyIdentifier key ID (%s) does not match any tested cryptographic hash function (%s) over the contained public key." % (ski.keyid.hex(), ", ".join(hashfnc.value.pretty_name for hashfnc in tried_hashfncs)), commonness = Commonness.HIGHLY_UNUSUAL)
 		return judgement
 
 
