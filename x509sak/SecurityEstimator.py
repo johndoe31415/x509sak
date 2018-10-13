@@ -29,7 +29,7 @@ from x509sak.ModulusDB import ModulusDB
 from x509sak.OID import OIDDB, OID
 from x509sak.Exceptions import LazyDeveloperException, UnknownAlgorithmException
 from x509sak.AlgorithmDB import HashFunctions, SignatureAlgorithms
-from x509sak.SecurityJudgement import SecurityJudgements, SecurityJudgement, Verdict, Commonness
+from x509sak.SecurityJudgement import JudgementCode, SecurityJudgements, SecurityJudgement, Verdict, Commonness
 import x509sak.ASN1Models as ASN1Models
 
 class AnalysisOptions(object):
@@ -97,22 +97,22 @@ class SecurityEstimator(object):
 class BitsSecurityEstimator(SecurityEstimator):
 	_ALG_NAME = "bits"
 
-	def analyze(self, topic, bits):
+	def analyze(self, code, bits):
 		if bits < 64:
-			judgement = SecurityJudgement(topic, "Breakable with little effort (commercial-off-the-shelf hardware).", bits = bits, verdict = Verdict.NO_SECURITY, commonness = Commonness.HIGHLY_UNUSUAL)
+			judgement = SecurityJudgement(code, "Breakable with little effort (commercial-off-the-shelf hardware).", bits = bits, verdict = Verdict.NO_SECURITY, commonness = Commonness.HIGHLY_UNUSUAL)
 		elif bits < 80:
-			judgement = SecurityJudgement(topic, "Probably breakable with specialized hardware (limited purpose computers).", bits = bits, verdict = Verdict.WEAK, commonness = Commonness.UNUSUAL)
+			judgement = SecurityJudgement(code, "Probably breakable with specialized hardware (limited purpose computers).", bits = bits, verdict = Verdict.WEAK, commonness = Commonness.UNUSUAL)
 		elif bits < 104:
-			judgement = SecurityJudgement(topic, "Nontrivial to break, but comparatively weak.", bits = bits, verdict = Verdict.WEAK, commonness = Commonness.UNUSUAL)
+			judgement = SecurityJudgement(code, "Nontrivial to break, but comparatively weak.", bits = bits, verdict = Verdict.WEAK, commonness = Commonness.UNUSUAL)
 		elif bits < 160:
 			# 128 Bit security level
-			judgement = SecurityJudgement(topic, "High level of security.", bits = bits, verdict = Verdict.HIGH, commonness = Commonness.COMMON)
+			judgement = SecurityJudgement(code, "High level of security.", bits = bits, verdict = Verdict.HIGH, commonness = Commonness.COMMON)
 		elif bits < 224:
 			# 192 Bit security level
-			judgement = SecurityJudgement(topic, "Very high level of security.", bits = bits, verdict = Verdict.HIGH, commonness = Commonness.COMMON)
+			judgement = SecurityJudgement(code, "Very high level of security.", bits = bits, verdict = Verdict.HIGH, commonness = Commonness.COMMON)
 		else:
 			# 256 bit security level
-			judgement = SecurityJudgement(topic, "Exceptionally high level of security.", bits = bits, verdict = Verdict.BEST_IN_CLASS, commonness = Commonness.COMMON)
+			judgement = SecurityJudgement(code, "Exceptionally high level of security.", bits = bits, verdict = Verdict.BEST_IN_CLASS, commonness = Commonness.COMMON)
 		return judgement
 SecurityEstimator.register(BitsSecurityEstimator)
 
@@ -137,36 +137,36 @@ class RSASecurityEstimator(SecurityEstimator):
 	@staticmethod
 	def analyze_e(e):
 		if e == 1:
-			return SecurityJudgement("RSA exponent", "RSA exponent is 1, this is a malicious key.", bits = 0)
+			return SecurityJudgement(JudgementCode.RSA_Exponent_Is_0x1, "RSA exponent is 1, this is a malicious key.", bits = 0)
 		elif e in [ 3, 5, 7, 17, 257 ]:
-			return SecurityJudgement("RSA exponent", "RSA exponent is small, but fairly common.", verdict = Verdict.MEDIUM, commonness = Commonness.FAIRLY_COMMON)
+			return SecurityJudgement(JudgementCode.RSA_Exponent_Small, "RSA exponent is small, but fairly common.", verdict = Verdict.MEDIUM, commonness = Commonness.FAIRLY_COMMON)
 		elif e < 65537:
-			return SecurityJudgement("RSA exponent", "RSA exponent is small and an uncommon choice.", verdict = Verdict.MEDIUM, commonness = Commonness.UNUSUAL)
+			return SecurityJudgement(JudgementCode.RSA_Exponent_SmallUnusual, "RSA exponent is small and an uncommon choice.", verdict = Verdict.MEDIUM, commonness = Commonness.UNUSUAL)
 		elif e == 65537:
-			return SecurityJudgement("RSA exponent", "RSA exponent is the most common choice.", verdict = Verdict.BEST_IN_CLASS, commonness = Commonness.COMMON)
+			return SecurityJudgement(JudgementCode.RSA_Exponent_Is_0x10001, "RSA exponent is the most common choice.", verdict = Verdict.BEST_IN_CLASS, commonness = Commonness.COMMON)
 		else:
-			return SecurityJudgement("RSA exponent", "RSA exponent is uncommonly large. This need not be a weakness, but is highly unusual and may cause interoperability issues.", verdict = Verdict.BEST_IN_CLASS, commonness = Commonness.HIGHLY_UNUSUAL)
+			return SecurityJudgement(JudgementCode.RSA_Exponent_Large, "RSA exponent is uncommonly large. This need not be a weakness, but is highly unusual and may cause interoperability issues.", verdict = Verdict.BEST_IN_CLASS, commonness = Commonness.HIGHLY_UNUSUAL)
 
 	def analyze_n(self, n):
 		judgements = SecurityJudgements()
 
 		if self._test_probable_prime:
 			if NumberTheory.is_probable_prime(n):
-				judgements += SecurityJudgement("RSA modulus", "Modulus is prime, not a compound integer as we would expect for RSA.", bits = 0)
+				judgements += SecurityJudgement(JudgementCode.RSA_Modulus_Prime, "Modulus is prime, not a compound integer as we would expect for RSA.", bits = 0)
 
 		if self._pollards_rho_iterations > 0:
 			small_factor = NumberTheory.pollard_rho(n, max_iterations = self._pollards_rho_iterations)
 			if small_factor is not None:
-				judgements += SecurityJudgement("RSA modulus", "Modulus has small factor (%d) and is therefore trivially factorable." % (small_factor), bits = 0)
+				judgements += SecurityJudgement(JudgementCode.RSA_Modulus_Factorable, "Modulus has small factor (%d) and is therefore trivially factorable." % (small_factor), bits = 0)
 
 		match = ModulusDB().find(n)
 		if match is not None:
-			judgements += SecurityJudgement("RSA modulus", "Modulus is known to be compromised: %s" % (match.text), bits = 0)
+			judgements += SecurityJudgement(JudgementCode.RSA_Modulus_FactorizationKnown, "Modulus is known to be compromised: %s" % (match.text), bits = 0)
 
 		judgement = None
 		hweight_analysis = NumberTheory.hamming_weight_analysis(n)
 		if not hweight_analysis.plausibly_random:
-			judgements += SecurityJudgement("RSA modulus", "Modulus does not appear to be random. Expected a Hamming weight between %d and %d for a %d bit modulus, but found Hamming weight %d." % (hweight_analysis.rnd_min_hweight, hweight_analysis.rnd_max_hweight, hweight_analysis.bitlen, hweight_analysis.hweight), commonness = Commonness.HIGHLY_UNUSUAL)
+			judgements += SecurityJudgement(JudgementCode.RSA_Modulus_BitBias, "Modulus does not appear to be random. Expected a Hamming weight between %d and %d for a %d bit modulus, but found Hamming weight %d." % (hweight_analysis.rnd_min_hweight, hweight_analysis.rnd_max_hweight, hweight_analysis.bitlen, hweight_analysis.hweight), commonness = Commonness.HIGHLY_UNUSUAL)
 
 		# We estimate the complexity of factoring the modulus by the asymptotic
 		# complexity of the GNFS.
@@ -174,7 +174,7 @@ class RSASecurityEstimator(SecurityEstimator):
 		log_n = log2_n * math.log(2)
 		bits_security = 2.5596 * (log_n ** (1/3)) * (math.log(log_n) ** (2/3))
 		bits_security = math.floor(bits_security)
-		judgements += self.algorithm("bits").analyze("RSA modulus length", bits_security)
+		judgements += self.algorithm("bits").analyze(JudgementCode.RSA_Modulus_Length, bits_security)
 
 		return judgements
 
@@ -208,11 +208,11 @@ class ECCSecurityEstimator(SecurityEstimator):
 		# Check that the encoded public key point is on curve first
 		Q = curve.point(pubkey.x, pubkey.y)
 		if not Q.on_curve():
-			return SecurityJudgement("ECC public key", "Public key point Q is not on the underlying curve %s." % (pubkey.curve), bits = 0)
+			return SecurityJudgement(JudgementCode.ECC_Pubkey_Not_On_Curve, "Public key point Q is not on the underlying curve %s." % (pubkey.curve), bits = 0)
 
 		# Check that the encoded public key is not Gx
 		if Q.x == curve.Gx:
-			return SecurityJudgement("ECC public key", "Public key point Q_x is equal to generator G_x on curve %s." % (pubkey.curve), bits = 0)
+			return SecurityJudgement(JudgementCode.ECC_Pubkey_Is_G, "Public key point Q_x is equal to generator G_x on curve %s." % (pubkey.curve), bits = 0)
 
 		# We assume, completely out-of-the-blue and worst-case estimate, 32
 		# automorphisms that could be present for any curve (see Duursma et
@@ -224,7 +224,7 @@ class ECCSecurityEstimator(SecurityEstimator):
 		approx_curve_order_bits = math.log(curve.n, 2)
 		bits_security = (approx_curve_order_bits / 2) - 2.5
 		bits_security = math.floor(bits_security)
-		judgements += self.algorithm("bits").analyze("ECC curve order", bits_security)
+		judgements += self.algorithm("bits").analyze(JudgementCode.ECC_Pubkey_CurveOrder, bits_security)
 
 		# Check if the affine X/Y coordinates of the public key are about the
 		# same length as the curve order. If randomly generated, both X and Y
@@ -237,15 +237,16 @@ class ECCSecurityEstimator(SecurityEstimator):
 		x_len = pubkey.x.bit_length()
 		y_len = pubkey.y.bit_length()
 		if ((field_len - x_len) >= 32) or ((field_len - y_len) >= 32):
-			judgements += SecurityJudgement("ECC public key", "Affine public key field element lengths (x = %d bit, y = %d bit) differ from field element width of %d bits more than 32 bits; this is likely not coincidential." % (x_len, y_len, field_len), commonness = Commonness.HIGHLY_UNUSUAL)
+			# TODO: Merge this with the hamming weight analysis function!
+			judgements += SecurityJudgement(JudgementCode.ECC_Pubkey_X_BitBias, "Affine public key field element lengths (x = %d bit, y = %d bit) differ from field element width of %d bits more than 32 bits; this is likely not coincidential." % (x_len, y_len, field_len), commonness = Commonness.HIGHLY_UNUSUAL)
 
 		hweight_analysis = NumberTheory.hamming_weight_analysis(pubkey.x)
 		if not hweight_analysis.plausibly_random:
-			judgements += SecurityJudgement("ECC public key", "Hamming weight of public key field element's X coordinate is %d at bitlength %d, but expected a weight between %d and %d when randomly chosen; this is likely not coincidential." % (hweight_analysis.hweight, hweight_analysis.bitlen, hweight_analysis.rnd_min_hweight, hweight_analysis.rnd_max_hweight), commonness = Commonness.HIGHLY_UNUSUAL)
+			judgements += SecurityJudgement(JudgementCode.ECC_Pubkey_X_BitBias, "Hamming weight of public key field element's X coordinate is %d at bitlength %d, but expected a weight between %d and %d when randomly chosen; this is likely not coincidential." % (hweight_analysis.hweight, hweight_analysis.bitlen, hweight_analysis.rnd_min_hweight, hweight_analysis.rnd_max_hweight), commonness = Commonness.HIGHLY_UNUSUAL)
 
 		hweight_analysis = NumberTheory.hamming_weight_analysis(pubkey.y)
 		if not hweight_analysis.plausibly_random:
-			judgements += SecurityJudgement("ECC public key", "Hamming weight of public key field element's Y coordinate is %d at bitlength %d, but expected a weight between %d and %d when randomly chosen; this is likely not coincidential." % (hweight_analysis.hweight, hweight_analysis.bitlen, hweight_analysis.rnd_min_hweight, hweight_analysis.rnd_max_hweight), commonness = Commonness.HIGHLY_UNUSUAL)
+			judgements += SecurityJudgement(JudgementCode.ECC_Pubkey_Y_BitBias, "Hamming weight of public key field element's Y coordinate is %d at bitlength %d, but expected a weight between %d and %d when randomly chosen; this is likely not coincidential." % (hweight_analysis.hweight, hweight_analysis.bitlen, hweight_analysis.rnd_min_hweight, hweight_analysis.rnd_max_hweight), commonness = Commonness.HIGHLY_UNUSUAL)
 
 		return {
 			"cryptosystem":		"ecc/ecdsa",
@@ -273,13 +274,13 @@ class CrtValiditySecurityEstimator(SecurityEstimator):
 
 		now = datetime.datetime.utcnow()
 		if not_before > not_after:
-			judgements += SecurityJudgement("Certificate validity", "'Not before' timestamp is greater than 'not after' timestamp. Certificate is always invalid.", bits = 0)
+			judgements += SecurityJudgement(JudgementCode.Cert_Validity_NeverValid, "'Not before' timestamp is greater than 'not after' timestamp. Certificate is always invalid.", bits = 0)
 		elif now < not_before:
-			judgements += SecurityJudgement("Certificate validity", "Certificate is not yet valid, becomes valid in the future.", bits = 0, commonness = Commonness.UNUSUAL)
+			judgements += SecurityJudgement(JudgementCode.Cert_Validity_NotYetValid, "Certificate is not yet valid, becomes valid in the future.", bits = 0, commonness = Commonness.UNUSUAL)
 		elif now > not_after:
-			judgements += SecurityJudgement("Certificate validity", "Certificate has expired.", bits = 0, commonness = Commonness.COMMON)
+			judgements += SecurityJudgement(JudgementCode.Cert_Validity_Expired, "Certificate has expired.", bits = 0, commonness = Commonness.COMMON)
 		else:
-			judgements += SecurityJudgement("Certificate validity", "Certificate is currently valid.", commonness = Commonness.COMMON)
+			judgements += SecurityJudgement(JudgementCode.Cert_Validity_Valid, "Certificate is currently valid.", commonness = Commonness.COMMON)
 
 		validity_days = ((not_after - not_before).total_seconds()) / 86400
 
@@ -290,13 +291,13 @@ class CrtValiditySecurityEstimator(SecurityEstimator):
 
 		crt_type = "CA" if is_ca else "non-CA"
 		if validity_days < margins[0]:
-			judgements += SecurityJudgement("Certificate lifetime", "Lifetime is conservative for %s certificate." % (crt_type), commonness = Commonness.COMMON, verdict = Verdict.BEST_IN_CLASS)
+			judgements += SecurityJudgement(JudgementCode.Cert_Validity_Length_Conservative, "Lifetime is conservative for %s certificate." % (crt_type), commonness = Commonness.COMMON, verdict = Verdict.BEST_IN_CLASS)
 		elif validity_days < margins[1]:
-			judgements += SecurityJudgement("Certificate lifetime", "Lifetime is long, but still acceptable for %s certificate." % (crt_type), commonness = Commonness.COMMON, verdict = Verdict.HIGH)
+			judgements += SecurityJudgement(JudgementCode.Cert_Validity_Length_Long, "Lifetime is long, but still acceptable for %s certificate." % (crt_type), commonness = Commonness.COMMON, verdict = Verdict.HIGH)
 		elif validity_days < margins[2]:
-			judgements += SecurityJudgement("Certificate lifetime", "Lifetime is very long for %s certificate." % (crt_type), commonness = Commonness.UNUSUAL, verdict = Verdict.MEDIUM)
+			judgements += SecurityJudgement(JudgementCode.Cert_Validity_Length_VeryLong, "Lifetime is very long for %s certificate." % (crt_type), commonness = Commonness.UNUSUAL, verdict = Verdict.MEDIUM)
 		else:
-			judgements += SecurityJudgement("Certificate lifetime", "Lifetime is exceptionally long for %s certificate." % (crt_type), commonness = Commonness.HIGHLY_UNUSUAL, verdict = Verdict.WEAK)
+			judgements += SecurityJudgement(JudgementCode.Cert_Validity_Length_ExceptionallyLong, "Lifetime is exceptionally long for %s certificate." % (crt_type), commonness = Commonness.HIGHLY_UNUSUAL, verdict = Verdict.WEAK)
 
 		return {
 			"not_before":		self._format_datetime(not_before),
@@ -362,27 +363,27 @@ class CrtExtensionsSecurityEstimator(SecurityEstimator):
 
 		for extension in extensions:
 			if extension.oid in have_oids:
-				judgement = SecurityJudgement("X.509 extensions", "X.509 extension %s (OID %s) is present at least twice. This is a direct violation of RFC5280, Sect. 4.2." % (extension.name, str(extension.oid)), bits = 0)
+				judgement = SecurityJudgement(JudgementCode.Cert_X509Ext_Duplicate, "X.509 extension %s (OID %s) is present at least twice. This is a direct violation of RFC5280, Sect. 4.2." % (extension.name, str(extension.oid)), bits = 0)
 			have_oids.add(extension.oid)
 		else:
-			judgement = SecurityJudgement("X.509 extensions","All X.509 extensions are unique.", commonness = Commonness.COMMON)
+			judgement = SecurityJudgement(JudgementCode.Cert_X509Ext_All_Unique, "All X.509 extensions are unique.", commonness = Commonness.COMMON)
 		return judgement
 
 	def _judge_basic_constraints(self, extensions):
 		bc = extensions.get_first(OIDDB.X509Extensions.inverse("BasicConstraints"))
 		if bc is None:
-			judgement = SecurityJudgement("X.509 Basic Constraints Extension", "BasicConstraints extension is missing.", commonness = Commonness.HIGHLY_UNUSUAL)
+			judgement = SecurityJudgement(JudgementCode.Cert_X509Ext_BasicConstraints_Missing, "BasicConstraints extension is missing.", commonness = Commonness.HIGHLY_UNUSUAL)
 		else:
 			if not bc.critical:
-				judgement = SecurityJudgement("X.509 Basic Constraints Extension", "BasicConstraints extension is present, but not marked as critical.", commonness = Commonness.UNUSUAL)
+				judgement = SecurityJudgement(JudgementCode.Cert_X509Ext_BasicConstraints_PresentButNotCritical, "BasicConstraints extension is present, but not marked as critical.", commonness = Commonness.UNUSUAL)
 			else:
-				judgement = SecurityJudgement("X.509 Basic Constraints Extension", "BasicConstraints extension is present and marked as critical.", commonness = Commonness.COMMON)
+				judgement = SecurityJudgement(JudgementCode.Cert_X509Ext_BasicConstraints_PresentAndCritical, "BasicConstraints extension is present and marked as critical.", commonness = Commonness.COMMON)
 		return judgement
 
 	def _judge_subject_key_identifier(self, pubkey, extensions):
 		ski = extensions.get_first(OIDDB.X509Extensions.inverse("SubjectKeyIdentifier"))
 		if ski is None:
-			judgement = SecurityJudgement("X.509 Subject Key Identifier Extension", "SubjectKeyIdentifier extension is missing.", commonness = Commonness.UNUSUAL)
+			judgement = SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectKeyIdentifier_Missing, "SubjectKeyIdentifier extension is missing.", commonness = Commonness.UNUSUAL)
 		else:
 			check_hashfncs = [ HashFunctions.sha1, HashFunctions.sha256, HashFunctions.sha224, HashFunctions.sha384, HashFunctions.sha512, HashFunctions.md5, HashFunctions.sha3_256, HashFunctions.sha3_384, HashFunctions.sha3_512 ]
 			tried_hashfncs = [ ]
@@ -392,15 +393,15 @@ class CrtExtensionsSecurityEstimator(SecurityEstimator):
 					computed_ski = pubkey.keyid(hashfnc = hashfnc.name)
 					if cert_ski == computed_ski:
 						if hashfnc == HashFunctions.sha1:
-							judgement = SecurityJudgement("X.509 Subject Key Identifier Extension", "SubjectKeyIdentifier present and matches SHA-1 of contained public key.", commonness = Commonness.COMMON)
+							judgement = SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectKeyIdentifier_SHA1, "SubjectKeyIdentifier present and matches SHA-1 of contained public key.", commonness = Commonness.COMMON)
 						else:
-							judgement = SecurityJudgement("X.509 Subject Key Identifier Extension", "SubjectKeyIdentifier present and matches %s of contained public key." % (hashfnc.value.pretty_name), commonness = Commonness.UNUSUAL)
+							judgement = SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectKeyIdentifier_OtherHash, "SubjectKeyIdentifier present and matches %s of contained public key." % (hashfnc.value.pretty_name), commonness = Commonness.UNUSUAL)
 						break
 					tried_hashfncs.append(hashfnc)
 				except ValueError:
 					pass
 			else:
-				judgement = SecurityJudgement("X.509 Subject Key Identifier Extension", "SubjectKeyIdentifier key ID (%s) does not match any tested cryptographic hash function (%s) over the contained public key." % (ski.keyid.hex(), ", ".join(hashfnc.value.pretty_name for hashfnc in tried_hashfncs)), commonness = Commonness.HIGHLY_UNUSUAL)
+				judgement = SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectKeyIdentifier_Arbitrary, "SubjectKeyIdentifier key ID (%s) does not match any tested cryptographic hash function (%s) over the contained public key." % (ski.keyid.hex(), ", ".join(hashfnc.value.pretty_name for hashfnc in tried_hashfncs)), commonness = Commonness.HIGHLY_UNUSUAL)
 		return judgement
 
 
@@ -428,11 +429,11 @@ class SignatureFunctionSecurityEstimator(SecurityEstimator):
 	def analyze(self, sig_fnc):
 		judgements = SecurityJudgements()
 		if sig_fnc.value.name == "rsa-ssa-pss":
-			judgements += SecurityJudgement("Signature function", "Not widely used padding scheme for RSA.", commonness = Commonness.UNUSUAL)
+			judgements += SecurityJudgement(JudgementCode.SignatureFunction_UncommonPaddingScheme, "Not widely used padding scheme for RSA.", commonness = Commonness.UNUSUAL)
 		elif sig_fnc.value.name == "eddsa":
-			judgements += SecurityJudgement("Signature function", "Not widely used cryptosystem.", commonness = Commonness.UNUSUAL, verdict = Verdict.BEST_IN_CLASS)
+			judgements += SecurityJudgement(JudgementCode.SignatureFunction_UncommonCryptosystem, commonness = Commonness.UNUSUAL, verdict = Verdict.BEST_IN_CLASS)
 		else:
-			judgements += SecurityJudgement("Signature function", "Commonly used signature function.", commonness = Commonness.COMMON)
+			judgements += SecurityJudgement(JudgementCode.SignatureFunction_Common, "Commonly used signature function.", commonness = Commonness.COMMON)
 
 		return {
 			"name":			sig_fnc.name,
@@ -452,9 +453,9 @@ class HashFunctionSecurityEstimator(SecurityEstimator):
 			bits_security = hash_fnc.value.derating.security_lvl_bits
 
 		judgements = SecurityJudgements()
-		judgements += self.algorithm("bits", analysis_options = self._analysis_options).analyze("Hash function bit length", bits_security)
+		judgements += self.algorithm("bits", analysis_options = self._analysis_options).analyze(JudgementCode.HashFunction_Length, bits_security)
 		if hash_fnc.value.derating is not None:
-			judgements += SecurityJudgement("Hash function derating", "Derated from ideal %d bits security level because of %s." % (hash_fnc.value.output_bits / 2, hash_fnc.value.derating.reason))
+			judgements += SecurityJudgement(JudgementCode.HashFunction_Derated, "Derated from ideal %d bits security level because of %s." % (hash_fnc.value.output_bits / 2, hash_fnc.value.derating.reason))
 
 		result = {
 			"name":			hash_fnc.value.name,
@@ -481,7 +482,7 @@ class PurposeEstimator(SecurityEstimator):
 		rdns = certificate.subject.get_all(OIDDB.RDNTypes.inverse("CN"))
 		have_valid_cn = False
 		if len(rdns) == 0:
-			judgements += SecurityJudgement("Name verification", "Certificate does not have any common name (CN) set.", commonness = Commonness.HIGHLY_UNUSUAL)
+			judgements += SecurityJudgement(JudgementCode.Cert_Has_No_CN, "Certificate does not have any common name (CN) set.", commonness = Commonness.HIGHLY_UNUSUAL)
 		else:
 			for rdn in rdns:
 				value = rdn.get_value(OIDDB.RDNTypes.inverse("CN"))
@@ -490,11 +491,11 @@ class PurposeEstimator(SecurityEstimator):
 					break
 			if have_valid_cn:
 				if rdn.component_cnt == 1:
-					judgements += SecurityJudgement("Name verification", "Common name (CN) matches '%s'." % (name), commonness = Commonness.COMMON)
+					judgements += SecurityJudgement(JudgementCode.Cert_CN_Match, "Common name (CN) matches '%s'." % (name), commonness = Commonness.COMMON)
 				else:
-					judgements += SecurityJudgement("Name verification", "Common name (CN) matches '%s', but is part of a multi-valued RDN." % (name), commonness = Commonness.HIGHLY_UNUSUAL)
+					judgements += SecurityJudgement(JudgementCode.Cert_CN_Match_MultiValue_RDN, "Common name (CN) matches '%s', but is part of a multi-valued RDN." % (name), commonness = Commonness.HIGHLY_UNUSUAL)
 			else:
-				judgements += SecurityJudgement("Name verification", "No common name (CN) matches '%s'." % (name), commonness = Commonness.UNUSUAL)
+				judgements += SecurityJudgement(JudgementCode.Cert_CN_NoMatch, "No common name (CN) matches '%s'." % (name), commonness = Commonness.UNUSUAL)
 
 		have_valid_san = False
 		extensions = certificate.get_extensions()
@@ -503,15 +504,15 @@ class PurposeEstimator(SecurityEstimator):
 			for san_name in extension.get_all("dNSName"):
 				if self._san_name_match(san_name, name):
 					have_valid_san = True
-					judgements += SecurityJudgement("Name verification", "Subject Alternative Name matches '%s'." % (name), commonness = Commonness.COMMON)
+					judgements += SecurityJudgement(JudgementCode.Cert_SAN_Match, "Subject Alternative Name matches '%s'." % (name), commonness = Commonness.COMMON)
 					break
 			else:
-				judgements += SecurityJudgement("Name verification", "No Subject Alternative Name X.509 extension matches '%s'." % (name), commonness = Commonness.UNUSUAL)
+				judgements += SecurityJudgement(JudgementCode.Cert_SAN_NoMatch, "No Subject Alternative Name X.509 extension matches '%s'." % (name), commonness = Commonness.UNUSUAL)
 		else:
-			judgements += SecurityJudgement("Name verification", "No Subject Alternative Name X.509 extension present in the certificate.", commonness = Commonness.UNUSUAL)
+			judgements += SecurityJudgement(JudgementCode.Cert_No_SAN_Present, "No Subject Alternative Name X.509 extension present in the certificate.", commonness = Commonness.UNUSUAL)
 
 		if (not have_valid_cn) and (not have_valid_san):
-			judgements += SecurityJudgement("Name verification", "Found neither valid common name (CN) nor valid subject alternative name (SAN).", commonness = Commonness.HIGHLY_UNUSUAL, verdict = Verdict.NO_SECURITY)
+			judgements += SecurityJudgement(JudgementCode.Cert_Name_Verification_Failed, "Found neither valid common name (CN) nor valid subject alternative name (SAN).", commonness = Commonness.HIGHLY_UNUSUAL, verdict = Verdict.NO_SECURITY)
 
 		return judgements
 
@@ -524,28 +525,28 @@ class PurposeEstimator(SecurityEstimator):
 
 		if purpose in [ AnalysisOptions.CertificatePurpose.TLSServerCertificate, AnalysisOptions.CertificatePurpose.TLSClientCertificate ]:
 			if certificate.is_ca_certificate:
-				judgements += SecurityJudgement("Leaf certificate check", "Certificate is a valid CA certificate even though it's supposed to be a TLS client/server.", commonness = Commonness.HIGHLY_UNUSUAL, verdict = Verdict.NO_SECURITY)
+				judgements += SecurityJudgement(JudgementCode.Cert_Unexpectedly_CA_Cert, "Certificate is a valid CA certificate even though it's supposed to be a TLS client/server.", commonness = Commonness.HIGHLY_UNUSUAL, verdict = Verdict.NO_SECURITY)
 
 		if eku_ext is not None:
 			if (purpose == AnalysisOptions.CertificatePurpose.TLSClientCertificate) and (not eku_ext.client_auth):
-				judgements += SecurityJudgement("Extended Key Usage check", "Certificate is supposed to be a client certificate and has an Extended Key Usage extension, but no clientAuth flag set within that extension.", commonness = Commonness.UNUSUAL)
+				judgements += SecurityJudgement(JudgementCode.Cert_EKU_NoClientAuth, "Certificate is supposed to be a client certificate and has an Extended Key Usage extension, but no clientAuth flag set within that extension.", commonness = Commonness.UNUSUAL)
 
 			if (purpose == AnalysisOptions.CertificatePurpose.TLSServerCertificate) and (not eku_ext.server_auth):
-				judgements += SecurityJudgement("Extended Key Usage check", "Certificate is supposed to be a server certificate and has an Extended Key Usage extension, but no serverAuth flag set within that extension.", commonness = Commonness.UNUSUAL)
+				judgements += SecurityJudgement(JudgementCode.Cert_EKU_NoServerAuth, "Certificate is supposed to be a server certificate and has an Extended Key Usage extension, but no serverAuth flag set within that extension.", commonness = Commonness.UNUSUAL)
 
 		if ns_ext is not None:
 			if (purpose == AnalysisOptions.CertificatePurpose.TLSClientCertificate) and (not ns_ext.ssl_client):
-				judgements += SecurityJudgement("Netscape Certificate Type check", "Certificate is supposed to be a client certificate and has an Netscape Certificate Type extension, but no sslClient flag set within that extension.", commonness = Commonness.UNUSUAL)
+				judgements += SecurityJudgement(JudgementCode.Cert_NSCT_NoSSLClient, "Certificate is supposed to be a client certificate and has an Netscape Certificate Type extension, but no sslClient flag set within that extension.", commonness = Commonness.UNUSUAL)
 
 			if (purpose == AnalysisOptions.CertificatePurpose.TLSServerCertificate) and (not ns_ext.ssl_server):
-				judgements += SecurityJudgement("Netscape Certificate Type check", "Certificate is supposed to be a server certificate and has an Netscape Certificate Type extension, but no sslServer flag set within that extension.", commonness = Commonness.UNUSUAL)
+				judgements += SecurityJudgement(JudgementCode.Cert_NSCT_NoSSLServer, "Certificate is supposed to be a server certificate and has an Netscape Certificate Type extension, but no sslServer flag set within that extension.", commonness = Commonness.UNUSUAL)
 
 			if (purpose == AnalysisOptions.CertificatePurpose.CACertificate) and not any(flag in ns_ext.flags for flag in [ "sslCA", "emailCA", "objCA" ]):
-				judgements += SecurityJudgement("Netscape Certificate Type check", "Certificate is supposed to be a CA certificate and has an Netscape Certificate Type extension, but neither sslCA/emailCA/objCA flag set within that extension.", commonness = Commonness.UNUSUAL)
+				judgements += SecurityJudgement(JudgementCode.Cert_NSCT_NoCA, "Certificate is supposed to be a CA certificate and has an Netscape Certificate Type extension, but neither sslCA/emailCA/objCA flag set within that extension.", commonness = Commonness.UNUSUAL)
 
 		if purpose == AnalysisOptions.CertificatePurpose.CACertificate:
 			if not certificate.is_ca_certificate:
-				judgements += SecurityJudgement("CA certificate check", "Certificate is not a valid CA certificate even though it's supposed to be.", commonness = Commonness.HIGHLY_UNUSUAL, verdict = Verdict.NO_SECURITY)
+				judgements += SecurityJudgement(JudgementCode.Cert_Unexpectedly_No_CA_Cert, "Certificate is not a valid CA certificate even though it's supposed to be.", commonness = Commonness.HIGHLY_UNUSUAL, verdict = Verdict.NO_SECURITY)
 
 		return judgements
 

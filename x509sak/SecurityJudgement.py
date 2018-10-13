@@ -21,6 +21,68 @@
 
 import enum
 
+class JudgementCode(enum.Enum):
+	RSA_Exponent_Is_0x1 = ("RSA Exponent", "e is 1")
+	RSA_Exponent_Small = ("RSA Exponent", "e is small")
+	RSA_Exponent_SmallUnusual = ("RSA Exponent", "e is small and uncommon")
+	RSA_Exponent_Is_0x10001 = ("RSA Exponent", "e is 0x10001")
+	RSA_Exponent_Large = ("RSA Exponent", "e is unusually large")
+	RSA_Modulus_Prime = ("RSA Modulus", "n is prime")
+	RSA_Modulus_Factorable = ("RSA Modulus", "n has small factors")
+	RSA_Modulus_Known = ("RSA Modulus", "factorization of n is public")
+	RSA_Modulus_BitBias = ("RSA Modulus", "n has bit bias")
+	RSA_Modulus_Length = ("RSA Modulus", "length of n")
+	ECC_Pubkey_CurveOrder = ("ECC pubkey", "curve order")
+	ECC_Pubkey_Not_On_Curve = ("ECC pubkey", "point not on curve")
+	ECC_Pubkey_Is_G = ("ECC pubkey", "point is generator")
+	ECC_Pubkey_X_BitBias = ("ECC pubkey", "point's X coordinate has bit bias")
+	ECC_Pubkey_Y_BitBias = ("ECC pubkey", "point's Y coordinate has bit bias")
+	Cert_Validity_NeverValid = ("Certificate validity", "certificate can never be valid")
+	Cert_Validity_NotYetValid = ("Certificate validity", "certificate not yet valid")
+	Cert_Validity_Expired = ("Certificate validity", "certificate expired")
+	Cert_Validity_Valid = ("Certificate validity", "certificate valid")
+	Cert_Validity_Length_Conservative = ("Certificate lifetime", "conservative lifetime")
+	Cert_Validity_Length_Long = ("Certificate validity", "long lifetime")
+	Cert_Validity_Length_VeryLong = ("Certificate validity", "very long lifetime")
+	Cert_Validity_Length_ExceptionallyLong = ("Certificate validity", "exceptionally long lifetime")
+	Cert_X509Ext_Duplicate = ("X.509 extensions", "duplicate extensions present")
+	Cert_X509Ext_All_Unique = ("X.509 extensions", "all extensions unique")
+	Cert_X509Ext_BasicConstraints_Missing = ("X.509 Basic Constraints extension", "BC extension missing")
+	Cert_X509Ext_BasicConstraints_PresentButNotCritical = ("X.509 BasicConstraints extension", "BC extension present but not marked critical")
+	Cert_X509Ext_BasicConstraints_PresentAndCritical = ("X.509 BasicConstraints extension", "BC extension present and marked critical")
+	Cert_X509Ext_SubjectKeyIdentifier_Missing = ("X.509 SubjectKeyIdentifier extension", "SKI extension missing")
+	Cert_X509Ext_SubjectKeyIdentifier_SHA1 = ("X.509 SubjectKeyIdentifier extension", "SKI matches SHA-1 hash of public key")
+	Cert_X509Ext_SubjectKeyIdentifier_OtherHash = ("X.509 SubjectKeyIdentifier extension", "SKI matches a hash of public key, but not SHA-1")
+	Cert_X509Ext_SubjectKeyIdentifier_Arbitrary = ("X.509 SubjectKeyIdentifier extension", "SKI does not appear to be hash of public key")
+	SignatureFunction_UncommonPaddingScheme = ("Signature function", "uncommon padding scheme")
+	SignatureFunction_UncommonCryptosystem = ("Signature function", "uncommon cryptosystem")
+	SignatureFunction_Common = ("Signature function", "common signature function")
+	HashFunction_Length = ("Hash function", "length of output")
+	HashFunction_Derated = ("Hash function", "derating of security level")
+	Cert_Has_No_CN = ("Certificate identity", "no CN present")
+	Cert_CN_Match = ("Certificate identity", "CN matches expected name")
+	Cert_CN_Match_MultiValue_RDN = ("Certificate identity", "CN matches expected name, but is multivalue RDN")
+	Cert_CN_NoMatch = ("Certificate identity", "CN does not match expected name")
+	Cert_SAN_Match = ("Certificate identity", "SAN matches expected name")
+	Cert_SAN_NoMatch = ("Certificate identity", "SAN does not match expected name")
+	Cert_No_SAN_Present = ("Certificate identity", "SAN extension not present")
+	Cert_Name_Verification_Failed = ("Certificate identity", "name verification failed")
+	Cert_Unexpectedly_CA_Cert = ("Certificate purpose", "certificate is CA cert, but should not be")
+	Cert_Unexpectedly_No_CA_Cert = ("Certificate purpose", "certificate is no CA cert, but should be")
+	Cert_EKU_NoClientAuth = ("Certificate purpose", "EKU extension does not contain clientAuth flag")
+	Cert_EKU_NoServerAuth = ("Certificate purpose", "EKU extension does not contain serverAuth flag")
+	Cert_NSCT_NoSSLClient = ("Certificate purpose", "NSCT extension does not contain sslClient flag")
+	Cert_NSCT_NoSSLServer = ("Certificate purpose", "NSCT extension does not contain sslServer flag")
+	Cert_NSCT_NoCA = ("Certificate purpose", "NSCT extension does not contain any CA flag")
+
+	@property
+	def topic(self):
+		return self.value[0]
+
+	@property
+	def short_text(self):
+		return self.value[1]
+
 class Verdict(enum.IntEnum):
 	NO_SECURITY = 0
 	BROKEN = 1
@@ -36,11 +98,12 @@ class Commonness(enum.IntEnum):
 	COMMON = 3
 
 class SecurityJudgement(object):
-	def __init__(self, topic, text, bits = None, verdict = None, commonness = None):
+	def __init__(self, code, text, bits = None, verdict = None, commonness = None):
+		assert(isinstance(code, JudgementCode))
 		assert((bits is None) or isinstance(bits, (int, float)))
 		assert((verdict is None) or isinstance(verdict, Verdict))
 		assert((commonness is None) or isinstance(commonness, Commonness))
-		self._topic = topic
+		self._code = code
 		self._text = text
 		self._bits = bits
 		self._verdict = verdict
@@ -56,8 +119,8 @@ class SecurityJudgement(object):
 		return 1
 
 	@property
-	def topic(self):
-		return self._topic
+	def code(self):
+		return self._code
 
 	@property
 	def text(self):
@@ -65,7 +128,7 @@ class SecurityJudgement(object):
 
 	@property
 	def topic_text(self):
-		return "%s: %s" % (self.topic, self.text)
+		return "%s: %s" % (self.code.topic, self.text)
 
 	@property
 	def bits(self):
@@ -81,7 +144,9 @@ class SecurityJudgement(object):
 
 	def to_dict(self):
 		result = {
-			"topic":		self.topic,
+			"code":			self.code.name,
+			"topic":		self.code.topic,
+			"short_text":	self.code.short_text,
 			"text":			self.text,
 			"bits":			self.bits,
 			"verdict":		self.verdict,
