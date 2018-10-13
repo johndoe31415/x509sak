@@ -144,7 +144,9 @@ class RSASecurityEstimator(SecurityEstimator):
 
 	@staticmethod
 	def analyze_e(e):
-		if e == 1:
+		if e < 1:
+			return SecurityJudgement(JudgementCode.RSA_Exponent_Is_Zero_Or_Negative, "RSA exponent is zero or negative, this is a malicious key.", bits = 0)
+		elif e == 1:
 			return SecurityJudgement(JudgementCode.RSA_Exponent_Is_0x1, "RSA exponent is 1, this is a malicious key.", bits = 0)
 		elif e in [ 3, 5, 7, 17, 257 ]:
 			return SecurityJudgement(JudgementCode.RSA_Exponent_Small, "RSA exponent is small, but fairly common.", verdict = Verdict.MEDIUM, commonness = Commonness.FAIRLY_COMMON)
@@ -159,7 +161,7 @@ class RSASecurityEstimator(SecurityEstimator):
 		judgements = SecurityJudgements()
 
 		if n < 0:
-			judgements += SecurityJudgement(JudgementCode.RSA_Modulus_Negative, "Modulus uses incorrect encoding, representation is a negative integer.", commonness = Commonness.HIGHLY_UNUSUAL)
+			judgements += SecurityJudgement(JudgementCode.RSA_Modulus_Negative, "Modulus uses incorrect encoding, representation is a negative integer.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION)
 
 			# Fix up n so it's a positive integer for the rest of the tests
 			bitlen = (n.bit_length() + 7) // 8 * 8
