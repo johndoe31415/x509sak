@@ -31,6 +31,8 @@ unknown_ext = { }
 code_example = { }
 code_cnt = collections.Counter()
 total_file_cnt = 0
+pubkey_cnt = collections.Counter()
+sigfnc_cnt = collections.Counter()
 
 def traverse(ffilename, structure):
 	if isinstance(structure, list):
@@ -56,7 +58,8 @@ for (dirname, subdirs, files) in os.walk(input_dir):
 				unknown_ext[ext["oid"]] = ffilename
 				unknown_ext_cnt[ext["oid"]] += 1
 		traverse(ffilename, data["data"])
-#		print(data["data"][0])
+		pubkey_cnt[data["data"][0]["pubkey"]["pretty"]] += 1
+		sigfnc_cnt[data["data"][0]["signature"]["pretty"]] += 1
 
 print("Analyzed files: %d" % (total_file_cnt))
 print("Currently unknown X.509 extensions:")
@@ -67,3 +70,14 @@ print()
 print("Found codes:")
 for (code, count) in code_cnt.most_common():
 	print("%6d %-60s %s" % (count, code, code_example[code]))
+print()
+
+print("Public keys:")
+for (pubkey, count) in pubkey_cnt.most_common():
+	print("%6d %5.1f%% %-60s" % (count, count / total_file_cnt * 100, pubkey))
+print()
+
+print("Signature functions:")
+for (sigfnc, count) in sigfnc_cnt.most_common():
+	print("%6d %5.1f%% %-60s" % (count, count / total_file_cnt * 100, sigfnc))
+print()
