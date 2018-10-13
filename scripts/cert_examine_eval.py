@@ -30,6 +30,7 @@ unknown_ext_cnt = collections.Counter()
 unknown_ext = { }
 code_example = { }
 code_cnt = collections.Counter()
+total_file_cnt = 0
 
 def traverse(ffilename, structure):
 	if isinstance(structure, list):
@@ -46,6 +47,7 @@ for (dirname, subdirs, files) in os.walk(input_dir):
 	for filename in files:
 		if not filename.endswith(".json"):
 			continue
+		total_file_cnt += 1
 		ffilename = dirname + "/" + filename
 		with open(ffilename) as f:
 			data = json.load(f)
@@ -56,6 +58,7 @@ for (dirname, subdirs, files) in os.walk(input_dir):
 		traverse(ffilename, data["data"])
 #		print(data["data"][0])
 
+print("Analyzed files: %d" % (total_file_cnt))
 print("Currently unknown X.509 extensions:")
 for (oid, jsonfile) in sorted(unknown_ext.items()):
 	print("%6d %-60s %s" % (unknown_extension_cnt[oid], oid, jsonfile))
