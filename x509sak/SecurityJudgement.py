@@ -50,6 +50,8 @@ class JudgementCode(enum.Enum):
 	Cert_Validity_Length_Long = ("Certificate validity", "long lifetime")
 	Cert_Validity_Length_VeryLong = ("Certificate validity", "very long lifetime")
 	Cert_Validity_Length_ExceptionallyLong = ("Certificate validity", "exceptionally long lifetime")
+	Cert_Validity_Invalid_NotBefore_Encoding = ("Certificate validity", "invalid 'Not Before' encoding")
+	Cert_Validity_Invalid_NotAfter_Encoding = ("Certificate validity", "invalid 'Not After' encoding")
 	Cert_X509Ext_Duplicate = ("X.509 extensions", "duplicate extensions present")
 	Cert_X509Ext_All_Unique = ("X.509 extensions", "all extensions unique")
 	Cert_X509Ext_BasicConstraints_Missing = ("X.509 Basic Constraints extension", "BC extension missing")
@@ -254,6 +256,9 @@ class SecurityJudgements(object):
 		return result
 
 	def __iadd__(self, judgement):
+		if judgement is None:
+			# Just ignore it
+			return self
 		assert(isinstance(judgement, (SecurityJudgement, SecurityJudgements)))
 		self._judgements.append(judgement)
 		return self

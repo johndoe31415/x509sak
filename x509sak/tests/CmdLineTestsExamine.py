@@ -55,6 +55,10 @@ class CmdLineTestsExamine(BaseTest):
 				self._get_codes(value, result)
 		return result
 
+	def _test_examine_x509test_noparse(self, certname):
+		with ResourceFileLoader(certname) as certfile:
+			SubprocessExecutor(self._x509sak + [ "examine", "--fast-rsa", "-f", "json", "-o", "-", certfile ], success_return_codes = [ 1 ]).run()
+
 	def _test_examine_x509test_resultcode(self, certname, expect_code):
 		with ResourceFileLoader(certname) as certfile:
 			result = SubprocessExecutor(self._x509sak + [ "examine", "--fast-rsa", "-f", "json", "-o", "-", certfile ]).run()
@@ -290,11 +294,10 @@ class CmdLineTestsExamine(BaseTest):
 #	def test_examine_x509test_xf_ext_name_constraints_nonca(self):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-name-constraints-nonca.pem", "")
 #		self._test_examine_x509test_noparse("certs/x509test/xf-ext-name-constraints-nonca.pem")
-#
-#	def test_examine_x509test_xf_ext_name_constraints_noncrit(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-name-constraints-noncrit.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-name-constraints-noncrit.pem")
-#
+
+	def test_examine_x509test_xf_ext_name_constraints_noncrit(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-name-constraints-noncrit.pem", "Cert_X509Ext_NameConstraints_PresentButNotCritical")
+
 #	def test_examine_x509test_xf_ext_name_constraints_regid(self):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-name-constraints-regid.pem", "")
 #		self._test_examine_x509test_noparse("certs/x509test/xf-ext-name-constraints-regid.pem")
@@ -351,17 +354,14 @@ class CmdLineTestsExamine(BaseTest):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-subject-keyid-critical.pem", "")
 #		self._test_examine_x509test_noparse("certs/x509test/xf-ext-subject-keyid-critical.pem")
 #
-#	def test_examine_x509test_xf_gentime_fraction_secs(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-gentime-fraction-secs.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-gentime-fraction-secs.pem")
-#
-#	def test_examine_x509test_xf_gentime_no_secs(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-gentime-no-secs.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-gentime-no-secs.pem")
-#
-#	def test_examine_x509test_xf_gentime_nonzulu(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-gentime-nonzulu.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-gentime-nonzulu.pem")
+	def test_examine_x509test_xf_gentime_fraction_secs(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-gentime-fraction-secs.pem", "Cert_Validity_Invalid_NotAfter_Encoding")
+
+	def test_examine_x509test_xf_gentime_no_secs(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-gentime-no-secs.pem", "Cert_Validity_Invalid_NotAfter_Encoding")
+
+	def test_examine_x509test_xf_gentime_nonzulu(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-gentime-nonzulu.pem", "Cert_Validity_Invalid_NotAfter_Encoding")
 #
 #	def test_examine_x509test_xf_issuer_mismatch_v2(self):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-issuer-mismatch-v2.pem", "")
@@ -411,14 +411,12 @@ class CmdLineTestsExamine(BaseTest):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-unknown-critical-ext.pem", "")
 #		self._test_examine_x509test_noparse("certs/x509test/xf-unknown-critical-ext.pem")
 #
-#	def test_examine_x509test_xf_utctime_no_secs(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-utctime-no-secs.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-utctime-no-secs.pem")
-#
-#	def test_examine_x509test_xf_utctime_nonzulu(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-utctime-nonzulu.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-utctime-nonzulu.pem")
-#
+	def test_examine_x509test_xf_utctime_no_secs(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-utctime-no-secs.pem", "Cert_Validity_Invalid_NotBefore_Encoding")
+
+	def test_examine_x509test_xf_utctime_nonzulu(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-utctime-nonzulu.pem", "Cert_Validity_Invalid_NotBefore_Encoding")
+
 #	def test_examine_x509test_xf_v1_extensions(self):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-v1-extensions.pem", "")
 #		self._test_examine_x509test_noparse("certs/x509test/xf-v1-extensions.pem")

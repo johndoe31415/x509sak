@@ -102,19 +102,22 @@ class ASN1Tools(object):
 
 	@classmethod
 	def parse_datetime(cls, datetime_str):
-		result = cls._REGEX_UTCTime.fullmatch(datetime_str)
-		if result is not None:
-			result = { key: int(value) for (key, value) in result.groupdict().items() }
-			if result["year"] >= 50:
-				result["year"] += 1900
-			else:
-				result["year"] += 2000
-			return datetime.datetime(result["year"], result["month"], result["day"], result["hour"], result["minute"], result["second"])
+		try:
+			result = cls._REGEX_UTCTime.fullmatch(datetime_str)
+			if result is not None:
+				result = { key: int(value) for (key, value) in result.groupdict().items() }
+				if result["year"] >= 50:
+					result["year"] += 1900
+				else:
+					result["year"] += 2000
+				return datetime.datetime(result["year"], result["month"], result["day"], result["hour"], result["minute"], result["second"])
 
-		result = cls._REGEX_GeneralizedTime.fullmatch(datetime_str)
-		if result is not None:
-			result = { key: int(value) for (key, value) in result.groupdict().items() }
-			return datetime.datetime(result["year"], result["month"], result["day"], result["hour"], result["minute"], result["second"])
+			result = cls._REGEX_GeneralizedTime.fullmatch(datetime_str)
+			if result is not None:
+				result = { key: int(value) for (key, value) in result.groupdict().items() }
+				return datetime.datetime(result["year"], result["month"], result["day"], result["hour"], result["minute"], result["second"])
+		except ValueError:
+			pass
 		return None
 
 	@classmethod

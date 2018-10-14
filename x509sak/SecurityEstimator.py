@@ -312,36 +312,43 @@ class CrtValiditySecurityEstimator(SecurityEstimator):
 		is_ca = certificate.is_ca_certificate
 		judgements = SecurityJudgements()
 
-		now = datetime.datetime.utcnow()
-		if not_before > not_after:
-			judgements += SecurityJudgement(JudgementCode.Cert_Validity_NeverValid, "'Not before' timestamp is greater than 'not after' timestamp. Certificate is always invalid.", bits = 0)
-		elif now < not_before:
-			judgements += SecurityJudgement(JudgementCode.Cert_Validity_NotYetValid, "Certificate is not yet valid, becomes valid in the future.", bits = 0, commonness = Commonness.UNUSUAL)
-		elif now > not_after:
-			judgements += SecurityJudgement(JudgementCode.Cert_Validity_Expired, "Certificate has expired.", bits = 0, commonness = Commonness.COMMON)
+		if not_before is None:
+			judgements += SecurityJudgement(JudgementCode.Cert_Validity_Invalid_NotBefore_Encoding, "'Not Before' timestamp is malformed. Certificate is always invalid.", bits = 0, compatibility = Compatibility.STANDARDS_VIOLATION)
+			validity_days = 0
+		elif not_after is None:
+			judgements += SecurityJudgement(JudgementCode.Cert_Validity_Invalid_NotAfter_Encoding, "'Not After' timestamp is malformed. Certificate is always invalid.", bits = 0, compatibility = Compatibility.STANDARDS_VIOLATION)
+			validity_days = 0
 		else:
-			judgements += SecurityJudgement(JudgementCode.Cert_Validity_Valid, "Certificate is currently valid.", commonness = Commonness.COMMON)
+			now = datetime.datetime.utcnow()
+			if not_before > not_after:
+				judgements += SecurityJudgement(JudgementCode.Cert_Validity_NeverValid, "'Not Before' timestamp is greater than 'not after' timestamp. Certificate is always invalid.", bits = 0)
+			elif now < not_before:
+				judgements += SecurityJudgement(JudgementCode.Cert_Validity_NotYetValid, "Certificate is not yet valid, becomes valid in the future.", bits = 0, commonness = Commonness.UNUSUAL)
+			elif now > not_after:
+				judgements += SecurityJudgement(JudgementCode.Cert_Validity_Expired, "Certificate has expired.", bits = 0, commonness = Commonness.COMMON)
+			else:
+				judgements += SecurityJudgement(JudgementCode.Cert_Validity_Valid, "Certificate is currently valid.", commonness = Commonness.COMMON)
 
-		validity_days = ((not_after - not_before).total_seconds()) / 86400
+			validity_days = ((not_after - not_before).total_seconds()) / 86400
 
-		if not is_ca:
-			margins = [ 2 * 365.25, 5 * 365.25, 7 * 365.25 ]
-		else:
-			margins = [ 12.5 * 365.25, 25 * 365.25, 30 * 365.25 ]
+			if not is_ca:
+				margins = [ 2 * 365.25, 5 * 365.25, 7 * 365.25 ]
+			else:
+				margins = [ 12.5 * 365.25, 25 * 365.25, 30 * 365.25 ]
 
-		crt_type = "CA" if is_ca else "non-CA"
-		if validity_days < margins[0]:
-			judgements += SecurityJudgement(JudgementCode.Cert_Validity_Length_Conservative, "Lifetime is conservative for %s certificate." % (crt_type), commonness = Commonness.COMMON, verdict = Verdict.BEST_IN_CLASS)
-		elif validity_days < margins[1]:
-			judgements += SecurityJudgement(JudgementCode.Cert_Validity_Length_Long, "Lifetime is long, but still acceptable for %s certificate." % (crt_type), commonness = Commonness.COMMON, verdict = Verdict.HIGH)
-		elif validity_days < margins[2]:
-			judgements += SecurityJudgement(JudgementCode.Cert_Validity_Length_VeryLong, "Lifetime is very long for %s certificate." % (crt_type), commonness = Commonness.UNUSUAL, verdict = Verdict.MEDIUM)
-		else:
-			judgements += SecurityJudgement(JudgementCode.Cert_Validity_Length_ExceptionallyLong, "Lifetime is exceptionally long for %s certificate." % (crt_type), commonness = Commonness.HIGHLY_UNUSUAL, verdict = Verdict.WEAK)
+			crt_type = "CA" if is_ca else "non-CA"
+			if validity_days < margins[0]:
+				judgements += SecurityJudgement(JudgementCode.Cert_Validity_Length_Conservative, "Lifetime is conservative for %s certificate." % (crt_type), commonness = Commonness.COMMON, verdict = Verdict.BEST_IN_CLASS)
+			elif validity_days < margins[1]:
+				judgements += SecurityJudgement(JudgementCode.Cert_Validity_Length_Long, "Lifetime is long, but still acceptable for %s certificate." % (crt_type), commonness = Commonness.COMMON, verdict = Verdict.HIGH)
+			elif validity_days < margins[2]:
+				judgements += SecurityJudgement(JudgementCode.Cert_Validity_Length_VeryLong, "Lifetime is very long for %s certificate." % (crt_type), commonness = Commonness.UNUSUAL, verdict = Verdict.MEDIUM)
+			else:
+				judgements += SecurityJudgement(JudgementCode.Cert_Validity_Length_ExceptionallyLong, "Lifetime is exceptionally long for %s certificate." % (crt_type), commonness = Commonness.HIGHLY_UNUSUAL, verdict = Verdict.WEAK)
 
 		return {
-			"not_before":		self._format_datetime(not_before),
-			"not_after":		self._format_datetime(not_after),
+			"not_before":		self._format_datetime(not_before) if not_before is not None else None,
+			"not_after":		self._format_datetime(not_after) if not_after is not None else None,
 			"validity_days":	validity_days,
 			"security":			judgements,
 		}
@@ -450,6 +457,10 @@ class CrtExtensionsSecurityEstimator(SecurityEstimator):
 				judgement = SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectKeyIdentifier_Arbitrary, "SubjectKeyIdentifier key ID (%s) does not match any tested cryptographic hash function (%s) over the contained public key." % (ski.keyid.hex(), ", ".join(hashfnc.value.pretty_name for hashfnc in tried_hashfncs)), commonness = Commonness.HIGHLY_UNUSUAL)
 		return judgement
 
+	def _judge_name_constraints(self, extensions):
+		nc = extensions.get_first(OIDDB.X509Extensions.inverse("NameConstraints"))
+		if (nc is not None) and (not nc.critical):
+			return SecurityJudgement(JudgementCode.Cert_X509Ext_NameConstraints_PresentButNotCritical, "NameConstraints X.509 extension present, but not marked critical.", commonness = Commonness.HIGHLY_UNUSUAL)
 
 	def analyze(self, certificate):
 		extensions = certificate.get_extensions()
@@ -462,6 +473,7 @@ class CrtExtensionsSecurityEstimator(SecurityEstimator):
 		judgements += self._judge_uniqueness(extensions)
 		judgements += self._judge_basic_constraints(extensions)
 		judgements += self._judge_subject_key_identifier(certificate.pubkey, extensions)
+		judgements += self._judge_name_constraints(extensions)
 
 		return {
 			"individual":	individual,
