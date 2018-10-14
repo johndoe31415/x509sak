@@ -59,6 +59,7 @@ class JudgementCode(enum.Enum):
 	Cert_X509Ext_SubjectKeyIdentifier_SHA1 = ("X.509 SubjectKeyIdentifier extension", "SKI matches SHA-1 hash of public key")
 	Cert_X509Ext_SubjectKeyIdentifier_OtherHash = ("X.509 SubjectKeyIdentifier extension", "SKI matches a hash of public key, but not SHA-1")
 	Cert_X509Ext_SubjectKeyIdentifier_Arbitrary = ("X.509 SubjectKeyIdentifier extension", "SKI does not appear to be hash of public key")
+	Cert_X509Ext_NameConstraints_PresentButNotCritical = ("X.509 NameConstraints extension", "NameConstraints extension not marked critical")
 	SignatureFunction_UncommonPaddingScheme = ("Signature function", "uncommon padding scheme")
 	SignatureFunction_UncommonCryptosystem = ("Signature function", "uncommon cryptosystem")
 	SignatureFunction_Common = ("Signature function", "common signature function")
@@ -79,6 +80,8 @@ class JudgementCode(enum.Enum):
 	Cert_NSCT_NoSSLClient = ("Certificate purpose", "NSCT extension does not contain sslClient flag")
 	Cert_NSCT_NoSSLServer = ("Certificate purpose", "NSCT extension does not contain sslServer flag")
 	Cert_NSCT_NoCA = ("Certificate purpose", "NSCT extension does not contain any CA flag")
+	Cert_Serial_Zero = ("Certificate serial", "serial is zero")
+	Cert_Serial_Negative = ("Certificate serial", "serial is negative")
 
 	@property
 	def topic(self):

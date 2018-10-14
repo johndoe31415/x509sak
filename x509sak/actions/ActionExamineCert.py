@@ -206,6 +206,7 @@ class ActionExamineCert(BaseAction):
 				printer.print("Source : %s (certificate %d of %d)" % (analysis["source"]["name"], analysis["source"]["cert_no"], analysis["source"]["certs_total"]))
 			printer.print("Issuer : %s" % (analysis["issuer"]["pretty"]))
 			printer.print("Subject: %s" % (analysis["subject"]["pretty"]))
+			self._print_verdict(printer, analysis["misc"]["security"], indent = "  ")
 			printer.print()
 
 			printer.heading("Validity")

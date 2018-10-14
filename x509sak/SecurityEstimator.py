@@ -241,11 +241,11 @@ class ECCSecurityEstimator(SecurityEstimator):
 		# Check that the encoded public key point is on curve first
 		Q = curve.point(pubkey.x, pubkey.y)
 		if not Q.on_curve():
-			return SecurityJudgement(JudgementCode.ECC_Pubkey_Not_On_Curve, "Public key point Q is not on the underlying curve %s." % (pubkey.curve), bits = 0)
+			judgements += SecurityJudgement(JudgementCode.ECC_Pubkey_Not_On_Curve, "Public key point Q is not on the underlying curve %s." % (pubkey.curve), bits = 0)
 
 		# Check that the encoded public key is not Gx
 		if Q.x == curve.Gx:
-			return SecurityJudgement(JudgementCode.ECC_Pubkey_Is_G, "Public key point Q_x is equal to generator G_x on curve %s." % (pubkey.curve), bits = 0)
+			judgements += SecurityJudgement(JudgementCode.ECC_Pubkey_Is_G, "Public key point Q_x is equal to generator G_x on curve %s." % (pubkey.curve), bits = 0)
 
 		# We assume, completely out-of-the-blue and worst-case estimate, 32
 		# automorphisms that could be present for any curve (see Duursma et
@@ -280,6 +280,22 @@ class ECCSecurityEstimator(SecurityEstimator):
 			"security":			judgements,
 		}
 SecurityEstimator.register(ECCSecurityEstimator)
+
+
+class CrtMiscSecurityEstimator(SecurityEstimator):
+	_ALG_NAME = "crt_misc"
+
+	def analyze(self, certificate):
+		judgements = SecurityJudgements()
+		if certificate.serial < 0:
+			judgements += SecurityJudgement(JudgementCode.Cert_Serial_Negative, "Certificate serial number is a negative value. This is a direct violation of RFC5280, Sect. 4.1.2.2.", compatibility = Compatibility.STANDARDS_VIOLATION)
+		elif certificate.serial == 0:
+			judgements += SecurityJudgement(JudgementCode.Cert_Serial_Zero, "Certificate serial number is zero. This is a direct violation of RFC5280, Sect. 4.1.2.2.", compatibility = Compatibility.STANDARDS_VIOLATION)
+
+		return {
+			"security":			judgements,
+		}
+SecurityEstimator.register(CrtMiscSecurityEstimator)
 
 class CrtValiditySecurityEstimator(SecurityEstimator):
 	_ALG_NAME = "crt_validity"

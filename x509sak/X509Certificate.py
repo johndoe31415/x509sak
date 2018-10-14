@@ -66,6 +66,10 @@ class X509Certificate(PEMDERObject):
 		return sig_alg
 
 	@property
+	def serial(self):
+		return int(self._asn1["tbsCertificate"]["serialNumber"])
+
+	@property
 	def pubkey(self):
 		pubkey_asn1 = self._asn1["tbsCertificate"]["subjectPublicKeyInfo"]
 		return PublicKey.from_asn1(pubkey_asn1)
@@ -174,6 +178,7 @@ class X509Certificate(PEMDERObject):
 			"extensions":	SecurityEstimator.algorithm("crt_exts", analysis_options = analysis_options).analyze(self),
 			"signature":	SecurityEstimator.algorithm("sig", analysis_options = analysis_options).analyze(self.signature_alg_oid, self.signature_alg_params, self.signature),
 			"purpose":		SecurityEstimator.algorithm("purpose", analysis_options = analysis_options).analyze(self),
+			"misc":			SecurityEstimator.algorithm("crt_misc", analysis_options = analysis_options).analyze(self),
 		}
 		if (analysis_options is not None) and analysis_options.include_raw_data:
 			result["raw"] = base64.b64encode(self.der_data).decode("ascii")

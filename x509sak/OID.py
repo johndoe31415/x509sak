@@ -104,6 +104,7 @@ class OIDDB(object):
 		OID.from_str("2.5.4.11"):					"OU",
 		OID.from_str("2.5.4.12"):					"title",
 		OID.from_str("2.5.4.13"):					"description",
+		OID.from_str("2.5.4.24"):					"givenName",
 		OID.from_str("1.2.840.113549.1.9.1"):		"emailAddress",
 		OID.from_str("0.9.2342.19200300.100.1.1"):	"UID",
 		OID.from_str("0.9.2342.19200300.100.1.25"):	"DC",
