@@ -29,7 +29,6 @@ from x509sak.SubprocessExecutor import SubprocessExecutor
 from x509sak.PRNG import HashedPRNG
 from x509sak.X509Certificate import X509Certificate
 from x509sak.PublicKey import PublicKey
-from x509sak.RSAPrivateKey import RSAPrivateKey
 
 class CmdLineTestsScrape(BaseTest):
 	@staticmethod

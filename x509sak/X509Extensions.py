@@ -25,7 +25,6 @@ import pyasn1.type.univ
 from pyasn1.type import tag
 from pyasn1_modules import rfc2459, rfc5280
 from x509sak.OID import OID, OIDDB
-from x509sak.SecurityEstimator import SecurityEstimator
 from x509sak import ASN1Models
 
 class X509Extensions(object):

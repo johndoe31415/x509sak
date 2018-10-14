@@ -19,7 +19,6 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-from x509sak.OID import OIDDB
 from x509sak.KwargsChecker import KwargsChecker
 from x509sak.AlgorithmDB import Cryptosystems
 

@@ -20,7 +20,6 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 import argparse
-import enum
 
 class KeyValue(object):
 	def __init__(self, keyvalue_str):

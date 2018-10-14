@@ -23,7 +23,6 @@ import base64
 import pyasn1.codec.der.decoder
 from pyasn1_modules import rfc2459
 from x509sak.tests import BaseTest
-from x509sak.OID import OIDDB
 from x509sak.DistinguishedName import RelativeDistinguishedName, DistinguishedName
 
 class DistinguishedNameTests(BaseTest):

@@ -196,12 +196,12 @@ class TrailerField(univ.Integer): pass
 class RSASSA_PSS_Params(univ.Sequence):
 	"""RFC3447:
 
-	 RSASSA-PSS-params ::= SEQUENCE {
-          hashAlgorithm      [0] HashAlgorithm    DEFAULT sha1,
-          maskGenAlgorithm   [1] MaskGenAlgorithm DEFAULT mgf1SHA1,
-          saltLength         [2] INTEGER          DEFAULT 20,
-          trailerField       [3] TrailerField     DEFAULT trailerFieldBC
-      }
+	RSASSA-PSS-params ::= SEQUENCE {
+		hashAlgorithm      [0] HashAlgorithm    DEFAULT sha1,
+		maskGenAlgorithm   [1] MaskGenAlgorithm DEFAULT mgf1SHA1,
+		saltLength         [2] INTEGER          DEFAULT 20,
+		trailerField       [3] TrailerField     DEFAULT trailerFieldBC
+	}
 	"""
 	componentType = namedtype.NamedTypes(
 		namedtype.DefaultedNamedType("hashAlgorithm", HashAlgorithm().subtype(explicitTag = tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 0))),
@@ -211,13 +211,13 @@ class RSASSA_PSS_Params(univ.Sequence):
 	)
 
 class NetscapeCertificateType(univ.BitString):
-    namedValues = namedval.NamedValues(
-        ("client", 0),
-        ("server", 1),
-        ("email", 2),
-        ("objsign", 3),
-        ("reserved", 4),
-        ("sslCA", 5),
-        ("emailCA", 6),
-        ("objCA", 7),
-    )
+	namedValues = namedval.NamedValues(
+		("client", 0),
+		("server", 1),
+		("email", 2),
+		("objsign", 3),
+		("reserved", 4),
+		("sslCA", 5),
+		("emailCA", 6),
+		("objCA", 7),
+	)

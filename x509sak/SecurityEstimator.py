@@ -28,7 +28,7 @@ from x509sak.NumberTheory import NumberTheory
 from x509sak.ModulusDB import ModulusDB
 from x509sak.OID import OIDDB, OID
 from x509sak.Exceptions import LazyDeveloperException, UnknownAlgorithmException
-from x509sak.AlgorithmDB import HashFunctions, SignatureAlgorithms, SignatureFunctions
+from x509sak.AlgorithmDB import HashFunctions, SignatureAlgorithms
 from x509sak.SecurityJudgement import JudgementCode, SecurityJudgements, SecurityJudgement, Verdict, Commonness, Compatibility
 import x509sak.ASN1Models as ASN1Models
 
@@ -181,7 +181,6 @@ class RSASecurityEstimator(SecurityEstimator):
 		if match is not None:
 			judgements += SecurityJudgement(JudgementCode.RSA_Modulus_FactorizationKnown, "Modulus is known to be compromised: %s" % (match.text), bits = 0)
 
-		judgement = None
 		hweight_analysis = NumberTheory.hamming_weight_analysis(n)
 		if not hweight_analysis.plausibly_random:
 			judgements += SecurityJudgement(JudgementCode.RSA_Modulus_BitBias, "Modulus does not appear to be random. Expected a Hamming weight between %d and %d for a %d bit modulus, but found Hamming weight %d." % (hweight_analysis.rnd_min_hweight, hweight_analysis.rnd_max_hweight, hweight_analysis.bitlen, hweight_analysis.hweight), commonness = Commonness.HIGHLY_UNUSUAL)
@@ -221,7 +220,7 @@ class RSASecurityEstimator(SecurityEstimator):
 				if not isinstance(asn1_params, pyasn1.type.univ.Null):
 					judgements += SecurityJudgement(JudgementCode.RSA_Parameter_Field_Not_Null, "RSA parameter field should be present and should be of Null type, but has different ASN.1 type. This is a direct violation of RFC3279, Sect. 2.2.1.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION)
 			except pyasn1.error.PyAsn1Error:
-					judgements += SecurityJudgement(JudgementCode.RSA_Parameter_Field_Not_Null, "RSA parameter field should be present and should be of Null type, but has different non-DER type. This is a direct violation of RFC3279, Sect. 2.2.1.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION)
+				judgements += SecurityJudgement(JudgementCode.RSA_Parameter_Field_Not_Null, "RSA parameter field should be present and should be of Null type, but has different non-DER type. This is a direct violation of RFC3279, Sect. 2.2.1.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION)
 
 		judgements += result["specific"]["n"]["security"]
 		judgements += result["specific"]["e"]["security"]
@@ -394,6 +393,7 @@ class CrtExtensionsSecurityEstimator(SecurityEstimator):
 		for extension in extensions:
 			if extension.oid in have_oids:
 				judgement = SecurityJudgement(JudgementCode.Cert_X509Ext_Duplicate, "X.509 extension %s (OID %s) is present at least twice. This is a direct violation of RFC5280, Sect. 4.2." % (extension.name, str(extension.oid)), compatibility = Compatibility.STANDARDS_VIOLATION)
+				break
 			have_oids.add(extension.oid)
 		else:
 			judgement = SecurityJudgement(JudgementCode.Cert_X509Ext_All_Unique, "All X.509 extensions are unique.", commonness = Commonness.COMMON)
@@ -461,7 +461,7 @@ class SignatureFunctionSecurityEstimator(SecurityEstimator):
 		if sig_fnc.value.name == "rsa-ssa-pss":
 			judgements += SecurityJudgement(JudgementCode.SignatureFunction_UncommonPaddingScheme, "Not widely used padding scheme for RSA.", compatibility = Compatibility.LIMITED_SUPPORT)
 		elif sig_fnc.value.name == "eddsa":
-			judgements += SecurityJudgement(JudgementCode.SignatureFunction_UncommonCryptosystem, verdict = Verdict.BEST_IN_CLASS, compatibility = Compatibility.LIMITED_SUPPORT)
+			judgements += SecurityJudgement(JudgementCode.SignatureFunction_UncommonCryptosystem, "Not widely used cryptosystem.", verdict = Verdict.BEST_IN_CLASS, compatibility = Compatibility.LIMITED_SUPPORT)
 		else:
 			judgements += SecurityJudgement(JudgementCode.SignatureFunction_Common, "Commonly used signature function.", commonness = Commonness.COMMON)
 
@@ -514,6 +514,7 @@ class PurposeEstimator(SecurityEstimator):
 		if len(rdns) == 0:
 			judgements += SecurityJudgement(JudgementCode.Cert_Has_No_CN, "Certificate does not have any common name (CN) set.", commonness = Commonness.HIGHLY_UNUSUAL)
 		else:
+			rdn = None
 			for rdn in rdns:
 				value = rdn.get_value(OIDDB.RDNTypes.inverse("CN"))
 				if value == name:
@@ -549,7 +550,8 @@ class PurposeEstimator(SecurityEstimator):
 	def _judge_purpose(self, certificate, purpose):
 		judgements = SecurityJudgements()
 		extensions = certificate.get_extensions()
-		ku_ext = extensions.get_first(OIDDB.X509Extensions.inverse("KeyUsage"))
+		#ku_ext = extensions.get_first(OIDDB.X509Extensions.inverse("KeyUsage"))
+		# TODO: Implement Key Usage
 		eku_ext = extensions.get_first(OIDDB.X509Extensions.inverse("ExtendedKeyUsage"))
 		ns_ext = extensions.get_first(OIDDB.X509Extensions.inverse("NetscapeCertificateType"))
 

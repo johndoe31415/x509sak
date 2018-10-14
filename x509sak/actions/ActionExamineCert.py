@@ -122,7 +122,8 @@ class ActionExamineCert(BaseAction):
 					merged_analyses["data"] += analyses["data"]
 		return merged_analyses
 
-	def _fmt_textual_verdict(self, judgement):
+	@staticmethod
+	def _fmt_textual_verdict(judgement):
 		textual_verdict = [ ]
 		if judgement.bits is not None:
 			textual_verdict.append("%d bits" % (judgement.bits))
@@ -154,7 +155,8 @@ class ActionExamineCert(BaseAction):
 		else:
 			return ", ".join(textual_verdict)
 
-	def _fmt_color(self, judgement):
+	@staticmethod
+	def _fmt_color(judgement):
 		color = "end"
 		if judgement.verdict in [ Verdict.BEST_IN_CLASS, Verdict.HIGH ]:
 			color = "good"
@@ -190,7 +192,8 @@ class ActionExamineCert(BaseAction):
 			color = self._fmt_color(summary_judgement)
 			printer.print("%s    -> Summary: <%s>%s<end>" % (indent, color, self._fmt_textual_verdict(summary_judgement)))
 
-	def _fmt_time(self, isotime):
+	@staticmethod
+	def _fmt_time(isotime):
 		ts = datetime.datetime.strptime(isotime, "%Y-%m-%dT%H:%M:%SZ")
 		return ts.strftime("%c UTC")
 

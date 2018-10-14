@@ -20,7 +20,6 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 import tempfile
-import pkgutil
 from x509sak.tests import BaseTest, ResourceFileLoader
 from x509sak.OpenSSLCAIndexFile import OpenSSLCAIndexFile
 
