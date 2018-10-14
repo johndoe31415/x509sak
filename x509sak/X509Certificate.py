@@ -66,6 +66,10 @@ class X509Certificate(PEMDERObject):
 		return sig_alg
 
 	@property
+	def version(self):
+		return int(self._asn1["tbsCertificate"]["version"]) + 1
+
+	@property
 	def serial(self):
 		return int(self._asn1["tbsCertificate"]["serialNumber"])
 
@@ -199,7 +203,10 @@ class X509Certificate(PEMDERObject):
 				# version 3 certificate, or the extension is present but the cA boolean
 				# is not asserted, then the certified public key MUST NOT be used to
 				# verify certificate signatures.
-				return False
+				if self.version < 3:
+					return True
+				else:
+					return False
 			else:
 				return basic_constraints.is_ca
 

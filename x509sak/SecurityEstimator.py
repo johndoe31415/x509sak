@@ -287,6 +287,9 @@ class CrtMiscSecurityEstimator(SecurityEstimator):
 
 	def analyze(self, certificate):
 		judgements = SecurityJudgements()
+		if certificate.version != 3:
+			judgements += SecurityJudgement(JudgementCode.Cert_Version_Not_3, "Certificate version is v%d, usually would expect a v3 certificate." % (certificate.version), commonness = Commonness.HIGHLY_UNUSUAL)
+
 		if certificate.serial < 0:
 			judgements += SecurityJudgement(JudgementCode.Cert_Serial_Negative, "Certificate serial number is a negative value. This is a direct violation of RFC5280, Sect. 4.1.2.2.", compatibility = Compatibility.STANDARDS_VIOLATION)
 		elif certificate.serial == 0:

@@ -104,7 +104,7 @@ class X509CertificateTests(BaseTest):
 		self.assertTrue(self._load_crt("ok/johannes-bauer-root").is_ca_certificate)
 		self.assertTrue(self._load_crt("ok/johannes-bauer-intermediate").is_ca_certificate)
 		self.assertFalse(self._load_crt("ok/johannes-bauer.com").is_ca_certificate)
-		self.assertTrue(self._load_crt("ok/custom_key_usage").is_ca_certificate)
+		self.assertFalse(self._load_crt("ok/custom_key_usage").is_ca_certificate)
 		self.assertTrue(self._load_crt("broken/keycomp_debian").is_ca_certificate)
 		self.assertTrue(self._load_crt("ok/no_extensions").is_ca_certificate)
 
