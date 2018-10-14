@@ -865,4 +865,6 @@ optional arguments:
 [//]: # (End of cmd-hashpart -- auto-generated, do not edit!)
 
 # License
-GNU GPL-3.
+GNU GPL-3. Thanks to the [x509test project](https://github.com/google/x509test)
+for the excellent testsuite of broken certificates (included in the
+x509sak/tests/data/certs/google/ subdirectory).
