@@ -457,10 +457,15 @@ class CrtExtensionsSecurityEstimator(SecurityEstimator):
 				judgement = SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectKeyIdentifier_Arbitrary, "SubjectKeyIdentifier key ID (%s) does not match any tested cryptographic hash function (%s) over the contained public key." % (ski.keyid.hex(), ", ".join(hashfnc.value.pretty_name for hashfnc in tried_hashfncs)), commonness = Commonness.HIGHLY_UNUSUAL)
 		return judgement
 
-	def _judge_name_constraints(self, extensions):
+	def _judge_name_constraints(self, certificate, extensions):
+		judgements = SecurityJudgements()
 		nc = extensions.get_first(OIDDB.X509Extensions.inverse("NameConstraints"))
-		if (nc is not None) and (not nc.critical):
-			return SecurityJudgement(JudgementCode.Cert_X509Ext_NameConstraints_PresentButNotCritical, "NameConstraints X.509 extension present, but not marked critical.", commonness = Commonness.HIGHLY_UNUSUAL)
+		if nc is not None:
+			if not nc.critical:
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_NameConstraints_PresentButNotCritical, "NameConstraints X.509 extension present, but not marked critical. This is a direct violation of RFC5280 Sect. 4.2.1.10.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION)
+			if not certificate.is_ca_certificate:
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_NameConstraints_PresentButNotCA, "NameConstraints X.509 extension present, but certificate is not a CA certificate. This is a direct violation of RFC5280 Sect. 4.2.1.10.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION)
+		return judgements
 
 	def analyze(self, certificate):
 		extensions = certificate.get_extensions()
@@ -473,7 +478,7 @@ class CrtExtensionsSecurityEstimator(SecurityEstimator):
 		judgements += self._judge_uniqueness(extensions)
 		judgements += self._judge_basic_constraints(extensions)
 		judgements += self._judge_subject_key_identifier(certificate.pubkey, extensions)
-		judgements += self._judge_name_constraints(extensions)
+		judgements += self._judge_name_constraints(certificate, extensions)
 
 		return {
 			"individual":	individual,

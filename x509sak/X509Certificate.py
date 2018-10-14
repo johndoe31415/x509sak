@@ -195,7 +195,11 @@ class X509Certificate(PEMDERObject):
 			# is sane and elect to get the first extension.
 			basic_constraints = extensions.get_first(OIDDB.X509Extensions.inverse("BasicConstraints"))
 			if basic_constraints is None:
-				return True
+				# RFC5280, 4.2.1.9: "If the basic constraints extension is not present in a
+				# version 3 certificate, or the extension is present but the cA boolean
+				# is not asserted, then the certified public key MUST NOT be used to
+				# verify certificate signatures.
+				return False
 			else:
 				return basic_constraints.is_ca
 

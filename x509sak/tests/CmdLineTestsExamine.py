@@ -290,10 +290,9 @@ class CmdLineTestsExamine(BaseTest):
 #	def test_examine_x509test_xf_ext_name_constraints_minmax(self):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-name-constraints-minmax.pem", "")
 #		self._test_examine_x509test_noparse("certs/x509test/xf-ext-name-constraints-minmax.pem")
-#
-#	def test_examine_x509test_xf_ext_name_constraints_nonca(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-name-constraints-nonca.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-name-constraints-nonca.pem")
+
+	def test_examine_x509test_xf_ext_name_constraints_nonca(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-name-constraints-nonca.pem", "Cert_X509Ext_NameConstraints_PresentButNotCA")
 
 	def test_examine_x509test_xf_ext_name_constraints_noncrit(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-name-constraints-noncrit.pem", "Cert_X509Ext_NameConstraints_PresentButNotCritical")
