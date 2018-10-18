@@ -423,11 +423,24 @@ class CrtExtensionsSecurityEstimator(SecurityEstimator):
 				})
 		return result
 
-	def _judge_permissibility(self, certificate, extensions):
+	def _judge_may_have_exts(self, certificate, extensions):
 		if (certificate.version < 3) and len(extensions) > 0:
 			return SecurityJudgement(JudgementCode.Cert_X509Ext_NotAllowed, "X.509 extension present in v%d certificate. This is a direct violation of RFC5280, Sect. 4.1.2.9." % (certificate.version), compatibility = Compatibility.STANDARDS_VIOLATION)
 		else:
 			return None
+
+	def _judge_unique_id(self, certificate, extensions):
+		judgements = SecurityJudgements()
+		if (certificate.version == 1) or ((certificate.version == 3) and (len(extensions) == 0)):
+			if certificate.version == 3:
+				additional_note = " without any X.509 extensions"
+			else:
+				additional_note = ""
+			if certificate.issuer_unique_id is not None:
+				judgements += SecurityJudgement(JudgementCode.Cert_UniqueID_NotAllowed, "Issuer unique IDs is present in v%d certificate%s. This is a direct violation of RFC5280, Sect. 4.1.2.8." % (certificate.version, additional_note), compatibility = Compatibility.STANDARDS_VIOLATION)
+			if certificate.subject_unique_id is not None:
+				judgements += SecurityJudgement(JudgementCode.Cert_UniqueID_NotAllowed, "Subject unique IDs is present in v%d certificate%s. This is a direct violation of RFC5280, Sect. 4.1.2.8." % (certificate.version, additional_note), compatibility = Compatibility.STANDARDS_VIOLATION)
+		return judgements
 
 	def _judge_uniqueness(self, extensions):
 		have_oids = set()
@@ -494,7 +507,8 @@ class CrtExtensionsSecurityEstimator(SecurityEstimator):
 			individual.append(self._analyze_extension(extension))
 
 		judgements = SecurityJudgements()
-		judgements += self._judge_permissibility(certificate, extensions)
+		judgements += self._judge_may_have_exts(certificate, extensions)
+		judgements += self._judge_unique_id(certificate, extensions)
 		judgements += self._judge_uniqueness(extensions)
 		judgements += self._judge_basic_constraints(extensions)
 		judgements += self._judge_subject_key_identifier(certificate.pubkey, extensions)

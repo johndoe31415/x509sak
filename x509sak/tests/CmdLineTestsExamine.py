@@ -419,18 +419,14 @@ class CmdLineTestsExamine(BaseTest):
 	def test_examine_x509test_xf_v1_extensions(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-v1-extensions.pem", "Cert_X509Ext_NotAllowed")
 
-#	def test_examine_x509test_xf_v1_uniqueid(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-v1-uniqueid.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-v1-uniqueid.pem")
-#
+	def test_examine_x509test_xf_v1_uniqueid(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-v1-uniqueid.pem", "Cert_UniqueID_NotAllowed")
+
 	def test_examine_x509test_xf_v2_extensions(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-v2-extensions.pem", "Cert_X509Ext_NotAllowed")
 
-#	def test_examine_x509test_xf_v3_uniqueid_noexts1(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-v3-uniqueid-noexts1.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-v3-uniqueid-noexts1.pem")
-#
-#	def test_examine_x509test_xf_v3_uniqueid_noexts2(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-v3-uniqueid-noexts2.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-v3-uniqueid-noexts2.pem")
-#
+	def test_examine_x509test_xf_v3_uniqueid_noexts1(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-v3-uniqueid-noexts1.pem", "Cert_UniqueID_NotAllowed")
+
+	def test_examine_x509test_xf_v3_uniqueid_noexts2(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-v3-uniqueid-noexts2.pem", "Cert_UniqueID_NotAllowed")

@@ -95,6 +95,14 @@ class X509Certificate(PEMDERObject):
 		return ASN1Tools.parse_datetime(str(self._asn1["tbsCertificate"]["validity"]["notAfter"].getComponent()))
 
 	@property
+	def subject_unique_id(self):
+		return self._asn1["tbsCertificate"]["subjectUniqueID"].asInteger() if self._asn1["tbsCertificate"]["subjectUniqueID"].hasValue() else None
+
+	@property
+	def issuer_unique_id(self):
+		return self._asn1["tbsCertificate"]["issuerUniqueID"].asInteger() if self._asn1["tbsCertificate"]["issuerUniqueID"].hasValue() else None
+
+	@property
 	def signature_alg_oid(self):
 		signature_alg_oid = OID.from_str(str(self._asn1["signatureAlgorithm"]["algorithm"]))
 		return signature_alg_oid

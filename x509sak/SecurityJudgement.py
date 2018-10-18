@@ -87,6 +87,7 @@ class JudgementCode(enum.Enum):
 	Cert_Version_Not_3 = ("Certificate version", "not v3 certificate")
 	Cert_Serial_Zero = ("Certificate serial", "serial is zero")
 	Cert_Serial_Negative = ("Certificate serial", "serial is negative")
+	Cert_UniqueID_NotAllowed = ("Certificate unique ID", "subject/issuer unique ID not allowed in non-v2 certificate")
 
 	@property
 	def topic(self):
