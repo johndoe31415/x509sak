@@ -423,6 +423,12 @@ class CrtExtensionsSecurityEstimator(SecurityEstimator):
 				})
 		return result
 
+	def _judge_permissibility(self, certificate, extensions):
+		if (certificate.version < 3) and len(extensions) > 0:
+			return SecurityJudgement(JudgementCode.Cert_X509Ext_NotAllowed, "X.509 extension present in v%d certificate. This is a direct violation of RFC5280, Sect. 4.1.2.9." % (certificate.version), compatibility = Compatibility.STANDARDS_VIOLATION)
+		else:
+			return None
+
 	def _judge_uniqueness(self, extensions):
 		have_oids = set()
 
@@ -488,6 +494,7 @@ class CrtExtensionsSecurityEstimator(SecurityEstimator):
 			individual.append(self._analyze_extension(extension))
 
 		judgements = SecurityJudgements()
+		judgements += self._judge_permissibility(certificate, extensions)
 		judgements += self._judge_uniqueness(extensions)
 		judgements += self._judge_basic_constraints(extensions)
 		judgements += self._judge_subject_key_identifier(certificate.pubkey, extensions)

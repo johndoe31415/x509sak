@@ -63,6 +63,7 @@ class JudgementCode(enum.Enum):
 	Cert_X509Ext_SubjectKeyIdentifier_Arbitrary = ("X.509 SubjectKeyIdentifier extension", "SKI does not appear to be hash of public key")
 	Cert_X509Ext_NameConstraints_PresentButNotCritical = ("X.509 NameConstraints extension", "NameConstraints extension not marked critical")
 	Cert_X509Ext_NameConstraints_PresentButNotCA = ("X.509 NameConstraints extension", "NameConstraints extension in non-CA certificate")
+	Cert_X509Ext_NotAllowed = ("X.509 extensions", "no extensions permissible")
 	SignatureFunction_UncommonPaddingScheme = ("Signature function", "uncommon padding scheme")
 	SignatureFunction_UncommonCryptosystem = ("Signature function", "uncommon cryptosystem")
 	SignatureFunction_Common = ("Signature function", "common signature function")
