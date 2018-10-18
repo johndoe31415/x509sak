@@ -249,6 +249,10 @@ class X509ExtendedKeyUsageExtension(X509Extension):
 		self._oids = set(OID.from_str(str(oid)) for oid in self.asn1)
 
 	@property
+	def key_usage_oids(self):
+		return iter(self._oids)
+
+	@property
 	def client_auth(self):
 		return OIDDB.X509ExtendedKeyUsage.inverse("id_kp_clientAuth") in self._oids
 

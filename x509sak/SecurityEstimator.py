@@ -30,6 +30,7 @@ from x509sak.OID import OIDDB, OID
 from x509sak.Exceptions import LazyDeveloperException, UnknownAlgorithmException
 from x509sak.AlgorithmDB import HashFunctions, SignatureAlgorithms
 from x509sak.SecurityJudgement import JudgementCode, SecurityJudgements, SecurityJudgement, Verdict, Commonness, Compatibility
+from x509sak.X509Extensions import X509ExtendedKeyUsageExtension
 import x509sak.ASN1Models as ASN1Models
 
 class AnalysisOptions(object):
@@ -407,11 +408,20 @@ class CrtExtensionsSecurityEstimator(SecurityEstimator):
 	_ALG_NAME = "crt_exts"
 
 	def _analyze_extension(self, extension):
-		return {
-			"name":		extension.name,
-			"oid":		str(extension.oid),
-			"known":	extension.known,
+		result = {
+			"name":			extension.name,
+			"oid":			str(extension.oid),
+			"known":		extension.known,
+			"critical":		extension.critical,
 		}
+		if isinstance(extension, X509ExtendedKeyUsageExtension):
+			result["key_usages"] = [ ]
+			for oid in sorted(extension.key_usage_oids):
+				result["key_usages"].append({
+					"oid":		str(oid),
+					"name":		OIDDB.X509ExtendedKeyUsage.get(oid),
+				})
+		return result
 
 	def _judge_uniqueness(self, extensions):
 		have_oids = set()

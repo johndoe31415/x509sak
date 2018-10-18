@@ -64,7 +64,7 @@ for (dirname, subdirs, files) in os.walk(input_dir):
 print("Analyzed files: %d" % (total_file_cnt))
 print("Currently unknown X.509 extensions:")
 for (oid, jsonfile) in sorted(unknown_ext.items()):
-	print("%6d %-60s %s" % (unknown_extension_cnt[oid], oid, jsonfile))
+	print("%6d %-60s %s" % (unknown_ext_cnt[oid], oid, jsonfile))
 print()
 
 print("Found codes:")
