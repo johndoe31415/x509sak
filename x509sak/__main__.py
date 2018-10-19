@@ -37,6 +37,7 @@ from x509sak.actions.ActionExamineCert import ActionExamineCert
 from x509sak.actions.ActionForgeCert import ActionForgeCert
 from x509sak.actions.ActionScrape import ActionScrape
 from x509sak.actions.ActionHashPart import ActionHashPart
+from x509sak.actions.ActionDebug import ActionDebug
 from x509sak.CmdLineArgs import KeyValue
 from x509sak.KeySpecification import KeySpecification
 from x509sak.Exceptions import UserErrorException, InvisibleUserErrorException, CmdExecutionFailedException
@@ -226,6 +227,11 @@ def genparser(parser):
 	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
 	parser.add_argument("filename", metavar = "filename", type = str, help = "File that should be hashed.")
 mc.register("hashpart", "Hash all substrings of a file and search for a particular hash value", genparser, action = ActionHashPart)
+
+def genparser(parser):
+	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
+	parser.add_argument("crtfile", metavar = "filename", type = str, help = "Certificate file that should be loaded in the console.")
+mc.register("debug", "Open an interactive Python console", genparser, aliases = [ "dbg" ], action = ActionDebug, visible = False)
 
 try:
 	mc.run(sys.argv[1:])
