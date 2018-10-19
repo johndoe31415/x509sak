@@ -24,6 +24,7 @@ import math
 import calendar
 import datetime
 import pyasn1.codec.der.decoder
+from pyasn1.type.useful import GeneralizedTime
 from x509sak.NumberTheory import NumberTheory
 from x509sak.ModulusDB import ModulusDB
 from x509sak.OID import OIDDB, OID
@@ -349,6 +350,11 @@ class CrtValiditySecurityEstimator(SecurityEstimator):
 				judgements += SecurityJudgement(JudgementCode.Cert_Validity_Length_VeryLong, "Lifetime is very long for %s certificate." % (crt_type), commonness = Commonness.UNUSUAL, verdict = Verdict.MEDIUM)
 			else:
 				judgements += SecurityJudgement(JudgementCode.Cert_Validity_Length_ExceptionallyLong, "Lifetime is exceptionally long for %s certificate." % (crt_type), commonness = Commonness.HIGHLY_UNUSUAL, verdict = Verdict.WEAK)
+
+			if (not_before < datetime.datetime(2050, 1, 1, 0, 0, 0)) and isinstance(certificate.asn1["tbsCertificate"]["validity"]["notBefore"].getComponent(), GeneralizedTime):
+				judgements += SecurityJudgement(JudgementCode.Cert_Validity_GeneralizedTimeBeforeYear2050, "GeneralizedTime used for 'not before' validity timestamp although earlier than year 2050. This is a direct violation of RFC5280 Sect. 4.1.2.5.", compatibility = Compatibility.STANDARDS_VIOLATION)
+			if (not_after < datetime.datetime(2050, 1, 1, 0, 0, 0)) and isinstance(certificate.asn1["tbsCertificate"]["validity"]["notAfter"].getComponent(), GeneralizedTime):
+				judgements += SecurityJudgement(JudgementCode.Cert_Validity_GeneralizedTimeBeforeYear2050, "GeneralizedTime used for 'not after' validity timestamp although earlier than year 2050. This is a direct violation of RFC5280 Sect. 4.1.2.5.", compatibility = Compatibility.STANDARDS_VIOLATION)
 
 		return {
 			"not_before":		self._format_datetime(not_before) if not_before is not None else None,

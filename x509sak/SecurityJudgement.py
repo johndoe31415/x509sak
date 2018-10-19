@@ -52,6 +52,7 @@ class JudgementCode(enum.Enum):
 	Cert_Validity_Length_ExceptionallyLong = ("Certificate validity", "exceptionally long lifetime")
 	Cert_Validity_Invalid_NotBefore_Encoding = ("Certificate validity", "invalid 'Not Before' encoding")
 	Cert_Validity_Invalid_NotAfter_Encoding = ("Certificate validity", "invalid 'Not After' encoding")
+	Cert_Validity_GeneralizedTimeBeforeYear2050 = ("Certificate validity", "GeneralizedTime data type used for timestamp before year 2050")
 	Cert_X509Ext_Duplicate = ("X.509 extensions", "duplicate extensions present")
 	Cert_X509Ext_All_Unique = ("X.509 extensions", "all extensions unique")
 	Cert_X509Ext_BasicConstraints_Missing = ("X.509 Basic Constraints extension", "BC extension missing")

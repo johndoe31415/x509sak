@@ -396,8 +396,8 @@ class CmdLineTestsExamine(BaseTest):
 	def test_examine_x509test_xf_serial_zero(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-serial-zero.pem", "Cert_Serial_Zero")
 
-#	def test_examine_x509test_xf_soon_generalized_time(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-soon-generalized-time.pem", "Cert_GeneralizedTime_BeforeYear2050")
+	def test_examine_x509test_xf_soon_generalized_time(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-soon-generalized-time.pem", "Cert_Validity_GeneralizedTimeBeforeYear2050")
 
 #	def test_examine_x509test_xf_subject_nonprintable(self):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-subject-nonprintable.pem", "Cert_Subject_NonPrintable")
