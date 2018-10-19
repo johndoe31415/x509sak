@@ -399,13 +399,12 @@ class CmdLineTestsExamine(BaseTest):
 	def test_examine_x509test_xf_soon_generalized_time(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-soon-generalized-time.pem", "Cert_Validity_GeneralizedTimeBeforeYear2050")
 
-#	def test_examine_x509test_xf_subject_nonprintable(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-subject-nonprintable.pem", "Cert_Subject_NonPrintable")
+	def test_examine_x509test_xf_subject_nonprintable(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-subject-nonprintable.pem", "DN_Contains_Illegal_Char")
 
-#	def test_examine_x509test_xf_subject_t61(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-subject-t61.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-subject-t61.pem")
-#
+	def test_examine_x509test_xf_subject_t61(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-subject-t61.pem", "DN_Contains_Deprecated_Type")
+
 #	def test_examine_x509test_xf_unknown_critical_ext(self):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-unknown-critical-ext.pem", "")
 #		self._test_examine_x509test_noparse("certs/x509test/xf-unknown-critical-ext.pem")

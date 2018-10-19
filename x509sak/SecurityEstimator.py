@@ -283,6 +283,34 @@ class ECCSecurityEstimator(SecurityEstimator):
 		}
 SecurityEstimator.register(ECCSecurityEstimator)
 
+class DistinguishedNameSecurityEstimator(SecurityEstimator):
+	_VALID_ALPHABETS = {
+		pyasn1.type.char.PrintableString:		set("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 '()+,-./:=?"),
+	}
+	_ALG_NAME = "dn"
+
+	def _analyze_rdn_item(self, rdn_item):
+		judgements = SecurityJudgements()
+		asn1type = type(rdn_item.asn1)
+		if asn1type in self._VALID_ALPHABETS:
+			valid_chars = self._VALID_ALPHABETS[asn1type]
+			illegal_chars = set(rdn_item.printable) - valid_chars
+			if len(illegal_chars) > 0:
+				judgements += SecurityJudgement(JudgementCode.DN_Contains_Illegal_Char, "Distinguished name contains character(s) \"%s\" which are invalid for a %s at element %s." % ("".join(sorted(illegal_chars)), asn1type.__name__, OIDDB.RDNTypes.get(rdn_item.oid, str(rdn_item.oid))), compatibility = Compatibility.STANDARDS_VIOLATION)
+
+		if isinstance(rdn_item.asn1, pyasn1.type.char.TeletexString):
+			judgements += SecurityJudgement(JudgementCode.DN_Contains_Deprecated_Type, "Distinguished name contains deprecated TeletexString at element %s." % (OIDDB.RDNTypes.get(rdn_item.oid, str(rdn_item.oid))), compatibility = Compatibility.STANDARDS_VIOLATION)
+		return judgements
+
+	def analyze(self, dn):
+		judgements = SecurityJudgements()
+		for rdn in dn:
+			for rdn_item in rdn:
+				judgements += self._analyze_rdn_item(rdn_item)
+		return {
+			"security":			judgements,
+		}
+SecurityEstimator.register(DistinguishedNameSecurityEstimator)
 
 class CrtMiscSecurityEstimator(SecurityEstimator):
 	_ALG_NAME = "crt_misc"

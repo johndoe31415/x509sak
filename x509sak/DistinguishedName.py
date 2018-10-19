@@ -19,23 +19,33 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
+import collections
 import pyasn1.error
 import pyasn1.type.char
+import pyasn1.codec.der.encoder
 import pyasn1.codec.der.decoder
+from pyasn1.type.char import UTF8String
 from x509sak.OID import OID, OIDDB
 from x509sak.Exceptions import InvalidInputException
+from x509sak.SecurityEstimator import SecurityEstimator
 
 class RelativeDistinguishedName(object):
+	_RDNItem = collections.namedtuple("RDNItem", [ "oid", "derdata", "asn1", "decodable", "printable" ])
+
 	def __init__(self, rdn_list):
 		assert(isinstance(rdn_list, (tuple, list)))
 		assert(all(isinstance(value[0], OID) for value in rdn_list))
-		assert(all(isinstance(value[1], (str, bytes)) for value in rdn_list))
+		assert(all(isinstance(value[1], bytes) for value in rdn_list))
 		if len(rdn_list) == 0:
 			raise InvalidInputException("Empty RDN is not permitted.")
-		self._rdn_list = tuple(rdn_list)
+		self._rdn_list = tuple(self._decode_item(oid, derdata) for (oid, derdata) in rdn_list)
 
 	@classmethod
 	def create(cls, *key_values):
+		def encode(text):
+			asn1 = UTF8String(text)
+			derdata = pyasn1.codec.der.encoder.encode(asn1)
+			return derdata
 		if (len(key_values) % 2) != 0:
 			raise InvalidInputException("Length of key/values must be evenly divisible by two.")
 		rdn_list = [ ]
@@ -43,8 +53,27 @@ class RelativeDistinguishedName(object):
 			assert(isinstance(key, str))
 			assert(isinstance(value, (str, bytes)))
 			oid = OIDDB.RDNTypes.inverse(key)
-			rdn_list.append((oid, value))
+			rdn_list.append((oid, encode(value)))
 		return cls(rdn_list)
+
+	@classmethod
+	def _decode_item(cls, oid, derdata):
+		try:
+			(decoded_attribute_value, tail) = pyasn1.codec.der.decoder.decode(derdata)
+			if len(tail) != 0:
+				# Refuse to decode if there's trailing data.
+				decoded_attribute_value = None
+		except pyasn1.error.PyAsn1Error:
+			decoded_attribute_value = None
+
+		if isinstance(decoded_attribute_value, (pyasn1.type.char.UTF8String, pyasn1.type.char.PrintableString, pyasn1.type.char.IA5String, pyasn1.type.char.TeletexString, pyasn1.type.char.BMPString, pyasn1.type.char.UniversalString)):
+			# Use the string representation
+			printable_value = str(decoded_attribute_value)
+		else:
+			# Use the bytes representation
+			printable_value = "#" + derdata.hex()
+
+		return cls._RDNItem(oid = oid, derdata = derdata, asn1 = decoded_attribute_value, decodable = decoded_attribute_value is not None, printable = printable_value)
 
 	@property
 	def component_cnt(self):
@@ -97,7 +126,7 @@ class RelativeDistinguishedName(object):
 			else:
 				# bytes handling
 				return "#" + text.hex()
-		return "+".join("%s=%s" % (OIDDB.RDNTypes.get(key, key), escape(value)) for (key, value) in reversed(self._rdn_list))
+		return "+".join("%s=%s" % (OIDDB.RDNTypes.get(item.oid, item.oid), escape(item.printable or "/")) for item in reversed(self._rdn_list))
 
 	@property
 	def pretty_str(self):
@@ -106,7 +135,10 @@ class RelativeDistinguishedName(object):
 				return "\"%s\"" % (text.replace("\"", "\\\""))
 			else:
 				return text
-		return ", ".join("%s = %s" % (OIDDB.RDNTypes.get(key, key), escape(value)) for (key, value) in sorted(self._rdn_list))
+		return ", ".join("%s = %s" % (OIDDB.RDNTypes.get(item.oid, item.oid), escape(item.printable or "/")) for item in sorted(self._rdn_list))
+
+	def __iter__(self):
+		return iter(self._rdn_list)
 
 	def __hash__(self):
 		return hash(tuple(sorted(self._rdn_list)))
@@ -141,21 +173,7 @@ class DistinguishedName(object):
 			for attribute_type_and_value in rdn:
 				attribute_type_oid = OID.from_asn1(attribute_type_and_value[0])
 				attribute_value = bytes(attribute_type_and_value[1])
-				try:
-					(decoded_attribute_value, tail) = pyasn1.codec.der.decoder.decode(attribute_value)
-					if len(tail) != 0:
-						# Refuse to decode if there's trailing data.
-						decoded_attribute_value = None
-				except pyasn1.error.PyAsn1Error:
-					decoded_attribute_value = None
-
-				if isinstance(decoded_attribute_value, (pyasn1.type.char.UTF8String, pyasn1.type.char.PrintableString, pyasn1.type.char.IA5String, pyasn1.type.char.TeletexString, pyasn1.type.char.BMPString, pyasn1.type.char.UniversalString)):
-					# Use the string representation
-					value = str(decoded_attribute_value)
-				else:
-					# Use the bytes representation
-					value = attribute_value
-				rdn_elements.append((attribute_type_oid, value))
+				rdn_elements.append((attribute_type_oid, attribute_value))
 			rdns.append(RelativeDistinguishedName(rdn_elements))
 		dn = cls(rdns)
 		return dn
@@ -170,9 +188,13 @@ class DistinguishedName(object):
 
 	def analyze(self, analysis_options = None):
 		return {
-			"rfc2253":	self.rfc2253_str,
-			"pretty":	self.pretty_str,
+			"rfc2253":		self.rfc2253_str,
+			"pretty":		self.pretty_str,
+			"security":		SecurityEstimator.algorithm("dn", analysis_options = analysis_options).analyze(self),
 		}
+
+	def __iter__(self):
+		return iter(self._rdns)
 
 	def __eq__(self, other):
 		return self._rdns == other._rdns

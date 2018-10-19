@@ -89,6 +89,10 @@ class JudgementCode(enum.Enum):
 	Cert_Serial_Zero = ("Certificate serial", "serial is zero")
 	Cert_Serial_Negative = ("Certificate serial", "serial is negative")
 	Cert_UniqueID_NotAllowed = ("Certificate unique ID", "subject/issuer unique ID not allowed in non-v2 certificate")
+	DN_Contains_Illegal_Char = ("Digstinguished name", "illegal character present")
+	DN_Contains_Deprecated_Type = ("Distinguished name", "deprecated type present")
+	DN_Contains_NonPrintable = ("Distinguished name", "non-printable type present")
+	DN_Contains_MultiValues = ("Distinguished name", "multi-valued RDN present")
 
 	@property
 	def topic(self):
@@ -265,7 +269,8 @@ class SecurityJudgements(object):
 			# Just ignore it
 			return self
 		assert(isinstance(judgement, (SecurityJudgement, SecurityJudgements)))
-		self._judgements.append(judgement)
+		if judgement.component_cnt > 0:
+			self._judgements.append(judgement)
 		return self
 
 	def _clone(self):
