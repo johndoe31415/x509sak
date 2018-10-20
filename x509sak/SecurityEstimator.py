@@ -341,6 +341,13 @@ class CrtMiscSecurityEstimator(SecurityEstimator):
 		except pyasn1.error.PyAsn1Error:
 			judgements += SecurityJudgement(JudgementCode.Cert_Pubkey_Invalid_DER, "Certificate public key uses invalid DER encoding. Re-encoding was not possible.", compatibility = Compatibility.STANDARDS_VIOLATION)
 
+		oid_header = OID.from_asn1(certificate.asn1["tbsCertificate"]["signature"]["algorithm"])
+		oid_sig = OID.from_asn1(certificate.asn1["signatureAlgorithm"]["algorithm"])
+		if oid_header != oid_sig:
+			name_header = OIDDB.SignatureAlgorithms.get(oid_header, str(oid_header))
+			name_sig = OIDDB.SignatureAlgorithms.get(oid_sig, str(oid_sig))
+			judgements += SecurityJudgement(JudgementCode.Cert_Signature_Algorithm_Mismatch, "Certificate indicates signature algorithm %s in header section and %s in signature section. This is a direct violation of RFC5280 Sect. 4.1.1.2." % (name_header, name_sig), compatibility = Compatibility.STANDARDS_VIOLATION)
+
 		return {
 			"security":			judgements,
 		}

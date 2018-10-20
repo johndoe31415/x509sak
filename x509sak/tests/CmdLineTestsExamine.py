@@ -67,8 +67,8 @@ class CmdLineTestsExamine(BaseTest):
 			codes = self._get_codes(data)
 			self.assertIn(expect_code, codes)
 
-#	def test_examine_x509test_xf_algo_mismatch1(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-algo-mismatch1.pem", "")
+	def test_examine_x509test_xf_algo_mismatch1(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-algo-mismatch1.pem", "Cert_Signature_Algorithm_Mismatch")
 
 	def test_examine_x509test_xf_der_invalid_bitstring(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-der-invalid-bitstring.pem", "Cert_Invalid_DER")
