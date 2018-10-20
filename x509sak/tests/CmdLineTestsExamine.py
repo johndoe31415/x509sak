@@ -254,26 +254,21 @@ class CmdLineTestsExamine(BaseTest):
 #	def test_examine_x509test_xf_ext_issuer_altname_critical(self):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-issuer-altname-critical.pem", "")
 #		self._test_examine_x509test_noparse("certs/x509test/xf-ext-issuer-altname-critical.pem")
-#
-#	def test_examine_x509test_xf_ext_key_usage_empty(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-key-usage-empty.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-key-usage-empty.pem")
-#
-#	def test_examine_x509test_xf_ext_key_usage_noncritical(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-key-usage-noncritical.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-key-usage-noncritical.pem")
-#
-#	def test_examine_x509test_xf_ext_key_usage_sign_nonca(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-key-usage-sign-nonca.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-key-usage-sign-nonca.pem")
-#
-#	def test_examine_x509test_xf_ext_key_usage_too_long(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-key-usage-too-long.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-key-usage-too-long.pem")
-#
+
+	def test_examine_x509test_xf_ext_key_usage_empty(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-key-usage-empty.pem", "Cert_X509Ext_KeyUsage_Empty")
+
+	def test_examine_x509test_xf_ext_key_usage_noncritical(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-key-usage-noncritical.pem", "Cert_X509Ext_KeyUsage_NonCritical")
+
+	def test_examine_x509test_xf_ext_key_usage_sign_nonca(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-key-usage-sign-nonca.pem", "Cert_X509Ext_KeyUsage_SignCertNoCA")
+
+	def test_examine_x509test_xf_ext_key_usage_too_long(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-key-usage-too-long.pem", "Cert_X509Ext_KeyUsage_TooLong")
+
 #	def test_examine_x509test_xf_ext_key_usage_wrong_der(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-key-usage-wrong-der.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-key-usage-wrong-der.pem")
+#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-key-usage-wrong-der.pem", "Cert_X509Ext_KeyUsage_InvalidDER")
 #
 #	def test_examine_x509test_xf_ext_keysign_nonca(self):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-keysign-nonca.pem", "")

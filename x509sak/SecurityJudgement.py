@@ -65,6 +65,11 @@ class JudgementCode(enum.Enum):
 	Cert_X509Ext_NameConstraints_PresentButNotCritical = ("X.509 NameConstraints extension", "NameConstraints extension not marked critical")
 	Cert_X509Ext_NameConstraints_PresentButNotCA = ("X.509 NameConstraints extension", "NameConstraints extension in non-CA certificate")
 	Cert_X509Ext_NotAllowed = ("X.509 extensions", "no extensions permissible")
+	Cert_X509Ext_KeyUsage_Empty = ("X.509 KeyUsage extension", "empty sequence")
+	Cert_X509Ext_KeyUsage_TooLong = ("X.509 KeyUsage extension", "too many items")
+	Cert_X509Ext_KeyUsage_NonCritical = ("X.509 KeyUsage extension", "extension marked non-critical")
+	Cert_X509Ext_KeyUsage_SignCertNoCA = ("X.509 KeyUsage extension", "keyCertSign flag present but not CA certificate")
+	Cert_X509Ext_KeyUsage_SignCertNoBasicConstraints = ("X.509 KeyUsage extension", "keyCertSign flag present but no BasicConstraints extension")
 	SignatureFunction_UncommonPaddingScheme = ("Signature function", "uncommon padding scheme")
 	SignatureFunction_UncommonCryptosystem = ("Signature function", "uncommon cryptosystem")
 	SignatureFunction_Common = ("Signature function", "common signature function")
@@ -118,8 +123,9 @@ class Commonness(enum.IntEnum):
 
 class Compatibility(enum.IntEnum):
 	STANDARDS_VIOLATION = 0
-	LIMITED_SUPPORT = 1
-	FULLY_COMPLIANT = 2
+	STANDARDS_RECOMMENDATION = 1
+	LIMITED_SUPPORT = 2
+	FULLY_COMPLIANT = 3
 
 class SecurityJudgement(object):
 	def __init__(self, code, text, bits = None, verdict = None, commonness = None, compatibility = None, prefix_topic = False):

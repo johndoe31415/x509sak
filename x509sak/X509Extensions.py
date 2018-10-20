@@ -115,9 +115,10 @@ class X509Extension(object):
 		self._critical = critical
 		self._data = data
 		self._asn1 = None
+		self._not_decoded = data
 		if self._ASN1_MODEL is not None:
 			try:
-				(self._asn1, _) = pyasn1.codec.der.decoder.decode(self.data, asn1Spec = self._ASN1_MODEL())
+				(self._asn1, self._not_decoded) = pyasn1.codec.der.decoder.decode(self.data, asn1Spec = self._ASN1_MODEL())
 			except pyasn1.error.PyAsn1Error as e:
 #				print("Couldn't parse ASN.1 extension: %s" % (str(e)))
 				pass
@@ -150,6 +151,10 @@ class X509Extension(object):
 	@property
 	def data(self):
 		return self._data
+
+	@property
+	def not_decoded(self):
+		return self._not_decoded
 
 	@property
 	def asn1(self):

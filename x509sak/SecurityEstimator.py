@@ -535,6 +535,29 @@ class CrtExtensionsSecurityEstimator(SecurityEstimator):
 				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_NameConstraints_PresentButNotCA, "NameConstraints X.509 extension present, but certificate is not a CA certificate. This is a direct violation of RFC5280 Sect. 4.2.1.10.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION)
 		return judgements
 
+
+	def _judge_key_usage(self, certificate, extensions):
+		judgements = SecurityJudgements()
+		ku_ext = extensions.get_first(OIDDB.X509Extensions.inverse("KeyUsage"))
+		if ku_ext is not None:
+			max_bit_cnt = 9
+			if len(ku_ext.asn1) == 0:
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_KeyUsage_Empty, "KeyUsage extension present, but contains empty bitlist. This is a direct violation of RFC5280 Sect. 4.2.1.3.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION)
+			elif len(ku_ext.asn1) > max_bit_cnt:
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_KeyUsage_TooLong, "KeyUsage extension present, but contains too many bits (%d found, %d expected at maximum). This is a direct violation of RFC5280 Sect. 4.2.1.3." % (len(ku_ext.asn1), max_bit_cnt), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION)
+
+			if not ku_ext.critical:
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_KeyUsage_NonCritical, "KeyUsage extension present, but not marked as critical. This is a recommendation of RFC5280 Sect. 4.2.1.3.", compatibility = Compatibility.STANDARDS_RECOMMENDATION)
+
+			if "keyCertSign" in ku_ext.flags:
+				if not certificate.is_ca_certificate:
+					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_KeyUsage_SignCertNoCA, "KeyUsage extension contains the keyCertSign flag, but certificate is not a CA certificate. This is a recommendation of RFC5280 Sect. 4.2.1.3.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION)
+
+				bc = extensions.get_first(OIDDB.X509Extensions.inverse("BasicConstraints"))
+				if bc is None:
+					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_KeyUsage_SignCertNoBasicConstraints, "KeyUsage extension contains the keyCertSign flag, but no BasicConstraints extension. This is a recommendation of RFC5280 Sect. 4.2.1.3.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION)
+		return judgements
+
 	def analyze(self, certificate):
 		extensions = certificate.get_extensions()
 
@@ -549,6 +572,7 @@ class CrtExtensionsSecurityEstimator(SecurityEstimator):
 		judgements += self._judge_basic_constraints(extensions)
 		judgements += self._judge_subject_key_identifier(certificate.pubkey, extensions)
 		judgements += self._judge_name_constraints(certificate, extensions)
+		judgements += self._judge_key_usage(certificate, extensions)
 
 		return {
 			"individual":	individual,
