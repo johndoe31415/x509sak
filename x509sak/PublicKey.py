@@ -126,6 +126,9 @@ class PublicKey(PEMDERObject):
 		asn1["subjectPublicKey"] = ASN1Tools.bytes2bitstring(inner_key)
 		return cls.from_asn1(asn1)
 
+	def recreate(self):
+		return self.create(self.pk_alg.value.cryptosystem, self._key)
+
 	def analyze(self, analysis_options = None):
 		result = {
 			"pubkey_alg":	self._pk_alg.value.name,

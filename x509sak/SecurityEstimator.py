@@ -327,9 +327,19 @@ class CrtMiscSecurityEstimator(SecurityEstimator):
 		elif certificate.serial == 0:
 			judgements += SecurityJudgement(JudgementCode.Cert_Serial_Zero, "Certificate serial number is zero. This is a direct violation of RFC5280, Sect. 4.1.2.2.", compatibility = Compatibility.STANDARDS_VIOLATION)
 
-		cert_reencoding = pyasn1.codec.der.encoder.encode(certificate.asn1)
-		if cert_reencoding != certificate.der_data:
-			judgements += SecurityJudgement(JudgementCode.Cert_Invalid_DER, "Certificate uses invalid DER encoding. Decoding and re-encoding yields %d byte blob while original was %d bytes." % (len(cert_reencoding), len(certificate.der_data)), compatibility = Compatibility.STANDARDS_VIOLATION)
+		try:
+			cert_reencoding = pyasn1.codec.der.encoder.encode(certificate.asn1)
+			if cert_reencoding != certificate.der_data:
+				judgements += SecurityJudgement(JudgementCode.Cert_Invalid_DER, "Certificate uses invalid DER encoding. Decoding and re-encoding yields %d byte blob while original was %d bytes." % (len(cert_reencoding), len(certificate.der_data)), compatibility = Compatibility.STANDARDS_VIOLATION)
+		except pyasn1.error.PyAsn1Error:
+			judgements += SecurityJudgement(JudgementCode.Cert_Invalid_DER, "Certificate uses invalid DER encoding. Re-encoding was not possible.", compatibility = Compatibility.STANDARDS_VIOLATION)
+
+		try:
+			pubkey_reencoding = pyasn1.codec.der.encoder.encode(certificate.pubkey.recreate().asn1)
+			if pubkey_reencoding != certificate.pubkey.der_data:
+				judgements += SecurityJudgement(JudgementCode.Cert_Pubkey_Invalid_DER, "Certificate public key uses invalid DER encoding. Decoding and re-encoding yields %d byte blob while original was %d bytes." % (len(pubkey_reencoding), len(certificate.pubkey.der_data)), compatibility = Compatibility.STANDARDS_VIOLATION)
+		except pyasn1.error.PyAsn1Error:
+			judgements += SecurityJudgement(JudgementCode.Cert_Pubkey_Invalid_DER, "Certificate public key uses invalid DER encoding. Re-encoding was not possible.", compatibility = Compatibility.STANDARDS_VIOLATION)
 
 		return {
 			"security":			judgements,

@@ -76,6 +76,7 @@ class JudgementCode(enum.Enum):
 	HashFunction_Length = ("Hash function", "length of output")
 	HashFunction_Derated = ("Hash function", "derating of security level")
 	Cert_Invalid_DER = ("Certificate encoding", "invalid DER used")
+	Cert_Pubkey_Invalid_DER = ("Certificate encoding", "invalid DER used in public key")
 	Cert_Has_No_CN = ("Certificate identity", "no CN present")
 	Cert_CN_Match = ("Certificate identity", "CN matches expected name")
 	Cert_CN_Match_MultiValue_RDN = ("Certificate identity", "CN matches expected name, but is multivalue RDN")
