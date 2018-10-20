@@ -69,12 +69,10 @@ class CmdLineTestsExamine(BaseTest):
 
 #	def test_examine_x509test_xf_algo_mismatch1(self):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-algo-mismatch1.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-algo-mismatch1.pem")
-#
-#	def test_examine_x509test_xf_der_invalid_bitstring(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-der-invalid-bitstring.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-der-invalid-bitstring.pem")
-#
+
+	def test_examine_x509test_xf_der_invalid_bitstring(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-der-invalid-bitstring.pem", "Cert_Invalid_DER")
+
 	def test_examine_x509test_xf_der_invalid_nonminimal_int(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-der-invalid-nonminimal-int.pem", "Cert_Invalid_DER")
 
