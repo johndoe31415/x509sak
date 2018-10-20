@@ -308,7 +308,9 @@ class DistinguishedNameSecurityEstimator(SecurityEstimator):
 			for rdn_item in rdn:
 				judgements += self._analyze_rdn_item(rdn_item)
 		return {
-			"security":			judgements,
+			"rfc2253":		dn.rfc2253_str,
+			"pretty":		dn.pretty_str,
+			"security":		judgements,
 		}
 SecurityEstimator.register(DistinguishedNameSecurityEstimator)
 

@@ -205,8 +205,14 @@ class ActionExamineCert(BaseAction):
 			else:
 				printer.print("Source : %s (certificate %d of %d)" % (analysis["source"]["name"], analysis["source"]["cert_no"], analysis["source"]["certs_total"]))
 			printer.print("Issuer : %s" % (analysis["issuer"]["pretty"]))
+			if len(analysis["issuer"]["security"]["components"]) > 0:
+				self._print_verdict(printer, analysis["issuer"]["security"], indent = "  ")
 			printer.print("Subject: %s" % (analysis["subject"]["pretty"]))
-			self._print_verdict(printer, analysis["misc"]["security"], indent = "  ")
+			if len(analysis["subject"]["security"]["components"]) > 0:
+				self._print_verdict(printer, analysis["subject"]["security"], indent = "  ")
+			if len(analysis["misc"]["security"]["components"]) > 0:
+				printer.print("Misc observations:")
+				self._print_verdict(printer, analysis["misc"]["security"], indent = "  ")
 			printer.print()
 
 			printer.heading("Validity")

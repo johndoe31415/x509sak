@@ -187,11 +187,7 @@ class DistinguishedName(object):
 		return ", ".join(rdn.pretty_str for rdn in self._rdns)
 
 	def analyze(self, analysis_options = None):
-		return {
-			"rfc2253":		self.rfc2253_str,
-			"pretty":		self.pretty_str,
-			"security":		SecurityEstimator.algorithm("dn", analysis_options = analysis_options).analyze(self),
-		}
+		return SecurityEstimator.algorithm("dn", analysis_options = analysis_options).analyze(self)
 
 	def __iter__(self):
 		return iter(self._rdns)
