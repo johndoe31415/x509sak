@@ -72,20 +72,19 @@ class ActionForgeCert(BaseAction):
 
 		# Do identifiers need to be recalculated?
 		if self._args.recalculate_keyids:
-			x509_extensions = subject.get_extensions()
-			if x509_extensions.has(OIDDB.X509Extensions.inverse("SubjectKeyIdentifier")):
+			if subject.extensions.has(OIDDB.X509Extensions.inverse("SubjectKeyIdentifier")):
 				# Replace subject key identifier
 				new_key_id = subject_pubkey.keyid()
 				replacement_extension = X509SubjectKeyIdentifierExtension.construct(new_key_id)
-				x509_extensions.filter(OIDDB.X509Extensions.inverse("SubjectKeyIdentifier"), replacement_extension)
+				subject.extensions.filter(OIDDB.X509Extensions.inverse("SubjectKeyIdentifier"), replacement_extension)
 
-			if x509_extensions.has(OIDDB.X509Extensions.inverse("AuthorityKeyIdentifier")):
+			if subject.extensions.has(OIDDB.X509Extensions.inverse("AuthorityKeyIdentifier")):
 				# Replace authority key identifier
 				new_key_id = issuer_pubkey.keyid()
 				replacement_extension = X509AuthorityKeyIdentifierExtension.construct(new_key_id)
-				x509_extensions.filter(OIDDB.X509Extensions.inverse("AuthorityKeyIdentifier"), replacement_extension)
+				subject.extensions.filter(OIDDB.X509Extensions.inverse("AuthorityKeyIdentifier"), replacement_extension)
 
-			forged_cert_asn1["tbsCertificate"]["extensions"] = x509_extensions.to_asn1()
+			forged_cert_asn1["tbsCertificate"]["extensions"] = subject.extensions.to_asn1()
 
 		# Re-serialize certificate
 		forged_cert = X509Certificate.from_asn1(forged_cert_asn1)

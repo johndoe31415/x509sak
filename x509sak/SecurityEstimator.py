@@ -459,15 +459,15 @@ class CrtExtensionsSecurityEstimator(SecurityEstimator):
 				})
 		return result
 
-	def _judge_may_have_exts(self, certificate, extensions):
-		if (certificate.version < 3) and len(extensions) > 0:
+	def _judge_may_have_exts(self, certificate):
+		if (certificate.version < 3) and len(certificate.extensions) > 0:
 			return SecurityJudgement(JudgementCode.Cert_X509Ext_NotAllowed, "X.509 extension present in v%d certificate. This is a direct violation of RFC5280, Sect. 4.1.2.9." % (certificate.version), compatibility = Compatibility.STANDARDS_VIOLATION)
 		else:
 			return None
 
-	def _judge_unique_id(self, certificate, extensions):
+	def _judge_unique_id(self, certificate):
 		judgements = SecurityJudgements()
-		if (certificate.version == 1) or ((certificate.version == 3) and (len(extensions) == 0)):
+		if (certificate.version == 1) or ((certificate.version == 3) and (len(certificate.extensions) == 0)):
 			if certificate.version == 3:
 				additional_note = " without any X.509 extensions"
 			else:
@@ -478,10 +478,10 @@ class CrtExtensionsSecurityEstimator(SecurityEstimator):
 				judgements += SecurityJudgement(JudgementCode.Cert_UniqueID_NotAllowed, "Subject unique IDs is present in v%d certificate%s. This is a direct violation of RFC5280, Sect. 4.1.2.8." % (certificate.version, additional_note), compatibility = Compatibility.STANDARDS_VIOLATION)
 		return judgements
 
-	def _judge_uniqueness(self, extensions):
+	def _judge_uniqueness(self, certificate):
 		have_oids = set()
 
-		for extension in extensions:
+		for extension in certificate.extensions:
 			if extension.oid in have_oids:
 				judgement = SecurityJudgement(JudgementCode.Cert_X509Ext_Duplicate, "X.509 extension %s (OID %s) is present at least twice. This is a direct violation of RFC5280, Sect. 4.2." % (extension.name, str(extension.oid)), compatibility = Compatibility.STANDARDS_VIOLATION)
 				break
@@ -490,8 +490,8 @@ class CrtExtensionsSecurityEstimator(SecurityEstimator):
 			judgement = SecurityJudgement(JudgementCode.Cert_X509Ext_All_Unique, "All X.509 extensions are unique.", commonness = Commonness.COMMON)
 		return judgement
 
-	def _judge_basic_constraints(self, extensions):
-		bc = extensions.get_first(OIDDB.X509Extensions.inverse("BasicConstraints"))
+	def _judge_basic_constraints(self, certificate):
+		bc = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("BasicConstraints"))
 		if bc is None:
 			judgement = SecurityJudgement(JudgementCode.Cert_X509Ext_BasicConstraints_Missing, "BasicConstraints extension is missing.", commonness = Commonness.HIGHLY_UNUSUAL)
 		else:
@@ -501,8 +501,8 @@ class CrtExtensionsSecurityEstimator(SecurityEstimator):
 				judgement = SecurityJudgement(JudgementCode.Cert_X509Ext_BasicConstraints_PresentAndCritical, "BasicConstraints extension is present and marked as critical.", commonness = Commonness.COMMON)
 		return judgement
 
-	def _judge_subject_key_identifier(self, pubkey, extensions):
-		ski = extensions.get_first(OIDDB.X509Extensions.inverse("SubjectKeyIdentifier"))
+	def _judge_subject_key_identifier(self, certificate):
+		ski = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("SubjectKeyIdentifier"))
 		if ski is None:
 			judgement = SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectKeyIdentifier_Missing, "SubjectKeyIdentifier extension is missing.", commonness = Commonness.UNUSUAL)
 		else:
@@ -511,7 +511,7 @@ class CrtExtensionsSecurityEstimator(SecurityEstimator):
 			cert_ski = ski.keyid
 			for hashfnc in check_hashfncs:
 				try:
-					computed_ski = pubkey.keyid(hashfnc = hashfnc.name)
+					computed_ski = certificate.pubkey.keyid(hashfnc = hashfnc.name)
 					if cert_ski == computed_ski:
 						if hashfnc == HashFunctions.sha1:
 							judgement = SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectKeyIdentifier_SHA1, "SubjectKeyIdentifier present and matches SHA-1 of contained public key.", commonness = Commonness.COMMON)
@@ -525,9 +525,9 @@ class CrtExtensionsSecurityEstimator(SecurityEstimator):
 				judgement = SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectKeyIdentifier_Arbitrary, "SubjectKeyIdentifier key ID (%s) does not match any tested cryptographic hash function (%s) over the contained public key." % (ski.keyid.hex(), ", ".join(hashfnc.value.pretty_name for hashfnc in tried_hashfncs)), commonness = Commonness.HIGHLY_UNUSUAL)
 		return judgement
 
-	def _judge_name_constraints(self, certificate, extensions):
+	def _judge_name_constraints(self, certificate):
 		judgements = SecurityJudgements()
-		nc = extensions.get_first(OIDDB.X509Extensions.inverse("NameConstraints"))
+		nc = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("NameConstraints"))
 		if nc is not None:
 			if not nc.critical:
 				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_NameConstraints_PresentButNotCritical, "NameConstraints X.509 extension present, but not marked critical. This is a direct violation of RFC5280 Sect. 4.2.1.10.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION)
@@ -536,9 +536,9 @@ class CrtExtensionsSecurityEstimator(SecurityEstimator):
 		return judgements
 
 
-	def _judge_key_usage(self, certificate, extensions):
+	def _judge_key_usage(self, certificate):
 		judgements = SecurityJudgements()
-		ku_ext = extensions.get_first(OIDDB.X509Extensions.inverse("KeyUsage"))
+		ku_ext = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("KeyUsage"))
 		if ku_ext is not None:
 			max_bit_cnt = 9
 			if len(ku_ext.asn1) == 0:
@@ -553,26 +553,24 @@ class CrtExtensionsSecurityEstimator(SecurityEstimator):
 				if not certificate.is_ca_certificate:
 					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_KeyUsage_SignCertNoCA, "KeyUsage extension contains the keyCertSign flag, but certificate is not a CA certificate. This is a recommendation of RFC5280 Sect. 4.2.1.3.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION)
 
-				bc = extensions.get_first(OIDDB.X509Extensions.inverse("BasicConstraints"))
+				bc = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("BasicConstraints"))
 				if bc is None:
 					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_KeyUsage_SignCertNoBasicConstraints, "KeyUsage extension contains the keyCertSign flag, but no BasicConstraints extension. This is a recommendation of RFC5280 Sect. 4.2.1.3.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION)
 		return judgements
 
 	def analyze(self, certificate):
-		extensions = certificate.get_extensions()
-
 		individual = [ ]
-		for extension in extensions:
+		for extension in certificate.extensions:
 			individual.append(self._analyze_extension(extension))
 
 		judgements = SecurityJudgements()
-		judgements += self._judge_may_have_exts(certificate, extensions)
-		judgements += self._judge_unique_id(certificate, extensions)
-		judgements += self._judge_uniqueness(extensions)
-		judgements += self._judge_basic_constraints(extensions)
-		judgements += self._judge_subject_key_identifier(certificate.pubkey, extensions)
-		judgements += self._judge_name_constraints(certificate, extensions)
-		judgements += self._judge_key_usage(certificate, extensions)
+		judgements += self._judge_may_have_exts(certificate)
+		judgements += self._judge_unique_id(certificate)
+		judgements += self._judge_uniqueness(certificate)
+		judgements += self._judge_basic_constraints(certificate)
+		judgements += self._judge_subject_key_identifier(certificate)
+		judgements += self._judge_name_constraints(certificate)
+		judgements += self._judge_key_usage(certificate)
 
 		return {
 			"individual":	individual,
@@ -656,8 +654,7 @@ class PurposeEstimator(SecurityEstimator):
 				judgements += SecurityJudgement(JudgementCode.Cert_CN_NoMatch, "No common name (CN) matches '%s'." % (name), commonness = Commonness.UNUSUAL)
 
 		have_valid_san = False
-		extensions = certificate.get_extensions()
-		extension = extensions.get_first(OIDDB.X509Extensions.inverse("SubjectAlternativeName"))
+		extension = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("SubjectAlternativeName"))
 		if extension is not None:
 			for san_name in extension.get_all("dNSName"):
 				if self._san_name_match(san_name, name):
@@ -676,11 +673,10 @@ class PurposeEstimator(SecurityEstimator):
 
 	def _judge_purpose(self, certificate, purpose):
 		judgements = SecurityJudgements()
-		extensions = certificate.get_extensions()
-		#ku_ext = extensions.get_first(OIDDB.X509Extensions.inverse("KeyUsage"))
+		#ku_ext = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("KeyUsage"))
 		# TODO: Implement Key Usage
-		eku_ext = extensions.get_first(OIDDB.X509Extensions.inverse("ExtendedKeyUsage"))
-		ns_ext = extensions.get_first(OIDDB.X509Extensions.inverse("NetscapeCertificateType"))
+		eku_ext = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("ExtendedKeyUsage"))
+		ns_ext = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("NetscapeCertificateType"))
 
 		if purpose in [ AnalysisOptions.CertificatePurpose.TLSServerCertificate, AnalysisOptions.CertificatePurpose.TLSClientCertificate ]:
 			if certificate.is_ca_certificate:

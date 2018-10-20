@@ -64,12 +64,12 @@ class X509CertificateTests(BaseTest):
 
 	def test_extension_get(self):
 		cert = self._load_crt("ok/johannes-bauer.com")
-		exts = cert.get_extensions()
+		exts = cert.extensions
 		self.assertEqual(len(exts), 9)
 
 	def test_extension_has(self):
 		cert = self._load_crt("ok/johannes-bauer.com")
-		exts = cert.get_extensions()
+		exts = cert.extensions
 		self.assertTrue(exts.has(OIDDB.X509Extensions.inverse("ExtendedKeyUsage")))
 		self.assertTrue(exts.has(OIDDB.X509Extensions.inverse("SubjectKeyIdentifier")))
 		self.assertFalse(exts.has(OIDDB.X509Extensions.inverse("CertSRVCAVersion")))
@@ -81,7 +81,7 @@ class X509CertificateTests(BaseTest):
 
 	def test_extension_ski(self):
 		cert = self._load_crt("ok/johannes-bauer.com")
-		exts = cert.get_extensions()
+		exts = cert.extensions
 		ext = exts.get_first(OIDDB.X509Extensions.inverse("CertSRVCAVersion"))
 		self.assertIsNone(ext)
 		ext = exts.get_first(OIDDB.X509Extensions.inverse("SubjectKeyIdentifier"))
@@ -90,7 +90,7 @@ class X509CertificateTests(BaseTest):
 
 	def test_extension_aki(self):
 		cert = self._load_crt("ok/johannes-bauer.com")
-		exts = cert.get_extensions()
+		exts = cert.extensions
 		ext = exts.get_first(OIDDB.X509Extensions.inverse("AuthorityKeyIdentifier"))
 		self.assertIsNotNone(ext)
 		self.assertEqual(ext.keyid, bytes.fromhex("A84A6A63047DDDBAE6D139B7A64565EFF3A8ECA1"))

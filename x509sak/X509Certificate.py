@@ -53,6 +53,9 @@ class X509Certificate(PEMDERObject):
 	_ASN1_MODEL = rfc2459.Certificate
 	_CERT_VERIFY_REGEX = re.compile(r"error (?P<error_code>\d+) at (?P<depth>\d+) depth lookup:(?P<reason>.*)")
 
+	def _post_decode_hook(self):
+		self._extensions = None
+
 	@property
 	def signed_payload(self):
 		return pyasn1.codec.der.encoder.encode(self._asn1["tbsCertificate"])
@@ -119,6 +122,12 @@ class X509Certificate(PEMDERObject):
 		signature = ASN1Tools.bitstring2bytes(self._asn1["signatureValue"])
 		return signature
 
+	@property
+	def extensions(self):
+		if self._extensions is None:
+			self._extensions = self._get_extensions()
+		return self._extensions
+
 	def is_time_valid(self, now = None):
 		if now is None:
 			now = datetime.datetime.utcnow()
@@ -129,7 +138,7 @@ class X509Certificate(PEMDERObject):
 			now = datetime.datetime.utcnow()
 		return (self.valid_not_after - now).total_seconds()
 
-	def get_extensions(self):
+	def _get_extensions(self):
 		result = [ ]
 		if self._asn1["tbsCertificate"]["extensions"] is not None:
 			for extension in self._asn1["tbsCertificate"]["extensions"]:
@@ -198,14 +207,13 @@ class X509Certificate(PEMDERObject):
 
 	@property
 	def is_ca_certificate(self):
-		extensions = self.get_extensions()
-		if len(extensions) == 0:
+		if len(self.extensions) == 0:
 			return True
 		else:
 			# RFC5280, 4.2: "A certificate MUST NOT include more than one
 			# instance of a particular extension." -- we assume the certificate
 			# is sane and elect to get the first extension.
-			basic_constraints = extensions.get_first(OIDDB.X509Extensions.inverse("BasicConstraints"))
+			basic_constraints = self.extensions.get_first(OIDDB.X509Extensions.inverse("BasicConstraints"))
 			if basic_constraints is None:
 				# RFC5280, 4.2.1.9: "If the basic constraints extension is not present in a
 				# version 3 certificate, or the extension is present but the cA boolean
@@ -225,7 +233,7 @@ class X509Certificate(PEMDERObject):
 			else:
 				return X509CertificateClass.CAIntermediate
 		else:
-			eku = self.get_extensions().get_first(OIDDB.X509Extensions.inverse("ExtendedKeyUsage"))
+			eku = self.extensions.get_first(OIDDB.X509Extensions.inverse("ExtendedKeyUsage"))
 			if eku is not None:
 				(client, server) = (eku.client_auth, eku.server_auth)
 				if client and server:

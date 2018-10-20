@@ -44,8 +44,8 @@ class CmdLineTestsForgeCert(BaseTest):
 
 			forged_root_crt = X509Certificate.read_pemfile("forged_00.crt")[0]
 			self._assertCrtsSimilar(root_crt, forged_root_crt)
-			orig_ski = root_crt.get_extensions().get_first(OIDDB.X509Extensions.inverse("SubjectKeyIdentifier"))
-			forged_ski = forged_root_crt.get_extensions().get_first(OIDDB.X509Extensions.inverse("SubjectKeyIdentifier"))
+			orig_ski = root_crt.extensions.get_first(OIDDB.X509Extensions.inverse("SubjectKeyIdentifier"))
+			forged_ski = forged_root_crt.extensions.get_first(OIDDB.X509Extensions.inverse("SubjectKeyIdentifier"))
 			self.assertEqual(orig_ski, forged_ski)
 
 	def test_forge_root_new_ski(self):
@@ -56,8 +56,8 @@ class CmdLineTestsForgeCert(BaseTest):
 
 			forged_root_crt = X509Certificate.read_pemfile("forged_00.crt")[0]
 			self._assertCrtsSimilar(root_crt, forged_root_crt)
-			orig_ski = root_crt.get_extensions().get_first(OIDDB.X509Extensions.inverse("SubjectKeyIdentifier"))
-			forged_ski = forged_root_crt.get_extensions().get_first(OIDDB.X509Extensions.inverse("SubjectKeyIdentifier"))
+			orig_ski = root_crt.extensions.get_first(OIDDB.X509Extensions.inverse("SubjectKeyIdentifier"))
+			forged_ski = forged_root_crt.extensions.get_first(OIDDB.X509Extensions.inverse("SubjectKeyIdentifier"))
 			self.assertNotEqual(orig_ski, forged_ski)
 
 	def test_forge_chain(self):
