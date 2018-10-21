@@ -288,6 +288,9 @@ class X509SubjectAlternativeNameExtension(X509Extension):
 	def get_all(self, name_type):
 		return [ asn1name for asn1name in self._known_names if asn1name.name == name_type ]
 
+	def __iter__(self):
+		return iter(self._known_names)
+
 	def __repr__(self):
 		return "%s<%s>" % (self.__class__.__name__, ", ".join(str(asn1name) for asn1name in self._known_names))
 X509ExtensionRegistry.set_handler_class(X509SubjectAlternativeNameExtension)

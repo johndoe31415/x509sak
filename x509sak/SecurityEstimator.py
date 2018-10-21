@@ -588,12 +588,27 @@ class CrtExtensionsSecurityEstimator(SecurityEstimator):
 					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_KeyUsage_SignCertNoBasicConstraints, "KeyUsage extension contains the keyCertSign flag, but no BasicConstraints extension. This is a recommendation of RFC5280 Sect. 4.2.1.3.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION)
 		return judgements
 
+	def _judge_single_name(self, entity_name):
+		if entity_name.name == "dNSName":
+			if not isinstance(entity_name.value, pyasn1.type.char.AbstractCharacterString):
+				return SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_InvalidType, "Subject Alternative Name X.509 exension of type dnsName expects a string value, but saw %s." % (entity_name.value.__class__.__name__), compatibility = Compatibility.STANDARDS_VIOLATION)
+			# TODO validate hostname
+		elif entity_name.name == "iPAddress":
+			if not isinstance(entity_name.value, pyasn1.type.univ.OctetString):
+				return SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_InvalidType, "Subject Alternative Name X.509 exension of type ipAddress expects an OctetString value, but saw %s." % (entity_name.value.__class__.__name__), compatibility = Compatibility.STANDARDS_VIOLATION)
+			if len(entity_name.value) not in [ 4, 16 ]:
+				return SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_BadIP, "Subject Alternative Name X.509 exension of type ipAddress expects either 4 or 16 bytes of data for IPv4/IPv6, but saw %d bytes." % (len(entity_name.value)), compatibility = Compatibility.STANDARDS_VIOLATION)
+		elif entity_name.name == "rfc822Name":
+			if not isinstance(entity_name.value, pyasn1.type.char.AbstractCharacterString):
+				return SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_InvalidType, "Subject Alternative Name X.509 exension of type rfc822Name expects a string value, but saw %s." % (entity_name.value.__class__.__name__), compatibility = Compatibility.STANDARDS_VIOLATION)
+			# TODO validate email
+
 	def _judge_subject_alternative_name(self, certificate):
 		judgements = SecurityJudgements()
 		san = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("SubjectAlternativeName"))
 		if san is not None:
-			# TODO implement me
-			pass
+			for entity_name in san:
+				judgements += self._judge_single_name(entity_name)
 		return judgements
 
 	def analyze(self, certificate):
