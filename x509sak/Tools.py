@@ -235,3 +235,30 @@ class TextTools(object):
 			else:
 				# Abbreviate head and tail
 				return text[ : head] + "..." + text[-tail : ]
+
+
+class ValidationTools(object):
+	_DOMAIN_NAME_RE = re.compile("([-a-zA-Z0-9]+\.)*[-a-zA-Z0-9]+")
+	_EMAIL_ADDRESS_RE = re.compile("(?P<mailbox>[-a-zA-Z0-9!#$%&'*+/=?^_`{|}~]+)@(?P<domainname>.*)")
+	_URI_RE = re.compile("(?P<scheme>[a-z]+):(?P<authority>/*[-a-zA-Z0-9+%_.:,=;@\[\]]+)?(?P<path>/[-a-zA-Z0-9+%_.:,=;@/]+)?(?P<query>\?[-a-zA-Z0-9+%_.:,=;@/?#]*)?")
+
+	@classmethod
+	def validate_email_address(cls, email_address):
+		"""Validate an email address according to a subset of RFC5322; i.e., we
+		don't even accept all RFC5322 mail addresses and even less all RFC822
+		email addresses here. This means that (technically) valid email
+		addresses will fail this check."""
+		match = cls._EMAIL_ADDRESS_RE.fullmatch(email_address)
+		if match is not None:
+			match = match.groupdict()
+			return cls.validate_domainname(match["domainname"])
+		else:
+			return False
+
+	@classmethod
+	def validate_domainname(cls, domainname):
+		return cls._DOMAIN_NAME_RE.fullmatch(domainname) is not None
+
+	@classmethod
+	def validate_uri(cls, uri):
+		return cls._URI_RE.fullmatch(uri) is not None

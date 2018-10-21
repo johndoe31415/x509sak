@@ -78,6 +78,7 @@ class JudgementCode(enum.Enum):
 	Cert_X509Ext_SubjectAltName_BadEmail = ("X.509 SubjectAlternativeName", "invalid email address")
 	Cert_X509Ext_SubjectAltName_BadDomain = ("X.509 SubjectAlternativeName", "invalid domain name")
 	Cert_X509Ext_SubjectAltName_InvalidType = ("X.509 SubjectAlternativeName", "invalid type used")
+	Cert_X509Ext_SubjectAltName_BadURI = ("X.509 SubjectAlternativeName", "invalid URI")
 	SignatureFunction_UncommonPaddingScheme = ("Signature function", "uncommon padding scheme")
 	SignatureFunction_UncommonCryptosystem = ("Signature function", "uncommon cryptosystem")
 	SignatureFunction_Common = ("Signature function", "common signature function")

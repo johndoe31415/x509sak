@@ -32,6 +32,7 @@ from x509sak.Exceptions import LazyDeveloperException, UnknownAlgorithmException
 from x509sak.AlgorithmDB import HashFunctions, SignatureAlgorithms
 from x509sak.SecurityJudgement import JudgementCode, SecurityJudgements, SecurityJudgement, Verdict, Commonness, Compatibility
 from x509sak.X509Extensions import X509ExtendedKeyUsageExtension
+from x509sak.Tools import ValidationTools
 import x509sak.ASN1Models as ASN1Models
 
 class AnalysisOptions(object):
@@ -595,19 +596,28 @@ class CrtExtensionsSecurityEstimator(SecurityEstimator):
 		return judgements
 
 	def _judge_single_name(self, entity_name):
+		expected_types = {
+			"dNSName":						pyasn1.type.char.IA5String,
+			"uniformResourceIdentifier":	pyasn1.type.char.IA5String,
+			"rfc822Name":					pyasn1.type.char.AbstractCharacterString,
+			"iPAddress":					pyasn1.type.univ.OctetString,
+		}
+		if entity_name.name in expected_types:
+			if not isinstance(entity_name.value, expected_types[entity_name.name]):
+				return SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_InvalidType, "Subject Alternative Name X.509 exension of type %s expects an %s value, but saw %s." % (entity_name.name, entity_name.value.__class__.__name__, expected_types[entity_name.name].__name__), compatibility = Compatibility.STANDARDS_VIOLATION)
+
 		if entity_name.name == "dNSName":
-			if not isinstance(entity_name.value, pyasn1.type.char.AbstractCharacterString):
-				return SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_InvalidType, "Subject Alternative Name X.509 exension of type dnsName expects a string value, but saw %s." % (entity_name.value.__class__.__name__), compatibility = Compatibility.STANDARDS_VIOLATION)
-			# TODO validate hostname
+			if not ValidationTools.validate_domainname(entity_name.pretty_value):
+				return SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_BadDomain, "Subject Alternative Name X.509 exension with type %s got invalid domain name \"%s\". This is a direct violation of RFC5280, Sect. 4.2.1.6." % (entity_name.name, entity_name.value), compatibility = Compatibility.STANDARDS_VIOLATION)
 		elif entity_name.name == "iPAddress":
-			if not isinstance(entity_name.value, pyasn1.type.univ.OctetString):
-				return SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_InvalidType, "Subject Alternative Name X.509 exension of type ipAddress expects an OctetString value, but saw %s." % (entity_name.value.__class__.__name__), compatibility = Compatibility.STANDARDS_VIOLATION)
 			if len(entity_name.value) not in [ 4, 16 ]:
 				return SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_BadIP, "Subject Alternative Name X.509 exension of type ipAddress expects either 4 or 16 bytes of data for IPv4/IPv6, but saw %d bytes." % (len(entity_name.value)), compatibility = Compatibility.STANDARDS_VIOLATION)
 		elif entity_name.name == "rfc822Name":
-			if not isinstance(entity_name.value, pyasn1.type.char.AbstractCharacterString):
-				return SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_InvalidType, "Subject Alternative Name X.509 exension of type rfc822Name expects a string value, but saw %s." % (entity_name.value.__class__.__name__), compatibility = Compatibility.STANDARDS_VIOLATION)
-			# TODO validate email
+			if not ValidationTools.validate_email_address(entity_name.pretty_value):
+				return SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_BadEmail, "Subject Alternative Name X.509 exension with type %s got invalid domain name \"%s\". This is a direct violation of RFC5280, Sect. 4.2.1.6." % (entity_name.name, entity_name.value), compatibility = Compatibility.STANDARDS_VIOLATION)
+		elif entity_name.name == "uniformResourceIdentifier":
+			if not ValidationTools.validate_uri(entity_name.pretty_value):
+				return SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_BadURI, "Subject Alternative Name X.509 exension with type %s got invalid domain name \"%s\". This is a direct violation of RFC5280, Sect. 4.2.1.6." % (entity_name.name, entity_name.value), compatibility = Compatibility.STANDARDS_VIOLATION)
 
 	def _judge_subject_alternative_name(self, certificate):
 		judgements = SecurityJudgements()

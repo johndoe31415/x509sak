@@ -111,13 +111,11 @@ class CmdLineTestsExamine(BaseTest):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-empty2.pem", "")
 #		self._test_examine_x509test_noparse("certs/x509test/xf-ext-altname-empty2.pem")
 #
-#	def test_examine_x509test_xf_ext_altname_invalid_domain(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-invalid-domain.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-altname-invalid-domain.pem")
-#
-#	def test_examine_x509test_xf_ext_altname_invalid_email(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-invalid-email.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-altname-invalid-email.pem")
+	def test_examine_x509test_xf_ext_altname_invalid_domain(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-invalid-domain.pem", "Cert_X509Ext_SubjectAltName_BadDomain")
+
+	def test_examine_x509test_xf_ext_altname_invalid_email(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-invalid-email.pem", "Cert_X509Ext_SubjectAltName_BadEmail")
 
 	def test_examine_x509test_xf_ext_altname_invalid_encoding(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-invalid-encoding.pem", "Cert_X509Ext_Malformed")
@@ -128,15 +126,13 @@ class CmdLineTestsExamine(BaseTest):
 #	def test_examine_x509test_xf_ext_altname_noncrit_nosubj(self):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-noncrit-nosubj.pem", "")
 #		self._test_examine_x509test_noparse("certs/x509test/xf-ext-altname-noncrit-nosubj.pem")
-#
-#	def test_examine_x509test_xf_ext_altname_relative_uri(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-relative-uri.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-altname-relative-uri.pem")
-#
-#	def test_examine_x509test_xf_ext_altname_schemeless_uri(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-schemeless-uri.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-altname-schemeless-uri.pem")
-#
+
+	def test_examine_x509test_xf_ext_altname_relative_uri(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-relative-uri.pem", "Cert_X509Ext_SubjectAltName_BadURI")
+
+	def test_examine_x509test_xf_ext_altname_schemeless_uri(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-schemeless-uri.pem", "Cert_X509Ext_SubjectAltName_BadURI")
+
 #	def test_examine_x509test_xf_ext_auth_info_critical(self):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-info-critical.pem", "")
 #		self._test_examine_x509test_noparse("certs/x509test/xf-ext-auth-info-critical.pem")
