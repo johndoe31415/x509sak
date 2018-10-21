@@ -76,32 +76,27 @@ class CmdLineTestsExamine(BaseTest):
 	def test_examine_x509test_xf_der_invalid_nonminimal_int(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-der-invalid-nonminimal-int.pem", "Cert_Invalid_DER")
 
-#	def test_examine_x509test_xf_der_invalid_uniqueid(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-der-invalid-uniqueid.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-der-invalid-uniqueid.pem")
+	def test_examine_x509test_xf_der_invalid_uniqueid(self):
+		self._test_examine_x509test_noparse("certs/x509test/xf-der-invalid-uniqueid.pem")
 
 	def test_examine_x509test_xf_der_pubkey_rsa_nonminimal_int(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-der-pubkey-rsa-nonminimal-int.pem", "Cert_Pubkey_Invalid_DER")
 
-#	def test_examine_x509test_xf_duplicate_extension(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-duplicate-extension.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-duplicate-extension.pem")
-#
-#	def test_examine_x509test_xf_duplicate_extension2(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-duplicate-extension2.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-duplicate-extension2.pem")
-#
-#	def test_examine_x509test_xf_ext_altname_blank_domain(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-blank-domain.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-altname-blank-domain.pem")
-#
+	def test_examine_x509test_xf_duplicate_extension(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-duplicate-extension.pem", "Cert_X509Ext_Duplicate")
+
+	def test_examine_x509test_xf_duplicate_extension2(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-duplicate-extension2.pem", "Cert_X509Ext_Duplicate")
+
+	def test_examine_x509test_xf_ext_altname_blank_domain(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-blank-domain.pem", "Cert_X509Ext_SubjectAltName_BadDomain")
+
 #	def test_examine_x509test_xf_ext_altname_critical_subject(self):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-critical-subject.pem", "")
 #		self._test_examine_x509test_noparse("certs/x509test/xf-ext-altname-critical-subject.pem")
 #
 #	def test_examine_x509test_xf_ext_altname_email_only(self):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-email-only.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-altname-email-only.pem")
 #
 #	def test_examine_x509test_xf_ext_altname_empty(self):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-empty.pem", "")
