@@ -394,10 +394,9 @@ class CmdLineTestsExamine(BaseTest):
 	def test_examine_x509test_xf_subject_t61(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-subject-t61.pem", "DN_Contains_Deprecated_Type")
 
-#	def test_examine_x509test_xf_unknown_critical_ext(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-unknown-critical-ext.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-unknown-critical-ext.pem")
-#
+	def test_examine_x509test_xf_unknown_critical_ext(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-unknown-critical-ext.pem", "Cert_X509Ext_Unknown_Critical")
+
 	def test_examine_x509test_xf_utctime_no_secs(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-utctime-no-secs.pem", "Cert_Validity_Invalid_NotBefore_Encoding")
 

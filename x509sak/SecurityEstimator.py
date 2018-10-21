@@ -486,6 +486,15 @@ class CrtExtensionsSecurityEstimator(SecurityEstimator):
 		else:
 			return None
 
+	def _judge_extension_known(self, certificate):
+		for ext in certificate.extensions:
+			oid_name = OIDDB.X509Extensions.get(ext.oid)
+			if oid_name is None:
+				if ext.critical:
+					return SecurityJudgement(JudgementCode.Cert_X509Ext_Unknown_Critical, "X.509 extension present with OID %s. This OID is not known and marked as critical; the certificate would be rejected under normal circumstances." % (ext.oid), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
+				else:
+					return SecurityJudgement(JudgementCode.Cert_X509Ext_Unknown_NonCritical, "X.509 extension present with OID %s. This OID is not known and marked as non-critical; the extension would be ignored under normal circumstances." % (ext.oid), commonness = Commonness.UNUSUAL)
+
 	def _judge_unique_id(self, certificate):
 		judgements = SecurityJudgements()
 		if (certificate.version == 1) or ((certificate.version == 3) and (len(certificate.extensions) == 0)):
@@ -594,6 +603,7 @@ class CrtExtensionsSecurityEstimator(SecurityEstimator):
 
 		judgements = SecurityJudgements()
 		judgements += self._judge_may_have_exts(certificate)
+		judgements += self._judge_extension_known(certificate)
 		judgements += self._judge_unique_id(certificate)
 		judgements += self._judge_uniqueness(certificate)
 		judgements += self._judge_basic_constraints(certificate)
