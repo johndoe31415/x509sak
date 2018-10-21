@@ -26,6 +26,7 @@ from pyasn1.type import tag
 from pyasn1_modules import rfc2459, rfc5280
 from x509sak.OID import OID, OIDDB
 from x509sak import ASN1Models
+from x509sak.ASN1Wrapper import ASN1NameWrapper
 
 class X509Extensions(object):
 	def __init__(self, extensions):
@@ -281,14 +282,14 @@ class X509SubjectAlternativeNameExtension(X509Extension):
 				name = known_namedtypes.name
 				value = altname.getComponentByName(known_namedtypes.name, None, instantiate = False)
 				if value is not None:
-					self._known_names.append((name, str(value)))
+					self._known_names.append(ASN1NameWrapper(name, value))
 					break
 
 	def get_all(self, name_type):
-		return [ value for (key, value) in self._known_names if (key == name_type) ]
+		return [ asn1name for asn1name in self._known_names if asn1name.name == name_type ]
 
 	def __repr__(self):
-		return "%s<%s>" % (self.__class__.__name__, ", ".join("%s = %s" % (key, value) for (key, value) in self._known_names))
+		return "%s<%s>" % (self.__class__.__name__, ", ".join(str(asn1name) for asn1name in self._known_names))
 X509ExtensionRegistry.set_handler_class(X509SubjectAlternativeNameExtension)
 
 

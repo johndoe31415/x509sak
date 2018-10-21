@@ -122,11 +122,10 @@ class CmdLineTestsExamine(BaseTest):
 #	def test_examine_x509test_xf_ext_altname_invalid_encoding(self):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-invalid-encoding.pem", "")
 #		self._test_examine_x509test_noparse("certs/x509test/xf-ext-altname-invalid-encoding.pem")
-#
+
 #	def test_examine_x509test_xf_ext_altname_ip_wrong(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-ip-wrong.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-altname-ip-wrong.pem")
-#
+#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-ip-wrong.pem", "Cert_X509Ext_SubjectAltName_BadIP")
+
 #	def test_examine_x509test_xf_ext_altname_noncrit_nosubj(self):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-noncrit-nosubj.pem", "")
 #		self._test_examine_x509test_noparse("certs/x509test/xf-ext-altname-noncrit-nosubj.pem")
@@ -269,11 +268,10 @@ class CmdLineTestsExamine(BaseTest):
 #	def test_examine_x509test_xf_ext_keysign_nonca(self):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-keysign-nonca.pem", "")
 #		self._test_examine_x509test_noparse("certs/x509test/xf-ext-keysign-nonca.pem")
-#
+
 #	def test_examine_x509test_xf_ext_name_constraints_badip(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-name-constraints-badip.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-name-constraints-badip.pem")
-#
+#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-name-constraints-badip.pem", "Cert_X509Ext_NameConstraints_BadIP")
+
 #	def test_examine_x509test_xf_ext_name_constraints_empty(self):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-name-constraints-empty.pem", "")
 #		self._test_examine_x509test_noparse("certs/x509test/xf-ext-name-constraints-empty.pem")

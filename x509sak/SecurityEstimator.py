@@ -579,6 +579,14 @@ class CrtExtensionsSecurityEstimator(SecurityEstimator):
 					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_KeyUsage_SignCertNoBasicConstraints, "KeyUsage extension contains the keyCertSign flag, but no BasicConstraints extension. This is a recommendation of RFC5280 Sect. 4.2.1.3.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION)
 		return judgements
 
+	def _judge_subject_alternative_name(self, certificate):
+		judgements = SecurityJudgements()
+		san = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("SubjectAlternativeName"))
+		if san is not None:
+			# TODO implement me
+			pass
+		return judgements
+
 	def analyze(self, certificate):
 		individual = [ ]
 		for extension in certificate.extensions:
@@ -592,6 +600,7 @@ class CrtExtensionsSecurityEstimator(SecurityEstimator):
 		judgements += self._judge_subject_key_identifier(certificate)
 		judgements += self._judge_name_constraints(certificate)
 		judgements += self._judge_key_usage(certificate)
+		judgements += self._judge_subject_alternative_name(certificate)
 
 		return {
 			"individual":	individual,
