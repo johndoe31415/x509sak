@@ -118,10 +118,9 @@ class CmdLineTestsExamine(BaseTest):
 #	def test_examine_x509test_xf_ext_altname_invalid_email(self):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-invalid-email.pem", "")
 #		self._test_examine_x509test_noparse("certs/x509test/xf-ext-altname-invalid-email.pem")
-#
-#	def test_examine_x509test_xf_ext_altname_invalid_encoding(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-invalid-encoding.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-altname-invalid-encoding.pem")
+
+	def test_examine_x509test_xf_ext_altname_invalid_encoding(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-invalid-encoding.pem", "Cert_X509Ext_Malformed")
 
 	def test_examine_x509test_xf_ext_altname_ip_wrong(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-ip-wrong.pem", "Cert_X509Ext_SubjectAltName_BadIP")

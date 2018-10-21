@@ -142,6 +142,10 @@ class X509Extension(object):
 		return cls._HANDLER_OID
 
 	@property
+	def asn1_model(self):
+		return self._ASN1_MODEL
+
+	@property
 	def oid(self):
 		return self._oid
 
@@ -277,6 +281,8 @@ class X509SubjectAlternativeNameExtension(X509Extension):
 
 	def _decode_hook(self):
 		self._known_names = [ ]
+		if self.asn1 is None:
+			return
 		for altname in self.asn1:
 			for known_namedtypes in altname.componentType.namedTypes:
 				name = known_namedtypes.name

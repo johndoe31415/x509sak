@@ -495,6 +495,12 @@ class CrtExtensionsSecurityEstimator(SecurityEstimator):
 				else:
 					return SecurityJudgement(JudgementCode.Cert_X509Ext_Unknown_NonCritical, "X.509 extension present with OID %s. This OID is not known and marked as non-critical; the extension would be ignored under normal circumstances." % (ext.oid), commonness = Commonness.UNUSUAL)
 
+	def _judge_undecodable_extensions(self, certificate):
+		for ext in certificate.extensions:
+			if (ext.asn1_model is not None) and (ext.asn1 is None):
+				oid_name = OIDDB.X509Extensions.get(ext.oid)
+				return SecurityJudgement(JudgementCode.Cert_X509Ext_Malformed, "X.509 extension %s was not decodable; it appears to be malformed." % (oid_name), compatibility = Compatibility.STANDARDS_VIOLATION, commonness = Commonness.HIGHLY_UNUSUAL)
+
 	def _judge_unique_id(self, certificate):
 		judgements = SecurityJudgements()
 		if (certificate.version == 1) or ((certificate.version == 3) and (len(certificate.extensions) == 0)):
@@ -619,6 +625,7 @@ class CrtExtensionsSecurityEstimator(SecurityEstimator):
 		judgements = SecurityJudgements()
 		judgements += self._judge_may_have_exts(certificate)
 		judgements += self._judge_extension_known(certificate)
+		judgements += self._judge_undecodable_extensions(certificate)
 		judgements += self._judge_unique_id(certificate)
 		judgements += self._judge_uniqueness(certificate)
 		judgements += self._judge_basic_constraints(certificate)
