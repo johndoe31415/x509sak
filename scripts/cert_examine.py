@@ -39,7 +39,7 @@ def execute(domain, infile, outfile):
 
 	cmd = [ "../x509sak.py", "examine", "-p", "tls-server", "-n", domain, "-f", "json", "-o", outfile, "-i", "dercrt", infile ]
 	print(" ".join(cmd))
-	output = subprocess.check_call(cmd)
+	subprocess.call(cmd)
 	threads.release()
 
 for (dirname, subdirs, files) in os.walk(corpus_directory):
