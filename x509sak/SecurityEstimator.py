@@ -425,7 +425,13 @@ class SignatureSecurityEstimator(SecurityEstimator):
 		judgements = SecurityJudgements()
 		signature_alg = SignatureAlgorithms.lookup("oid", signature_alg_oid)
 		if signature_alg is None:
-			raise UnknownAlgorithmException("Unsupported signature algorithm used (OID %s), cannot make security determination." % (signature_alg_oid))
+			judgements += SecurityJudgement(JudgementCode.Cert_Unknown_SignatureAlgorithm, "Certificate has unknown signature algorithm with OID %s. Cannot make security determination." % (signature_alg_oid), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
+			result = {
+				"name":			str(signature_alg_oid),
+				"pretty":		str(signature_alg_oid),
+				"security":		judgements,
+			}
+			return result
 
 		if signature_alg.value.hash_fnc is not None:
 			# Signature algorithm requires a particular hash function
@@ -436,8 +442,6 @@ class SignatureSecurityEstimator(SecurityEstimator):
 			if asn1["hashAlgorithm"].hasValue():
 				hash_oid = OID.from_str(str(asn1["hashAlgorithm"]["algorithm"]))
 				hash_fnc = HashFunctions.lookup("oid", hash_oid)
-				if hash_fnc is None:
-					raise UnknownAlgorithmException("Unsupported hash algorithm used for RSA-PSS (OID %s), cannot make security determination." % (hash_oid))
 			else:
 				# Default for RSASSA-PSS is SHA-1
 				hash_fnc = HashFunctions["sha1"]
@@ -448,15 +452,22 @@ class SignatureSecurityEstimator(SecurityEstimator):
 				saltlen = 20
 			judgements += self.algorithm("bits").analyze(JudgementCode.RSA_PSS_Salt_Length, saltlen * 8)
 		else:
-			raise LazyDeveloperException("Unable to determine hash function for signature algorithm %s." % (signature_alg.name))
+			judgements += SecurityJudgement(JudgementCode.Cert_Unknown_HashAlgorithm, "Certificate has unknown hash algorithm used in signature with OID %s. Cannot make security determination for that part." % (hash_oid), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
 
 		result = {
 			"name":			signature_alg.name,
-			"pretty":		signature_alg.value.sig_fnc.value.pretty_name + " with " + hash_fnc.value.pretty_name,
 			"sig_fnc":		self.algorithm("sig_fnc", analysis_options = self._analysis_options).analyze(signature_alg.value.sig_fnc),
-			"hash_fnc":		self.algorithm("hash_fnc", analysis_options = self._analysis_options).analyze(hash_fnc),
 			"security":		judgements,
 		}
+		if hash_fnc is not None:
+			result.update({
+				"pretty":		signature_alg.value.sig_fnc.value.pretty_name + " with " + hash_fnc.value.pretty_name,
+				"hash_fnc":		self.algorithm("hash_fnc", analysis_options = self._analysis_options).analyze(hash_fnc),
+			})
+		else:
+			result.update({
+				"pretty":		 "%s with hash function %s" % (signature_alg.value.sig_fnc.value.pretty_name, hash_oid)
+			})
 		return result
 
 SecurityEstimator.register(SignatureSecurityEstimator)

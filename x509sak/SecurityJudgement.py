@@ -112,6 +112,7 @@ class JudgementCode(enum.Enum):
 	DN_Contains_Deprecated_Type = ("Distinguished name", "deprecated type present")
 	DN_Contains_NonPrintable = ("Distinguished name", "non-printable type present")
 	DN_Contains_MultiValues = ("Distinguished name", "multi-valued RDN present")
+	Cert_Unknown_SignatureAlgorithm = ("Certificate signature", "unknown signature algorithm")
 
 	@property
 	def topic(self):

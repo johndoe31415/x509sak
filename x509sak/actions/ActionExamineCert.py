@@ -231,10 +231,12 @@ class ActionExamineCert(BaseAction):
 			printer.heading("Signature")
 			printer.print("Signature algorithm: %s" % (analysis["signature"]["pretty"]))
 			self._print_verdict(printer, analysis["signature"]["security"], indent = "    ")
-			printer.print("Hash function      : %s" % (analysis["signature"]["hash_fnc"]["name"]))
-			self._print_verdict(printer, analysis["signature"]["hash_fnc"]["security"], indent = "    ")
-			printer.print("Signature function : %s" % (analysis["signature"]["sig_fnc"]["name"]))
-			self._print_verdict(printer, analysis["signature"]["sig_fnc"]["security"], indent = "    ")
+			if "hash_fnc" in analysis["signature"]:
+				printer.print("Hash function      : %s" % (analysis["signature"]["hash_fnc"]["name"]))
+				self._print_verdict(printer, analysis["signature"]["hash_fnc"]["security"], indent = "    ")
+			if "sig_fnc" in analysis["signature"]:
+				printer.print("Signature function : %s" % (analysis["signature"]["sig_fnc"]["name"]))
+				self._print_verdict(printer, analysis["signature"]["sig_fnc"]["security"], indent = "    ")
 			printer.print()
 
 			printer.heading("X.509 Extensions")
