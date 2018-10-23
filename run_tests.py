@@ -208,13 +208,16 @@ class SelectiveTestRunner(object):
 		self._exclude_regexes = [ re.compile(text, flags = re.IGNORECASE) for text in self._args.exclude ]
 		self._found_testcases = { testcase.test.id(): testcase for testcase in self._enumerate_all_tests() }
 		self._test_result = None
+
+		search_term_given = len(self._include_regexes) > 0
+		have_failed_tests = (not self._args.all) and (os.path.isfile(self._failed_tests_file))
 		if len(self._args.full_id) > 0:
 			# Ignore all other arguments, full ID takes full precedence
 			self._add_testcases_with_full_id(self._args.full_id)
-		elif len(self._include_regexes) > 0:
+		elif search_term_given and ((not have_failed_tests) or (not self._args.failed_tests_have_precedence)):
 			# Have include regex, this takes second precedence
 			self._add_all_included_tests()
-		elif (not self._args.all) and (os.path.isfile(self._failed_tests_file)):
+		elif have_failed_tests:
 			# No full IDs and no include regexes given, failed testcases is
 			# number three
 			try:
@@ -398,6 +401,7 @@ parser.add_argument("-i", "--full-id", metavar = "tcid", default = [ ], action =
 parser.add_argument("-c", "--coverage", action = "count", default = 0, help = "Run all subprocesses through code coverage measurement. Specify twice to also show text report in console after run and three times to render HTML page and open up browser.")
 parser.add_argument("--dump-json", metavar = "filename", type = str, help = "Create a JSON dump of all testcase data and write it to the given file instead of printing results to stdout.")
 parser.add_argument("--subprocess", action = "store_true", help = argparse.SUPPRESS)
+parser.add_argument("-F", "--failed-tests-have-precedence", action = "store_true", help = "By default, when a search pattern is given on the command line, always that search pattern determines which tests are run. When this option is given, failed tests have precedence over any search strings.")
 parser.add_argument("-f", "--fail-fast", action = "store_true", help = "Fail fast, i.e., do not continue testing after the first test fails.")
 parser.add_argument("-p", "--parallel", metavar = "processes", type = int, default = 12, help = "Split up testbench and concurrently run on multiple threads. Defaults to %(default)s.")
 parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity.")
