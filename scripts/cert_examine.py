@@ -26,9 +26,13 @@ import threading
 import hashlib
 import tempfile
 
+def get_processor_count():
+	with open("/proc/cpuinfo") as f:
+		return len(list(line for line in f.read().split("\n") if line.startswith("processor")))
+
 corpus_directory = "../../x509-cert-testcorpus/certs/"
 output_directory = "examine"
-thread_cnt = 12
+thread_cnt = get_processor_count()
 threads = threading.Semaphore(thread_cnt)
 
 def execute(domain, infile, outfile):
