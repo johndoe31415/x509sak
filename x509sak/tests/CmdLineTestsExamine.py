@@ -97,11 +97,10 @@ class CmdLineTestsExamine(BaseTest):
 #
 #	def test_examine_x509test_xf_ext_altname_email_only(self):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-email-only.pem", "")
-#
-#	def test_examine_x509test_xf_ext_altname_empty(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-empty.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-altname-empty.pem")
-#
+
+	def test_examine_x509test_xf_ext_altname_empty(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-empty.pem", "Cert_X509Ext_SubjectAltName_Empty")
+
 #	def test_examine_x509test_xf_ext_altname_empty2(self):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-empty2.pem", "")
 #		self._test_examine_x509test_noparse("certs/x509test/xf-ext-altname-empty2.pem")

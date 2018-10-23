@@ -291,6 +291,10 @@ class X509SubjectAlternativeNameExtension(X509Extension):
 					self._known_names.append(ASN1NameWrapper(name, value))
 					break
 
+	@property
+	def name_count(self):
+		return len(self._known_names)
+
 	def get_all(self, name_type):
 		return [ asn1name for asn1name in self._known_names if asn1name.name == name_type ]
 

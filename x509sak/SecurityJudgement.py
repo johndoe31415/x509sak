@@ -74,6 +74,7 @@ class JudgementCode(enum.Enum):
 	Cert_X509Ext_KeyUsage_SignCertNoBasicConstraints = ("X.509 KeyUsage extension", "keyCertSign flag present but no BasicConstraints extension")
 	Cert_X509Ext_Unknown_Critical = ("X.509 extensions", "unrecognized critical X.509 extension present")
 	Cert_X509Ext_Unknown_NonCritical = ("X.509 extensions", "unrecognized X.509 extension present")
+	Cert_X509Ext_SubjectAltName_Empty = ("X.509 SubjectAlternativeName", "no names given")
 	Cert_X509Ext_SubjectAltName_BadIP = ("X.509 SubjectAlternativeName", "invalid IP address")
 	Cert_X509Ext_SubjectAltName_BadEmail = ("X.509 SubjectAlternativeName", "invalid email address")
 	Cert_X509Ext_SubjectAltName_BadDomain = ("X.509 SubjectAlternativeName", "invalid domain name")

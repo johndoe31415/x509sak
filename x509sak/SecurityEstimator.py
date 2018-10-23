@@ -623,6 +623,8 @@ class CrtExtensionsSecurityEstimator(SecurityEstimator):
 		judgements = SecurityJudgements()
 		san = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("SubjectAlternativeName"))
 		if san is not None:
+			if san.name_count == 0:
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_Empty, "Subject Alternative Name X.509 exension with no contained names. This is a direct violation of RFC5280, Sect. 4.2.1.6.", compatibility = Compatibility.STANDARDS_VIOLATION)
 			for entity_name in san:
 				judgements += self._judge_single_name(entity_name)
 		return judgements
