@@ -606,6 +606,9 @@ class CrtExtensionsSecurityEstimator(SecurityEstimator):
 			if not isinstance(entity_name.value, expected_types[entity_name.name]):
 				return SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_InvalidType, "Subject Alternative Name X.509 exension of type %s expects an %s value, but saw %s." % (entity_name.name, entity_name.value.__class__.__name__, expected_types[entity_name.name].__name__), compatibility = Compatibility.STANDARDS_VIOLATION)
 
+		if entity_name.pretty_value == "":
+			return SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_EmptyValue, "Subject Alternative Name X.509 exension with type %s has empty value. This is a direct violation of RFC5280, Sect. 4.2.1.6." % (entity_name.name), compatibility = Compatibility.STANDARDS_VIOLATION)
+
 		if entity_name.name == "dNSName":
 			if not ValidationTools.validate_domainname(entity_name.pretty_value):
 				return SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_BadDomain, "Subject Alternative Name X.509 exension with type %s got invalid domain name \"%s\". This is a direct violation of RFC5280, Sect. 4.2.1.6." % (entity_name.name, entity_name.value), compatibility = Compatibility.STANDARDS_VIOLATION)
