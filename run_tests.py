@@ -16,6 +16,10 @@ import x509sak.tests
 from x509sak.SubprocessExecutor import SubprocessExecutor
 from x509sak.FriendlyArgumentParser import FriendlyArgumentParser
 
+def get_processor_count():
+	with open("/proc/cpuinfo") as f:
+		return len(list(line for line in f.read().split("\n") if line.startswith("processor")))
+
 class OutputRedirector(object):
 	def __init__(self):
 		self._stdout_f = None
@@ -403,7 +407,7 @@ parser.add_argument("--dump-json", metavar = "filename", type = str, help = "Cre
 parser.add_argument("--subprocess", action = "store_true", help = argparse.SUPPRESS)
 parser.add_argument("-F", "--failed-tests-have-precedence", action = "store_true", help = "By default, when a search pattern is given on the command line, always that search pattern determines which tests are run. When this option is given, failed tests have precedence over any search strings.")
 parser.add_argument("-f", "--fail-fast", action = "store_true", help = "Fail fast, i.e., do not continue testing after the first test fails.")
-parser.add_argument("-p", "--parallel", metavar = "processes", type = int, default = 12, help = "Split up testbench and concurrently run on multiple threads. Defaults to %(default)s.")
+parser.add_argument("-p", "--parallel", metavar = "processes", type = int, default = get_processor_count(), help = "Split up testbench and concurrently run on multiple threads. Defaults to %(default)s.")
 parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity.")
 parser.add_argument("target", metavar = "classname", type = str, nargs = "*", help = "Target for testing; can be a regex matching the \"{classname}.{testname}\" specifiers. By default, all are included.")
 args = parser.parse_args(sys.argv[1:])
