@@ -81,13 +81,13 @@ class RelativeDistinguishedName(object):
 
 	def has_component(self, oid):
 		assert(isinstance(oid, OID))
-		return any(oid == element_oid for (element_oid, value) in self._rdn_list)
+		return any(oid == item.oid for item in self._rdn_list)
 
 	def get_value(self, oid):
 		assert(isinstance(oid, OID))
-		for (element_oid, value) in self._rdn_list:
-			if element_oid == oid:
-				return value
+		for item in self._rdn_list:
+			if item.oid == oid:
+				return item
 		return None
 
 	@property

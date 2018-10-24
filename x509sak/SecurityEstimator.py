@@ -715,10 +715,10 @@ class PurposeEstimator(SecurityEstimator):
 
 	@staticmethod
 	def _san_name_match(san_name, fqdn):
-		if san_name[0] == "*":
-			return fqdn.endswith(san_name[1:])
+		if san_name.pretty_value[0] == "*":
+			return fqdn.endswith(san_name.pretty_value[1:])
 		else:
-			return san_name == fqdn
+			return san_name.pretty_value == fqdn
 
 	def _judge_name(self, certificate, name):
 		judgements = SecurityJudgements()
@@ -730,7 +730,7 @@ class PurposeEstimator(SecurityEstimator):
 			rdn = None
 			for rdn in rdns:
 				value = rdn.get_value(OIDDB.RDNTypes.inverse("CN"))
-				if value == name:
+				if value.printable == name:
 					have_valid_cn = True
 					break
 			if have_valid_cn:

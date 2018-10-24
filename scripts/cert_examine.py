@@ -43,7 +43,11 @@ def execute(domain, infile, outfile):
 
 	cmd = [ "../x509sak.py", "examine", "-p", "tls-server", "-n", domain, "-f", "json", "-o", outfile, "-i", "dercrt", infile ]
 	print(" ".join(cmd))
-	subprocess.call(cmd)
+	try:
+		subprocess.check_call(cmd)
+	except subprocess.CalledProcessError:
+		with open("failed_certificate.txt", "a") as f:
+			print(infile, file = f)
 	threads.release()
 
 for (dirname, subdirs, files) in os.walk(corpus_directory):
