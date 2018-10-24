@@ -27,9 +27,11 @@ import pyasn1.codec.der.decoder
 import pyasn1.codec.der.encoder
 import x509sak
 import hashlib
+import subprocess
 from x509sak import CertificatePool, X509Certificate
 from x509sak.BaseAction import BaseAction
 from x509sak.Tools import PaddingTools
+from x509sak.HexDump import HexDump
 
 class DebugConsole(code.InteractiveConsole):
 	def __init__(self, locals = None, histfile = os.path.expanduser(".dbgconsole_history")):
@@ -51,8 +53,12 @@ class DebugConsole(code.InteractiveConsole):
 class ActionDebug(BaseAction):
 	def __init__(self, cmdname, args):
 		BaseAction.__init__(self, cmdname, args)
-		crts = X509Certificate.read_pemfile(self._args.crtfile)
+		if not self._args.der:
+			crts = X509Certificate.read_pemfile(self._args.crtfile)
+		else:
+			crts = [ X509Certificate.read_derfile(self._args.crtfile) ]
 
+		self._hd = HexDump()
 		variables = {
 			"x509sak":	x509sak,
 			"derdec":	lambda data: pyasn1.codec.der.decoder.decode(data)[0],
@@ -67,6 +73,8 @@ class ActionDebug(BaseAction):
 			"sha256":	lambda payload: hashlib.sha256(payload).digest(),
 			"sha384":	lambda payload: hashlib.sha384(payload).digest(),
 			"sha512":	lambda payload: hashlib.sha512(payload).digest(),
+			"hd":		self._hd.dump,
+			"ap":		self._asn1parse,
 		}
 
 		console = DebugConsole(locals = variables)
@@ -76,3 +84,7 @@ class ActionDebug(BaseAction):
 		plain = pow(int.from_bytes(certificate.signature, byteorder = "big"), certificate.pubkey.e, certificate.pubkey.n)
 		length = (plain.bit_length() + 7) // 8
 		return int.to_bytes(plain, length = length, byteorder = "big")
+
+	def _asn1parse(self, data):
+		proc = subprocess.Popen([ "openssl", "asn1parse", "-inform", "der", "-i" ], stdin = subprocess.PIPE)
+		proc.communicate(data)
