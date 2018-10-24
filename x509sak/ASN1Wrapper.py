@@ -40,6 +40,10 @@ class ASN1NameWrapper(object):
 			return ".".join(str(v) for v in self.value)
 		elif (self.name == "iPAddress") and (len(self.value) == 16):
 			return ":".join("%02x" % (v) for v in self.value)
+		elif self.name == "otherName":
+			oid = self.value["type-id"]
+			value = bytes(self.value["value"])
+			return "%s:%s" % (oid, value.hex())
 		else:
 			return "#" + bytes(self.value).hex()
 
