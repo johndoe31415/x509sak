@@ -6,3 +6,4 @@ output
 htmlcov
 .tests_estimate.json
 .tests_failed.json
+.dbgconsole_history

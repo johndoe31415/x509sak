@@ -29,7 +29,7 @@ import gzip
 import textwrap
 import datetime
 import pyasn1.type.univ
-from x509sak.Exceptions import UnexpectedFileContentException, InvalidUsageException
+from x509sak.Exceptions import UnexpectedFileContentException, InvalidUsageException, InvalidInputException
 
 class PEMDataTools(object):
 	@classmethod
@@ -262,3 +262,24 @@ class ValidationTools(object):
 	@classmethod
 	def validate_uri(cls, uri):
 		return cls._URI_RE.fullmatch(uri) is not None
+
+class PaddingTools(object):
+	@classmethod
+	def unpad_pkcs1(cls, data):
+		if data[0] != 1:
+			raise InvalidInputException("PKCS#1 padding must start with 0x01")
+
+		last_char = None
+		for i in range(1, len(data)):
+			if data[i] == 0xff:
+				continue
+			elif data[i] == 0x0:
+				# Finished
+				last_char = i
+				break
+			else:
+				raise InvalidInputException("PKCS#1 padding must be either 0xff or 0x00 at offset %d, was 0x%02x" % (i, data[i]))
+
+		if last_char is None:
+			raise InvalidInputException("PKCS#1 padding does not seem to contain data.")
+		return data[i + 1:]
