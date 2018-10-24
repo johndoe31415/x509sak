@@ -30,6 +30,8 @@ class ValidationToolsTests(BaseTest):
 		self.assertTrue(ValidationTools.validate_email_address("x@a.d.y"))
 		self.assertTrue(ValidationTools.validate_email_address("0@a.d.y"))
 		self.assertTrue(ValidationTools.validate_email_address("foo@bar.co.uk"))
+		self.assertTrue(ValidationTools.validate_email_address("foo.bar@bar.co.uk"))
+		self.assertTrue(ValidationTools.validate_email_address("foo_bar@bar.co.uk"))
 
 	def test_emails_invalid(self):
 		self.assertFalse(ValidationTools.validate_email_address(""))

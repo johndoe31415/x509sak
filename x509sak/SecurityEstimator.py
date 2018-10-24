@@ -628,10 +628,10 @@ class CrtExtensionsSecurityEstimator(SecurityEstimator):
 				return SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_BadIP, "Subject Alternative Name X.509 exension of type ipAddress expects either 4 or 16 bytes of data for IPv4/IPv6, but saw %d bytes." % (len(entity_name.value)), compatibility = Compatibility.STANDARDS_VIOLATION)
 		elif entity_name.name == "rfc822Name":
 			if not ValidationTools.validate_email_address(entity_name.pretty_value):
-				return SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_BadEmail, "Subject Alternative Name X.509 exension with type %s got invalid domain name \"%s\". This is a direct violation of RFC5280, Sect. 4.2.1.6." % (entity_name.name, entity_name.value), compatibility = Compatibility.STANDARDS_VIOLATION)
+				return SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_BadEmail, "Subject Alternative Name X.509 exension with type %s got invalid email address \"%s\". This is a direct violation of RFC5280, Sect. 4.2.1.6." % (entity_name.name, entity_name.value), compatibility = Compatibility.STANDARDS_VIOLATION)
 		elif entity_name.name == "uniformResourceIdentifier":
 			if not ValidationTools.validate_uri(entity_name.pretty_value):
-				return SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_BadURI, "Subject Alternative Name X.509 exension with type %s got invalid domain name \"%s\". This is a direct violation of RFC5280, Sect. 4.2.1.6." % (entity_name.name, entity_name.value), compatibility = Compatibility.STANDARDS_VIOLATION)
+				return SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_BadURI, "Subject Alternative Name X.509 exension with type %s got invalid URI \"%s\". This is a direct violation of RFC5280, Sect. 4.2.1.6." % (entity_name.name, entity_name.value), compatibility = Compatibility.STANDARDS_VIOLATION)
 
 	def _judge_subject_alternative_name(self, certificate):
 		judgements = SecurityJudgements()

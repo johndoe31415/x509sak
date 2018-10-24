@@ -239,7 +239,7 @@ class TextTools(object):
 
 class ValidationTools(object):
 	_DOMAIN_NAME_RE = re.compile("([-a-zA-Z0-9]+\.)*[-a-zA-Z0-9]+")
-	_EMAIL_ADDRESS_RE = re.compile("(?P<mailbox>[-a-zA-Z0-9!#$%&'*+/=?^_`{|}~]+)@(?P<domainname>.*)")
+	_EMAIL_ADDRESS_RE = re.compile("(?P<mailbox>[-a-zA-Z0-9.!#$%&'*+/=?^_`{|}~]+)@(?P<domainname>.*)")
 	_URI_RE = re.compile("(?P<scheme>[a-z]+):(?P<authority>/*[-a-zA-Z0-9+%_.:,=;@\[\]]+)?(?P<path>/[-a-zA-Z0-9+%_.:,=;@/]+)?(?P<query>\?[-a-zA-Z0-9+%_.:,=;@/?#]*)?")
 
 	@classmethod
