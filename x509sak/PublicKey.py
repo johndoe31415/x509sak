@@ -108,6 +108,7 @@ class PublicKey(PEMDERObject):
 		asn1["algorithm"] = rfc2459.AlgorithmIdentifier()
 		if cryptosystem == Cryptosystems.RSA:
 			asn1["algorithm"]["algorithm"] = OIDDB.KeySpecificationAlgorithms.inverse("rsaEncryption").to_asn1()
+			asn1["algorithm"]["parameters"] = pyasn1.type.univ.Any(value = pyasn1.codec.der.encoder.encode(pyasn1.type.univ.Null()))
 			inner_key = rfc2437.RSAPublicKey()
 			inner_key["modulus"] = pyasn1.type.univ.Integer(parameters["n"])
 			inner_key["publicExponent"] = pyasn1.type.univ.Integer(parameters["e"])
