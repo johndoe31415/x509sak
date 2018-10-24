@@ -26,6 +26,7 @@ import atexit
 import pyasn1.codec.der.decoder
 import pyasn1.codec.der.encoder
 import x509sak
+import hashlib
 from x509sak import CertificatePool, X509Certificate
 from x509sak.BaseAction import BaseAction
 from x509sak.Tools import PaddingTools
@@ -61,6 +62,11 @@ class ActionDebug(BaseAction):
 			"a":		crts[0].asn1,
 			"unpkcs1":	PaddingTools.unpad_pkcs1,
 			"decrsa":	self._decrypt_selfsigned_rsa_signature,
+			"md5":		lambda payload: hashlib.md5(payload).digest(),
+			"sha1":		lambda payload: hashlib.sha1(payload).digest(),
+			"sha256":	lambda payload: hashlib.sha256(payload).digest(),
+			"sha384":	lambda payload: hashlib.sha384(payload).digest(),
+			"sha512":	lambda payload: hashlib.sha512(payload).digest(),
 		}
 
 		console = DebugConsole(locals = variables)
