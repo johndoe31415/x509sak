@@ -234,7 +234,10 @@ class X509AuthorityKeyIdentifierExtension(X509Extension):
 		return "KeyID %s" % (self.keyid.hex())
 
 	def _decode_hook(self):
-		self._keyid = bytes(self.asn1["keyIdentifier"])
+		if self.asn1["keyIdentifier"].hasValue():
+			self._keyid = bytes(self.asn1["keyIdentifier"])
+		else:
+			self._keyid = None
 X509ExtensionRegistry.set_handler_class(X509AuthorityKeyIdentifierExtension)
 
 
