@@ -82,6 +82,7 @@ SignatureAlgorithms = _to_enum("SignatureAlgorithms", [
 	SignatureAlgorithm(name = "md2WithRsaEncryption", hash_fnc = HashFunctions.md2, sig_fnc = SignatureFunctions.rsa_encryption, sig_params = None, oid = OIDDB.SignatureAlgorithms.inverse("md2WithRsaEncryption")),
 	SignatureAlgorithm(name = "md4WithRsaEncryption", hash_fnc = HashFunctions.md4, sig_fnc = SignatureFunctions.rsa_encryption, sig_params = None, oid = OIDDB.SignatureAlgorithms.inverse("md4WithRsaEncryption")),
 	SignatureAlgorithm(name = "md5WithRsaEncryption", hash_fnc = HashFunctions.md5, sig_fnc = SignatureFunctions.rsa_encryption, sig_params = None, oid = OIDDB.SignatureAlgorithms.inverse("md5WithRsaEncryption")),
+	SignatureAlgorithm(name = "shaWithRsaEncryption", hash_fnc = HashFunctions.sha0, sig_fnc = SignatureFunctions.rsa_encryption, sig_params = None, oid = OIDDB.SignatureAlgorithms.inverse("shaWithRsaEncryption")),
 	SignatureAlgorithm(name = "sha1WithRsaEncryption", hash_fnc = HashFunctions.sha1, sig_fnc = SignatureFunctions.rsa_encryption, sig_params = None, oid = OIDDB.SignatureAlgorithms.inverse("sha1WithRsaEncryption")),
 	SignatureAlgorithm(name = "sha256WithRsaEncryption", hash_fnc = HashFunctions.sha256, sig_fnc = SignatureFunctions.rsa_encryption, sig_params = None, oid = OIDDB.SignatureAlgorithms.inverse("sha256WithRsaEncryption")),
 	SignatureAlgorithm(name = "sha384WithRsaEncryption", hash_fnc = HashFunctions.sha384, sig_fnc = SignatureFunctions.rsa_encryption, sig_params = None, oid = OIDDB.SignatureAlgorithms.inverse("sha384WithRsaEncryption")),
