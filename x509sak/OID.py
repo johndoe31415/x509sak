@@ -81,12 +81,23 @@ class OIDDB(object):
 		OID.from_str("1.2.840.113549.1.1.12"):	"sha384WithRsaEncryption",
 		OID.from_str("1.2.840.113549.1.1.13"):	"sha512WithRsaEncryption",
 
+		OID.from_str("1.2.840.10040.4.3"):		"dsa-with-sha1",
+
+		OID.from_str("1.2.840.10045.4.1"):		"ecdsa-with-SHA1",
 		OID.from_str("1.2.840.10045.4.3.1"):	"ecdsa-with-SHA224",
 		OID.from_str("1.2.840.10045.4.3.2"):	"ecdsa-with-SHA256",
 		OID.from_str("1.2.840.10045.4.3.3"):	"ecdsa-with-SHA384",
 		OID.from_str("1.2.840.10045.4.3.4"):	"ecdsa-with-SHA512",
 
+		OID.from_str("1.3.14.3.2.2"):			"md4WithRsaEncryption-alt1",
+		OID.from_str("1.3.14.3.2.3"):			"md5WithRsaEncryption-alt1",
+		OID.from_str("1.3.14.3.2.4"):			"md5WithRsaEncryption-alt2",
+		OID.from_str("1.3.14.3.2.13"):			"dsa-with-sha",
 		OID.from_str("1.3.14.3.2.15"):			"shaWithRsaEncryption",
+		OID.from_str("1.3.14.3.2.27"):			"sha1DSA-alt1",
+		OID.from_str("1.3.14.3.2.29"):			"sha1WithRsaEncryption-alt1",
+
+		OID.from_str("1.3.14.7.2.3.1"):			"md2WithRsaEncryption-alt1",
 	})
 
 	"""Relative Distinguished Name type component OIDs."""

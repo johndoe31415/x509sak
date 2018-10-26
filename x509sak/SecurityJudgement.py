@@ -84,6 +84,7 @@ class JudgementCode(enum.Enum):
 	SignatureFunction_UncommonPaddingScheme = ("Signature function", "uncommon padding scheme")
 	SignatureFunction_UncommonCryptosystem = ("Signature function", "uncommon cryptosystem")
 	SignatureFunction_Common = ("Signature function", "common signature function")
+	SignatureFunction_NonPreferred_OID = ("Signature function", "not preferred OID used")
 	HashFunction_Length = ("Hash function", "length of output")
 	HashFunction_Derated = ("Hash function", "derating of security level")
 	Cert_Invalid_DER = ("Certificate encoding", "invalid DER used")
