@@ -193,6 +193,8 @@ class OIDDB(object):
 		OID.from_str("2.16.840.1.113730.1.15"):		"NetscapeCertRenewalTime",
 		OID.from_str("2.16.840.1.113730.1.16"):		"NetscapeAuthorityInformationAccess",
 		OID.from_str("2.16.840.1.113730.1.17"):		"NetscapeCertScopeOfUse",
+
+		OID.from_str("2.16.840.1.113719.1.9.4.1"):	"NovellSecurityAttributes",
 	})
 
 	"""Hash functions."""
