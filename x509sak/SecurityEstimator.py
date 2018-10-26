@@ -609,6 +609,9 @@ class CrtExtensionsSecurityEstimator(SecurityEstimator):
 				bc = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("BasicConstraints"))
 				if bc is None:
 					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_KeyUsage_SignCertNoBasicConstraints, "KeyUsage extension contains the keyCertSign flag, but no BasicConstraints extension. This is a recommendation of RFC5280 Sect. 4.2.1.3.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION)
+		else:
+			if certificate.is_ca_certificate:
+				judgements += SecurityJudgement(JudgementCode.Cert_KU_NotPresent, "CA certificate must contains a KeyUsage X.509 extension, but this is missing. This is a direct violation of RFC5280, Sect. 4.2.1.3.", commonness = Commonness.UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION)
 		return judgements
 
 	def _judge_single_name(self, entity_name):
@@ -766,14 +769,41 @@ class PurposeEstimator(SecurityEstimator):
 
 	def _judge_purpose(self, certificate, purpose):
 		judgements = SecurityJudgements()
-		#ku_ext = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("KeyUsage"))
-		# TODO: Implement Key Usage
+		ku_ext = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("KeyUsage"))
 		eku_ext = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("ExtendedKeyUsage"))
 		ns_ext = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("NetscapeCertificateType"))
 
 		if purpose in [ AnalysisOptions.CertificatePurpose.TLSServerCertificate, AnalysisOptions.CertificatePurpose.TLSClientCertificate ]:
 			if certificate.is_ca_certificate:
 				judgements += SecurityJudgement(JudgementCode.Cert_Unexpectedly_CA_Cert, "Certificate is a valid CA certificate even though it's supposed to be a TLS client/server.", commonness = Commonness.HIGHLY_UNUSUAL, verdict = Verdict.NO_SECURITY)
+
+		if ku_ext is not None:
+			print("*" * 120)
+			if purpose == AnalysisOptions.CertificatePurpose.CACertificate:
+				must_have = set([ "keyCertSign" ])
+				may_have = set([ "cRLSign", "digitalSignature" ])
+				may_not_have = set([ "encipherOnly", "decipherOnly" ])
+			elif purpose in [ AnalysisOptions.CertificatePurpose.TLSClientCertificate, AnalysisOptions.CertificatePurpose.TLSServerCertificate ]:
+				must_have = set([ "keyAgreement" ])
+				may_have = set([ "keyEncipherment" ])
+				may_not_have = set([ "encipherOnly", "decipherOnly", "keyCertSign", "cRLSign" ])
+			else:
+				raise NotImplementedError(purpose)
+
+			present_flags = ku_ext.flags
+
+			missing_must_haves = must_have - present_flags
+			if len(missing_must_haves) > 0:
+				judgements += SecurityJudgement(JudgementCode.Cert_KU_MissingKeyUsage, "Certificate with purpose %s should have at least KeyUsage %s, but %s is missing." % (purpose.name, ", ".join(sorted(must_have)), ", ".join(sorted(missing_must_haves))), commonness = Commonness.HIGHLY_UNUSUAL)
+
+			excess_flags = present_flags - must_have - may_have - may_not_have
+			if len(excess_flags) > 0:
+				judgements += SecurityJudgement(JudgementCode.Cert_KU_UnusualKeyUsage, "For certificate with purpose %s it is uncommon to have KeyUsage %s." % (purpose.name, ", ".join(sorted(excess_flags))), commonness = Commonness.UNUSUAL)
+
+			present_may_not_haves = present_flags & may_not_have
+			if len(present_may_not_haves) > 0:
+				judgements += SecurityJudgement(JudgementCode.Cert_KU_ExcessKeyUsage, "Certificate with purpose %s must not have any KeyUsage %s. This certificate has %s." % (purpose.name, ", ".join(sorted(may_not_have)), ", ".join(sorted(present_may_not_haves))), commonness = Commonness.HIGHLY_UNUSUAL)
+
 
 		if eku_ext is not None:
 			if (purpose == AnalysisOptions.CertificatePurpose.TLSClientCertificate) and (not eku_ext.client_auth):
