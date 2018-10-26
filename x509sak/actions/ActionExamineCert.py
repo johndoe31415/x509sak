@@ -25,7 +25,7 @@ import collections
 from x509sak.BaseAction import BaseAction
 from x509sak import X509Certificate
 from x509sak.Tools import JSONTools
-from x509sak.SecurityEstimator import AnalysisOptions
+from x509sak.SecurityEstimator import SecurityEstimator, AnalysisOptions
 from x509sak.ConsolePrinter import ConsolePrinter
 from x509sak.SecurityJudgement import SecurityJudgement, Commonness, Verdict, Compatibility
 from x509sak.FileWriter import FileWriter
@@ -100,7 +100,7 @@ class ActionExamineCert(BaseAction):
 					"utcnow":				utcnow,
 				}
 				analysis_options = AnalysisOptions(**analysis_options)
-				analysis = crt.analyze(analysis_options = analysis_options)
+				analysis = SecurityEstimator.algorithm("certificate", analysis_options = analysis_options).analyze(crt)
 				analysis["source"] = {
 					"name":			crt_source.source,
 					"srctype":		crt_source.source_type,

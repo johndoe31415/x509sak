@@ -29,7 +29,7 @@ from x509sak.NumberTheory import NumberTheory
 from x509sak.ModulusDB import ModulusDB
 from x509sak.OID import OIDDB, OID
 from x509sak.Exceptions import LazyDeveloperException, UnknownAlgorithmException
-from x509sak.AlgorithmDB import HashFunctions, SignatureAlgorithms
+from x509sak.AlgorithmDB import HashFunctions, SignatureAlgorithms, Cryptosystems
 from x509sak.SecurityJudgement import JudgementCode, SecurityJudgements, SecurityJudgement, Verdict, Commonness, Compatibility
 from x509sak.X509Extensions import X509ExtendedKeyUsageExtension
 from x509sak.Tools import ValidationTools
@@ -56,6 +56,8 @@ class AnalysisOptions(object):
 		self._purposes = purposes
 		self._fqdn = fqdn
 		self._utcnow = utcnow or datetime.datetime.utcnow()
+		if self._purposes is None:
+			self._purposes = [ ]
 
 	@property
 	def rsa_testing(self):
@@ -611,7 +613,7 @@ class CrtExtensionsSecurityEstimator(SecurityEstimator):
 					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_KeyUsage_SignCertNoBasicConstraints, "KeyUsage extension contains the keyCertSign flag, but no BasicConstraints extension. This is a recommendation of RFC5280 Sect. 4.2.1.3.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION)
 		else:
 			if certificate.is_ca_certificate:
-				judgements += SecurityJudgement(JudgementCode.Cert_KU_NotPresent, "CA certificate must contains a KeyUsage X.509 extension, but this is missing. This is a direct violation of RFC5280, Sect. 4.2.1.3.", commonness = Commonness.UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION)
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_KeyUsage_Missing, "CA certificate must contains a KeyUsage X.509 extension, but this is missing. This is a direct violation of RFC5280, Sect. 4.2.1.3.", commonness = Commonness.UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION)
 		return judgements
 
 	def _judge_single_name(self, entity_name):
@@ -849,3 +851,44 @@ class PurposeEstimator(SecurityEstimator):
 
 		return result
 SecurityEstimator.register(PurposeEstimator)
+
+
+class PublicKeyEstimator(SecurityEstimator):
+	_ALG_NAME = "pubkey"
+	def analyze(self, pubkey, analysis_options = None):
+		result = {
+			"pubkey_alg":	pubkey.pk_alg.value.name,
+		}
+		if pubkey.pk_alg.value.cryptosystem == Cryptosystems.RSA:
+			result["pretty"] = "RSA with %d bit modulus" % (pubkey.n.bit_length())
+			result.update(SecurityEstimator.algorithm("rsa", analysis_options = analysis_options).analyze(pubkey))
+		elif pubkey.pk_alg.value.cryptosystem == Cryptosystems.ECC_ECDSA:
+			result["pretty"] = "ECC on %s" % (pubkey.curve.name)
+			result.update(SecurityEstimator.algorithm("ecc", analysis_options = analysis_options).analyze(pubkey))
+		elif pubkey.pk_alg.value.cryptosystem == Cryptosystems.ECC_EdDSA:
+			result["pretty"] = "EdDSA on %s" % (pubkey.curve.name)
+			result.update(SecurityEstimator.algorithm("eddsa", analysis_options = analysis_options).analyze(pubkey))
+		else:
+			raise LazyDeveloperException(NotImplemented, pubkey.cryptosystem)
+		return result
+SecurityEstimator.register(PublicKeyEstimator)
+
+
+class CertificateEstimator(SecurityEstimator):
+	_ALG_NAME = "certificate"
+
+	def analyze(self, cert, analysis_options = None):
+		result = {
+			"subject":		SecurityEstimator.algorithm("dn", analysis_options = analysis_options).analyze(cert.subject),
+			"issuer":		SecurityEstimator.algorithm("dn", analysis_options = analysis_options).analyze(cert.issuer),
+			"validity":		SecurityEstimator.algorithm("crt_validity", analysis_options = analysis_options).analyze(cert),
+			"pubkey":		SecurityEstimator.algorithm("pubkey", analysis_options = analysis_options).analyze(cert.pubkey),
+			"extensions":	SecurityEstimator.algorithm("crt_exts", analysis_options = analysis_options).analyze(cert),
+			"signature":	SecurityEstimator.algorithm("sig", analysis_options = analysis_options).analyze(cert.signature_alg_oid, cert.signature_alg_params, cert.signature),
+			"purpose":		SecurityEstimator.algorithm("purpose", analysis_options = analysis_options).analyze(cert),
+			"misc":			SecurityEstimator.algorithm("crt_misc", analysis_options = analysis_options).analyze(cert),
+		}
+		if (analysis_options is not None) and analysis_options.include_raw_data:
+			result["raw"] = base64.b64encode(cert.der_data).decode("ascii")
+		return result
+SecurityEstimator.register(CertificateEstimator)

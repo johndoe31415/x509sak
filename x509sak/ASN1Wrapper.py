@@ -19,6 +19,9 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
+import pyasn1.codec.der.encoder
+from x509sak.DistinguishedName import DistinguishedName
+
 class ASN1NameWrapper(object):
 	def __init__(self, name, value):
 		self._name = name
@@ -35,17 +38,21 @@ class ASN1NameWrapper(object):
 	@property
 	def pretty_value(self):
 		if self.name in [ "dNSName", "rfc822Name" ]:
-			return str(self.value)
+			result = str(self.value)
 		elif (self.name == "iPAddress") and (len(self.value) == 4):
-			return ".".join(str(v) for v in self.value)
+			result = ".".join(str(v) for v in self.value)
 		elif (self.name == "iPAddress") and (len(self.value) == 16):
-			return ":".join("%02x" % (v) for v in self.value)
+			result = ":".join("%02x" % (v) for v in self.value)
 		elif self.name == "otherName":
 			oid = self.value["type-id"]
 			value = bytes(self.value["value"])
-			return "%s:%s" % (oid, value.hex())
+			result = "otherName:%s:#%s" % (oid, value.hex())
+		elif self.name == "directoryName":
+			dn = DistinguishedName.from_asn1(self.value)
+			result = dn.pretty_str
 		else:
-			return "#" + bytes(self.value).hex()
+			result = "%s:#%s" % (self._name, pyasn1.codec.der.encoder.encode(self.value).hex())
+		return result
 
 	def __eq__(self, other):
 		return (self.name, self.value) == (other.name, other.value)

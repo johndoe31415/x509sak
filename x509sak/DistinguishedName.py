@@ -27,7 +27,6 @@ import pyasn1.codec.der.decoder
 from pyasn1.type.char import UTF8String
 from x509sak.OID import OID, OIDDB
 from x509sak.Exceptions import InvalidInputException
-from x509sak.SecurityEstimator import SecurityEstimator
 
 class RelativeDistinguishedName(object):
 	_RDNItem = collections.namedtuple("RDNItem", [ "oid", "derdata", "asn1", "decodable", "printable" ])
@@ -185,9 +184,6 @@ class DistinguishedName(object):
 	@property
 	def pretty_str(self):
 		return ", ".join(rdn.pretty_str for rdn in self._rdns)
-
-	def analyze(self, analysis_options = None):
-		return SecurityEstimator.algorithm("dn", analysis_options = analysis_options).analyze(self)
 
 	def __iter__(self):
 		return iter(self._rdns)

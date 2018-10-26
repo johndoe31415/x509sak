@@ -28,7 +28,6 @@ from x509sak.PEMDERObject import PEMDERObject
 from x509sak.Tools import ASN1Tools
 from x509sak.KeySpecification import KeySpecification
 from x509sak.Exceptions import UnknownAlgorithmException, LazyDeveloperException, InvalidUseException
-from x509sak.SecurityEstimator import SecurityEstimator
 from x509sak.CurveDB import CurveDB
 from x509sak.AlgorithmDB import PublicKeyAlgorithms, Cryptosystems
 
@@ -129,23 +128,6 @@ class PublicKey(PEMDERObject):
 
 	def recreate(self):
 		return self.create(self.pk_alg.value.cryptosystem, self._key)
-
-	def analyze(self, analysis_options = None):
-		result = {
-			"pubkey_alg":	self._pk_alg.value.name,
-		}
-		if self.pk_alg.value.cryptosystem == Cryptosystems.RSA:
-			result["pretty"] = "RSA with %d bit modulus" % (self.n.bit_length())
-			result.update(SecurityEstimator.algorithm("rsa", analysis_options = analysis_options).analyze(self))
-		elif self.pk_alg.value.cryptosystem == Cryptosystems.ECC_ECDSA:
-			result["pretty"] = "ECC on %s" % (self.curve.name)
-			result.update(SecurityEstimator.algorithm("ecc", analysis_options = analysis_options).analyze(self))
-		elif self.pk_alg.value.cryptosystem == Cryptosystems.ECC_EdDSA:
-			result["pretty"] = "EdDSA on %s" % (self.curve.name)
-			result.update(SecurityEstimator.algorithm("eddsa", analysis_options = analysis_options).analyze(self))
-		else:
-			raise LazyDeveloperException(NotImplemented, self.cryptosystem)
-		return result
 
 	def __getattr__(self, key):
 		if key in self._key:

@@ -35,7 +35,6 @@ from x509sak.AlgorithmDB import SignatureAlgorithms
 from x509sak.OID import OID, OIDDB
 from x509sak.PublicKey import PublicKey
 from x509sak.X509Extensions import X509ExtensionRegistry, X509Extensions
-from x509sak.SecurityEstimator import SecurityEstimator
 from x509sak.Exceptions import UnknownAlgorithmException
 
 _log = logging.getLogger("x509sak.X509Certificate")
@@ -189,21 +188,6 @@ class X509Certificate(PEMDERObject):
 		print("# Hash    : %s" % (self.hashval.hex()), file = f)
 		print(self.to_pem_data(), file = f)
 		print(file = f)
-
-	def analyze(self, analysis_options = None):
-		result = {
-			"subject":		self.subject.analyze(analysis_options = analysis_options),
-			"issuer":		self.issuer.analyze(analysis_options = analysis_options),
-			"validity":		SecurityEstimator.algorithm("crt_validity", analysis_options = analysis_options).analyze(self),
-			"pubkey":		self.pubkey.analyze(analysis_options = analysis_options),
-			"extensions":	SecurityEstimator.algorithm("crt_exts", analysis_options = analysis_options).analyze(self),
-			"signature":	SecurityEstimator.algorithm("sig", analysis_options = analysis_options).analyze(self.signature_alg_oid, self.signature_alg_params, self.signature),
-			"purpose":		SecurityEstimator.algorithm("purpose", analysis_options = analysis_options).analyze(self),
-			"misc":			SecurityEstimator.algorithm("crt_misc", analysis_options = analysis_options).analyze(self),
-		}
-		if (analysis_options is not None) and analysis_options.include_raw_data:
-			result["raw"] = base64.b64encode(self.der_data).decode("ascii")
-		return result
 
 	@property
 	def is_ca_certificate(self):
