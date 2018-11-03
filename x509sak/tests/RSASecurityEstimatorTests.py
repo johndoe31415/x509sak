@@ -20,7 +20,8 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 from x509sak.tests import BaseTest
-from x509sak.SecurityEstimator import RSASecurityEstimator, AnalysisOptions
+from x509sak.estimate import AnalysisOptions
+from x509sak.estimate.EstimateRSA import RSASecurityEstimator
 
 class RSASecurityEstimatorTests(BaseTest):
 	def test_rsa_modulus_bitlength(self):
