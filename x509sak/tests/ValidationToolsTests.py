@@ -90,3 +90,4 @@ class ValidationToolsTests(BaseTest):
 		self.assertTrue(ValidationTools.validate_uri("urn:oasis:names:specification:docbook:dtd:xml:4.1.2"))
 		self.assertTrue(ValidationTools.validate_uri("git://github.com/rails/rails.git"))
 		self.assertTrue(ValidationTools.validate_uri("crid://broadcaster.com/movies/BestActionMovieEver"))
+		self.assertTrue(ValidationTools.validate_uri("http://aa.bbbb-c.dd/eeeeee"))
