@@ -85,7 +85,6 @@ class PurposeEstimator(BaseEstimator):
 				judgements += SecurityJudgement(JudgementCode.Cert_Unexpectedly_CA_Cert, "Certificate is a valid CA certificate even though it's supposed to be a TLS client/server.", commonness = Commonness.HIGHLY_UNUSUAL, verdict = Verdict.NO_SECURITY)
 
 		if ku_ext is not None:
-			print("*" * 120)
 			if purpose == AnalysisOptions.CertificatePurpose.CACertificate:
 				must_have = set([ "keyCertSign" ])
 				may_have = set([ "cRLSign", "digitalSignature" ])
