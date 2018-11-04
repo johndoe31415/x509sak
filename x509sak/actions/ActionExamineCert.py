@@ -210,7 +210,7 @@ class ActionExamineCert(BaseAction):
 			printer.print("Subject: %s" % (analysis["subject"]["pretty"]))
 			if len(analysis["subject"]["security"]["components"]) > 0:
 				self._print_verdict(printer, analysis["subject"]["security"], indent = "  ")
-			if len(analysis["misc"]["security"]["components"]) > 0:
+			if len(analysis["security"]["components"]) > 0:
 				printer.print("Misc observations:")
 				self._print_verdict(printer, analysis["misc"]["security"], indent = "  ")
 			printer.print()

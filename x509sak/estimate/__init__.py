@@ -25,7 +25,6 @@ from x509sak.estimate.Judgement import SecurityJudgement, JudgementCode, Verdict
 
 import x509sak.estimate.EstimateBits
 import x509sak.estimate.EstimateCertificateExtensions
-import x509sak.estimate.EstimateCertificateMisc
 import x509sak.estimate.EstimateCertificatePurpose
 import x509sak.estimate.EstimateCertificate
 import x509sak.estimate.EstimateCertificateValidity
