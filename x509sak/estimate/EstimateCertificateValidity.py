@@ -87,4 +87,3 @@ class CrtValiditySecurityEstimator(BaseEstimator):
 			"validity_days":	validity_days,
 			"security":			judgements,
 		}
-

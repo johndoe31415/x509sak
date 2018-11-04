@@ -23,12 +23,12 @@ import readline
 import code
 import os
 import atexit
+import hashlib
+import subprocess
 import pyasn1.codec.der.decoder
 import pyasn1.codec.der.encoder
 import x509sak
-import hashlib
-import subprocess
-from x509sak import CertificatePool, X509Certificate
+from x509sak import X509Certificate
 from x509sak.BaseAction import BaseAction
 from x509sak.Tools import PaddingTools
 from x509sak.HexDump import HexDump

@@ -19,9 +19,12 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-from x509sak.AlgorithmDB import SignatureAlgorithms
+import pyasn1.codec.der.decoder
+from x509sak.OID import OID
+import x509sak.ASN1Models as ASN1Models
+from x509sak.AlgorithmDB import SignatureAlgorithms, HashFunctions
 from x509sak.estimate.BaseEstimator import BaseEstimator
-from x509sak.estimate import JudgementCode, Verdict, Commonness, Compatibility
+from x509sak.estimate import JudgementCode, Commonness, Compatibility
 from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements
 
 @BaseEstimator.register

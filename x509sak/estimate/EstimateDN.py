@@ -19,11 +19,11 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
+import pyasn1.type.char
 from x509sak.OID import OIDDB
 from x509sak.estimate.BaseEstimator import BaseEstimator
-from x509sak.estimate import JudgementCode, Verdict, Commonness, Compatibility
+from x509sak.estimate import JudgementCode, Compatibility
 from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements
-import pyasn1.type.char
 
 @BaseEstimator.register
 class DistinguishedNameSecurityEstimator(BaseEstimator):

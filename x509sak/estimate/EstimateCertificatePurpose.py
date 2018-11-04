@@ -19,9 +19,10 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
+from x509sak.OID import OIDDB
 from x509sak.estimate.BaseEstimator import BaseEstimator
-from x509sak.estimate import Verdict, Commonness, Compatibility
-from x509sak.estimate.Judgement import SecurityJudgement
+from x509sak.estimate import JudgementCode, AnalysisOptions, Verdict, Commonness
+from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements
 
 @BaseEstimator.register
 class PurposeEstimator(BaseEstimator):

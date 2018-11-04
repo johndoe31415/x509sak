@@ -22,7 +22,7 @@
 import pyasn1
 from x509sak.OID import OID, OIDDB
 from x509sak.estimate.BaseEstimator import BaseEstimator
-from x509sak.estimate import JudgementCode, Verdict, Commonness, Compatibility
+from x509sak.estimate import JudgementCode, Commonness, Compatibility
 from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements
 
 @BaseEstimator.register

@@ -24,7 +24,7 @@ from x509sak.OID import OIDDB
 from x509sak.AlgorithmDB import HashFunctions
 from x509sak.X509Extensions import X509ExtendedKeyUsageExtension
 from x509sak.estimate.BaseEstimator import BaseEstimator
-from x509sak.estimate import JudgementCode, Verdict, Commonness, Compatibility
+from x509sak.estimate import JudgementCode, Commonness, Compatibility
 from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements
 from x509sak.Tools import ValidationTools
 
@@ -55,6 +55,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 			return None
 
 	def _judge_extension_known(self, certificate):
+		# TODO fixme!
 		for ext in certificate.extensions:
 			oid_name = OIDDB.X509Extensions.get(ext.oid)
 			if oid_name is None:
@@ -64,6 +65,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 					return SecurityJudgement(JudgementCode.Cert_X509Ext_Unknown_NonCritical, "X.509 extension present with OID %s. This OID is not known and marked as non-critical; the extension would be ignored under normal circumstances." % (ext.oid), commonness = Commonness.UNUSUAL)
 
 	def _judge_undecodable_extensions(self, certificate):
+		# TODO fixme
 		for ext in certificate.extensions:
 			if (ext.asn1_model is not None) and (ext.asn1 is None):
 				oid_name = OIDDB.X509Extensions.get(ext.oid)

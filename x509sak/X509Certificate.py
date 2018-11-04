@@ -23,7 +23,6 @@ import re
 import logging
 import datetime
 import tempfile
-import base64
 import enum
 import pyasn1.codec.der.encoder
 from pyasn1_modules import rfc2459

@@ -21,8 +21,7 @@
 
 from x509sak.AlgorithmDB import Cryptosystems
 from x509sak.estimate.BaseEstimator import BaseEstimator
-from x509sak.estimate import Verdict, Commonness, Compatibility
-from x509sak.estimate.Judgement import SecurityJudgement
+from x509sak.Exceptions import LazyDeveloperException
 
 @BaseEstimator.register
 class PublicKeyEstimator(BaseEstimator):
@@ -42,5 +41,5 @@ class PublicKeyEstimator(BaseEstimator):
 			result["pretty"] = "EdDSA on %s" % (pubkey.curve.name)
 			result.update(self.algorithm("eddsa", analysis_options = analysis_options).analyze(pubkey))
 		else:
-			raise LazyDeveloperException(NotImplemented, pubkey.cryptosystem)
+			raise LazyDeveloperException(NotImplemented, pubkey.pk_alg.value.cryptosystem)
 		return result

@@ -22,7 +22,7 @@
 import math
 from x509sak.NumberTheory import NumberTheory
 from x509sak.estimate.BaseEstimator import BaseEstimator
-from x509sak.estimate import JudgementCode, Verdict, Commonness, Compatibility
+from x509sak.estimate import JudgementCode, Commonness
 from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements
 
 @BaseEstimator.register

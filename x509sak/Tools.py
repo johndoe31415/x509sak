@@ -238,9 +238,9 @@ class TextTools(object):
 
 
 class ValidationTools(object):
-	_DOMAIN_NAME_RE = re.compile("([-a-zA-Z0-9]+\.)*[-a-zA-Z0-9]+")
-	_EMAIL_ADDRESS_RE = re.compile("(?P<mailbox>[-a-zA-Z0-9.!#$%&'*+/=?^_`{|}~]+)@(?P<domainname>.*)")
-	_URI_RE = re.compile("(?P<scheme>[a-z]+):(?P<authority>/*[-a-zA-Z0-9+%_.:,=;@\[\]]+)?(?P<path>/[-a-zA-Z0-9+%_.:,=;@/]+)?(?P<query>\?[-a-zA-Z0-9+%_.:,=;@/?#]*)?")
+	_DOMAIN_NAME_RE = re.compile(r"([-a-zA-Z0-9]+\.)*[-a-zA-Z0-9]+")
+	_EMAIL_ADDRESS_RE = re.compile(r"(?P<mailbox>[-a-zA-Z0-9.!#$%&'*+/=?^_`{|}~]+)@(?P<domainname>.*)")
+	_URI_RE = re.compile(r"(?P<scheme>[a-z]+):(?P<authority>/*[-a-zA-Z0-9+%_.:,=;@\[\]]+)?(?P<path>/[-a-zA-Z0-9+%_.:,=;@/]+)?(?P<query>\?[-a-zA-Z0-9+%_.:,=;@/?#]*)?")
 
 	@classmethod
 	def validate_email_address(cls, email_address):
@@ -269,6 +269,7 @@ class PaddingTools(object):
 		if data[0] != 1:
 			raise InvalidInputException("PKCS#1 padding must start with 0x01")
 
+		i = 0
 		last_char = None
 		for i in range(1, len(data)):
 			if data[i] == 0xff:

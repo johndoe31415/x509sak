@@ -59,14 +59,7 @@ class ValidationToolsTests(BaseTest):
 		self.assertFalse(ValidationTools.validate_domainname("foo."))
 		self.assertFalse(ValidationTools.validate_domainname("foo bar"))
 
-	def test_domains_invalid(self):
-		self.assertFalse(ValidationTools.validate_domainname(""))
-		self.assertFalse(ValidationTools.validate_domainname("."))
-		self.assertFalse(ValidationTools.validate_domainname(".foo"))
-		self.assertFalse(ValidationTools.validate_domainname("foo."))
-		self.assertFalse(ValidationTools.validate_domainname("foo bar"))
-
-	def test_uri_valid(self):
+	def test_uri_invalid(self):
 		self.assertFalse(ValidationTools.validate_uri("/foo/bar"))
 		self.assertFalse(ValidationTools.validate_uri("moo.com/foobar"))
 		self.assertFalse(ValidationTools.validate_uri("foo.de:80/jfisoud"))
@@ -97,14 +90,3 @@ class ValidationToolsTests(BaseTest):
 		self.assertTrue(ValidationTools.validate_uri("urn:oasis:names:specification:docbook:dtd:xml:4.1.2"))
 		self.assertTrue(ValidationTools.validate_uri("git://github.com/rails/rails.git"))
 		self.assertTrue(ValidationTools.validate_uri("crid://broadcaster.com/movies/BestActionMovieEver"))
-
-
-
-
-
-
-
-
-
-
-

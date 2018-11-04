@@ -19,9 +19,8 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
+import base64
 from x509sak.estimate.BaseEstimator import BaseEstimator
-from x509sak.estimate import Verdict, Commonness, Compatibility
-from x509sak.estimate.Judgement import SecurityJudgement
 
 @BaseEstimator.register
 class CertificateEstimator(BaseEstimator):
