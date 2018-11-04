@@ -35,14 +35,14 @@ output_directory = "examine"
 thread_cnt = get_processor_count()
 threads = threading.Semaphore(thread_cnt)
 
-def execute(domain, infile, outfile):
+def execute(certno, domain, infile, outfile):
 	try:
 		os.makedirs(os.path.dirname(outfile))
 	except FileExistsError:
 		pass
 
 	cmd = [ "../x509sak.py", "examine", "-p", "tls-server", "-n", domain, "-f", "json", "-o", outfile, "-i", "dercrt", infile ]
-	print(" ".join(cmd))
+	print("%6d %s" % (certno, " ".join(cmd)))
 	try:
 		subprocess.check_call(cmd)
 	except subprocess.CalledProcessError:
@@ -50,6 +50,7 @@ def execute(domain, infile, outfile):
 			print(infile, file = f)
 	threads.release()
 
+certno = 0
 for (dirname, subdirs, files) in os.walk(corpus_directory):
 	for filename in files:
 		fullfilename = dirname + "/" + filename
@@ -59,8 +60,9 @@ for (dirname, subdirs, files) in os.walk(corpus_directory):
 		if os.path.isfile(outfile):
 			continue
 
+		certno += 1
 		threads.acquire()
-		thread = threading.Thread(target = execute, args = (domain, fullfilename, outfile))
+		thread = threading.Thread(target = execute, args = (certno, domain, fullfilename, outfile))
 		thread.start()
 
 for i in range(thread_cnt):
