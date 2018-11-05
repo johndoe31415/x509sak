@@ -25,7 +25,8 @@ import collections
 from x509sak.BaseAction import BaseAction
 from x509sak import X509Certificate
 from x509sak.Tools import JSONTools
-from x509sak.estimate import SecurityEstimator, AnalysisOptions, SecurityJudgement, Commonness, Verdict, Compatibility
+from x509sak.estimate import SecurityEstimator, AnalysisOptions, Commonness, Verdict, Compatibility
+from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements
 from x509sak.ConsolePrinter import ConsolePrinter
 from x509sak.FileWriter import FileWriter
 from x509sak.OpenSSLTools import OpenSSLTools
@@ -100,6 +101,7 @@ class ActionExamineCert(BaseAction):
 				}
 				analysis_options = AnalysisOptions(**analysis_options)
 				analysis = SecurityEstimator.algorithm("certificate", analysis_options = analysis_options).analyze(crt)
+				analysis = JSONTools.translate(analysis)
 				analysis["source"] = {
 					"name":			crt_source.source,
 					"srctype":		crt_source.source_type,
@@ -107,7 +109,6 @@ class ActionExamineCert(BaseAction):
 					"certs_total":	len(crt_source.crts),
 				}
 				analyses["data"].append(analysis)
-		analyses = JSONTools.translate(analyses)
 		return analyses
 
 	def _read_json(self):
@@ -128,19 +129,19 @@ class ActionExamineCert(BaseAction):
 			textual_verdict.append("%d bits" % (judgement.bits))
 		if judgement.verdict is not None:
 			textual_verdict.append({
-				Verdict.BEST_IN_CLASS:				"best-in-class security",
-				Verdict.HIGH:						"high security",
-				Verdict.MEDIUM:						"medium security",
-				Verdict.WEAK:						"weak security",
-				Verdict.BROKEN:						"broken security",
-				Verdict.NO_SECURITY:				"no security",
+				Verdict.BEST_IN_CLASS:					"best-in-class security",
+				Verdict.HIGH:							"high security",
+				Verdict.MEDIUM:							"medium security",
+				Verdict.WEAK:							"weak security",
+				Verdict.BROKEN:							"broken security",
+				Verdict.NO_SECURITY:					"no security",
 			}[judgement.verdict])
 		if judgement.commonness is not None:
 			textual_verdict.append({
-				Commonness.COMMON:					"common",
-				Commonness.FAIRLY_COMMON:			"fairly common",
-				Commonness.UNUSUAL:					"unusual",
-				Commonness.HIGHLY_UNUSUAL:			"highly unusual",
+				Commonness.COMMON:						"common",
+				Commonness.FAIRLY_COMMON:				"fairly common",
+				Commonness.UNUSUAL:						"unusual",
+				Commonness.HIGHLY_UNUSUAL:				"highly unusual",
 			}[judgement.commonness])
 		if judgement.compatibility is not None:
 			textual_verdict.append({
@@ -168,27 +169,26 @@ class ActionExamineCert(BaseAction):
 			color = "insecure"
 		return color
 
-	def _fmt_verdict(self, judgement):
+	def _fmt_security_judgement(self, judgement):
 		color = self._fmt_color(judgement)
+		text = "%s: %s" % (judgement.topic, judgement.text)
+
 		textual_verdict = self._fmt_textual_verdict(judgement)
-		if textual_verdict is None:
-			text = judgement.text
-		else:
-			text = "%s {%s}" % (judgement.text, textual_verdict)
+		if textual_verdict is not None:
+			text = "%s {%s}" % (text, textual_verdict)
 		return "<%s>%s<end>" % (color, text)
 
-	def _print_verdict(self, printer, judgements, indent = ""):
-		component_cnt = len(judgements["components"])
-		if component_cnt == 0:
+	def _print_security_judgements(self, printer, judgements_data, indent = ""):
+		judgements = SecurityJudgements.from_dict(judgements_data)
+		if len(judgements) == 0:
 			printer.print("%sNo comments regarding this check." % (indent))
-		elif component_cnt == 1:
-			judgement = SecurityJudgement.from_dict(judgements["components"][0])
-			printer.print("%s%s" % (indent, self._fmt_verdict(judgement)))
+		elif len(judgements) == 1:
+			printer.print("%s%s" % (indent, self._fmt_security_judgement(judgements[0])))
 		else:
-			for (jid, judgement_data) in enumerate(judgements["components"], 1):
-				judgement = SecurityJudgement.from_dict(judgement_data)
-				printer.print("%s%d / %d: %s" % (indent, jid, component_cnt, self._fmt_verdict(judgement)))
-			summary_judgement = SecurityJudgement.from_dict(judgements)
+			for (jid, judgement) in enumerate(judgements, 1):
+				printer.print("%s%d / %d: %s" % (indent, jid, len(judgements), self._fmt_security_judgement(judgement)))
+
+			summary_judgement = judgements.summary_judgement()
 			color = self._fmt_color(summary_judgement)
 			printer.print("%s    -> Summary: <%s>%s<end>" % (indent, color, self._fmt_textual_verdict(summary_judgement)))
 
@@ -199,6 +199,7 @@ class ActionExamineCert(BaseAction):
 
 	def _print_analysis(self, printer, analyses):
 		for analysis in analyses["data"]:
+			print(analysis)
 			printer.heading("Metadata")
 			if analysis["source"]["certs_total"] == 1:
 				printer.print("Source : %s" % (analysis["source"]["name"]))
@@ -206,40 +207,40 @@ class ActionExamineCert(BaseAction):
 				printer.print("Source : %s (certificate %d of %d)" % (analysis["source"]["name"], analysis["source"]["cert_no"], analysis["source"]["certs_total"]))
 			printer.print("Issuer : %s" % (analysis["issuer"]["pretty"]))
 			if len(analysis["issuer"]["security"]["components"]) > 0:
-				self._print_verdict(printer, analysis["issuer"]["security"], indent = "  ")
+				self._print_security_judgements(printer, analysis["issuer"]["security"], indent = "  ")
 			printer.print("Subject: %s" % (analysis["subject"]["pretty"]))
 			if len(analysis["subject"]["security"]["components"]) > 0:
-				self._print_verdict(printer, analysis["subject"]["security"], indent = "  ")
+				self._print_security_judgements(printer, analysis["subject"]["security"], indent = "  ")
 			if len(analysis["security"]["components"]) > 0:
 				printer.print("Misc observations:")
-				self._print_verdict(printer, analysis["misc"]["security"], indent = "  ")
+				self._print_security_judgements(printer, analysis["misc"]["security"], indent = "  ")
 			printer.print()
 
 			printer.heading("Validity")
 			printer.print("Valid from : %s" % (self._fmt_time(analysis["validity"]["not_before"]["iso"])))
 			printer.print("Valid until: %s" % (self._fmt_time(analysis["validity"]["not_after"]["iso"])))
 			printer.print("Lifetime   : %.1f years" % (analysis["validity"]["validity_days"] / 365))
-			self._print_verdict(printer, analysis["validity"]["security"], indent = "  ")
+			self._print_security_judgements(printer, analysis["validity"]["security"], indent = "  ")
 			printer.print()
 
 			printer.heading("Public Key")
 			printer.print("Used cryptography: %s" % (analysis["pubkey"]["pretty"]))
-			self._print_verdict(printer, analysis["pubkey"]["security"], indent = "    ")
+			self._print_security_judgements(printer, analysis["pubkey"]["security"], indent = "    ")
 			printer.print()
 
 			printer.heading("Signature")
 			printer.print("Signature algorithm: %s" % (analysis["signature"]["pretty"]))
-			self._print_verdict(printer, analysis["signature"]["security"], indent = "    ")
+			self._print_security_judgements(printer, analysis["signature"]["security"], indent = "    ")
 			if "hash_fnc" in analysis["signature"]:
 				printer.print("Hash function      : %s" % (analysis["signature"]["hash_fnc"]["name"]))
-				self._print_verdict(printer, analysis["signature"]["hash_fnc"]["security"], indent = "    ")
+				self._print_security_judgements(printer, analysis["signature"]["hash_fnc"]["security"], indent = "    ")
 			if "sig_fnc" in analysis["signature"]:
 				printer.print("Signature function : %s" % (analysis["signature"]["sig_fnc"]["name"]))
-				self._print_verdict(printer, analysis["signature"]["sig_fnc"]["security"], indent = "    ")
+				self._print_security_judgements(printer, analysis["signature"]["sig_fnc"]["security"], indent = "    ")
 			printer.print()
 
 			printer.heading("X.509 Extensions")
-			self._print_verdict(printer, analysis["extensions"]["security"], indent = "    ")
+			self._print_security_judgements(printer, analysis["extensions"]["security"], indent = "    ")
 			printer.print()
 
 			if len(analysis["purpose"]) > 0:
@@ -247,10 +248,10 @@ class ActionExamineCert(BaseAction):
 				for purpose_check in analysis["purpose"]:
 					if purpose_check["type"] == "name_match":
 						printer.print("   Name match '%s':" % (purpose_check["name"]))
-						self._print_verdict(printer, purpose_check["security"], indent = "       ")
+						self._print_security_judgements(printer, purpose_check["security"], indent = "       ")
 					elif purpose_check["type"] == "purpose_match":
 						printer.print("   Purpose %s:" % (purpose_check["purpose"]))
-						self._print_verdict(printer, purpose_check["security"], indent = "       ")
+						self._print_security_judgements(printer, purpose_check["security"], indent = "       ")
 					else:
 						raise NotImplementedError(purpose_check["type"])
 				printer.print()

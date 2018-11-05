@@ -65,6 +65,7 @@ class ValidationToolsTests(BaseTest):
 		self.assertFalse(ValidationTools.validate_uri("foo.de:80/jfisoud"))
 		self.assertFalse(ValidationTools.validate_uri("://foo"))
 		self.assertFalse(ValidationTools.validate_uri("://foo/"))
+		self.assertFalse(ValidationTools.validate_uri("http:../example.com"))
 
 	def test_uri_valid(self):
 		self.assertTrue(ValidationTools.validate_uri("http://a"))

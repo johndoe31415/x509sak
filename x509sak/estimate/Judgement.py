@@ -20,6 +20,7 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 import enum
+from x509sak.Tools import JSONTools
 
 class JudgementCode(enum.Enum):
 	RSA_Parameter_Field_Not_Present = ("RSA pubkey", "parameter field not present")
@@ -167,6 +168,44 @@ class SecurityJudgement(object):
 			if self._commonness is None:
 				self._commonness = Commonness.HIGHLY_UNUSUAL
 
+	@property
+	def code(self):
+		return self._code
+
+	@property
+	def topic(self):
+		if self.code is None:
+			return None
+		else:
+			return self.code.topic
+
+	@property
+	def short_text(self):
+		if self.code is None:
+			return None
+		else:
+			return self.code.short_text
+
+	@property
+	def text(self):
+		return self._text
+
+	@property
+	def bits(self):
+		return self._bits
+
+	@property
+	def verdict(self):
+		return self._verdict
+
+	@property
+	def commonness(self):
+		return self._commonness
+
+	@property
+	def compatibility(self):
+		return self._compatibility
+
 	@classmethod
 	def from_dict(cls, judgement_data):
 		if "code" in judgement_data:
@@ -186,147 +225,96 @@ class SecurityJudgement(object):
 			compatibility = Compatibility(compatibility["value"])
 		return cls(code = code, text = text, bits = bits, verdict = verdict, commonness = commonness, compatibility = compatibility)
 
-	@property
-	def component_cnt(self):
-		return 1
-
-	@property
-	def code(self):
-		return self._code
-
-	@property
-	def text(self):
-		if self._prefix_topic:
-			return "%s: %s" % (self.code.topic, self._text)
-		else:
-			return self._text
-
-	@property
-	def topic_text(self):
-		return "%s: %s" % (self.code.topic, self._text)
-
-	@property
-	def bits(self):
-		return self._bits
-
-	@property
-	def verdict(self):
-		return self._verdict
-
-	@property
-	def commonness(self):
-		return self._commonness
-
-	@property
-	def compatibility(self):
-		return self._compatibility
-
 	def to_dict(self):
 		result = {
-			"code":				self.code.name,
-			"topic":			self.code.topic,
-			"short_text":		self.code.short_text,
+			"code":				self.code.name if (self.code is not None) else None,
+			"topic":			self.topic,
+			"short_text":		self.short_text,
 			"text":				self.text,
 			"bits":				self.bits,
-			"verdict":			self.verdict,
-			"commonness":		self.commonness,
-			"compatibility":	self.compatibility,
+			"verdict":			JSONTools.translate(self.verdict) if (self.verdict is not None) else None,
+			"commonness":		JSONTools.translate(self.commonness) if (self.commonness is not None) else None,
+			"compatibility":	JSONTools.translate(self.compatibility) if (self.compatibility is not None) else None,
 		}
 		return { key: value for (key, value) in result.items() if value is not None }
+
+	def __str__(self):
+		return "SecurityJudgement<%s>" % (self.text)
 
 class SecurityJudgements(object):
 	def __init__(self):
 		self._judgements = [ ]
 
-	@property
-	def component_cnt(self):
-		return sum(judgement.component_cnt for judgement in self._judgements)
-
 	@staticmethod
-	def _minof(a, b):
-		if (a is None) and (b is None):
-			return None
-		elif (a is not None) and (b is not None):
-			# Take minimum
-			return min(a, b)
-		elif b is None:
-			return a
-		else:
-			return b
+	def _minof(items):
+		result = None
+		for item in items:
+			if result is None:
+				result = item
+			elif item is not None:
+				result = min(result, item)
+		return result
 
 	@property
-	def text(self):
-		return " / ".join(component.topic_text for component in self._judgements)
-
-	@property
-	def topic_text(self):
-		return self.text
+	def uniform_topic(self):
+		return len(set(item.topic for item in self)) in [ 0, 1 ]
 
 	@property
 	def bits(self):
-		result = None
-		for judgement in self._judgements:
-			result = self._minof(result, judgement.bits)
-		return result
+		return self._minof(item.bits for item in self)
 
 	@property
 	def verdict(self):
-		result = None
-		for judgement in self._judgements:
-			result = self._minof(result, judgement.verdict)
-		return result
+		return self._minof(item.verdict for item in self)
 
 	@property
 	def commonness(self):
-		result = None
-		for judgement in self._judgements:
-			result = self._minof(result, judgement.commonness)
-		return result
+		return self._minof(item.commonness for item in self)
 
 	@property
 	def compatibility(self):
-		result = None
-		for judgement in self._judgements:
-			result = self._minof(result, judgement.compatibility)
-		return result
+		return self._minof(item.compatibility for item in self)
+
+	def summary_judgement(self):
+		return SecurityJudgement(code = None, text = "Summary", bits = self.bits, verdict = self.verdict, commonness = self.commonness, compatibility = self.compatibility)
 
 	def __iadd__(self, judgement):
 		if judgement is None:
-			# Just ignore it
-			return self
-		assert(isinstance(judgement, (SecurityJudgement, SecurityJudgements)))
-		if judgement.component_cnt > 0:
+			# Simply ignore it.
+			pass
+		elif isinstance(judgement, SecurityJudgement):
 			self._judgements.append(judgement)
+		elif isinstance(judgement, SecurityJudgements):
+			self._judgements += judgement
+		else:
+			raise NotImplementedError(judgement)
 		return self
 
-	def _clone(self):
-		clone = SecurityJudgements()
-		for item in self._judgements:
-			if isinstance(item, SecurityJudgement):
-				clone += item
-			else:
-				clone += item._clone()
-		return clone
-
-	def __add__(self, judgement):
-		clone = self._clone()
-		clone += judgement
-		return clone
+	@classmethod
+	def from_dict(cls, judgements_data):
+		judgements = cls()
+		for judgement_data in judgements_data["components"]:
+			judgements += SecurityJudgement.from_dict(judgement_data)
+		return judgements
 
 	def to_dict(self):
 		result = {
-			"text":				self.text,
 			"bits":				self.bits,
 			"verdict":			self.verdict,
 			"commonness":		self.commonness,
 			"compatibility":	self.compatibility,
-			"components":		self._judgements,
+			"components":		[ judgement.to_dict() for judgement in self._judgements ],
 		}
 		return { key: value for (key, value) in result.items() if value is not None }
 
+	def __len__(self):
+		return len(self._judgements)
+
 	def __iter__(self):
-		for item in self._judgements:
-			if isinstance(item, SecurityJudgement):
-				yield item
-			else:
-				yield from item
+		return iter(self._judgements)
+
+	def __getitem__(self, index):
+		return self._judgements[index]
+
+	def __str__(self):
+		return "SecurityJudgements<%s>" % (", ".join(str(judgement) for judgement in self))

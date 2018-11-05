@@ -28,6 +28,7 @@ import pkgutil
 import gzip
 import textwrap
 import datetime
+import urllib.parse
 import pyasn1.type.univ
 from x509sak.Exceptions import UnexpectedFileContentException, InvalidUsageException, InvalidInputException
 
@@ -261,7 +262,15 @@ class ValidationTools(object):
 
 	@classmethod
 	def validate_uri(cls, uri):
-		return cls._URI_RE.fullmatch(uri) is not None
+		if cls._URI_RE.fullmatch(uri) is None:
+			return False
+		split_uri = urllib.parse.urlsplit(uri)
+		if split_uri.scheme == "":
+			return False
+		if split_uri.scheme in [ "http", "https" ]:
+			return (split_uri.netloc != "") and ((split_uri.path == "") or (split_uri.path.startswith("/")))
+		else:
+			return True
 
 class PaddingTools(object):
 	@classmethod
