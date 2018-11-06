@@ -92,3 +92,26 @@ class ValidationToolsTests(BaseTest):
 		self.assertTrue(ValidationTools.validate_uri("git://github.com/rails/rails.git"))
 		self.assertTrue(ValidationTools.validate_uri("crid://broadcaster.com/movies/BestActionMovieEver"))
 		self.assertTrue(ValidationTools.validate_uri("http://aa.bbbb-c.dd/eeeeee"))
+
+	def test_domainname_template_valid(self):
+		self.assertEqual(ValidationTools.validate_domainname_template("bar.de")[0], ValidationTools.DomainnameTemplateValidationResult.Valid)
+		self.assertEqual(ValidationTools.validate_domainname_template("y")[0], ValidationTools.DomainnameTemplateValidationResult.Valid)
+		self.assertEqual(ValidationTools.validate_domainname_template("d.y")[0], ValidationTools.DomainnameTemplateValidationResult.Valid)
+		self.assertEqual(ValidationTools.validate_domainname_template("a.d.y")[0], ValidationTools.DomainnameTemplateValidationResult.Valid)
+		self.assertEqual(ValidationTools.validate_domainname_template("a.d.y")[0], ValidationTools.DomainnameTemplateValidationResult.Valid)
+		self.assertEqual(ValidationTools.validate_domainname_template("bar.co.uk")[0], ValidationTools.DomainnameTemplateValidationResult.Valid)
+
+		self.assertEqual(ValidationTools.validate_domainname_template("*.co.uk")[0], ValidationTools.DomainnameTemplateValidationResult.Valid)
+		self.assertEqual(ValidationTools.validate_domainname_template("foo*.co.uk")[0], ValidationTools.DomainnameTemplateValidationResult.Valid)
+		self.assertEqual(ValidationTools.validate_domainname_template("*foo.co.uk")[0], ValidationTools.DomainnameTemplateValidationResult.Valid)
+		self.assertEqual(ValidationTools.validate_domainname_template("foo.foo*.co.uk")[0], ValidationTools.DomainnameTemplateValidationResult.Valid)
+		self.assertEqual(ValidationTools.validate_domainname_template("foo.*foo.co.uk")[0], ValidationTools.DomainnameTemplateValidationResult.Valid)
+		self.assertEqual(ValidationTools.validate_domainname_template("*.xn--foo.co.uk")[0], ValidationTools.DomainnameTemplateValidationResult.Valid)
+
+	def test_domainname_template_invalid(self):
+		self.assertEqual(ValidationTools.validate_domainname_template("*foo*.foo.co.uk")[0], ValidationTools.DomainnameTemplateValidationResult.InvalidCharacter)
+		self.assertEqual(ValidationTools.validate_domainname_template("**.foo.co.uk")[0], ValidationTools.DomainnameTemplateValidationResult.InvalidCharacter)
+		self.assertEqual(ValidationTools.validate_domainname_template("foo.*.co.uk")[0], ValidationTools.DomainnameTemplateValidationResult.FullWildcardNotLeftmost)
+		self.assertEqual(ValidationTools.validate_domainname_template("foo.co.uk.*")[0], ValidationTools.DomainnameTemplateValidationResult.FullWildcardNotLeftmost)
+		self.assertEqual(ValidationTools.validate_domainname_template("foo*.co*.uk")[0], ValidationTools.DomainnameTemplateValidationResult.MoreThanOneWildcard)
+		self.assertEqual(ValidationTools.validate_domainname_template("foo.xn--foo*.uk")[0], ValidationTools.DomainnameTemplateValidationResult.WildcardInInternationalDomain)

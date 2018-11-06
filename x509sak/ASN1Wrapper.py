@@ -23,42 +23,43 @@ import pyasn1.codec.der.encoder
 from x509sak.DistinguishedName import DistinguishedName
 
 class ASN1NameWrapper(object):
-	def __init__(self, name, value):
+	def __init__(self, name, asn1_value):
+		assert(isinstance(name, str))
 		self._name = name
-		self._value = value
+		self._asn1_value = asn1_value
 
 	@property
 	def name(self):
 		return self._name
 
 	@property
-	def value(self):
-		return self._value
+	def asn1_value(self):
+		return self._asn1_value
 
 	@property
-	def pretty_value(self):
-		if self.name in [ "dNSName", "rfc822Name" ]:
-			result = str(self.value)
-		elif (self.name == "iPAddress") and (len(self.value) == 4):
-			result = ".".join(str(v) for v in self.value)
-		elif (self.name == "iPAddress") and (len(self.value) == 16):
-			result = ":".join("%02x" % (v) for v in self.value)
+	def str_value(self):
+		if self.name in [ "dNSName", "rfc822Name", "uniformResourceIdentifier" ]:
+			result = str(self.asn1_value)
+		elif (self.name == "iPAddress") and (len(self.asn1_value) == 4):
+			result = ".".join(str(v) for v in self.asn1_value)
+		elif (self.name == "iPAddress") and (len(self.asn1_value) == 16):
+			result = ":".join("%02x" % (v) for v in self.asn1_value)
 		elif self.name == "otherName":
-			oid = self.value["type-id"]
-			value = bytes(self.value["value"])
-			result = "otherName:%s:#%s" % (oid, value.hex())
+			oid = self.asn1_value["type-id"]
+			inner_value = bytes(self.asn1_value["value"])
+			result = "otherName:%s:#%s" % (oid, inner_value.hex())
 		elif self.name == "directoryName":
-			dn = DistinguishedName.from_asn1(self.value)
+			dn = DistinguishedName.from_asn1(self.asn1_value)
 			result = dn.pretty_str
 		else:
-			result = "%s:#%s" % (self._name, pyasn1.codec.der.encoder.encode(self.value).hex())
+			result = "%s:#%s" % (self._name, pyasn1.codec.der.encoder.encode(self.asn1_value).hex())
 		return result
 
 	def __eq__(self, other):
-		return (self.name, self.value) == (other.name, other.value)
+		return (self.name, self.asn1_value) == (other.name, other.asn1_value)
 
 	def __neq__(self, other):
 		return not (self == other)
 
 	def __str__(self):
-		return "%s = %s" % (self.name, self.pretty_value)
+		return "%s = %s" % (self.name, self.str_value)

@@ -242,6 +242,14 @@ class ValidationTools(object):
 	_DOMAIN_NAME_RE = re.compile(r"([-a-zA-Z0-9]+\.)*[-a-zA-Z0-9]+")
 	_EMAIL_ADDRESS_RE = re.compile(r"(?P<mailbox>[-a-zA-Z0-9.!#$%&'*+/=?^_`{|}~]+)@(?P<domainname>.*)")
 	_URI_RE = re.compile(r"(?P<scheme>[a-z]+):(?P<authority>/*[-a-zA-Z0-9+%_.:,=;@\[\]]+)?(?P<path>/[-a-zA-Z0-9+%_.:,=;@/]+)?(?P<query>\?[-a-zA-Z0-9+%_.:,=;@/?#]*)?")
+	_LABEL_RE = re.compile(r"(?P<left>[-a-zA-Z0-9]*)(?P<wildcard>\*)?(?P<right>[-a-zA-Z0-9]*)")
+
+	class DomainnameTemplateValidationResult(enum.IntEnum):
+		Valid = 0
+		InvalidCharacter = 1
+		MoreThanOneWildcard = 2
+		FullWildcardNotLeftmost = 3
+		WildcardInInternationalDomain = 4
 
 	@classmethod
 	def validate_email_address(cls, email_address):
@@ -261,6 +269,29 @@ class ValidationTools(object):
 		return cls._DOMAIN_NAME_RE.fullmatch(domainname) is not None
 
 	@classmethod
+	def validate_domainname_template(cls, domainname_template):
+		labels = domainname_template.lower().split(".")
+		seen_wildcard = False
+		for (lid, label) in enumerate(labels):
+			result = cls._LABEL_RE.fullmatch(label)
+			if result is None:
+				return (cls.DomainnameTemplateValidationResult.InvalidCharacter, label)
+			result = result.groupdict()
+
+			if result["wildcard"] is not None:
+				if label.startswith("xn--"):
+					return (cls.DomainnameTemplateValidationResult.WildcardInInternationalDomain, label)
+
+				if seen_wildcard:
+					return (cls.DomainnameTemplateValidationResult.MoreThanOneWildcard, label)
+				seen_wildcard = True
+
+				if (result["left"] == "") and (result["right"] == ""):
+					if lid != 0:
+						return (cls.DomainnameTemplateValidationResult.FullWildcardNotLeftmost, label)
+		return (cls.DomainnameTemplateValidationResult.Valid, domainname_template)
+
+	@classmethod
 	def validate_uri(cls, uri):
 		if cls._URI_RE.fullmatch(uri) is None:
 			return False
@@ -271,6 +302,10 @@ class ValidationTools(object):
 			return (split_uri.netloc != "") and ((split_uri.path == "") or (split_uri.path.startswith("/")))
 		else:
 			return True
+
+	@classmethod
+	def validate_domainname_matches_template(cls, domainname, template_domainname):
+		pass
 
 class PaddingTools(object):
 	@classmethod
