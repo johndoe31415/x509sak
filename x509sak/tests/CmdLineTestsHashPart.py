@@ -31,14 +31,14 @@ class CmdLineTestsHashPart(BaseTest):
 			lines = result.stdout_text.split("\n")[:-1]
 			self.assertEqual(len(lines), 6)
 
-	def test_hash_search(self):
+	def test_hash_search1(self):
 		with ResourceFileLoader("certs/ok/johannes-bauer.com.pem") as infile:
 			result = SubprocessExecutor(self._x509sak + [ "hashpart", "-o", "20", "-l", "20", "-s", "af620e0", "-h", "md5", infile ]).run()
 			self.assertIn("602223a041eaf620e00527d2c0a8cb31", result.stdout_text)
 			lines = result.stdout_text.split("\n")[:-1]
 			self.assertEqual(len(lines), 1)
 
-	def test_hash_search(self):
+	def test_hash_search2(self):
 		with ResourceFileLoader("certs/ok/johannes-bauer.com.pem") as infile:
 			result = SubprocessExecutor(self._x509sak + [ "hashpart", "-o", "100", "-l", "20", "-s", "0000", "-h", "sha1", "-h", "shake_256", infile ]).run()
 			self.assertIn("b2736f6e448f6b6971a1e8ad5000009bf48752d1", result.stdout_text)
