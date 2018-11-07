@@ -70,14 +70,14 @@ class SignatureSecurityEstimator(BaseEstimator):
 			judgements += SecurityJudgement(JudgementCode.Cert_Unknown_HashAlgorithm, "Certificate has unknown hash algorithm used in signature with OID %s. Cannot make security determination for that part." % (hash_oid), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
 
 		result = {
-			"name":			signature_alg.name,
-			"sig_fnc":		self.algorithm("sig_fnc", analysis_options = self._analysis_options).analyze(signature_alg.value.sig_fnc),
-			"security":		judgements,
+			"name":				signature_alg.name,
+			"sig_fnc":			self.algorithm("sig_fnc").analyze(signature_alg.value.sig_fnc),
+			"security":			judgements,
 		}
 		if hash_fnc is not None:
 			result.update({
 				"pretty":		signature_alg.value.sig_fnc.value.pretty_name + " with " + hash_fnc.value.pretty_name,
-				"hash_fnc":		self.algorithm("hash_fnc", analysis_options = self._analysis_options).analyze(hash_fnc),
+				"hash_fnc":		self.algorithm("hash_fnc").analyze(hash_fnc),
 			})
 		else:
 			result.update({

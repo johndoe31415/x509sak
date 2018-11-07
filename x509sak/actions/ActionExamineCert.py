@@ -100,7 +100,7 @@ class ActionExamineCert(BaseAction):
 					"utcnow":				utcnow,
 				}
 				analysis_options = AnalysisOptions(**analysis_options)
-				analysis = SecurityEstimator.algorithm("certificate", analysis_options = analysis_options).analyze(crt)
+				analysis = SecurityEstimator.handler("certificate")(analysis_options = analysis_options).analyze(crt)
 				analysis = JSONTools.translate(analysis)
 				analysis["source"] = {
 					"name":			crt_source.source,
@@ -199,7 +199,6 @@ class ActionExamineCert(BaseAction):
 
 	def _print_analysis(self, printer, analyses):
 		for analysis in analyses["data"]:
-			print(analysis)
 			printer.heading("Metadata")
 			if analysis["source"]["certs_total"] == 1:
 				printer.print("Source : %s" % (analysis["source"]["name"]))

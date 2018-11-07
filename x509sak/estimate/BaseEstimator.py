@@ -41,10 +41,14 @@ class BaseEstimator(object):
 		return estimator_class
 
 	@classmethod
-	def algorithm(cls, alg_name, analysis_options = None):
+	def handler(cls, alg_name):
 		if alg_name not in cls._KNOWN_ALGORITHMS:
 			raise KeyError("Algorithm quality of '%s' cannot be estimated, Estimator class not registered." % (alg_name))
-		return cls._KNOWN_ALGORITHMS[alg_name](analysis_options = analysis_options)
+		return cls._KNOWN_ALGORITHMS[alg_name]
+
+	def algorithm(self, alg_name):
+		handler = self.handler(alg_name)
+		return handler(analysis_options = self._analysis_options)
 
 	def analyze(self, *args, **kwargs):
 		raise NotImplementedError("method 'analyze'")

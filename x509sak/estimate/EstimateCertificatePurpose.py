@@ -23,17 +23,11 @@ from x509sak.OID import OIDDB
 from x509sak.estimate.BaseEstimator import BaseEstimator
 from x509sak.estimate import JudgementCode, AnalysisOptions, Verdict, Commonness
 from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements
+from x509sak.Tools import ValidationTools
 
 @BaseEstimator.register
 class PurposeEstimator(BaseEstimator):
 	_ALG_NAME = "purpose"
-
-	@staticmethod
-	def _san_name_match(san_name, fqdn):
-		if san_name.pretty_value[0] == "*":
-			return fqdn.endswith(san_name.pretty_value[1:])
-		else:
-			return san_name.pretty_value == fqdn
 
 	def _judge_name(self, certificate, name):
 		judgements = SecurityJudgements()
@@ -45,7 +39,7 @@ class PurposeEstimator(BaseEstimator):
 			rdn = None
 			for rdn in rdns:
 				value = rdn.get_value(OIDDB.RDNTypes.inverse("CN"))
-				if value.printable == name:
+				if ValidationTools.validate_domainname_template_match(value.printable, name):
 					have_valid_cn = True
 					break
 			if have_valid_cn:
@@ -60,7 +54,7 @@ class PurposeEstimator(BaseEstimator):
 		extension = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("SubjectAlternativeName"))
 		if extension is not None:
 			for san_name in extension.get_all("dNSName"):
-				if self._san_name_match(san_name, name):
+				if ValidationTools.validate_domainname_template_match(san_name.str_value, name):
 					have_valid_san = True
 					judgements += SecurityJudgement(JudgementCode.Cert_SAN_Match, "Subject Alternative Name matches '%s'." % (name), commonness = Commonness.COMMON)
 					break

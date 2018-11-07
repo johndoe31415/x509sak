@@ -27,19 +27,19 @@ from x509sak.Exceptions import LazyDeveloperException
 class PublicKeyEstimator(BaseEstimator):
 	_ALG_NAME = "pubkey"
 
-	def analyze(self, pubkey, analysis_options = None):
+	def analyze(self, pubkey):
 		result = {
 			"pubkey_alg":	pubkey.pk_alg.value.name,
 		}
 		if pubkey.pk_alg.value.cryptosystem == Cryptosystems.RSA:
 			result["pretty"] = "RSA with %d bit modulus" % (pubkey.n.bit_length())
-			result.update(self.algorithm("rsa", analysis_options = analysis_options).analyze(pubkey))
+			result.update(self.algorithm("rsa").analyze(pubkey))
 		elif pubkey.pk_alg.value.cryptosystem == Cryptosystems.ECC_ECDSA:
 			result["pretty"] = "ECC on %s" % (pubkey.curve.name)
-			result.update(self.algorithm("ecc", analysis_options = analysis_options).analyze(pubkey))
+			result.update(self.algorithm("ecc").analyze(pubkey))
 		elif pubkey.pk_alg.value.cryptosystem == Cryptosystems.ECC_EdDSA:
 			result["pretty"] = "EdDSA on %s" % (pubkey.curve.name)
-			result.update(self.algorithm("eddsa", analysis_options = analysis_options).analyze(pubkey))
+			result.update(self.algorithm("eddsa").analyze(pubkey))
 		else:
 			raise LazyDeveloperException(NotImplemented, pubkey.pk_alg.value.cryptosystem)
 		return result

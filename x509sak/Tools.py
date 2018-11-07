@@ -292,6 +292,12 @@ class ValidationTools(object):
 		return (cls.DomainnameTemplateValidationResult.Valid, domainname_template)
 
 	@classmethod
+	def validate_domainname_template_match(cls, template, domainname):
+		template_re = template.lower().replace(".", r"\.").replace("*", r"[-a-z0-9]*")
+		match = re.fullmatch(template_re, domainname.lower())
+		return match is not None
+
+	@classmethod
 	def validate_uri(cls, uri):
 		if cls._URI_RE.fullmatch(uri) is None:
 			return False
@@ -302,10 +308,6 @@ class ValidationTools(object):
 			return (split_uri.netloc != "") and ((split_uri.path == "") or (split_uri.path.startswith("/")))
 		else:
 			return True
-
-	@classmethod
-	def validate_domainname_matches_template(cls, domainname, template_domainname):
-		pass
 
 class PaddingTools(object):
 	@classmethod

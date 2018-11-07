@@ -34,7 +34,7 @@ class HashFunctionSecurityEstimator(BaseEstimator):
 			bits_security = hash_fnc.value.derating.security_lvl_bits
 
 		judgements = SecurityJudgements()
-		judgements += self.algorithm("bits", analysis_options = self._analysis_options).analyze(JudgementCode.HashFunction_Length, bits_security)
+		judgements += self.algorithm("bits").analyze(JudgementCode.HashFunction_Length, bits_security)
 		if hash_fnc.value.derating is not None:
 			judgements += SecurityJudgement(JudgementCode.HashFunction_Derated, "Derated from ideal %d bits security level because of %s." % (hash_fnc.value.output_bits / 2, hash_fnc.value.derating.reason))
 

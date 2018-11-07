@@ -115,3 +115,27 @@ class ValidationToolsTests(BaseTest):
 		self.assertEqual(ValidationTools.validate_domainname_template("foo.co.uk.*")[0], ValidationTools.DomainnameTemplateValidationResult.FullWildcardNotLeftmost)
 		self.assertEqual(ValidationTools.validate_domainname_template("foo*.co*.uk")[0], ValidationTools.DomainnameTemplateValidationResult.MoreThanOneWildcard)
 		self.assertEqual(ValidationTools.validate_domainname_template("foo.xn--foo*.uk")[0], ValidationTools.DomainnameTemplateValidationResult.WildcardInInternationalDomain)
+
+	def test_domainname_template_match(self):
+		self.assertTrue(ValidationTools.validate_domainname_template_match("foo.com", "FOO.cOm"))
+		self.assertTrue(ValidationTools.validate_domainname_template_match("foo.CoM", "FOO.cOm"))
+		self.assertTrue(ValidationTools.validate_domainname_template_match("*.com", "FOO.cOm"))
+		self.assertTrue(ValidationTools.validate_domainname_template_match("*.foo.com", "wWw.FOO.cOm"))
+		self.assertTrue(ValidationTools.validate_domainname_template_match("*blubb.foo.com", "wWwblubb.FOO.cOm"))
+		self.assertTrue(ValidationTools.validate_domainname_template_match("blubb*.foo.com", "bLubbmoo.FOO.cOm"))
+		self.assertTrue(ValidationTools.validate_domainname_template_match("muh*blubb.foo.com", "mUhwWwblubb.FOO.cOm"))
+		self.assertTrue(ValidationTools.validate_domainname_template_match("muh.f*o.com", "mUh.FOO.cOm"))
+		self.assertTrue(ValidationTools.validate_domainname_template_match("muh.f*o.com", "mUh.FO.cOm"))
+		self.assertTrue(ValidationTools.validate_domainname_template_match("muh.f*o.com", "mUh.FabcdefO.cOm"))
+		self.assertTrue(ValidationTools.validate_domainname_template_match("muh.fo*.com", "mUh.FOobar.cOm"))
+
+	def test_domainname_template_no_match(self):
+		self.assertFalse(ValidationTools.validate_domainname_template_match("foo.com", "foo.de"))
+		self.assertFalse(ValidationTools.validate_domainname_template_match("*.com", "www.FOO.com"))
+		self.assertFalse(ValidationTools.validate_domainname_template_match("*.foo.com", "FOO.cOm"))
+		self.assertFalse(ValidationTools.validate_domainname_template_match("*blubb.foo.com", "wWw.FOO.cOm"))
+		self.assertFalse(ValidationTools.validate_domainname_template_match("blubb*.foo.com", "www.FOO.cOm"))
+		self.assertFalse(ValidationTools.validate_domainname_template_match("muh*blubb.foo.com", "mUh.FOO.cOm"))
+		self.assertFalse(ValidationTools.validate_domainname_template_match("muh*blubb.foo.com", "blubb.FOO.cOm"))
+		self.assertFalse(ValidationTools.validate_domainname_template_match("muh*blubb.foo.com", "abcblubb.FOO.cOm"))
+		self.assertFalse(ValidationTools.validate_domainname_template_match("muh.f*o.com", "mUh.web.cOm"))

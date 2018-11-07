@@ -63,17 +63,17 @@ class CertificateEstimator(BaseEstimator):
 
 		return judgements
 
-	def analyze(self, cert, analysis_options = None):
+	def analyze(self, cert):
 		result = {
-			"subject":		self.algorithm("dn", analysis_options = analysis_options).analyze(cert.subject),
-			"issuer":		self.algorithm("dn", analysis_options = analysis_options).analyze(cert.issuer),
-			"validity":		self.algorithm("crt_validity", analysis_options = analysis_options).analyze(cert),
-			"pubkey":		self.algorithm("pubkey", analysis_options = analysis_options).analyze(cert.pubkey),
-			"extensions":	self.algorithm("crt_exts", analysis_options = analysis_options).analyze(cert),
-			"signature":	self.algorithm("sig", analysis_options = analysis_options).analyze(cert.signature_alg_oid, cert.signature_alg_params, cert.signature),
-			"purpose":		self.algorithm("purpose", analysis_options = analysis_options).analyze(cert),
+			"subject":		self.algorithm("dn").analyze(cert.subject),
+			"issuer":		self.algorithm("dn").analyze(cert.issuer),
+			"validity":		self.algorithm("crt_validity").analyze(cert),
+			"pubkey":		self.algorithm("pubkey").analyze(cert.pubkey),
+			"extensions":	self.algorithm("crt_exts").analyze(cert),
+			"signature":	self.algorithm("sig").analyze(cert.signature_alg_oid, cert.signature_alg_params, cert.signature),
+			"purpose":		self.algorithm("purpose").analyze(cert),
 			"security":		self._analyze_certificate_general_issues(cert),
 		}
-		if (analysis_options is not None) and analysis_options.include_raw_data:
+		if self._analysis_options.include_raw_data:
 			result["raw"] = base64.b64encode(cert.der_data).decode("ascii")
 		return result
