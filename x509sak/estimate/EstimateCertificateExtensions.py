@@ -190,7 +190,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 				# Wildcard match
 				labels = entity_name.str_value.split(".")
 				if len(labels) <= 2:
-					return SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_BadWildcardDomain_BroadMatch, "Subject Alternative Name X.509 exension with type %s and wildcard value \"%s\" has very broad domain match." % (entity_name.name, entity_name.str_value), commonness = Commonness.VERY_UNUSUAL)
+					return SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_BadWildcardDomain_BroadMatch, "Subject Alternative Name X.509 exension with type %s and wildcard value \"%s\" has very broad domain match." % (entity_name.name, entity_name.str_value), commonness = Commonness.HIGHLY_UNUSUAL)
 
 		elif entity_name.name == "iPAddress":
 			if len(entity_name.asn1_value) not in [ 4, 16 ]:
