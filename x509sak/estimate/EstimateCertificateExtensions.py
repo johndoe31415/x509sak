@@ -19,7 +19,6 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-import pyasn1.type.char
 from x509sak.OID import OIDDB
 from x509sak.AlgorithmDB import HashFunctions
 from x509sak.X509Extensions import X509ExtendedKeyUsageExtension

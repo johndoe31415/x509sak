@@ -20,7 +20,7 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 from x509sak.tests import BaseTest
-from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, JudgementCode, Verdict, Commonness, Compatibility
+from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, JudgementCode, Verdict, Commonness
 
 class SecurityJudgementTests(BaseTest):
 	def test_simple(self):

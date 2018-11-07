@@ -46,7 +46,7 @@ class ExecutionResult(object):
 		return self.stdout.decode(codec)
 
 	@property
-	def stdout_json(self, codec = "utf-8"):
+	def stdout_json(self):
 		return json.loads(self.stdout_text)
 
 	@property

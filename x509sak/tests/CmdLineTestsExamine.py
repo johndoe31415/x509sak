@@ -44,7 +44,7 @@ class CmdLineTestsExamine(BaseTest):
 
 	def test_purpose_ca(self):
 		with ResourceFileLoader("certs/ok/johannes-bauer-root.pem") as crtfile:
-			output = SubprocessExecutor(self._x509sak + [ "examine", "-p", "ca", "--fast-rsa", crtfile ]).run().stdout
+			SubprocessExecutor(self._x509sak + [ "examine", "-p", "ca", "--fast-rsa", crtfile ]).run().stdout
 
 	def test_purpose_tls_server(self):
 		with ResourceFileLoader("certs/ok/johannes-bauer.com.pem") as crtfile:
@@ -59,11 +59,11 @@ class CmdLineTestsExamine(BaseTest):
 
 	def test_rsa_pss_default(self):
 		with ResourceFileLoader("certs/ok/rsapss_defaults.pem") as crtfile:
-			output = SubprocessExecutor(self._x509sak + [ "examine", "-p", "tls-client", "--fast-rsa", "-f", "json", crtfile ]).run().stdout_json
+			SubprocessExecutor(self._x509sak + [ "examine", "-p", "tls-client", "--fast-rsa", "-f", "json", crtfile ]).run().stdout_json
 
 	def test_rsa_pss_custom(self):
 		with ResourceFileLoader("certs/ok/rsapss_sha256_salt_32.pem") as crtfile:
-			output = SubprocessExecutor(self._x509sak + [ "examine", "-p", "tls-client", "--fast-rsa", "-f", "json", crtfile ]).run().stdout_json
+			SubprocessExecutor(self._x509sak + [ "examine", "-p", "tls-client", "--fast-rsa", "-f", "json", crtfile ]).run().stdout_json
 
 	def _get_codes(self, data, result = None):
 		if result is None:

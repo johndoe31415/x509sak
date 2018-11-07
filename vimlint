@@ -13,5 +13,6 @@ suppress "E1102\(not-callable\).*self._ASN1_MODEL is not callable"
 suppress "E0102\(function-redefined\), genparser"
 suppress "W0613\(unused-argument\).*Unused argument 'args'"
 suppress "W0613\(unused-argument\).*Unused argument 'kwargs'"
+suppress "W0221\(arguments-differ\).*overridden 'analyze' method"
 vi -c ":set cmdheight=2" -c ":cf /tmp/lint"
 

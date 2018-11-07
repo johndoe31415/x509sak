@@ -19,8 +19,8 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-import pyasn1
 import base64
+import pyasn1
 from x509sak.OID import OID, OIDDB
 from x509sak.estimate.BaseEstimator import BaseEstimator
 from x509sak.estimate import JudgementCode, Commonness, Compatibility
