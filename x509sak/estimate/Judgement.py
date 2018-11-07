@@ -84,6 +84,7 @@ class JudgementCode(enum.Enum):
 	Cert_X509Ext_SubjectAltName_BadWildcardDomain_NotLeftmost = ("X.509 SubjectAlternativeName", "wildcard appears not leftmost")
 	Cert_X509Ext_SubjectAltName_BadWildcardDomain_MoreThanOneWildcard = ("X.509 SubjectAlternativeName", "more than one wildcard present")
 	Cert_X509Ext_SubjectAltName_BadWildcardDomain_InternationalLabel = ("X.509 SubjectAlternativeName", "wildcard present in international label")
+	Cert_X509Ext_SubjectAltName_BadWildcardDomain_BroadMatch = ("X.509 SubjectAlternativeName", "wildcard match too broad")
 	Cert_X509Ext_SubjectAltName_BadURI = ("X.509 SubjectAlternativeName", "invalid URI")
 	SignatureFunction_UncommonPaddingScheme = ("Signature function", "uncommon padding scheme")
 	SignatureFunction_UncommonCryptosystem = ("Signature function", "uncommon cryptosystem")
