@@ -20,6 +20,7 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 import os
+import json
 import subprocess
 from x509sak.Tools import CmdTools
 from x509sak.Exceptions import CmdExecutionFailedException
@@ -43,6 +44,10 @@ class ExecutionResult(object):
 	@property
 	def stdout_text(self, codec = "utf-8"):
 		return self.stdout.decode(codec)
+
+	@property
+	def stdout_json(self, codec = "utf-8"):
+		return json.loads(self.stdout_text)
 
 	@property
 	def stderr(self):

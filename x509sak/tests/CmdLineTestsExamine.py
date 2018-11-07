@@ -42,6 +42,29 @@ class CmdLineTestsExamine(BaseTest):
 			self.assertEqual(json_data["data"][0]["validity"]["not_before"]["iso"], "2018-07-14T16:00:53Z")
 			self.assertEqual(json_data["data"][0]["validity"]["not_after"]["iso"], "2019-07-14T16:00:53Z")
 
+	def test_purpose_ca(self):
+		with ResourceFileLoader("certs/ok/johannes-bauer-root.pem") as crtfile:
+			output = SubprocessExecutor(self._x509sak + [ "examine", "-p", "ca", "--fast-rsa", crtfile ]).run().stdout
+
+	def test_purpose_tls_server(self):
+		with ResourceFileLoader("certs/ok/johannes-bauer.com.pem") as crtfile:
+			output = SubprocessExecutor(self._x509sak + [ "examine", "-p", "tls-server", "-n", "johannes-bauer.com", crtfile ]).run().stdout_text
+			self.assertIn("Subject Alternative Name matches 'johannes-bauer.com'", output)
+
+	def test_encodings(self):
+		with ResourceFileLoader("certs/ok/johannes-bauer-intermediate.pem") as crtfile:
+			SubprocessExecutor(self._x509sak + [ "examine", "-p", "ca", "--fast-rsa", "-f", "ansitext", crtfile ]).run()
+			SubprocessExecutor(self._x509sak + [ "examine", "-p", "ca", "--fast-rsa", "-f", "text", crtfile ]).run()
+			SubprocessExecutor(self._x509sak + [ "examine", "-p", "ca", "--fast-rsa", "-f", "json", crtfile ]).run()
+
+	def test_rsa_pss_default(self):
+		with ResourceFileLoader("certs/ok/rsapss_defaults.pem") as crtfile:
+			output = SubprocessExecutor(self._x509sak + [ "examine", "-p", "tls-client", "--fast-rsa", "-f", "json", crtfile ]).run().stdout_json
+
+	def test_rsa_pss_custom(self):
+		with ResourceFileLoader("certs/ok/rsapss_sha256_salt_32.pem") as crtfile:
+			output = SubprocessExecutor(self._x509sak + [ "examine", "-p", "tls-client", "--fast-rsa", "-f", "json", crtfile ]).run().stdout_json
+
 	def _get_codes(self, data, result = None):
 		if result is None:
 			result = set()
