@@ -151,11 +151,11 @@ class X509Certificate(PEMDERObject):
 		return self.signed_by(self)
 
 	def signed_by(self, potential_issuer, verbose_failure = False):
-		with tempfile.NamedTemporaryFile(prefix = "subject_", suffix = ".crt") as subject, tempfile.NamedTemporaryFile(prefix = "issuer_", suffix = ".crt") as issuer:
+		with tempfile.NamedTemporaryFile(prefix = "subject_", suffix = ".crt") as subject, tempfile.NamedTemporaryFile(prefix = "issuer_", suffix = ".crt") as issuer, tempfile.TemporaryDirectory(prefix = "empty") as emptydir:
 			self.write_pemfile(subject.name)
 			potential_issuer.write_pemfile(issuer.name)
 
-			cmd = [ "openssl", "verify", "-CApath", "/dev/null" ]
+			cmd = [ "openssl", "verify", "-CApath", emptydir ]
 			cmd += [ "-check_ss_sig", "-CAfile", issuer.name, subject.name ]
 			result = SubprocessExecutor(cmd, on_failure = "pass").run()
 			if result.successful:
