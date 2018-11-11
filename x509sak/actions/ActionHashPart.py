@@ -79,7 +79,7 @@ class ActionHashPart(BaseAction):
 			if output_length_bits is None:
 				digest = hashfnc.hexdigest()
 			else:
-				digest = hashfnc.hexdigest(length = output_length_bytes)
+				digest = hashfnc.hexdigest(output_length_bytes)
 			return digest
 
 		if output_length_bits is None:
@@ -125,7 +125,7 @@ class ActionHashPart(BaseAction):
 				empty_hash = hashlib.new(hashfnc_name).digest()
 				constant_len_hashfnc_names[empty_hash].append(hashfnc_name)
 			except TypeError:
-				empty_hash = hashlib.new(hashfnc_name).digest(length = 16)
+				empty_hash = hashlib.new(hashfnc_name).digest(16)
 				variable_len_hashfnc_names[empty_hash].append(hashfnc_name)
 
 

@@ -241,10 +241,13 @@ class TwistedEdwardsEllipticCurve(EllipticCurve):
 			raise InvalidInputException("Do not know how to decode %s secret. Expected %d octets, but got %d." % (str(self), self.element_octet_cnt, len(serialized_unhashed_secret)))
 		hashfnc = hashlib.new(self.expand_hashfnc)
 		hashfnc.update(serialized_unhashed_secret)
-		if "expand_hashlen" not in self._domain_parameters:
-			hashed_secret = hashfnc.digest()
+		if ("expand_hashlen" in self._domain_parameters) and (hashfnc.digest_size == 0):
+			hashed_secret = hashfnc.digest(self.expand_hashlen)
 		else:
-			hashed_secret = hashfnc.digest(length = self.expand_hashlen)
+			hashed_secret = hashfnc.digest()
+
+		if ("expand_hashlen" in self._domain_parameters) and (len(hashed_secret) != self._domain_parameters["expand_hashlen"]):
+			raise InvalidInputException("Expansion of secret requires %d byte hash function output, but %s provided %d bytes." % (self._domain_parameters["expand_hashlen"], str(hashfnc), len(hashed_secret)))
 
 		scalar = int.from_bytes(hashed_secret[ : self.element_octet_cnt], byteorder = "little")
 		scalar &= self.expand_bitwise_and
