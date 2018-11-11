@@ -275,10 +275,9 @@ class CmdLineTestsExamine(BaseTest):
 
 #	def test_examine_x509test_xf_ext_key_usage_wrong_der(self):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-key-usage-wrong-der.pem", "Cert_X509Ext_KeyUsage_InvalidDER")
-#
-#	def test_examine_x509test_xf_ext_keysign_nonca(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-keysign-nonca.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-keysign-nonca.pem")
+
+	def test_examine_x509test_xf_ext_keysign_nonca(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-keysign-nonca.pem", "Cert_X509Ext_KeyUsage_SignCertNoCA")
 
 #	def test_examine_x509test_xf_ext_name_constraints_badip(self):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-name-constraints-badip.pem", "Cert_X509Ext_NameConstraints_BadIP")
