@@ -20,6 +20,7 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 import os
+import re
 import tempfile
 from x509sak.SubprocessExecutor import SubprocessExecutor
 from x509sak.Exceptions import InvalidInputException, LazyDeveloperException
@@ -31,14 +32,28 @@ from x509sak.AlgorithmDB import Cryptosystems
 from x509sak.X509Certificate import X509Certificate
 
 class OpenSSLTools(object):
+	_EXECUTABLE = "openssl"
+	_CACHED_VERSION = None
+	_VERSION_RE = re.compile("^OpenSSL (?P<major>\d+)\.(?P<minor>\d+)\.(?P<fix>\d+)(?P<patch>[a-z])?")
+
+	@classmethod
+	def openssl_version(cls):
+		if cls._CACHED_VERSION is None:
+			result = SubprocessExecutor([ cls._EXECUTABLE, "version" ]).run()
+			match = cls._VERSION_RE.match(result.stdout_text)
+			if match:
+				match = match.groupdict()
+				cls._CACHED_VERSION = (int(match["major"]), int(match["minor"]), int(match["fix"]), match["patch"])
+		return cls._CACHED_VERSION
+
 	@classmethod
 	def __create_pem_private_key(cls, private_key_filename, keyspec):
 		if keyspec.cryptosystem == Cryptosystems.RSA:
-			cmd = [ "openssl", "genrsa", "-out", private_key_filename, str(keyspec["bitlen"]) ]
+			cmd = [ cls._EXECUTABLE, "genrsa", "-out", private_key_filename, str(keyspec["bitlen"]) ]
 		elif keyspec.cryptosystem == Cryptosystems.ECC_ECDSA:
-			cmd = [ "openssl", "ecparam", "-genkey", "-out", private_key_filename, "-name", keyspec["curvename"] ]
+			cmd = [ cls._EXECUTABLE, "ecparam", "-genkey", "-out", private_key_filename, "-name", keyspec["curvename"] ]
 		elif keyspec.cryptosystem == Cryptosystems.ECC_EdDSA:
-			cmd = [ "openssl", "genpkey", "-out", private_key_filename, "-algorithm", keyspec["curvename"] ]
+			cmd = [ cls._EXECUTABLE, "genpkey", "-out", private_key_filename, "-algorithm", keyspec["curvename"] ]
 		else:
 			raise LazyDeveloperException(NotImplemented, keyspec.cryptosystem)
 		SubprocessExecutor(cmd).run()
@@ -49,7 +64,7 @@ class OpenSSLTools(object):
 			cls.__create_pem_private_key(pem_file.name, keyspec)
 
 			# Then convert to the desired result format in a second step
-			cmd = [ "openssl" ]
+			cmd = [ cls._EXECUTABLE ]
 			if keyspec.cryptosystem == Cryptosystems.RSA:
 				cmd += [ "rsa" ]
 			elif keyspec.cryptosystem == Cryptosystems.ECC_ECDSA:
@@ -94,7 +109,7 @@ class OpenSSLTools(object):
 		openssl_config = cls.__get_config(private_key_storage = private_key_storage, x509_extensions = x509_extensions, subject_alternative_dns_names = subject_alternative_dns_names, subject_alternative_ip_addresses = subject_alternative_ip_addresses)
 		with tempfile.NamedTemporaryFile("w", prefix = "config_", suffix = ".cnf") as config_file:
 			openssl_config.write_to(config_file.name)
-			cmd = [ "openssl", "req", "-utf8", "-new" ]
+			cmd = [ cls._EXECUTABLE, "req", "-utf8", "-new" ]
 			if validity_days is not None:
 				cmd += [ "-x509", "-days", str(validity_days) ]
 			if signing_hash is not None:
@@ -139,7 +154,7 @@ class OpenSSLTools(object):
 		openssl_config = cls.__get_config(private_key_storage = ca_manager.private_key_storage, x509_extensions = x509_extensions, subject_alternative_dns_names = subject_alternative_dns_names, subject_alternative_ip_addresses = subject_alternative_ip_addresses)
 		with WorkDir(ca_manager.capath), tempfile.NamedTemporaryFile("w", prefix = "config_", suffix = ".cnf") as config_file:
 			openssl_config.write_to(config_file.name)
-			cmd = [ "openssl", "ca", "-utf8", "-in", csr_absfilename, "-batch", "-notext", "-out", crt_absfilename ]
+			cmd = [ cls._EXECUTABLE, "ca", "-utf8", "-in", csr_absfilename, "-batch", "-notext", "-out", crt_absfilename ]
 			cmd += cls._privkey_option(ca_manager.private_key_storage, key_option = "keyfile")
 			if subject_dn is not None:
 				cmd += [ "-subj", subject_dn ]
@@ -155,7 +170,7 @@ class OpenSSLTools(object):
 		openssl_config = cls.__get_config(private_key_storage = ca_manager.private_key_storage)
 		with WorkDir(ca_manager.capath), tempfile.NamedTemporaryFile("w", prefix = "config_", suffix = ".cnf") as config_file:
 			openssl_config.write_to(config_file.name)
-			cmd = [ "openssl", "ca", "-revoke", crt_absfilename ]
+			cmd = [ cls._EXECUTABLE, "ca", "-revoke", crt_absfilename ]
 			SubprocessExecutor(cmd, env = { "OPENSSL_CONF": config_file.name }).run()
 
 	@classmethod
@@ -164,7 +179,7 @@ class OpenSSLTools(object):
 		openssl_config = cls.__get_config(private_key_storage = ca_manager.private_key_storage)
 		with WorkDir(ca_manager.capath), tempfile.NamedTemporaryFile("w", prefix = "config_", suffix = ".cnf") as config_file:
 			openssl_config.write_to(config_file.name)
-			cmd = [ "openssl", "ca", "-gencrl", "-out", crl_absfilename ]
+			cmd = [ cls._EXECUTABLE, "ca", "-gencrl", "-out", crl_absfilename ]
 			if validity_days is not None:
 				cmd += [ "-crldays", str(validity_days) ]
 			if signing_hash is not None:
@@ -173,15 +188,15 @@ class OpenSSLTools(object):
 
 	@classmethod
 	def sign_data(cls, signing_algorithm, private_key_filename, payload):
-		cmd = [ "openssl", "dgst", "-sign", private_key_filename, "-%s" % (signing_algorithm.value.hash_fnc.value.name) ]
+		cmd = [ cls._EXECUTABLE, "dgst", "-sign", private_key_filename, "-%s" % (signing_algorithm.value.hash_fnc.value.name) ]
 		signature = SubprocessExecutor(cmd, stdin = payload).run().stdout
 		return signature
 
 	@classmethod
 	def private_to_public(cls, private_key_filename, public_key_filename):
-		success = SubprocessExecutor([ "openssl", "rsa", "-in", private_key_filename, "-pubout", "-out", public_key_filename ], on_failure = "pass").run().successful
+		success = SubprocessExecutor([ cls._EXECUTABLE, "rsa", "-in", private_key_filename, "-pubout", "-out", public_key_filename ], on_failure = "pass").run().successful
 		if not success:
-			success = SubprocessExecutor([ "openssl", "ec", "-in", private_key_filename, "-pubout", "-out", public_key_filename ], on_failure = "pass").run().successful
+			success = SubprocessExecutor([ cls._EXECUTABLE, "ec", "-in", private_key_filename, "-pubout", "-out", public_key_filename ], on_failure = "pass").run().successful
 		if not success:
 			raise InvalidInputException("File %s contained neither RSA nor ECC private key." % (private_key_filename))
 
@@ -194,7 +209,7 @@ class OpenSSLTools(object):
 				print(file = pass_file)
 			pass_file.flush()
 
-			cmd = [ "openssl", "pkcs12", "-export" ]
+			cmd = [ cls._EXECUTABLE, "pkcs12", "-export" ]
 			if private_key_storage is None:
 				cmd += [ "-nokeys" ]
 			else:
@@ -212,6 +227,6 @@ class OpenSSLTools(object):
 
 	@classmethod
 	def get_tls_server_cert(cls, hostname, port = 443):
-		result = SubprocessExecutor([ "openssl", "s_client", "-connect", "%s:%d" % (hostname, port), "-servername", hostname ]).run()
+		result = SubprocessExecutor([ cls._EXECUTABLE, "s_client", "-connect", "%s:%d" % (hostname, port), "-servername", hostname ]).run()
 		certificates = X509Certificate.from_pem_data(result.stdout.decode())
 		return certificates[0]
