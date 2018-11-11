@@ -127,8 +127,8 @@ class CmdLineTestsExamine(BaseTest):
 	def test_examine_x509test_xf_ext_altname_empty2(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-empty2.pem", "Cert_X509Ext_SubjectAltName_EmptyValue")
 
-#	def test_examine_x509test_xf_ext_altname_invalid_domain(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-invalid-domain.pem", "Cert_X509Ext_SubjectAltName_BadDomain")
+	def test_examine_x509test_xf_ext_altname_invalid_domain(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-invalid-domain.pem", "Cert_X509Ext_SubjectAltName_BadDomain")
 
 	def test_examine_x509test_xf_ext_altname_invalid_email(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-invalid-email.pem", "Cert_X509Ext_SubjectAltName_BadEmail")
