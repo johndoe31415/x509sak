@@ -157,6 +157,14 @@ class DistinguishedName(object):
 		assert(all(isinstance(rdn, RelativeDistinguishedName) for rdn in rdns))
 		self._rdns = tuple(rdns)
 
+	@property
+	def rdn_count(self):
+		return len(self._rdns)
+
+	@property
+	def empty(self):
+		return self.rdn_count == 0
+
 	def get_all(self, oid):
 		assert(isinstance(oid, OID))
 		return [ rdn for rdn in self._rdns if rdn.has_component(oid) ]

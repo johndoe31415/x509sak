@@ -83,10 +83,10 @@ class CmdLineTestsExamine(BaseTest):
 			SubprocessExecutor(self._x509sak + [ "examine", "--fast-rsa", "-f", "json", "-o", "-", certfile ], success_return_codes = [ 1 ]).run()
 
 	def _test_examine_x509test_resultcode(self, certname, expect_code):
-		with ResourceFileLoader(certname) as certfile:
-			result = SubprocessExecutor(self._x509sak + [ "examine", "--fast-rsa", "-f", "json", "-o", "-", certfile ]).run()
-			stdout = result.stdout_text
-			data = json.loads(stdout)
+		with ResourceFileLoader(certname) as certfile, tempfile.NamedTemporaryFile(suffix = ".json") as outfile:
+			result = SubprocessExecutor(self._x509sak + [ "examine", "--fast-rsa", "-f", "json", "-o", outfile.name, certfile ]).run()
+			with open(outfile.name) as f:
+				data = json.load(f)
 			codes = self._get_codes(data)
 			self.assertIn(expect_code, codes)
 
@@ -114,12 +114,11 @@ class CmdLineTestsExamine(BaseTest):
 	def test_examine_x509test_xf_ext_altname_blank_domain(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-blank-domain.pem", "Cert_X509Ext_SubjectAltName_BadDomain")
 
-#	def test_examine_x509test_xf_ext_altname_critical_subject(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-critical-subject.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-altname-critical-subject.pem")
-#
-#	def test_examine_x509test_xf_ext_altname_email_only(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-email-only.pem", "")
+	def test_examine_x509test_xf_ext_altname_critical_subject(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-critical-subject.pem", "Cert_X509Ext_SubjectAltName_Critical")
+
+	def test_examine_x509test_xf_ext_altname_email_only(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-email-only.pem", "Cert_X509Ext_SubjectAltName_EmailOnly")
 
 	def test_examine_x509test_xf_ext_altname_empty(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-empty.pem", "Cert_X509Ext_SubjectAltName_Empty")
@@ -139,9 +138,8 @@ class CmdLineTestsExamine(BaseTest):
 	def test_examine_x509test_xf_ext_altname_ip_wrong(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-ip-wrong.pem", "Cert_X509Ext_SubjectAltName_BadIP")
 
-#	def test_examine_x509test_xf_ext_altname_noncrit_nosubj(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-noncrit-nosubj.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-altname-noncrit-nosubj.pem")
+	def test_examine_x509test_xf_ext_altname_noncrit_nosubj(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-noncrit-nosubj.pem", "Cert_X509Ext_SubjectAltName_NotCritical")
 
 	def test_examine_x509test_xf_ext_altname_relative_uri(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-relative-uri.pem", "Cert_X509Ext_SubjectAltName_BadURI")
