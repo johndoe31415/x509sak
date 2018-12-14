@@ -78,7 +78,13 @@ class ActionDebug(BaseAction):
 		}
 
 		console = DebugConsole(locals = variables)
-		console.interact()
+		for command in self._args.execute:
+			print(">>> %s" % (command))
+			console.runcode(command)
+		if len(self._args.execute) > 0:
+			print()
+		if not self._args.no_interact:
+			console.interact()
 
 	def _decrypt_selfsigned_rsa_signature(self, certificate):
 		plain = pow(int.from_bytes(certificate.signature, byteorder = "big"), certificate.pubkey.e, certificate.pubkey.n)

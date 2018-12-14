@@ -136,6 +136,10 @@ class RelativeDistinguishedName(object):
 				return text
 		return ", ".join("%s = %s" % (OIDDB.RDNTypes.get(item.oid, item.oid), escape(item.printable or "/")) for item in sorted(self._rdn_list))
 
+	def dump(self, indent = ""):
+		for rdn in self:
+			print("%s%s" % (indent, self.pretty_str))
+
 	def __iter__(self):
 		return iter(self._rdn_list)
 
@@ -192,6 +196,10 @@ class DistinguishedName(object):
 	@property
 	def pretty_str(self):
 		return ", ".join(rdn.pretty_str for rdn in self._rdns)
+
+	def dump(self, indent = ""):
+		for rdn in self:
+			rdn.dump(indent = indent)
 
 	def __iter__(self):
 		return iter(self._rdns)

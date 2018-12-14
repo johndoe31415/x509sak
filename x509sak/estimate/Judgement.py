@@ -89,6 +89,8 @@ class JudgementCode(enum.Enum):
 	Cert_X509Ext_SubjectAltName_Critical = ("X.509 SubjectAlternativeName", "extension marked as critical")
 	Cert_X509Ext_SubjectAltName_NotCritical = ("X.509 SubjectAlternativeName", "extension not marked as critical")
 	Cert_X509Ext_SubjectAltName_EmailOnly = ("X.509 SubjectAlternativeName", "all names are email addresses")
+	Cert_X509Ext_AuthorityInformationAccess_Critical = ("X.509 AuthorityInformationAccess", "extension marked as critical")
+	Cert_X509Ext_AuthorityInformationAccess_Empty = ("X.509 AuthorityInformationAccess", "extension contains no data")
 	SignatureFunction_UncommonPaddingScheme = ("Signature function", "uncommon padding scheme")
 	SignatureFunction_UncommonCryptosystem = ("Signature function", "uncommon cryptosystem")
 	SignatureFunction_Common = ("Signature function", "common signature function")

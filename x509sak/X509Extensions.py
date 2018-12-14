@@ -58,10 +58,11 @@ class X509Extensions(object):
 		assert(isinstance(oid, OID))
 		return any(extension.oid == oid for extension in self._exts)
 
-	def dump(self):
-		print("%d X.509 extensions:" % (len(self)))
-		for ext in self:
-			print("    - %s" % (ext))
+	def dump(self, indent = ""):
+		print("%sTotal of %d X.509 extensions present:" % (indent, len(self)))
+		for (eid, ext) in enumerate(self, 1):
+			print("%sExtension %d: %s%s" % (indent + "    ", eid, ext.__class__.__name__, " [critical]" if ext.critical else ""))
+			ext.dump(indent = indent + "        ")
 
 	def to_asn1(self):
 		extension_list = [ extension.to_asn1() for extension in self ]
@@ -183,6 +184,9 @@ class X509Extension(object):
 		else:
 			name = str(self.oid)
 		return name
+
+	def dump(self, indent = ""):
+		print("%s%s" % (indent, str(self)))
 
 	def __repr__(self):
 		return "%s<%s = %s>" % (self.__class__.__name__, self.name, self.format_value)
@@ -353,3 +357,23 @@ class X509NetscapeCertificateTypeExtension(X509Extension):
 	def __repr__(self):
 		return "%s<%s>" % (self.__class__.__name__, ", ".join(sorted(self._flags)))
 X509ExtensionRegistry.set_handler_class(X509NetscapeCertificateTypeExtension)
+
+
+class X509AuthorityInformationAccessExtension(X509Extension):
+	_HANDLER_OID = OIDDB.X509Extensions.inverse("id-pe-authorityInfoAccess")
+	_ASN1_MODEL = rfc5280.AuthorityInfoAccessSyntax
+
+	@property
+	def method_count(self):
+		return len(self._methods)
+
+	def _decode_hook(self):
+		self._methods = [ ]
+		for item in self._asn1:
+			oid = OID.from_asn1(item["accessMethod"])
+			location = item["accessLocation"]
+			self._methods.append((oid, location))
+
+	def __repr__(self):
+		return "%s<%s>" % (self.__class__.__name__, ", ".join(str(oid) for (oid, location) in self._methods))
+X509ExtensionRegistry.set_handler_class(X509AuthorityInformationAccessExtension)

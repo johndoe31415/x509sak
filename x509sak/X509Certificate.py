@@ -227,5 +227,14 @@ class X509Certificate(PEMDERObject):
 					return X509CertificateClass.ServerAuth
 			return X509CertificateClass.Other
 
+	def dump(self):
+		print("Subject:")
+		self.subject.dump(indent = "    ")
+		print()
+		print("Issuer:")
+		self.issuer.dump(indent = "    ")
+		print()
+		self.extensions.dump()
+
 	def __str__(self):
 		return "X509Certificate<subject = %s, issuer = %s>" % (self.subject.rfc2253_str, self.issuer.rfc2253_str)

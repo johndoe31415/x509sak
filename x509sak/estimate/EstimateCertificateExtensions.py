@@ -170,19 +170,19 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 
 	def _judge_single_name(self, entity_name):
 		if entity_name.str_value == "":
-			return SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_EmptyValue, "Subject Alternative Name X.509 exension with type %s has empty value. This is a direct violation of RFC5280, Sect. 4.2.1.6." % (entity_name.name), compatibility = Compatibility.STANDARDS_VIOLATION)
+			return SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_EmptyValue, "Subject Alternative Name X.509 extension with type %s has empty value. This is a direct violation of RFC5280, Sect. 4.2.1.6." % (entity_name.name), compatibility = Compatibility.STANDARDS_VIOLATION)
 
 		if entity_name.name == "dNSName":
 			(result, label) = ValidationTools.validate_domainname_template(entity_name.str_value)
 			if result != ValidationTools.DomainnameTemplateValidationResult.Valid:
 				if result == ValidationTools.DomainnameTemplateValidationResult.InvalidCharacter:
-					return SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_BadDomain, "Subject Alternative Name X.509 exension with type %s got invalid domain name \"%s\", error at label \"%s\". This is a direct violation of RFC5280, Sect. 4.2.1.6." % (entity_name.name, entity_name.str_value, label), compatibility = Compatibility.STANDARDS_VIOLATION)
+					return SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_BadDomain, "Subject Alternative Name X.509 extension with type %s got invalid domain name \"%s\", error at label \"%s\". This is a direct violation of RFC5280, Sect. 4.2.1.6." % (entity_name.name, entity_name.str_value, label), compatibility = Compatibility.STANDARDS_VIOLATION)
 				elif result == ValidationTools.DomainnameTemplateValidationResult.FullWildcardNotLeftmost:
-					return SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_BadWildcardDomain_NotLeftmost, "Subject Alternative Name X.509 exension with type %s got invalid domain name \"%s\". Full wildcard appears not as leftmost element. This is a direct violation of RFC6125, Sect. 6.4.3." % (entity_name.name, entity_name.str_value), compatibility = Compatibility.STANDARDS_VIOLATION)
+					return SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_BadWildcardDomain_NotLeftmost, "Subject Alternative Name X.509 extension with type %s got invalid domain name \"%s\". Full wildcard appears not as leftmost element. This is a direct violation of RFC6125, Sect. 6.4.3." % (entity_name.name, entity_name.str_value), compatibility = Compatibility.STANDARDS_VIOLATION)
 				elif result == ValidationTools.DomainnameTemplateValidationResult.MoreThanOneWildcard:
-					return SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_BadWildcardDomain_MoreThanOneWildcard, "Subject Alternative Name X.509 exension with type %s got invalid domain name \"%s\". More than one wildcard label present. This is a direct violation of RFC6125, Sect. 6.4.3." % (entity_name.name, entity_name.str_value), compatibility = Compatibility.STANDARDS_VIOLATION)
+					return SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_BadWildcardDomain_MoreThanOneWildcard, "Subject Alternative Name X.509 extension with type %s got invalid domain name \"%s\". More than one wildcard label present. This is a direct violation of RFC6125, Sect. 6.4.3." % (entity_name.name, entity_name.str_value), compatibility = Compatibility.STANDARDS_VIOLATION)
 				elif result == ValidationTools.DomainnameTemplateValidationResult.WildcardInInternationalDomain:
-					return SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_BadWildcardDomain_InternationalLabel, "Subject Alternative Name X.509 exension with type %s got invalid domain name \"%s\". Wildcard in international domain label \"%s\". This is a direct violation of RFC6125, Sect. 6.4.3" % (entity_name.name, entity_name.str_value, label), compatibility = Compatibility.STANDARDS_VIOLATION)
+					return SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_BadWildcardDomain_InternationalLabel, "Subject Alternative Name X.509 extension with type %s got invalid domain name \"%s\". Wildcard in international domain label \"%s\". This is a direct violation of RFC6125, Sect. 6.4.3" % (entity_name.name, entity_name.str_value, label), compatibility = Compatibility.STANDARDS_VIOLATION)
 				else:
 					raise NotImplementedError(result)
 
@@ -190,17 +190,17 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 				# Wildcard match
 				labels = entity_name.str_value.split(".")
 				if len(labels) <= 2:
-					return SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_BadWildcardDomain_BroadMatch, "Subject Alternative Name X.509 exension with type %s and wildcard value \"%s\" has very broad domain match." % (entity_name.name, entity_name.str_value), commonness = Commonness.HIGHLY_UNUSUAL)
+					return SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_BadWildcardDomain_BroadMatch, "Subject Alternative Name X.509 extension with type %s and wildcard value \"%s\" has very broad domain match." % (entity_name.name, entity_name.str_value), commonness = Commonness.HIGHLY_UNUSUAL)
 
 		elif entity_name.name == "iPAddress":
 			if len(entity_name.asn1_value) not in [ 4, 16 ]:
-				return SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_BadIP, "Subject Alternative Name X.509 exension of type ipAddress expects either 4 or 16 bytes of data for IPv4/IPv6, but saw %d bytes." % (len(entity_name.str_value)), compatibility = Compatibility.STANDARDS_VIOLATION)
+				return SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_BadIP, "Subject Alternative Name X.509 extension of type ipAddress expects either 4 or 16 bytes of data for IPv4/IPv6, but saw %d bytes." % (len(entity_name.str_value)), compatibility = Compatibility.STANDARDS_VIOLATION)
 		elif entity_name.name == "rfc822Name":
 			if not ValidationTools.validate_email_address(entity_name.str_value):
-				return SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_BadEmail, "Subject Alternative Name X.509 exension with type %s got invalid email address \"%s\". This is a direct violation of RFC5280, Sect. 4.2.1.6." % (entity_name.name, entity_name.str_value), compatibility = Compatibility.STANDARDS_VIOLATION)
+				return SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_BadEmail, "Subject Alternative Name X.509 extension with type %s got invalid email address \"%s\". This is a direct violation of RFC5280, Sect. 4.2.1.6." % (entity_name.name, entity_name.str_value), compatibility = Compatibility.STANDARDS_VIOLATION)
 		elif entity_name.name == "uniformResourceIdentifier":
 			if not ValidationTools.validate_uri(str(entity_name.str_value)):
-				return SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_BadURI, "Subject Alternative Name X.509 exension with type %s got invalid URI \"%s\". This is a direct violation of RFC5280, Sect. 4.2.1.6." % (entity_name.name, str(entity_name.str_value)), compatibility = Compatibility.STANDARDS_VIOLATION)
+				return SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_BadURI, "Subject Alternative Name X.509 extension with type %s got invalid URI \"%s\". This is a direct violation of RFC5280, Sect. 4.2.1.6." % (entity_name.name, str(entity_name.str_value)), compatibility = Compatibility.STANDARDS_VIOLATION)
 
 		return None
 
@@ -209,18 +209,30 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		san = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("SubjectAlternativeName"))
 		if san is not None:
 			if san.name_count == 0:
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_Empty, "Subject Alternative Name X.509 exension with no contained names. This is a direct violation of RFC5280, Sect. 4.2.1.6.", compatibility = Compatibility.STANDARDS_VIOLATION)
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_Empty, "Subject Alternative Name X.509 extension with no contained names. This is a direct violation of RFC5280, Sect. 4.2.1.6.", compatibility = Compatibility.STANDARDS_VIOLATION)
 			for entity_name in san:
 				judgements += self._judge_single_name(entity_name)
 			if (not certificate.subject.empty) and san.critical:
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_Critical, "Subject Alternative Name X.509 exension should not be critical when a subject is present. This is a direct violation of RFC5280, Sect. 4.2.1.6.", compatibility = Compatibility.STANDARDS_VIOLATION)
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_Critical, "Subject Alternative Name X.509 extension should not be critical when a subject is present. This is a direct violation of RFC5280, Sect. 4.2.1.6.", compatibility = Compatibility.STANDARDS_VIOLATION)
 			elif certificate.subject.empty and (not san.critical):
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_NotCritical, "Subject Alternative Name X.509 exension should be critical when no subject is present. This is a direct violation of RFC5280, Sect. 4.2.1.6.", compatibility = Compatibility.STANDARDS_VIOLATION)
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_NotCritical, "Subject Alternative Name X.509 extension should be critical when no subject is present. This is a direct violation of RFC5280, Sect. 4.2.1.6.", compatibility = Compatibility.STANDARDS_VIOLATION)
 
 			if (not certificate.subject.empty) and (set(santuple.name for santuple in san) == set([ "rfc822Name" ])):
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_EmailOnly, "Subject Alternative Name X.509 exension only contains email addresses even though subject is non-empty. This is a direct violation of RFC5280, Sect. 4.2.1.6.", compatibility = Compatibility.STANDARDS_VIOLATION)
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_EmailOnly, "Subject Alternative Name X.509 extension only contains email addresses even though subject is non-empty. This is a direct violation of RFC5280, Sect. 4.2.1.6.", compatibility = Compatibility.STANDARDS_VIOLATION)
 
 		return judgements
+
+	def _judge_authority_information_access(self, certificate):
+		judgements = SecurityJudgements()
+		aia = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("id-pe-authorityInfoAccess"))
+		if aia is not None:
+			if aia.critical:
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityInformationAccess_Critical, "Authority Information Access X.509 extension is marked critical. This is a direct violation of RFC5280, Sect. 4.2.2.1.", compatibility = Compatibility.STANDARDS_VIOLATION)
+			if aia.method_count == 0:
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityInformationAccess_Empty, "Authority Information Access X.509 extension contains no access methods. This is a direct violation of RFC5280, Sect. 4.2.2.1.", compatibility = Compatibility.STANDARDS_VIOLATION)
+
+		return judgements
+
 
 	def analyze(self, certificate):
 		individual = [ ]
@@ -238,6 +250,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		judgements += self._judge_name_constraints(certificate)
 		judgements += self._judge_key_usage(certificate)
 		judgements += self._judge_subject_alternative_name(certificate)
+		judgements += self._judge_authority_information_access(certificate)
 
 		return {
 			"individual":	individual,

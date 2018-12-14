@@ -147,18 +147,15 @@ class CmdLineTestsExamine(BaseTest):
 	def test_examine_x509test_xf_ext_altname_schemeless_uri(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-schemeless-uri.pem", "Cert_X509Ext_SubjectAltName_BadURI")
 
-#	def test_examine_x509test_xf_ext_auth_info_critical(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-info-critical.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-auth-info-critical.pem")
-#
-#	def test_examine_x509test_xf_ext_auth_info_empty(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-info-empty.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-auth-info-empty.pem")
-#
+	def test_examine_x509test_xf_ext_auth_info_critical(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-info-critical.pem", "Cert_X509Ext_AuthorityInformationAccess_Critical")
+
+	def test_examine_x509test_xf_ext_auth_info_empty(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-info-empty.pem", "Cert_X509Ext_AuthorityInformationAccess_Empty")
+
 #	def test_examine_x509test_xf_ext_auth_keyid_critical(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-keyid-critical.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-auth-keyid-critical.pem")
-#
+#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-keyid-critical.pem", "Cert_X509Ext_Auth")
+
 #	def test_examine_x509test_xf_ext_auth_keyid_invalid_issuer(self):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-keyid-invalid-issuer.pem", "")
 #		self._test_examine_x509test_noparse("certs/x509test/xf-ext-auth-keyid-invalid-issuer.pem")
