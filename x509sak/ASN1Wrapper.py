@@ -20,6 +20,7 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 import pyasn1.codec.der.encoder
+from pyasn1_modules import rfc5280
 from x509sak.DistinguishedName import DistinguishedName
 
 class ASN1NameWrapper(object):
@@ -55,11 +56,19 @@ class ASN1NameWrapper(object):
 			result = "%s:#%s" % (self._name, pyasn1.codec.der.encoder.encode(self.asn1_value).hex())
 		return result
 
+	@classmethod
+	def from_asn1_general_name(cls, general_name):
+		for name in rfc5280.GeneralName.componentType:
+			value = general_name.getComponentByName(name, None, instantiate = False)
+			if value is not None:
+				return cls(name, value)
+		assert(False)
+
 	def __eq__(self, other):
 		return (self.name, self.asn1_value) == (other.name, other.asn1_value)
 
 	def __neq__(self, other):
 		return not (self == other)
 
-	def __str__(self):
+	def __repr__(self):
 		return "%s = %s" % (self.name, self.str_value)

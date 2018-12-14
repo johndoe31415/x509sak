@@ -224,7 +224,7 @@ class X509AuthorityKeyIdentifierExtension(X509Extension):
 	@classmethod
 	def construct(cls, keyid):
 		assert(isinstance(keyid, bytes))
-		assert(len(keyid) == 20)
+		assert(len(keyid) > 0)
 		asn1 = cls._ASN1_MODEL()
 		asn1["keyIdentifier"] = keyid
 		return cls.construct_from_asn1(asn1, critical = False)
@@ -234,14 +234,22 @@ class X509AuthorityKeyIdentifierExtension(X509Extension):
 		return self._keyid
 
 	@property
+	def names(self):
+		return self._names
+
+	@property
 	def format_value(self):
-		return "KeyID %s" % (self.keyid.hex())
+		return "KeyID %s, Names %s" % (self.keyid.hex(), str(self.names))
 
 	def _decode_hook(self):
 		if self.asn1["keyIdentifier"].hasValue():
 			self._keyid = bytes(self.asn1["keyIdentifier"])
 		else:
 			self._keyid = None
+		if self.asn1["authorityCertIssuer"].hasValue():
+			self._names = [ ASN1NameWrapper.from_asn1_general_name(generalname) for generalname in self.asn1["authorityCertIssuer"] ]
+		else:
+			self._names = None
 X509ExtensionRegistry.set_handler_class(X509AuthorityKeyIdentifierExtension)
 
 
@@ -291,12 +299,7 @@ class X509SubjectAlternativeNameExtension(X509Extension):
 		if self.asn1 is None:
 			return
 		for altname in self.asn1:
-			for known_namedtypes in altname.componentType.namedTypes:
-				name = known_namedtypes.name
-				value = altname.getComponentByName(known_namedtypes.name, None, instantiate = False)
-				if value is not None:
-					self._known_names.append(ASN1NameWrapper(name, value))
-					break
+			self._known_names.append(ASN1NameWrapper.from_asn1_general_name(altname))
 
 	@property
 	def name_count(self):
