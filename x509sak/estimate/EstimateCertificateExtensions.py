@@ -132,6 +132,16 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 				judgement = SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectKeyIdentifier_Arbitrary, "SubjectKeyIdentifier key ID (%s) does not match any tested cryptographic hash function (%s) over the contained public key." % (ski.keyid.hex(), ", ".join(hashfnc.value.pretty_name for hashfnc in tried_hashfncs)), commonness = Commonness.HIGHLY_UNUSUAL)
 		return judgement
 
+	def _judge_authority_key_identifier(self, certificate):
+		judgements = SecurityJudgements()
+		aki = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("AuthorityKeyIdentifier"))
+		if aki is None:
+			judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_Missing, "AuthorityKeyIdentifier extension is missing.", commonness = Commonness.UNUSUAL)
+		else:
+			if aki.critical:
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_Critical, "AuthorityKeyIdentifier X.509 extension is marked critical. This is a direct violation of RFC5280, Sect. 4.2.1.1.", compatibility = Compatibility.STANDARDS_VIOLATION)
+		return judgements
+
 	def _judge_name_constraints(self, certificate):
 		judgements = SecurityJudgements()
 		nc = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("NameConstraints"))
@@ -233,7 +243,6 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 
 		return judgements
 
-
 	def analyze(self, certificate):
 		individual = [ ]
 		for extension in certificate.extensions:
@@ -247,6 +256,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		judgements += self._judge_uniqueness(certificate)
 		judgements += self._judge_basic_constraints(certificate)
 		judgements += self._judge_subject_key_identifier(certificate)
+		judgements += self._judge_authority_key_identifier(certificate)
 		judgements += self._judge_name_constraints(certificate)
 		judgements += self._judge_key_usage(certificate)
 		judgements += self._judge_subject_alternative_name(certificate)
