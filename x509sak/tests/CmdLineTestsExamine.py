@@ -82,13 +82,26 @@ class CmdLineTestsExamine(BaseTest):
 		with ResourceFileLoader(certname) as certfile:
 			SubprocessExecutor(self._x509sak + [ "examine", "--fast-rsa", "-f", "json", "-o", "-", certfile ], success_return_codes = [ 1 ]).run()
 
+	def _write_codes(self, codes):
+		if not self._debug_dumps:
+			return
+		try:
+			with open("__tested_codes.json") as f:
+				present_codes = set(json.load(f))
+		except (FileNotFoundError, json.JSONDecodeError):
+			present_codes = set()
+		codes = list(codes | present_codes)
+		with open("__tested_codes.json", "w") as f:
+			json.dump(codes, f)
+
 	def _test_examine_x509test_resultcode(self, certname, expect_code):
 		with ResourceFileLoader(certname) as certfile, tempfile.NamedTemporaryFile(suffix = ".json") as outfile:
 			result = SubprocessExecutor(self._x509sak + [ "examine", "--fast-rsa", "-f", "json", "-o", outfile.name, certfile ]).run()
 			with open(outfile.name) as f:
 				data = json.load(f)
 			codes = self._get_codes(data)
-			if not expect_code in codes:
+			self._write_codes(codes)
+			if (not expect_code in codes) and self._debug_dumps:
 				# Testcase will fail the assertion, write out the failed certificate.
 				with open(certfile, "rb") as infile, open("__failed_crt.pem", "wb") as outfile:
 					outfile.write(infile.read())

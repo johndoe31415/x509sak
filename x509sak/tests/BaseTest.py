@@ -83,6 +83,7 @@ class BaseTest(unittest.TestCase):
 			self._x509sak = [ os.path.realpath("x509sak.py") ]
 		else:
 			self._x509sak = [ "coverage", "run", "--append", "--omit", "/usr/*", os.path.realpath("x509sak.py") ]
+		self._debug_dumps = "X509SAK_DEBUG_DUMPS" in os.environ
 
 	def assertOcurrences(self, haystack, needle, expected_count):
 		count = haystack.count(needle)

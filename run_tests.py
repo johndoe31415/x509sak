@@ -403,6 +403,7 @@ parser.add_argument("-e", "--exclude", metavar = "class_name", action = "append"
 parser.add_argument("-a", "--all", action = "store_true", help = "Regardless of a perviously persisted failed test file, test everything.")
 parser.add_argument("-i", "--full-id", metavar = "tcid", default = [ ], action = "append", help = "Specify a number of test cases by their full testcase ID. Can be supplied multiple times. Takes highest precedence.")
 parser.add_argument("-c", "--coverage", action = "count", default = 0, help = "Run all subprocesses through code coverage measurement. Specify twice to also show text report in console after run and three times to render HTML page and open up browser.")
+parser.add_argument("-d", "--debug-dumps", action = "store_true", help = "For certain testcases, automatically create debug dumpfiles. These can either be for tracing errors but also might include statistical information.")
 parser.add_argument("--dump-json", metavar = "filename", type = str, help = "Create a JSON dump of all testcase data and write it to the given file instead of printing results to stdout.")
 parser.add_argument("--subprocess", action = "store_true", help = argparse.SUPPRESS)
 parser.add_argument("-F", "--failed-tests-have-precedence", action = "store_true", help = "By default, when a search pattern is given on the command line, always that search pattern determines which tests are run. When this option is given, failed tests have precedence over any search strings.")
@@ -428,6 +429,8 @@ if (not args.subprocess) and args.coverage:
 
 if args.coverage:
 	os.environ["X509SAK_COVERAGE"] = "1"
+if args.debug_dumps:
+	os.environ["X509SAK_DEBUG_DUMPS"] = "1"
 
 if args.verbose >= 1:
 	SubprocessExecutor.set_failed_verbose()

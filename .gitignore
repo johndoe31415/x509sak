@@ -7,3 +7,5 @@ htmlcov
 .tests_estimate.json
 .tests_failed.json
 .dbgconsole_history
+__failed_crt.pem
+__tested_codes.json
