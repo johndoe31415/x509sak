@@ -207,11 +207,10 @@ class CmdLineTestsExamine(BaseTest):
 #	def test_examine_x509test_xf_ext_cert_policies_unotice_ch(self):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-cert-policies-unotice-ch.pem", "")
 #		self._test_examine_x509test_noparse("certs/x509test/xf-ext-cert-policies-unotice-ch.pem")
-#
-#	def test_examine_x509test_xf_ext_constraints_neg_pathlen(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-constraints-neg-pathlen.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-constraints-neg-pathlen.pem")
-#
+
+	def test_examine_x509test_xf_ext_constraints_neg_pathlen(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-constraints-neg-pathlen.pem", "Cert_X509Ext_Malformed")
+
 #	def test_examine_x509test_xf_ext_constraints_noncritical(self):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-constraints-noncritical.pem", "")
 #		self._test_examine_x509test_noparse("certs/x509test/xf-ext-constraints-noncritical.pem")

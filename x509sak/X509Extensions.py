@@ -133,6 +133,10 @@ class X509Extension(object):
 		extension["extnValue"] = self.data
 		return extension
 
+	@property
+	def successfully_parsed(self):
+		return (self._ASN1_MODEL is not None) and (self._asn1 is not None)
+
 	@classmethod
 	def construct_from_asn1(cls, asn1, critical = False):
 		data = pyasn1.codec.der.encoder.encode(asn1)
@@ -274,7 +278,10 @@ class X509BasicConstraintsExtension(X509Extension):
 
 	@property
 	def is_ca(self):
-		return bool(self.asn1["cA"])
+		if self.asn1 is not None:
+			return bool(self.asn1["cA"])
+		else:
+			return False
 
 	def __repr__(self):
 		return "%s<CA = %s>" % (self.__class__.__name__, self.is_ca)
