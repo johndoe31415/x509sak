@@ -77,15 +77,23 @@ class ResultCollector():
 		for item in sorted([ code.name for code in missing ]):
 			print("    %s" % (item))
 
-parallelizer = Parallelizer()
-rc = ResultCollector()
-base_dir = "x509sak/tests/data"
-for (dirname, subdirs, files) in os.walk(base_dir):
-	for filename in sorted(files):
-		if not (filename.endswith(".pem") or filename.endswith(".crt")):
-			continue
+	def add_codes(self, codes):
+		self._codes |= set(codes)
 
-		full_filename = dirname + "/" + filename
-		parallelizer.run(rc.run, args = (full_filename, ), finished_callback = rc.finished_callback)
-parallelizer.wait()
+rc = ResultCollector()
+if len(sys.argv) != 2:
+	parallelizer = Parallelizer()
+	base_dir = "x509sak/tests/data"
+	for (dirname, subdirs, files) in os.walk(base_dir):
+		for filename in sorted(files):
+			if not (filename.endswith(".pem") or filename.endswith(".crt")):
+				continue
+
+			full_filename = dirname + "/" + filename
+			parallelizer.run(rc.run, args = (full_filename, ), finished_callback = rc.finished_callback)
+	parallelizer.wait()
+else:
+	with open(sys.argv[1]) as f:
+		codes = json.load(f)
+	rc.add_codes(codes)
 rc.dump()
