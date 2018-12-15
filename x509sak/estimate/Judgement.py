@@ -34,7 +34,7 @@ class JudgementCode(enum.Enum):
 	RSA_Modulus_Negative = ("RSA Modulus", "n is negative")
 	RSA_Modulus_Prime = ("RSA Modulus", "n is prime")
 	RSA_Modulus_Factorable = ("RSA Modulus", "n has small factors")
-	RSA_Modulus_Known = ("RSA Modulus", "factorization of n is public")
+	RSA_Modulus_FactorizationKnown = ("RSA Modulus", "factorization of n is public")
 	RSA_Modulus_BitBias = ("RSA Modulus", "n has bit bias")
 	RSA_Modulus_Length = ("RSA Modulus", "length of n")
 	RSA_PSS_Salt_Length = ("RSA/PSS Salt", "length of salt")
