@@ -132,6 +132,15 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 				judgement = SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectKeyIdentifier_Arbitrary, "SubjectKeyIdentifier key ID (%s) does not match any tested cryptographic hash function (%s) over the contained public key." % (ski.keyid.hex(), ", ".join(hashfnc.value.pretty_name for hashfnc in tried_hashfncs)), commonness = Commonness.HIGHLY_UNUSUAL)
 		return judgement
 
+	def _judge_single_authority_key_identifier_ca_name(self, entity_name):
+		return self._judge_single_general_name(entity_name, allow_dnsname_wildcard_matches = True, extension_str = "Authority Key Identifier X.509 extension", standard_str = "RFC5280, Sect. 4.2.1.1", codes = {
+			"empty":				JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_CAName_EmptyValue,
+			"bad_domain":			JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_CAName_BadDomain,
+			"bad_ip":				JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_CAName_BadIP,
+			"bad_email":			JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_CAName_BadEmail,
+			"bad_uri":				JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_CAName_BadURI,
+		})
+
 	def _judge_authority_key_identifier(self, certificate):
 		judgements = SecurityJudgements()
 		aki = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("AuthorityKeyIdentifier"))
@@ -140,6 +149,12 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		else:
 			if aki.critical:
 				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_Critical, "AuthorityKeyIdentifier X.509 extension is marked critical. This is a direct violation of RFC5280, Sect. 4.2.1.1.", compatibility = Compatibility.STANDARDS_VIOLATION)
+			if aki.ca_names is not None:
+				if aki.ca_names == 0:
+					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_CAName_Empty, "AuthorityKeyIdentifier X.509 extension contains CA names field of length zero. This is a direct violation of RFC5280, Sect. 4.2.1.1.", compatibility = Compatibility.STANDARDS_VIOLATION)
+				for entity_name in aki.ca_names:
+					judgements += self._judge_single_authority_key_identifier_ca_name(entity_name)
+
 		return judgements
 
 	def _judge_name_constraints(self, certificate):

@@ -160,9 +160,9 @@ class CmdLineTestsExamine(BaseTest):
 	def test_examine_x509test_xf_ext_auth_keyid_critical(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-keyid-critical.pem", "Cert_X509Ext_AuthorityKeyIdentifier_Critical")
 
-#	def test_examine_x509test_xf_ext_auth_keyid_invalid_issuer(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-keyid-invalid-issuer.pem", "Cert_X509Ext_AuthorityKeyIdentiBadIP")
-#
+	def test_examine_x509test_xf_ext_auth_keyid_invalid_issuer(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-keyid-invalid-issuer.pem", "Cert_X509Ext_AuthorityKeyIdentifier_CAName_BadIP")
+
 #	def test_examine_x509test_xf_ext_auth_keyid_mismatch(self):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-keyid-mismatch.pem", "")
 #		self._test_examine_x509test_noparse("certs/x509test/xf-ext-auth-keyid-mismatch.pem")

@@ -234,8 +234,8 @@ class X509AuthorityKeyIdentifierExtension(X509Extension):
 		return self._keyid
 
 	@property
-	def names(self):
-		return self._names
+	def ca_names(self):
+		return self._ca_names
 
 	@property
 	def format_value(self):
@@ -247,9 +247,9 @@ class X509AuthorityKeyIdentifierExtension(X509Extension):
 		else:
 			self._keyid = None
 		if self.asn1["authorityCertIssuer"].hasValue():
-			self._names = [ ASN1NameWrapper.from_asn1_general_name(generalname) for generalname in self.asn1["authorityCertIssuer"] ]
+			self._ca_names = [ ASN1NameWrapper.from_asn1_general_name(generalname) for generalname in self.asn1["authorityCertIssuer"] ]
 		else:
-			self._names = None
+			self._ca_names = None
 X509ExtensionRegistry.set_handler_class(X509AuthorityKeyIdentifierExtension)
 
 
