@@ -19,6 +19,7 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
+import math
 import hashlib
 from x509sak.KwargsChecker import KwargsChecker
 from x509sak.NumberTheory import NumberTheory
@@ -89,6 +90,10 @@ class EllipticCurve(object):
 		return dict(self._domain_parameters)
 
 	@property
+	def order_bits(self):
+		raise NotImplementedError()
+
+	@property
 	def field_bits(self):
 		raise NotImplementedError()
 
@@ -148,6 +153,10 @@ class PrimeFieldEllipticCurve(EllipticCurve):
 	_DomainArgs = KwargsChecker(required_arguments = set([ "p", "a", "b", "n", "h" ]), optional_arguments = set([ "Gx", "Gy" ]))
 
 	@property
+	def order_bits(self):
+		return math.log(self.n, 2)
+
+	@property
 	def field_bits(self):
 		return self.p.bit_length()
 
@@ -183,6 +192,10 @@ class TwistedEdwardsEllipticCurve(EllipticCurve):
 	@property
 	def element_octet_cnt(self):
 		return self._domain_parameters["element_octet_cnt"]
+
+	@property
+	def order_bits(self):
+		return NumberTheory.hamming_weight(self.expand_bitwise_and & ~self.expand_bitwise_or)
 
 	@property
 	def field_bits(self):

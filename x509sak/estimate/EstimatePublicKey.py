@@ -39,7 +39,7 @@ class PublicKeyEstimator(BaseEstimator):
 			result.update(self.algorithm("ecc").analyze(pubkey))
 		elif pubkey.pk_alg.value.cryptosystem == Cryptosystems.ECC_EdDSA:
 			result["pretty"] = "EdDSA on %s" % (pubkey.curve.name)
-			result.update(self.algorithm("eddsa").analyze(pubkey))
+			result.update(self.algorithm("ecc").analyze(pubkey))
 		else:
 			raise LazyDeveloperException(NotImplemented, pubkey.pk_alg.value.cryptosystem)
 		return result

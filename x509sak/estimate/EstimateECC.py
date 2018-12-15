@@ -20,6 +20,7 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 import math
+from x509sak.AlgorithmDB import Cryptosystems
 from x509sak.NumberTheory import NumberTheory
 from x509sak.estimate.BaseEstimator import BaseEstimator
 from x509sak.estimate import JudgementCode, Commonness
@@ -49,7 +50,7 @@ class ECCSecurityEstimator(BaseEstimator):
 		# complexity in bits as:
 		#
 		# b = log2(sqrt(n / 32)) = (log2(n) / 2) - 2.5
-		approx_curve_order_bits = math.log(curve.n, 2)
+		approx_curve_order_bits = curve.order_bits
 		bits_security = (approx_curve_order_bits / 2) - 2.5
 		bits_security = math.floor(bits_security)
 		judgements += self.algorithm("bits").analyze(JudgementCode.ECC_Pubkey_CurveOrder, bits_security)
@@ -67,10 +68,18 @@ class ECCSecurityEstimator(BaseEstimator):
 		if not hweight_analysis.plausibly_random:
 			judgements += SecurityJudgement(JudgementCode.ECC_Pubkey_Y_BitBias, "Hamming weight of public key field element's Y coordinate is %d at bitlength %d, but expected a weight between %d and %d when randomly chosen; this is likely not coincidential." % (hweight_analysis.hweight, hweight_analysis.bitlen, hweight_analysis.rnd_min_hweight, hweight_analysis.rnd_max_hweight), commonness = Commonness.HIGHLY_UNUSUAL)
 
-		return {
-			"cryptosystem":		"ecc/ecdsa",
+		result = {
 			"specific":	{
 				"curve":		curve.name,
 			},
 			"security":			judgements,
 		}
+
+		if pubkey.pk_alg.value.cryptosystem == Cryptosystems.ECC_ECDSA:
+			result["cryptosystem"] = "ecc/ecdsa"
+		elif pubkey.pk_alg.value.cryptosystem == Cryptosystems.ECC_EdDSA:
+			result["cryptosystem"] = "ecc/eddsa"
+		else:
+			raise NotImplementedError("ECC estimator currently not fit to analyze a %s pubkey." % (pubkey.pk_alg.value.cryptosystem.name))
+
+		return result
