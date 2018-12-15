@@ -65,23 +65,6 @@ class CmdLineTestsExamine(BaseTest):
 		with ResourceFileLoader("certs/ok/rsapss_sha256_salt_32.pem") as crtfile:
 			SubprocessExecutor(self._x509sak + [ "examine", "-p", "tls-client", "--fast-rsa", "-f", "json", crtfile ]).run().stdout_json
 
-	def _get_codes(self, data, result = None):
-		if result is None:
-			result = set()
-		if isinstance(data, list):
-			for item in data:
-				self._get_codes(item, result)
-		elif isinstance(data, dict):
-			if "code" in data:
-				result.add(data["code"])
-			for (key, value) in data.items():
-				self._get_codes(value, result)
-		return result
-
-	def _test_examine_x509test_noparse(self, certname):
-		with ResourceFileLoader(certname) as certfile:
-			SubprocessExecutor(self._x509sak + [ "examine", "--fast-rsa", "-f", "json", "-o", "-", certfile ], success_return_codes = [ 1 ]).run()
-
 	def _write_codes(self, codes):
 		if not self._debug_dumps:
 			return
@@ -94,13 +77,34 @@ class CmdLineTestsExamine(BaseTest):
 		with open("__tested_codes.json", "w") as f:
 			json.dump(codes, f)
 
+	def _extract_codes_from_json(self, data):
+		def recurse_through_data(data, result):
+			if result is None:
+				result = set()
+			if isinstance(data, list):
+				for item in data:
+					recurse_through_data(item, result)
+			elif isinstance(data, dict):
+				if "code" in data:
+					result.add(data["code"])
+				for (key, value) in data.items():
+					recurse_through_data(value, result)
+
+		result = set()
+		recurse_through_data(data, result)
+		self._write_codes(result)
+		return result
+
+	def _test_examine_x509test_noparse(self, certname):
+		with ResourceFileLoader(certname) as certfile:
+			SubprocessExecutor(self._x509sak + [ "examine", "--fast-rsa", "-f", "json", "-o", "-", certfile ], success_return_codes = [ 1 ]).run()
+
 	def _test_examine_x509test_resultcode(self, certname, expect_code):
 		with ResourceFileLoader(certname) as certfile, tempfile.NamedTemporaryFile(suffix = ".json") as outfile:
 			result = SubprocessExecutor(self._x509sak + [ "examine", "--fast-rsa", "-f", "json", "-o", outfile.name, certfile ]).run()
 			with open(outfile.name) as f:
 				data = json.load(f)
-			codes = self._get_codes(data)
-			self._write_codes(codes)
+			codes = self._extract_codes_from_json(data)
 			if (not expect_code in codes) and self._debug_dumps:
 				# Testcase will fail the assertion, write out the failed certificate.
 				with open(certfile, "rb") as infile, open("__failed_crt.pem", "wb") as outfile:
