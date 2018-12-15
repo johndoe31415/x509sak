@@ -165,20 +165,16 @@ class CmdLineTestsExamine(BaseTest):
 
 #	def test_examine_x509test_xf_ext_auth_keyid_mismatch(self):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-keyid-mismatch.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-auth-keyid-mismatch.pem")
-#
-#	def test_examine_x509test_xf_ext_auth_keyid_noid(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-keyid-noid.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-auth-keyid-noid.pem")
-#
-#	def test_examine_x509test_xf_ext_auth_keyid_onlyserial(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-keyid-onlyserial.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-auth-keyid-onlyserial.pem")
-#
+
+	def test_examine_x509test_xf_ext_auth_keyid_noid(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-keyid-noid.pem", "Cert_X509Ext_AuthorityKeyIdentifier_NoKeyIDPresent")
+
+	def test_examine_x509test_xf_ext_auth_keyid_onlyserial(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-keyid-onlyserial.pem", "Cert_X509Ext_AuthorityKeyIdentifier_SerialWithoutName")
+
 #	def test_examine_x509test_xf_ext_auth_keyid_serial_mismatch(self):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-keyid-serial-mismatch.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-auth-keyid-serial-mismatch.pem")
-#
+
 #	def test_examine_x509test_xf_ext_cert_policies_any_qual(self):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-cert-policies-any-qual.pem", "")
 #		self._test_examine_x509test_noparse("certs/x509test/xf-ext-cert-policies-any-qual.pem")

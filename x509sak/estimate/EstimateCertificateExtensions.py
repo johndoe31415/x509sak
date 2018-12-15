@@ -149,12 +149,22 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		else:
 			if aki.critical:
 				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_Critical, "AuthorityKeyIdentifier X.509 extension is marked critical. This is a direct violation of RFC5280, Sect. 4.2.1.1.", compatibility = Compatibility.STANDARDS_VIOLATION)
+
+			if aki.keyid is None:
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_NoKeyIDPresent, "AuthorityKeyIdentifier X.509 extension contains no key ID. This is a direct violation of RFC5280, Sect. 4.2.1.1.", compatibility = Compatibility.STANDARDS_VIOLATION)
+			elif len(aki.keyid) == 0:
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_KeyIDEmpty, "AuthorityKeyIdentifier X.509 extension contains empty key ID. This is a direct violation of RFC5280, Sect. 4.2.1.1.", compatibility = Compatibility.STANDARDS_VIOLATION)
+
 			if aki.ca_names is not None:
 				if aki.ca_names == 0:
 					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_CAName_Empty, "AuthorityKeyIdentifier X.509 extension contains CA names field of length zero. This is a direct violation of RFC5280, Sect. 4.2.1.1.", compatibility = Compatibility.STANDARDS_VIOLATION)
 				for entity_name in aki.ca_names:
 					judgements += self._judge_single_authority_key_identifier_ca_name(entity_name)
 
+			if (aki.ca_names is None) and (aki.serial is not None):
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_SerialWithoutName, "AuthorityKeyIdentifier X.509 extension contains CA serial number, but no CA name. This is a direct violation of RFC5280, Sect. A.2.", compatibility = Compatibility.STANDARDS_VIOLATION)
+			elif (aki.ca_names is not None) and (aki.serial is None):
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_NameWithoutSerial, "AuthorityKeyIdentifier X.509 extension contains CA name, but no CA serial number. This is a direct violation of RFC5280, Sect. A.2.", compatibility = Compatibility.STANDARDS_VIOLATION)
 		return judgements
 
 	def _judge_name_constraints(self, certificate):

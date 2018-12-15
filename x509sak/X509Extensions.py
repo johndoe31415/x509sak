@@ -238,18 +238,33 @@ class X509AuthorityKeyIdentifierExtension(X509Extension):
 		return self._ca_names
 
 	@property
+	def serial(self):
+		return self._serial
+
+	@property
 	def format_value(self):
-		return "KeyID %s, Names %s" % (self.keyid.hex(), str(self.names))
+		values = [ ]
+		if self.keyid is not None:
+			values.append("KeyID %s" % (self.keyid.hex()))
+		if self.ca_names is not None:
+			values.append("CAName {%s}" % (", ".join(str(name) for name in self.ca_names)))
+		if self.serial is not None:
+			values.append("Serial %x" % (self.serial))
+		return ", ".join(values)
 
 	def _decode_hook(self):
-		if self.asn1["keyIdentifier"].hasValue():
+		if self.asn1.getComponentByName("keyIdentifier", None, instantiate = False) is not None:
 			self._keyid = bytes(self.asn1["keyIdentifier"])
 		else:
 			self._keyid = None
-		if self.asn1["authorityCertIssuer"].hasValue():
+		if self.asn1.getComponentByName("authorityCertIssuer", None, instantiate = False) is not None:
 			self._ca_names = [ ASN1NameWrapper.from_asn1_general_name(generalname) for generalname in self.asn1["authorityCertIssuer"] ]
 		else:
 			self._ca_names = None
+		if self.asn1.getComponentByName("authorityCertSerialNumber", None, instantiate = False) is not None:
+			self._serial = int(self.asn1["authorityCertSerialNumber"])
+		else:
+			self._serial = None
 X509ExtensionRegistry.set_handler_class(X509AuthorityKeyIdentifierExtension)
 
 
