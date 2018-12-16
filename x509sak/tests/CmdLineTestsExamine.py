@@ -430,7 +430,9 @@ class CmdLineTestsExamine(BaseTest):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-v2-extensions.pem", "Cert_X509Ext_NotAllowed")
 
 	def test_examine_x509test_xf_v3_uniqueid_noexts1(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-v3-uniqueid-noexts1.pem", "Cert_UniqueID_NotAllowed")
+		# TODO verify with x509test
+		self._test_examine_x509test_resultcode("certs/x509test/xf-v3-uniqueid-noexts1.pem", "Cert_UniqueID_NotAllowedForCA")
 
 	def test_examine_x509test_xf_v3_uniqueid_noexts2(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-v3-uniqueid-noexts2.pem", "Cert_UniqueID_NotAllowed")
+		# TODO verify with x509test
+		self._test_examine_x509test_resultcode("certs/x509test/xf-v3-uniqueid-noexts2.pem", "Cert_UniqueID_NotAllowedForCA")

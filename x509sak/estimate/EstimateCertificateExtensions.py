@@ -49,7 +49,8 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 
 	def _judge_may_have_exts(self, certificate):
 		if (certificate.version < 3) and len(certificate.extensions) > 0:
-			return SecurityJudgement(JudgementCode.Cert_X509Ext_NotAllowed, "X.509 extension present in v%d certificate. This is a direct violation of RFC5280, Sect. 4.1.2.9." % (certificate.version), compatibility = Compatibility.STANDARDS_VIOLATION)
+			standard = RFCReference(rfcno = 5280, sect = "4.1.2.9", verb = "MUST", text = "This field MUST only appear if the version is 3 (Section 4.1.2.1).")
+			return SecurityJudgement(JudgementCode.Cert_X509Ext_NotAllowed, "X.509 extension present in v%d certificate." % (certificate.version), compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
 		else:
 			return None
 
@@ -74,15 +75,20 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 
 	def _judge_unique_id(self, certificate):
 		judgements = SecurityJudgements()
-		if (certificate.version == 1) or ((certificate.version == 3) and (len(certificate.extensions) == 0)):
-			if certificate.version == 3:
-				additional_note = " without any X.509 extensions"
-			else:
-				additional_note = ""
+		if certificate.version not in [ 2, 3 ]:
+			standard = RFCReference(rfcno = 5280, sect = "4.1.2.8", verb = "MUST", text = "These fields MUST only appear if the version is 2 or 3 (Section 4.1.2.1). These fields MUST NOT appear if the version is 1.")
 			if certificate.issuer_unique_id is not None:
-				judgements += SecurityJudgement(JudgementCode.Cert_UniqueID_NotAllowed, "Issuer unique IDs is present in v%d certificate%s. This is a direct violation of RFC5280, Sect. 4.1.2.8." % (certificate.version, additional_note), compatibility = Compatibility.STANDARDS_VIOLATION)
+				judgements += SecurityJudgement(JudgementCode.Cert_UniqueID_NotAllowed, "Issuer unique IDs is present in v%d certificate." % (certificate.version), compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
 			if certificate.subject_unique_id is not None:
-				judgements += SecurityJudgement(JudgementCode.Cert_UniqueID_NotAllowed, "Subject unique IDs is present in v%d certificate%s. This is a direct violation of RFC5280, Sect. 4.1.2.8." % (certificate.version, additional_note), compatibility = Compatibility.STANDARDS_VIOLATION)
+				judgements += SecurityJudgement(JudgementCode.Cert_UniqueID_NotAllowed, "Subject unique IDs is present in v%d certificate." % (certificate.version), compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
+
+		elif certificate.is_ca_certificate:
+			standard = RFCReference(rfcno = 5280, sect = "4.1.2.8", verb = "MUST", text = "CAs conforming to this profile MUST NOT generate certificates with unique identifiers.")
+			if certificate.issuer_unique_id is not None:
+				judgements += SecurityJudgement(JudgementCode.Cert_UniqueID_NotAllowedForCA, "Issuer unique IDs is present in CA certificate.", compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
+			if certificate.subject_unique_id is not None:
+				judgements += SecurityJudgement(JudgementCode.Cert_UniqueID_NotAllowedForCA, "Subject unique IDs is present in CA certificate.", compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
+
 		return judgements
 
 	def _judge_uniqueness(self, certificate):
