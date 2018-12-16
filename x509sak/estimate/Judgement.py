@@ -137,6 +137,7 @@ class JudgementCode(enum.Enum):
 	Cert_Version_Not_3 = ("Certificate version", "not v3 certificate")
 	Cert_Serial_Zero = ("Certificate serial", "serial is zero")
 	Cert_Serial_Negative = ("Certificate serial", "serial is negative")
+	Cert_Serial_Large = ("Certificate serial", "serial is too large")
 	Cert_Signature_Algorithm_Mismatch = ("Certificate signature", "signature algorithm mismatch")
 	Cert_UniqueID_NotAllowed = ("Certificate unique ID", "subject/issuer unique ID not allowed in version 1 certificate")
 	Cert_UniqueID_NotAllowedForCA = ("Certificate unique ID", "subject/issuer unique ID not allowed in CA certificate")

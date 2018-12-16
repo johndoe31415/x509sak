@@ -24,7 +24,7 @@ import calendar
 from pyasn1.type.useful import GeneralizedTime
 from x509sak.estimate.BaseEstimator import BaseEstimator
 from x509sak.estimate import JudgementCode, Verdict, Commonness, Compatibility
-from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements
+from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, RFCReference
 
 @BaseEstimator.register
 class CrtValiditySecurityEstimator(BaseEstimator):
@@ -77,9 +77,11 @@ class CrtValiditySecurityEstimator(BaseEstimator):
 				judgements += SecurityJudgement(JudgementCode.Cert_Validity_Length_ExceptionallyLong, "Lifetime is exceptionally long for %s certificate." % (crt_type), commonness = Commonness.HIGHLY_UNUSUAL, verdict = Verdict.WEAK)
 
 			if (not_before < datetime.datetime(2050, 1, 1, 0, 0, 0)) and isinstance(certificate.asn1["tbsCertificate"]["validity"]["notBefore"].getComponent(), GeneralizedTime):
-				judgements += SecurityJudgement(JudgementCode.Cert_Validity_GeneralizedTimeBeforeYear2050, "GeneralizedTime used for 'not before' validity timestamp although earlier than year 2050. This is a direct violation of RFC5280 Sect. 4.1.2.5.", compatibility = Compatibility.STANDARDS_VIOLATION)
+				standard = RFCReference(rfcno = 5280, sect = "4.1.2.5", verb = "MUST", text = "CAs conforming to this profile MUST always encode certificate validity dates through the year 2049 as UTCTime; certificate validity dates in 2050 or later MUST be encoded as GeneralizedTime.")
+				judgements += SecurityJudgement(JudgementCode.Cert_Validity_GeneralizedTimeBeforeYear2050, "GeneralizedTime used for 'not before' validity timestamp although earlier than year 2050.", compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
 			if (not_after < datetime.datetime(2050, 1, 1, 0, 0, 0)) and isinstance(certificate.asn1["tbsCertificate"]["validity"]["notAfter"].getComponent(), GeneralizedTime):
-				judgements += SecurityJudgement(JudgementCode.Cert_Validity_GeneralizedTimeBeforeYear2050, "GeneralizedTime used for 'not after' validity timestamp although earlier than year 2050. This is a direct violation of RFC5280 Sect. 4.1.2.5.", compatibility = Compatibility.STANDARDS_VIOLATION)
+				standard = RFCReference(rfcno = 5280, sect = "4.1.2.5", verb = "MUST", text = "CAs conforming to this profile MUST always encode certificate validity dates through the year 2049 as UTCTime; certificate validity dates in 2050 or later MUST be encoded as GeneralizedTime.")
+				judgements += SecurityJudgement(JudgementCode.Cert_Validity_GeneralizedTimeBeforeYear2050, "GeneralizedTime used for 'not after' validity timestamp although earlier than year 2050.", compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
 
 		return {
 			"not_before":		self._format_datetime(not_before) if not_before is not None else None,

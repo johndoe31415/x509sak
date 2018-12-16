@@ -24,7 +24,7 @@ import pyasn1
 from x509sak.OID import OID, OIDDB
 from x509sak.estimate.BaseEstimator import BaseEstimator
 from x509sak.estimate import JudgementCode, Commonness, Compatibility
-from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements
+from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, RFCReference
 
 @BaseEstimator.register
 class CertificateEstimator(BaseEstimator):
@@ -36,9 +36,14 @@ class CertificateEstimator(BaseEstimator):
 			judgements += SecurityJudgement(JudgementCode.Cert_Version_Not_3, "Certificate version is v%d, usually would expect a v3 certificate." % (certificate.version), commonness = Commonness.HIGHLY_UNUSUAL)
 
 		if certificate.serial < 0:
-			judgements += SecurityJudgement(JudgementCode.Cert_Serial_Negative, "Certificate serial number is a negative value. This is a direct violation of RFC5280, Sect. 4.1.2.2.", compatibility = Compatibility.STANDARDS_VIOLATION)
+			standard = RFCReference(rfcno = 5280, sect = "4.1.2.2", verb = "MUST", text = "The serial number MUST be a positive integer assigned by the CA to each certificate.")
+			judgements += SecurityJudgement(JudgementCode.Cert_Serial_Negative, "Certificate serial number is a negative value.", compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
 		elif certificate.serial == 0:
-			judgements += SecurityJudgement(JudgementCode.Cert_Serial_Zero, "Certificate serial number is zero. This is a direct violation of RFC5280, Sect. 4.1.2.2.", compatibility = Compatibility.STANDARDS_VIOLATION)
+			standard = RFCReference(rfcno = 5280, sect = "4.1.2.2", verb = "MUST", text = "The serial number MUST be a positive integer assigned by the CA to each certificate.")
+			judgements += SecurityJudgement(JudgementCode.Cert_Serial_Zero, "Certificate serial number is zero.", compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
+		elif certificate.serial >= (2 ** (8 * 20)):
+			standard = RFCReference(rfcno = 5280, sect = "4.1.2.2", verb = "MUST", text = "Conforming CAs MUST NOT use serialNumber values longer than 20 octets.")
+			judgements += SecurityJudgement(JudgementCode.Cert_Serial_Large, "Certificate serial number is too large.", compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
 
 		try:
 			cert_reencoding = pyasn1.codec.der.encoder.encode(certificate.asn1)
@@ -59,7 +64,8 @@ class CertificateEstimator(BaseEstimator):
 		if oid_header != oid_sig:
 			name_header = OIDDB.SignatureAlgorithms.get(oid_header, str(oid_header))
 			name_sig = OIDDB.SignatureAlgorithms.get(oid_sig, str(oid_sig))
-			judgements += SecurityJudgement(JudgementCode.Cert_Signature_Algorithm_Mismatch, "Certificate indicates signature algorithm %s in header section and %s in signature section. This is a direct violation of RFC5280 Sect. 4.1.1.2." % (name_header, name_sig), compatibility = Compatibility.STANDARDS_VIOLATION)
+			standard = RFCReference(rfcno = 5280, sect = "4.1.1.2", verb = "MUST", text = "TODO")
+			judgements += SecurityJudgement(JudgementCode.Cert_Signature_Algorithm_Mismatch, "Certificate indicates signature algorithm %s in header section and %s in signature section." % (name_header, name_sig), compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
 
 		return judgements
 

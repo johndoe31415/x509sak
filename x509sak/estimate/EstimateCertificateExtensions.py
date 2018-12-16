@@ -191,9 +191,11 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		nc = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("NameConstraints"))
 		if nc is not None:
 			if not nc.critical:
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_NameConstraints_PresentButNotCritical, "NameConstraints X.509 extension present, but not marked critical. This is a direct violation of RFC5280 Sect. 4.2.1.10.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION)
+				standard = RFCReference(rfcno = 5280, sect = "4.2.1.10", verb = "MUST", text = "Conforming CAs MUST mark this extension as critical")
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_NameConstraints_PresentButNotCritical, "NameConstraints X.509 extension present, but not marked critical.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
 			if not certificate.is_ca_certificate:
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_NameConstraints_PresentButNotCA, "NameConstraints X.509 extension present, but certificate is not a CA certificate. This is a direct violation of RFC5280 Sect. 4.2.1.10.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION)
+				standard = RFCReference(rfcno = 5280, sect = "4.2.1.10", verb = "MUST", text = "The name constraints extension, which MUST be used only in a CA certificate, indicates a name space within which all subject names in subsequent certificates in a certification path MUST be located.")
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_NameConstraints_PresentButNotCA, "NameConstraints X.509 extension present, but certificate is not a CA certificate.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
 		return judgements
 
 
@@ -335,9 +337,11 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		aia = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("id-pe-authorityInfoAccess"))
 		if aia is not None:
 			if aia.critical:
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityInformationAccess_Critical, "Authority Information Access X.509 extension is marked critical. This is a direct violation of RFC5280, Sect. 4.2.2.1.", compatibility = Compatibility.STANDARDS_VIOLATION)
+				standard = RFCReference(rfcno = 5280, sect = "4.2.2.1", verb = "MUST", text = "Conforming CAs MUST mark this extension as non-critical.")
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityInformationAccess_Critical, "Authority Information Access X.509 extension is marked critical.", compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
 			if aia.method_count == 0:
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityInformationAccess_Empty, "Authority Information Access X.509 extension contains no access methods. This is a direct violation of RFC5280, Sect. 4.2.2.1.", compatibility = Compatibility.STANDARDS_VIOLATION)
+				standard = RFCReference(rfcno = 5280, sect = "4.2.2.1", verb = "MUST", text = "SEQUENCE SIZE (1..MAX) OF AccessDescription")
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityInformationAccess_Empty, "Authority Information Access X.509 extension contains no access methods.", compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
 
 		return judgements
 

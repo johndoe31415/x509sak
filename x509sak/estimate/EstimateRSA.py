@@ -25,7 +25,7 @@ from x509sak.ModulusDB import ModulusDB
 from x509sak.NumberTheory import NumberTheory
 from x509sak.estimate.BaseEstimator import BaseEstimator
 from x509sak.estimate import JudgementCode, AnalysisOptions, Verdict, Commonness, Compatibility
-from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements
+from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, RFCReference
 from x509sak.Exceptions import LazyDeveloperException
 
 @BaseEstimator.register
@@ -116,15 +116,18 @@ class RSASecurityEstimator(BaseEstimator):
 		}
 
 		if pubkey.params is None:
-			judgements += SecurityJudgement(JudgementCode.RSA_Parameter_Field_Not_Present, "RSA parameter field should be present and should be of Null type, but is not present at all. This is a direct violation of RFC3279, Sect. 2.2.1.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION)
+			standard = RFCReference(rfcno = 3279, sect = "2.2.1", verb = "MUST", text = "When any of these three OIDs appears within the ASN.1 type AlgorithmIdentifier, the parameters component of that type SHALL be the ASN.1 type NULL.")
+			judgements += SecurityJudgement(JudgementCode.RSA_Parameter_Field_Not_Present, "RSA parameter field should be present and should be of Null type, but is not present at all.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
 		else:
 			# There is a parameters field present, it must be NULL
 			try:
 				(asn1_params, tail) = pyasn1.codec.der.decoder.decode(bytes(pubkey.params))
 				if not isinstance(asn1_params, pyasn1.type.univ.Null):
-					judgements += SecurityJudgement(JudgementCode.RSA_Parameter_Field_Not_Null, "RSA parameter field should be present and should be of Null type, but has different ASN.1 type. This is a direct violation of RFC3279, Sect. 2.2.1.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION)
+					standard = RFCReference(rfcno = 3279, sect = "2.2.1", verb = "MUST", text = "When any of these three OIDs appears within the ASN.1 type AlgorithmIdentifier, the parameters component of that type SHALL be the ASN.1 type NULL.")
+					judgements += SecurityJudgement(JudgementCode.RSA_Parameter_Field_Not_Null, "RSA parameter field should be present and should be of Null type, but has different ASN.1 type.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
 			except pyasn1.error.PyAsn1Error:
-				judgements += SecurityJudgement(JudgementCode.RSA_Parameter_Field_Not_Null, "RSA parameter field should be present and should be of Null type, but has different non-DER type. This is a direct violation of RFC3279, Sect. 2.2.1.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION)
+				standard = RFCReference(rfcno = 3279, sect = "2.2.1", verb = "MUST", text = "When any of these three OIDs appears within the ASN.1 type AlgorithmIdentifier, the parameters component of that type SHALL be the ASN.1 type NULL.")
+				judgements += SecurityJudgement(JudgementCode.RSA_Parameter_Field_Not_Null, "RSA parameter field should be present and should be of Null type, but has different non-DER type.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
 
 		judgements += result["specific"]["n"]["security"]
 		judgements += result["specific"]["e"]["security"]
