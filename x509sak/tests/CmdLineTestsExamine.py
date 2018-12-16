@@ -246,11 +246,10 @@ class CmdLineTestsExamine(BaseTest):
 #	def test_examine_x509test_xf_ext_extended_any_key_usage(self):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-extended-any-key-usage.pem", "")
 #		self._test_examine_x509test_noparse("certs/x509test/xf-ext-extended-any-key-usage.pem")
-#
-#	def test_examine_x509test_xf_ext_extended_key_usage_empty_oid(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-extended-key-usage-empty-oid.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-extended-key-usage-empty-oid.pem")
-#
+
+	def test_examine_x509test_xf_ext_extended_key_usage_empty_oid(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-extended-key-usage-empty-oid.pem", "Cert_X509Ext_ExtKeyUsage_Empty")
+
 #	def test_examine_x509test_xf_ext_extended_key_usage_empty(self):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-extended-key-usage-empty.pem", "")
 #		self._test_examine_x509test_noparse("certs/x509test/xf-ext-extended-key-usage-empty.pem")

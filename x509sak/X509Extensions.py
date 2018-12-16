@@ -170,6 +170,10 @@ class X509Extension(object):
 	def asn1(self):
 		return self._asn1
 
+	def raw_decode(self):
+		(asn1, tail) = pyasn1.codec.der.decoder.decode(self.data)
+		return asn1
+
 	def _decode_hook(self):
 		pass
 
@@ -293,7 +297,10 @@ class X509ExtendedKeyUsageExtension(X509Extension):
 	_ASN1_MODEL = rfc2459.ExtKeyUsageSyntax
 
 	def _decode_hook(self):
-		self._oids = set(OID.from_str(str(oid)) for oid in self.asn1)
+		if self.asn1 is not None:
+			self._oids = set(OID.from_str(str(oid)) for oid in self.asn1)
+		else:
+			self._oids = set()
 
 	@property
 	def key_usage_oids(self):

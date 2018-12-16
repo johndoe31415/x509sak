@@ -203,6 +203,18 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_KeyUsage_Missing, "CA certificate must contains a KeyUsage X.509 extension, but this is missing. This is a direct violation of RFC5280, Sect. 4.2.1.3.", commonness = Commonness.UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION)
 		return judgements
 
+	def _judge_extended_key_usage(self, certificate):
+		judgements = SecurityJudgements()
+		eku_ext = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("ExtendedKeyUsage"))
+		if eku_ext is not None:
+			number_oids = len(list(eku_ext.key_usage_oids))
+			number_unique_oids = len(set(eku_ext.key_usage_oids))
+			if number_oids == 0:
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_ExtKeyUsage_Empty, "ExtendedKeyUsage extension present, but contains no OIDs. This is a direct violation of TODO.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION)
+			if number_oids != number_unique_oids:
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_ExtKeyUsage_Duplicates, "ExtendedKeyUsage extension present, but contains duplicate OIDs. There are %d OIDs present, but only %d are unique. This is a direct violation of TODO." % (number_oids, number_unique_oids), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION)
+		return judgements
+
 	def _judge_single_general_name(self, entity_name, allow_dnsname_wildcard_matches, extension_str, standard_str, codes):
 		if entity_name.str_value == "":
 			return SecurityJudgement(codes["empty"], "%s of type %s has empty value. This is a direct violation of %s." % (extension_str, entity_name.name, standard_str), compatibility = Compatibility.STANDARDS_VIOLATION)
@@ -302,6 +314,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		judgements += self._judge_authority_key_identifier(certificate)
 		judgements += self._judge_name_constraints(certificate)
 		judgements += self._judge_key_usage(certificate)
+		judgements += self._judge_extended_key_usage(certificate)
 		judgements += self._judge_subject_alternative_name(certificate)
 		judgements += self._judge_authority_information_access(certificate)
 
