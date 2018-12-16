@@ -216,6 +216,7 @@ class OIDDB(object):
 
 	"""X.509 Extension Extended Key Usage."""
 	X509ExtendedKeyUsage = BijectiveDict({
+		OID.from_str("2.5.29.37.0"):				"anyExtendedKeyUsage",
 		OID.from_str("1.3.6.1.5.5.7.3.1"):			"id_kp_serverAuth",
 		OID.from_str("1.3.6.1.5.5.7.3.2"):			"id_kp_clientAuth",
 		OID.from_str("1.3.6.1.5.5.7.3.3"):			"id_kp_codeSigning",

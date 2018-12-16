@@ -147,7 +147,6 @@ class ActionExamineCert(BaseAction):
 			textual_verdict.append({
 				Compatibility.FULLY_COMPLIANT:			"fully standards compliant",
 				Compatibility.LIMITED_SUPPORT:			"limited support",
-				Compatibility.STANDARDS_RECOMMENDATION:	"standards recommendation",
 				Compatibility.STANDARDS_VIOLATION:		"standards violation",
 			}[judgement.compatibility])
 
@@ -161,7 +160,7 @@ class ActionExamineCert(BaseAction):
 		color = "end"
 		if judgement.verdict in [ Verdict.BEST_IN_CLASS, Verdict.HIGH ]:
 			color = "good"
-		if (judgement.verdict == Verdict.MEDIUM) or (judgement.commonness == Commonness.UNUSUAL) or (judgement.compatibility in [ Compatibility.LIMITED_SUPPORT, Compatibility.STANDARDS_RECOMMENDATION ]):
+		if (judgement.verdict == Verdict.MEDIUM) or (judgement.commonness == Commonness.UNUSUAL) or (judgement.compatibility in [ Compatibility.LIMITED_SUPPORT ]):
 			color = "warn"
 		if (judgement.verdict in [ Verdict.WEAK, Verdict.BROKEN ]) or (judgement.commonness == Commonness.HIGHLY_UNUSUAL):
 			color = "error"

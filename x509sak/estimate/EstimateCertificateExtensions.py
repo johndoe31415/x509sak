@@ -24,7 +24,7 @@ from x509sak.AlgorithmDB import HashFunctions
 from x509sak.X509Extensions import X509ExtendedKeyUsageExtension
 from x509sak.estimate.BaseEstimator import BaseEstimator
 from x509sak.estimate import JudgementCode, Commonness, Compatibility
-from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements
+from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, RFCReference
 from x509sak.Tools import ValidationTools
 
 @BaseEstimator.register
@@ -189,7 +189,11 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_KeyUsage_TooLong, "KeyUsage extension present, but contains too many bits (%d found, %d expected at maximum). This is a direct violation of RFC5280 Sect. 4.2.1.3." % (len(ku_ext.asn1), max_bit_cnt), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION)
 
 			if not ku_ext.critical:
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_KeyUsage_NonCritical, "KeyUsage extension present, but not marked as critical. This is a recommendation of RFC5280 Sect. 4.2.1.3.", compatibility = Compatibility.STANDARDS_RECOMMENDATION)
+				if certificate.is_ca_certificate:
+					standard = RFCReference(rfcno = 5280, sect = "4.2.1.3", verb = "SHOULD", text = "When present, conforming CAs SHOULD mark this extension as critical.")
+					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_KeyUsage_NonCritical, "CA certificate contains KeyUsage X.509 extension, but it is not marked as critical.", commonness = Commonness.UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
+				else:
+					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_KeyUsage_NonCritical, "CA certificate contains KeyUsage X.509 extension, but it is not marked as critical.", commonness = Commonness.UNUSUAL)
 
 			if "keyCertSign" in ku_ext.flags:
 				if not certificate.is_ca_certificate:
@@ -200,7 +204,10 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_KeyUsage_SignCertNoBasicConstraints, "KeyUsage extension contains the keyCertSign flag, but no BasicConstraints extension. This is a recommendation of RFC5280 Sect. 4.2.1.3.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION)
 		else:
 			if certificate.is_ca_certificate:
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_KeyUsage_Missing, "CA certificate must contains a KeyUsage X.509 extension, but this is missing. This is a direct violation of RFC5280, Sect. 4.2.1.3.", commonness = Commonness.UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION)
+				standard = RFCReference(rfcno = 5280, sect = "4.2.1.3", verb = "MUST", text = "Conforming CAs MUST include this extension in certificates that contain public keys that are used to validate digital signatures on other public key certificates or CRLs.")
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_KeyUsage_Missing, "CA certificate must contain a KeyUsage X.509 extension, but it is missing.", commonness = Commonness.UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
+
+
 		return judgements
 
 	def _judge_extended_key_usage(self, certificate):
@@ -210,9 +217,14 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 			number_oids = len(list(eku_ext.key_usage_oids))
 			number_unique_oids = len(set(eku_ext.key_usage_oids))
 			if number_oids == 0:
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_ExtKeyUsage_Empty, "ExtendedKeyUsage extension present, but contains no OIDs. This is a direct violation of TODO.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION)
+				standard = RFCReference(rfcno = 5280, sect = "4.2.1.12", verb = "MUST", text = "ExtKeyUsageSyntax ::= SEQUENCE SIZE (1..MAX) OF KeyPurposeId")
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_ExtKeyUsage_Empty, "ExtendedKeyUsage extension present, but contains no OIDs.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
 			if number_oids != number_unique_oids:
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_ExtKeyUsage_Duplicates, "ExtendedKeyUsage extension present, but contains duplicate OIDs. There are %d OIDs present, but only %d are unique. This is a direct violation of TODO." % (number_oids, number_unique_oids), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION)
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_ExtKeyUsage_Duplicates, "ExtendedKeyUsage extension present, but contains duplicate OIDs. There are %d OIDs present, but only %d are unique." % (number_oids, number_unique_oids), commonness = Commonness.HIGHLY_UNUSUAL)
+			if eku_ext.any_key_usage and eku_ext.critical:
+				standard = RFCReference(rfcno = 5280, sect = "4.2.1.12", verb = "SHOULD", text = "Conforming CAs SHOULD NOT mark this extension as critical if the anyExtendedKeyUsage KeyPurposeId is present.")
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_ExtKeyUsage_AnyUsageCritical, "ExtendedKeyUsage extension contains the anyKeyUsage OID, but is also marked as critical.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
+
 		return judgements
 
 	def _judge_single_general_name(self, entity_name, allow_dnsname_wildcard_matches, extension_str, standard_str, codes):

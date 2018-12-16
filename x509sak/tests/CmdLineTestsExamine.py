@@ -242,18 +242,16 @@ class CmdLineTestsExamine(BaseTest):
 #	def test_examine_x509test_xf_ext_ct_sct_wrong_type(self):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-ct-sct-wrong-type.pem", "")
 #		self._test_examine_x509test_noparse("certs/x509test/xf-ext-ct-sct-wrong-type.pem")
-#
-#	def test_examine_x509test_xf_ext_extended_any_key_usage(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-extended-any-key-usage.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-extended-any-key-usage.pem")
+
+	def test_examine_x509test_xf_ext_extended_any_key_usage(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-extended-any-key-usage.pem", "Cert_X509Ext_ExtKeyUsage_AnyUsageCritical")
 
 	def test_examine_x509test_xf_ext_extended_key_usage_empty_oid(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-extended-key-usage-empty-oid.pem", "Cert_X509Ext_ExtKeyUsage_Empty")
 
-#	def test_examine_x509test_xf_ext_extended_key_usage_empty(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-extended-key-usage-empty.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-extended-key-usage-empty.pem")
-#
+	def test_examine_x509test_xf_ext_extended_key_usage_empty(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-extended-key-usage-empty.pem", "Cert_X509Ext_ExtKeyUsage_Empty")
+
 #	def test_examine_x509test_xf_ext_freshest_crl_critical(self):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-freshest-crl-critical.pem", "")
 #		self._test_examine_x509test_noparse("certs/x509test/xf-ext-freshest-crl-critical.pem")

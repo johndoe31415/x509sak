@@ -307,6 +307,10 @@ class X509ExtendedKeyUsageExtension(X509Extension):
 		return iter(self._oids)
 
 	@property
+	def any_key_usage(self):
+		return OIDDB.X509ExtendedKeyUsage.inverse("anyExtendedKeyUsage") in self._oids
+
+	@property
 	def client_auth(self):
 		return OIDDB.X509ExtendedKeyUsage.inverse("id_kp_clientAuth") in self._oids
 
@@ -315,7 +319,7 @@ class X509ExtendedKeyUsageExtension(X509Extension):
 		return OIDDB.X509ExtendedKeyUsage.inverse("id_kp_serverAuth") in self._oids
 
 	def __repr__(self):
-		return "%s<Server = %s, Client = %s>" % (self.__class__.__name__, self.client_auth, self.server_auth)
+		return "%s<%s>" % (self.__class__.__name__, ", ".join(OIDDB.X509ExtendedKeyUsage.get(oid, str(oid)) for oid in sorted(self._oids)))
 X509ExtensionRegistry.set_handler_class(X509ExtendedKeyUsageExtension)
 
 

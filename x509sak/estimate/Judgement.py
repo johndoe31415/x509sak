@@ -88,6 +88,7 @@ class JudgementCode(enum.Enum):
 	Cert_X509Ext_KeyUsage_SignCertNoBasicConstraints = ("X.509 KeyUsage extension", "keyCertSign flag present but no BasicConstraints extension")
 	Cert_X509Ext_ExtKeyUsage_Empty = ("X.509 ExtendedKeyUsage extension", "empty sequence")
 	Cert_X509Ext_ExtKeyUsage_Duplicate = ("X.509 ExtendedKeyUsage extension", "duplicate OIDs present")
+	Cert_X509Ext_ExtKeyUsage_AnyUsageCritical = ("X.509 ExtendedKeyUsage extension", "AnyUsage present but extension marked as critical")
 	Cert_X509Ext_Unknown_Critical = ("X.509 extensions", "unrecognized critical X.509 extension present")
 	Cert_X509Ext_Unknown_NonCritical = ("X.509 extensions", "unrecognized X.509 extension present")
 	Cert_X509Ext_SubjectAltName_Empty = ("X.509 SubjectAlternativeName", "no names given")
@@ -166,12 +167,11 @@ class Commonness(enum.IntEnum):
 
 class Compatibility(enum.IntEnum):
 	STANDARDS_VIOLATION = 0
-	STANDARDS_RECOMMENDATION = 1
-	LIMITED_SUPPORT = 2
-	FULLY_COMPLIANT = 3
+	LIMITED_SUPPORT = 1
+	FULLY_COMPLIANT = 2
 
 class SecurityJudgement(object):
-	def __init__(self, code, text, bits = None, verdict = None, commonness = None, compatibility = None, prefix_topic = False):
+	def __init__(self, code, text, bits = None, verdict = None, commonness = None, compatibility = None, prefix_topic = False, standard = None):
 		assert((code is None) or isinstance(code, JudgementCode))
 		assert((bits is None) or isinstance(bits, (int, float)))
 		assert((verdict is None) or isinstance(verdict, Verdict))
@@ -184,6 +184,7 @@ class SecurityJudgement(object):
 		self._commonness = commonness
 		self._compatibility = compatibility
 		self._prefix_topic = prefix_topic
+		self._standard = standard
 		if self._bits == 0:
 			if self._verdict is None:
 				self._verdict = Verdict.NO_SECURITY
@@ -340,3 +341,42 @@ class SecurityJudgements(object):
 
 	def __str__(self):
 		return "SecurityJudgements<%s>" % (", ".join(str(judgement) for judgement in self))
+
+class StandardReference():
+	pass
+
+class RFCReference(StandardReference):
+	def __init__(self, rfcno, sect, verb, text):
+		assert(verb in [ "SHOULD", "MUST" ])
+		StandardReference.__init__(self)
+		self._rfcno = rfcno
+		self._sect = sect
+		self._verb = verb
+		self._text = text
+
+	@property
+	def rfcno(self):
+		return self._rfcno
+
+	@property
+	def sect(self):
+		return self._sect
+
+	@property
+	def verb(self):
+		return self._verb
+
+	@property
+	def text(self):
+		return self._text
+
+	def to_dict(self):
+		return {
+			"rfcno":	self.rfcno,
+			"sect":		self.sect,
+			"verb":		self.verb,
+			"text":		self.text,
+		}
+
+	def __str__(self):
+		return "RFC%d Sect. %s" % (self.rfcno, self.sect)
