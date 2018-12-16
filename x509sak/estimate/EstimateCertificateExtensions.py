@@ -96,7 +96,8 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 
 		for extension in certificate.extensions:
 			if extension.oid in have_oids:
-				judgement = SecurityJudgement(JudgementCode.Cert_X509Ext_Duplicate, "X.509 extension %s (OID %s) is present at least twice. This is a direct violation of RFC5280, Sect. 4.2." % (extension.name, str(extension.oid)), compatibility = Compatibility.STANDARDS_VIOLATION)
+				standard = RFCReference(rfcno = 5280, sect = "4.2", verb = "MUST", text = "A certificate MUST NOT include more than one instance of a particular extension.")
+				judgement = SecurityJudgement(JudgementCode.Cert_X509Ext_Duplicate, "X.509 extension %s (OID %s) is present at least twice." % (extension.name, str(extension.oid)), compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
 				break
 			have_oids.add(extension.oid)
 		else:
