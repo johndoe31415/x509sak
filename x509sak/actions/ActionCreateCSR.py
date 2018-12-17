@@ -35,6 +35,8 @@ class ActionCreateCSR(BaseAction):
 			raise UnfulfilledPrerequisitesException("File/directory %s already exists. Remove it first or use --force." % (self._args.out_filename))
 		if (self._args.gen_keyspec is not None) and (self._args.keytype == "hw"):
 			raise InvalidInputException("x509sak cannot generate private keys on a hardware token; please do this with a different tool and use x509sak to then use the created key.")
+		if (cmdname.lower() in [ "gencrt", "generatecrt" ]) and (self._args.create_crt is None):
+			raise InvalidInputException("When creating a certificate instead of a CSR, you need to specify the signing CA.")
 
 		private_key_storage = PrivateKeyStorage.from_str(self._args.keytype, self._args.key_filename)
 		gen_keyspec = self._args.gen_keyspec or KeySpecification.from_cmdline_str("ecc:secp384r1")

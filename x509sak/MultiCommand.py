@@ -32,7 +32,7 @@ from .PrefixMatcher import PrefixMatcher
 
 class MultiCommand(object):
 	RegisteredCommand = collections.namedtuple("RegisteredCommand", [ "name", "description", "parsergenerator", "action", "aliases", "visible" ])
-	ParseResult = collections.namedtuple("ParseResults", [ "cmd", "args" ])
+	ParseResult = collections.namedtuple("ParseResults", [ "command", "effective_cmd", "supplied_cmd", "args" ])
 
 	def __init__(self):
 		self._commands = { }
@@ -98,21 +98,23 @@ class MultiCommand(object):
 			self._raise_error("Invalid command supplied: %s" % (str(e)))
 
 		if supplied_cmd in self._aliases:
-			supplied_cmd = self._aliases[supplied_cmd]
+			effective_cmd = self._aliases[supplied_cmd]
+		else:
+			effective_cmd = supplied_cmd
 
-		command = self._commands[supplied_cmd]
+		command = self._commands[effective_cmd]
 		parser = FriendlyArgumentParser(prog = sys.argv[0] + " " + command.name, description = command.description, add_help = False)
 		command.parsergenerator(parser)
 		parser.add_argument("--help", action = "help", help = "Show this help page.")
 		parser.setsilenterror(silent)
 		args = parser.parse_args(cmdline[1:])
-		return self.ParseResult(command, args)
+		return self.ParseResult(command = command, effective_cmd = effective_cmd, supplied_cmd = supplied_cmd, args = args)
 
 	def run(self, cmdline, silent = False):
 		parseresult = self.parse(cmdline, silent)
-		if parseresult.cmd.action is None:
+		if parseresult.command.action is None:
 			raise Exception("Should run command '%s', but no action was registered." % (parseresult.cmd.name))
-		parseresult.cmd.action(parseresult.cmd.name, parseresult.args)
+		parseresult.command.action(parseresult.supplied_cmd, parseresult.args)
 
 if __name__ == "__main__":
 	mc = MultiCommand()
