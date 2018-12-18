@@ -1,0 +1,4 @@
+    SEQUENCE {
+      # ecdsa-with-SHA256
+      OBJECT_IDENTIFIER { 1.2.840.10045.4.3.2 }
+    }

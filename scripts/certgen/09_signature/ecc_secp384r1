@@ -1,0 +1,12 @@
+  SEQUENCE {
+    # ecdsa-with-SHA256
+    OBJECT_IDENTIFIER { 1.2.840.10045.4.3.2 }
+  }
+  BIT_STRING {
+    `00`
+    SEQUENCE {
+      INTEGER { `00e2d12d6a12e3c5f781920c732d3d727ed4a2f27eb5e35ce693c572489d81bee0dfe8d4c73f73f1e617310073e92e89d1` }
+      INTEGER { `00e13b76abb294143fb8cefe1b4ad3c5a7497848d920fad1f3e94527f2c9a0ccfe753a11da9fa42ef9a1cf5509c2693d78` }
+    }
+  }
+}

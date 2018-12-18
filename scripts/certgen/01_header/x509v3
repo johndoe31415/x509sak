@@ -1,0 +1,5 @@
+SEQUENCE {
+  SEQUENCE {
+    [0] {
+      INTEGER { 2 }		# version
+    }
