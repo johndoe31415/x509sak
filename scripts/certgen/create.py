@@ -86,3 +86,4 @@ class CertCreator(object):
 creator = CertCreator(outdir = "output/")
 creator.create("normal.pem")
 creator.create("long_serial.pem", serial = "long")
+creator.create("pubkey_ecc_G.pem", pubkey = "secp384r1_G")
