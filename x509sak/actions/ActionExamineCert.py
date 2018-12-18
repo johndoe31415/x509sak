@@ -211,7 +211,7 @@ class ActionExamineCert(BaseAction):
 				self._print_security_judgements(printer, analysis["subject"]["security"], indent = "  ")
 			if len(analysis["security"]["components"]) > 0:
 				printer.print("Misc observations:")
-				self._print_security_judgements(printer, analysis["misc"]["security"], indent = "  ")
+				self._print_security_judgements(printer, analysis["security"], indent = "  ")
 			printer.print()
 
 			printer.heading("Validity")
