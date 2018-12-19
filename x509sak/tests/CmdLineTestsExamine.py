@@ -436,3 +436,9 @@ class CmdLineTestsExamine(BaseTest):
 	def test_examine_x509test_xf_v3_uniqueid_noexts2(self):
 		# TODO verify with x509test
 		self._test_examine_x509test_resultcode("certs/x509test/xf-v3-uniqueid-noexts2.pem", "Cert_UniqueID_NotAllowedForCA")
+
+	def test_constructed_long_serial(self):
+		self._test_examine_x509test_resultcode("certs/constructed/long_serial.pem", "Cert_Serial_Large")
+
+	def test_constructed_pubkey_ecc_G(self):
+		self._test_examine_x509test_resultcode("certs/constructed/pubkey_ecc_G.pem", "ECC_Pubkey_Is_G")
