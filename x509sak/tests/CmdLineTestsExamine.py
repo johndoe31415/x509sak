@@ -263,10 +263,9 @@ class CmdLineTestsExamine(BaseTest):
 #	def test_examine_x509test_xf_ext_inhibit_anypolicy_noncritical(self):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-inhibit-anypolicy-noncritical.pem", "")
 #		self._test_examine_x509test_noparse("certs/x509test/xf-ext-inhibit-anypolicy-noncritical.pem")
-#
-#	def test_examine_x509test_xf_ext_issuer_altname_critical(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-issuer-altname-critical.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-issuer-altname-critical.pem")
+
+	def test_examine_x509test_xf_ext_issuer_altname_critical(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-issuer-altname-critical.pem", "Cert_X509Ext_IssuerAltName_Critical")
 
 	def test_examine_x509test_xf_ext_key_usage_empty(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-key-usage-empty.pem", "Cert_X509Ext_KeyUsage_Empty")

@@ -278,7 +278,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 						return SecurityJudgement(name_errors["bad_wc_broad"].code, "%s of type %s and wildcard value \"%s\" has very broad domain match." % (extension_str, entity_name.name, entity_name.str_value), commonness = Commonness.HIGHLY_UNUSUAL)
 			else:
 				result = ValidationTools.validate_domainname(entity_name.str_value)
-				if not reuslt:
+				if not result:
 					return SecurityJudgement(name_errors["bad_domain"].code, "%s of type %s got invalid domain name \"%s\"." % (extension_str, entity_name.name, entity_name.str_value), compatibility = Compatibility.STANDARDS_DEVIATION, standard = name_errors["bad_domain"].standard)
 
 		elif entity_name.name == "iPAddress":
@@ -332,6 +332,34 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 
 		return judgements
 
+	def _judge_single_issuer_alternative_name(self, entity_name):
+		return self._judge_single_general_name(entity_name, allow_dnsname_wildcard_matches = False, extension_str = "Issuer Alternative X.509 extension", name_errors = {
+			"empty":				self._NameError(code = JudgementCode.Cert_X509Ext_IssuerAltName_EmptyValue, standard = RFCReference(rfcno = 5280, sect = [ "4.2.1.1", "4.2.1.6" ], verb = "MUST", text = "GeneralName ::= CHOICE {")),
+			"bad_domain":			self._NameError(code = JudgementCode.Cert_X509Ext_IssuerAltName_BadDomain, standard = RFCReference(rfcno = 1034, sect = "3.5", verb = "MUST", text = "The following syntax will result in fewer problems with many applications that use domain names (e.g., mail, TELNET).")),
+			"bad_ip":				self._NameError(code = JudgementCode.Cert_X509Ext_IssuerAltName_BadIP, standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "For IP version 4, as specified in [RFC791], the octet string MUST contain exactly four octets. For IP version 6, as specified in [RFC2460], the octet string MUST contain exactly sixteen octets.")),
+			"bad_email":			self._NameError(code = JudgementCode.Cert_X509Ext_IssuerAltName_BadEmail, standard = RFCReference(rfcno = 822, sect = "6.1", verb = "MUST", text = "addr-spec = local-part \"@\" domain")),
+			"bad_uri":				self._NameError(code = JudgementCode.Cert_X509Ext_IssuerAltName_BadURI, standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "The name MUST NOT be a relative URI, and it MUST follow the URI syntax and encoding rules specified in [RFC3986]. The name MUST include both a scheme (e.g., \"http\" or \"ftp\") and a scheme-specific-part. URIs that include an authority ([RFC3986], Section 3.2) MUST include a fully qualified domain name or IP address as the host.")),
+		})
+
+	def _judge_issuer_alternative_name(self, certificate):
+		judgements = SecurityJudgements()
+		ian = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("IssuerAlternativeName"))
+		if ian is not None:
+			if ian.name_count == 0:
+				standard = RFCReference(rfcno = 5280, sect = [ "4.2.1.7", "4.2.1.6" ], verb = "MUST", text = "If the subjectAltName extension is present, the sequence MUST contain at least one entry.")
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_IssuerAltName_Empty, "Issuer Alternative Name X.509 extension with no contained names.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+			for entity_name in ian:
+				judgements += self._judge_single_issuer_alternative_name(entity_name)
+			if ian.critical:
+				standard = RFCReference(rfcno = 5280, sect = "4.2.1.7", verb = "SHOULD", text = "Where present, conforming CAs SHOULD mark this extension as non-critical.")
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_IssuerAltName_Critical, "Issuer Alternative Name X.509 extension should not be critical.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+		else:
+			if certificate.subject.empty:
+				standard = RFCReference(rfcno = 5280, sect = [ "4.2.1.7", "4.2.1.6" ], verb = "MUST", text = "If the subject field contains an empty sequence, then the issuing CA MUST include a subjectAltName extension that is marked as critical.")
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_IssuerAltName_Missing, "Issuer Alternative Name X.509 missing although subject is empty.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+
+		return judgements
+
 	def _judge_authority_information_access(self, certificate):
 		judgements = SecurityJudgements()
 		aia = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("id-pe-authorityInfoAccess"))
@@ -363,6 +391,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		judgements += self._judge_key_usage(certificate)
 		judgements += self._judge_extended_key_usage(certificate)
 		judgements += self._judge_subject_alternative_name(certificate)
+		judgements += self._judge_issuer_alternative_name(certificate)
 		judgements += self._judge_authority_information_access(certificate)
 
 		return {

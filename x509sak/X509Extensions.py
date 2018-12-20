@@ -349,6 +349,12 @@ class X509SubjectAlternativeNameExtension(X509Extension):
 X509ExtensionRegistry.set_handler_class(X509SubjectAlternativeNameExtension)
 
 
+class X509IssuerAlternativeNameExtension(X509SubjectAlternativeNameExtension):
+	_HANDLER_OID = OIDDB.X509Extensions.inverse("IssuerAlternativeName")
+	_ASN1_MODEL = rfc5280.IssuerAltName
+X509ExtensionRegistry.set_handler_class(X509IssuerAlternativeNameExtension)
+
+
 class X509KeyUsageExtension(X509Extension):
 	_HANDLER_OID = OIDDB.X509Extensions.inverse("KeyUsage")
 	_ASN1_MODEL = rfc5280.KeyUsage
