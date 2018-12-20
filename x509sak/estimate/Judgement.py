@@ -21,6 +21,7 @@
 
 import enum
 from x509sak.Tools import JSONTools
+from x509sak.Exceptions import LazyDeveloperException
 
 class JudgementCode(enum.Enum):
 	RSA_Parameter_Field_Not_Present = ("RSA pubkey", "parameter field not present")
@@ -174,6 +175,10 @@ class Compatibility(enum.IntEnum):
 	LIMITED_SUPPORT = 1
 	FULLY_COMPLIANT = 2
 
+class StandardViolationType(enum.IntEnum):
+	RECOMMENDATION = 0
+	VIOLATION = 1
+
 class SecurityJudgement(object):
 	def __init__(self, code, text, bits = None, verdict = None, commonness = None, compatibility = None, prefix_topic = False, standard = None):
 		assert((code is None) or isinstance(code, JudgementCode))
@@ -233,6 +238,10 @@ class SecurityJudgement(object):
 	def compatibility(self):
 		return self._compatibility
 
+	@property
+	def standard(self):
+		return self._standard
+
 	@classmethod
 	def from_dict(cls, judgement_data):
 		if "code" in judgement_data:
@@ -250,7 +259,10 @@ class SecurityJudgement(object):
 		compatibility = judgement_data.get("compatibility")
 		if compatibility is not None:
 			compatibility = Compatibility(compatibility["value"])
-		return cls(code = code, text = text, bits = bits, verdict = verdict, commonness = commonness, compatibility = compatibility)
+		standard = judgement_data.get("standard")
+		if standard is not None:
+			standard = StandardReference.from_dict(standard)
+		return cls(code = code, text = text, bits = bits, verdict = verdict, commonness = commonness, compatibility = compatibility, standard = standard)
 
 	def to_dict(self):
 		result = {
@@ -262,6 +274,7 @@ class SecurityJudgement(object):
 			"verdict":			JSONTools.translate(self.verdict) if (self.verdict is not None) else None,
 			"commonness":		JSONTools.translate(self.commonness) if (self.commonness is not None) else None,
 			"compatibility":	JSONTools.translate(self.compatibility) if (self.compatibility is not None) else None,
+			"standard":			self.standard.to_dict() if (self.standard is not None) else None,
 		}
 		return { key: value for (key, value) in result.items() if value is not None }
 
@@ -347,9 +360,28 @@ class SecurityJudgements(object):
 		return "SecurityJudgements<%s>" % (", ".join(str(judgement) for judgement in self))
 
 class StandardReference():
-	pass
+	_STD_TYPE = None
+	_REGISTERED = { }
 
+	@classmethod
+	def from_dict(cls, data):
+		if data["type"] not in cls._REGISTERED:
+			raise LazyDeveloperException("Class not registered for standards type '%s'." % (data["type"]))
+		return cls._REGISTERED[data["type"]].from_dict(data)
+
+	@property
+	def violationtype(self):
+		raise NotImplementedError()
+
+	@classmethod
+	def register(cls, decoree):
+		cls._REGISTERED[decoree._STD_TYPE] = decoree
+		return decoree
+
+@StandardReference.register
 class RFCReference(StandardReference):
+	_STD_TYPE = "RFC"
+
 	def __init__(self, rfcno, sect, verb, text):
 		assert(verb in [ "SHOULD", "MUST" ])
 		StandardReference.__init__(self)
@@ -357,6 +389,13 @@ class RFCReference(StandardReference):
 		self._sect = sect
 		self._verb = verb
 		self._text = text
+
+	@property
+	def violationtype(self):
+		return {
+			"SHOULD":	StandardViolationType.RECOMMENDATION,
+			"MUST":		StandardViolationType.VIOLATION,
+		}[self.verb]
 
 	@property
 	def rfcno(self):
@@ -374,13 +413,22 @@ class RFCReference(StandardReference):
 	def text(self):
 		return self._text
 
+	@classmethod
+	def from_dict(cls, data):
+		return cls(rfcno = data["rfcno"], sect = data["sect"], verb = data["verb"], text = data["text"])
+
 	def to_dict(self):
 		return {
-			"rfcno":	self.rfcno,
-			"sect":		self.sect,
-			"verb":		self.verb,
-			"text":		self.text,
+			"type":				self._STD_TYPE,
+			"rfcno":			self.rfcno,
+			"sect":				self.sect,
+			"verb":				self.verb,
+			"text":				self.text,
+			"violationtype":	self.violationtype,
 		}
 
 	def __str__(self):
-		return "RFC%d Sect. %s" % (self.rfcno, self.sect)
+		if isinstance(self.sect, str):
+			return "RFC%d Sect. %s" % (self.rfcno, self.sect)
+		else:
+			return "RFC%d Sects. %s" % (self.rfcno, " / ".join(self.sect))

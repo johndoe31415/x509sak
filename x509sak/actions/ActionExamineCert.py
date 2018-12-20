@@ -25,7 +25,7 @@ import collections
 from x509sak.BaseAction import BaseAction
 from x509sak import X509Certificate
 from x509sak.Tools import JSONTools
-from x509sak.estimate import SecurityEstimator, AnalysisOptions, Commonness, Verdict, Compatibility
+from x509sak.estimate import SecurityEstimator, AnalysisOptions, Commonness, Verdict, Compatibility, StandardViolationType
 from x509sak.estimate.Judgement import SecurityJudgements
 from x509sak.ConsolePrinter import ConsolePrinter
 from x509sak.FileWriter import FileWriter
@@ -160,8 +160,15 @@ class ActionExamineCert(BaseAction):
 		color = "end"
 		if judgement.verdict in [ Verdict.BEST_IN_CLASS, Verdict.HIGH ]:
 			color = "good"
-		if (judgement.verdict == Verdict.MEDIUM) or (judgement.commonness == Commonness.UNUSUAL) or (judgement.compatibility in [ Compatibility.LIMITED_SUPPORT ]):
+		if (judgement.verdict == Verdict.MEDIUM) or (judgement.commonness == Commonness.UNUSUAL) or (judgement.compatibility == Compatibility.LIMITED_SUPPORT):
 			color = "warn"
+		if (judgement.compatibility == Compatibility.STANDARDS_VIOLATION) and (judgement.standard is not None):
+			if judgement.standard.violationtype == StandardViolationType.RECOMMENDATION:
+				color = "warn"
+			elif judgement.standard.violationtype == StandardViolationType.VIOLATION:
+				color = "error"
+			else:
+				raise NotImplementedError(judgement.standard.violationtype)
 		if (judgement.verdict in [ Verdict.WEAK, Verdict.BROKEN ]) or (judgement.commonness == Commonness.HIGHLY_UNUSUAL):
 			color = "error"
 		if (judgement.verdict == Verdict.NO_SECURITY) or (judgement.compatibility == Compatibility.STANDARDS_VIOLATION):
@@ -171,6 +178,14 @@ class ActionExamineCert(BaseAction):
 	def _fmt_security_judgement(self, judgement):
 		color = self._fmt_color(judgement)
 		text = "%s: %s" % (judgement.topic, judgement.text)
+
+		if (judgement.compatibility == Compatibility.STANDARDS_VIOLATION) and (judgement.standard is not None):
+			if judgement.standard.violationtype == StandardViolationType.RECOMMENDATION:
+				text += " This goes against the recommendation of %s." % (judgement.standard)
+			elif judgement.standard.violationtype == StandardViolationType.VIOLATION:
+				text += " This is in violation of %s." % (judgement.standard)
+			else:
+				raise NotImplementedError(judgement.standard.violationtype)
 
 		textual_verdict = self._fmt_textual_verdict(judgement)
 		if textual_verdict is not None:
