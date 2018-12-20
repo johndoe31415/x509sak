@@ -25,7 +25,7 @@ import collections
 from x509sak.BaseAction import BaseAction
 from x509sak import X509Certificate
 from x509sak.Tools import JSONTools
-from x509sak.estimate import SecurityEstimator, AnalysisOptions, Commonness, Verdict, Compatibility, StandardViolationType
+from x509sak.estimate import SecurityEstimator, AnalysisOptions, Commonness, Verdict, Compatibility, StandardDeviationType
 from x509sak.estimate.Judgement import SecurityJudgements
 from x509sak.ConsolePrinter import ConsolePrinter
 from x509sak.FileWriter import FileWriter
@@ -147,7 +147,7 @@ class ActionExamineCert(BaseAction):
 			textual_verdict.append({
 				Compatibility.FULLY_COMPLIANT:			"fully standards compliant",
 				Compatibility.LIMITED_SUPPORT:			"limited support",
-				Compatibility.STANDARDS_VIOLATION:		"standards violation",
+				Compatibility.STANDARDS_DEVIATION:		"standards deviation",
 			}[judgement.compatibility])
 
 		if len(textual_verdict) == 0:
@@ -162,16 +162,16 @@ class ActionExamineCert(BaseAction):
 			color = "good"
 		if (judgement.verdict == Verdict.MEDIUM) or (judgement.commonness == Commonness.UNUSUAL) or (judgement.compatibility == Compatibility.LIMITED_SUPPORT):
 			color = "warn"
-		if (judgement.compatibility == Compatibility.STANDARDS_VIOLATION) and (judgement.standard is not None):
-			if judgement.standard.violationtype == StandardViolationType.RECOMMENDATION:
+		if (judgement.compatibility == Compatibility.STANDARDS_DEVIATION) and (judgement.standard is not None):
+			if judgement.standard.deviation_type == StandardDeviationType.RECOMMENDATION:
 				color = "warn"
-			elif judgement.standard.violationtype == StandardViolationType.VIOLATION:
+			elif judgement.standard.deviation_type == StandardDeviationType.VIOLATION:
 				color = "error"
 			else:
-				raise NotImplementedError(judgement.standard.violationtype)
+				raise NotImplementedError(judgement.standard.deviation_type)
 		if (judgement.verdict in [ Verdict.WEAK, Verdict.BROKEN ]) or (judgement.commonness == Commonness.HIGHLY_UNUSUAL):
 			color = "error"
-		if (judgement.verdict == Verdict.NO_SECURITY) or (judgement.compatibility == Compatibility.STANDARDS_VIOLATION):
+		if (judgement.verdict == Verdict.NO_SECURITY) or (judgement.compatibility == Compatibility.STANDARDS_DEVIATION):
 			color = "insecure"
 		return color
 
@@ -179,13 +179,13 @@ class ActionExamineCert(BaseAction):
 		color = self._fmt_color(judgement)
 		text = "%s: %s" % (judgement.topic, judgement.text)
 
-		if (judgement.compatibility == Compatibility.STANDARDS_VIOLATION) and (judgement.standard is not None):
-			if judgement.standard.violationtype == StandardViolationType.RECOMMENDATION:
+		if (judgement.compatibility == Compatibility.STANDARDS_DEVIATION) and (judgement.standard is not None):
+			if judgement.standard.deviation_type == StandardDeviationType.RECOMMENDATION:
 				text += " This goes against the recommendation of %s." % (judgement.standard)
-			elif judgement.standard.violationtype == StandardViolationType.VIOLATION:
+			elif judgement.standard.deviation_type == StandardDeviationType.VIOLATION:
 				text += " This is in violation of %s." % (judgement.standard)
 			else:
-				raise NotImplementedError(judgement.standard.violationtype)
+				raise NotImplementedError(judgement.standard.deviation_type)
 
 		textual_verdict = self._fmt_textual_verdict(judgement)
 		if textual_verdict is not None:

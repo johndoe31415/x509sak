@@ -39,10 +39,10 @@ class DistinguishedNameSecurityEstimator(BaseEstimator):
 			valid_chars = self._VALID_ALPHABETS[asn1type]
 			illegal_chars = set(rdn_item.printable) - valid_chars
 			if len(illegal_chars) > 0:
-				judgements += SecurityJudgement(JudgementCode.DN_Contains_Illegal_Char, "Distinguished name contains character(s) \"%s\" which are invalid for a %s at element %s." % ("".join(sorted(illegal_chars)), asn1type.__name__, OIDDB.RDNTypes.get(rdn_item.oid, str(rdn_item.oid))), compatibility = Compatibility.STANDARDS_VIOLATION)
+				judgements += SecurityJudgement(JudgementCode.DN_Contains_Illegal_Char, "Distinguished name contains character(s) \"%s\" which are invalid for a %s at element %s." % ("".join(sorted(illegal_chars)), asn1type.__name__, OIDDB.RDNTypes.get(rdn_item.oid, str(rdn_item.oid))), compatibility = Compatibility.STANDARDS_DEVIATION)
 
 		if isinstance(rdn_item.asn1, pyasn1.type.char.TeletexString):
-			judgements += SecurityJudgement(JudgementCode.DN_Contains_Deprecated_Type, "Distinguished name contains deprecated TeletexString at element %s." % (OIDDB.RDNTypes.get(rdn_item.oid, str(rdn_item.oid))), compatibility = Compatibility.STANDARDS_VIOLATION)
+			judgements += SecurityJudgement(JudgementCode.DN_Contains_Deprecated_Type, "Distinguished name contains deprecated TeletexString at element %s." % (OIDDB.RDNTypes.get(rdn_item.oid, str(rdn_item.oid))), compatibility = Compatibility.STANDARDS_DEVIATION)
 		return judgements
 
 	def analyze(self, dn):

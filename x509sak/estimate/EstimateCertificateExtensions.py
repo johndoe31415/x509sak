@@ -52,7 +52,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 	def _judge_may_have_exts(self, certificate):
 		if (certificate.version < 3) and len(certificate.extensions) > 0:
 			standard = RFCReference(rfcno = 5280, sect = "4.1.2.9", verb = "MUST", text = "This field MUST only appear if the version is 3 (Section 4.1.2.1).")
-			return SecurityJudgement(JudgementCode.Cert_X509Ext_NotAllowed, "X.509 extension present in v%d certificate." % (certificate.version), compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
+			return SecurityJudgement(JudgementCode.Cert_X509Ext_NotAllowed, "X.509 extension present in v%d certificate." % (certificate.version), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 		else:
 			return None
 
@@ -72,7 +72,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		for ext in certificate.extensions:
 			if (ext.asn1_model is not None) and (ext.asn1 is None):
 				oid_name = OIDDB.X509Extensions.get(ext.oid)
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_Malformed, "X.509 extension %s was not decodable; it appears to be malformed." % (oid_name), compatibility = Compatibility.STANDARDS_VIOLATION, commonness = Commonness.HIGHLY_UNUSUAL)
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_Malformed, "X.509 extension %s was not decodable; it appears to be malformed." % (oid_name), compatibility = Compatibility.STANDARDS_DEVIATION, commonness = Commonness.HIGHLY_UNUSUAL)
 		return judgements
 
 	def _judge_unique_id(self, certificate):
@@ -80,16 +80,16 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		if certificate.version not in [ 2, 3 ]:
 			standard = RFCReference(rfcno = 5280, sect = "4.1.2.8", verb = "MUST", text = "These fields MUST only appear if the version is 2 or 3 (Section 4.1.2.1). These fields MUST NOT appear if the version is 1.")
 			if certificate.issuer_unique_id is not None:
-				judgements += SecurityJudgement(JudgementCode.Cert_UniqueID_NotAllowed, "Issuer unique IDs is present in v%d certificate." % (certificate.version), compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
+				judgements += SecurityJudgement(JudgementCode.Cert_UniqueID_NotAllowed, "Issuer unique IDs is present in v%d certificate." % (certificate.version), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 			if certificate.subject_unique_id is not None:
-				judgements += SecurityJudgement(JudgementCode.Cert_UniqueID_NotAllowed, "Subject unique IDs is present in v%d certificate." % (certificate.version), compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
+				judgements += SecurityJudgement(JudgementCode.Cert_UniqueID_NotAllowed, "Subject unique IDs is present in v%d certificate." % (certificate.version), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 		elif certificate.is_ca_certificate:
 			standard = RFCReference(rfcno = 5280, sect = "4.1.2.8", verb = "MUST", text = "CAs conforming to this profile MUST NOT generate certificates with unique identifiers.")
 			if certificate.issuer_unique_id is not None:
-				judgements += SecurityJudgement(JudgementCode.Cert_UniqueID_NotAllowedForCA, "Issuer unique IDs is present in CA certificate.", compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
+				judgements += SecurityJudgement(JudgementCode.Cert_UniqueID_NotAllowedForCA, "Issuer unique IDs is present in CA certificate.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 			if certificate.subject_unique_id is not None:
-				judgements += SecurityJudgement(JudgementCode.Cert_UniqueID_NotAllowedForCA, "Subject unique IDs is present in CA certificate.", compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
+				judgements += SecurityJudgement(JudgementCode.Cert_UniqueID_NotAllowedForCA, "Subject unique IDs is present in CA certificate.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 		return judgements
 
@@ -99,7 +99,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		for extension in certificate.extensions:
 			if extension.oid in have_oids:
 				standard = RFCReference(rfcno = 5280, sect = "4.2", verb = "MUST", text = "A certificate MUST NOT include more than one instance of a particular extension.")
-				judgement = SecurityJudgement(JudgementCode.Cert_X509Ext_Duplicate, "X.509 extension %s (OID %s) is present at least twice." % (extension.name, str(extension.oid)), compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
+				judgement = SecurityJudgement(JudgementCode.Cert_X509Ext_Duplicate, "X.509 extension %s (OID %s) is present at least twice." % (extension.name, str(extension.oid)), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 				break
 			have_oids.add(extension.oid)
 		else:
@@ -156,14 +156,14 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		if aki is None:
 			if not certificate.is_selfsigned:
 				standard = RFCReference(rfcno = 5280, sect = "4.2.1.1", verb = "MUST", text = "The keyIdentifier field of the authorityKeyIdentifier extension MUST be included in all certificates generated by conforming CAs to facilitate certification path construction.")
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_Missing, "AuthorityKeyIdentifier extension is missing.", commonness = Commonness.UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_Missing, "AuthorityKeyIdentifier extension is missing.", commonness = Commonness.UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 			else:
 				standard = RFCReference(rfcno = 5280, sect = "4.2.1.1", verb = "SHOULD", text = "where a CA distributes its public key in the form of a \"self-signed\" certificate, the authority key identifier MAY be omitted.")
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_Missing, "AuthorityKeyIdentifier extension is missing.", commonness = Commonness.UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_Missing, "AuthorityKeyIdentifier extension is missing.", commonness = Commonness.UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 		else:
 			if aki.critical:
 				standard = RFCReference(rfcno = 5280, sect = "4.2.1.1", verb = "MUST", text = "Conforming CAs MUST mark this extension as non-critical.")
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_Critical, "AuthorityKeyIdentifier X.509 extension is marked critical.", compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_Critical, "AuthorityKeyIdentifier X.509 extension is marked critical.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 			if aki.keyid is None:
 				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_NoKeyIDPresent, "AuthorityKeyIdentifier X.509 extension contains no key ID.", commonness = Commonness.UNUSUAL)
 			elif len(aki.keyid) == 0:
@@ -174,16 +174,16 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 			if aki.ca_names is not None:
 				if aki.ca_names == 0:
 					standard = RFCReference(rfcno = 5280, sect = [ "4.2.1.1", "4.2.1.6" ], verb = "MUST", text = "GeneralNames ::= SEQUENCE SIZE (1..MAX) OF GeneralName")
-					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_CAName_Empty, "AuthorityKeyIdentifier X.509 extension contains CA names field of length zero.", compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
+					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_CAName_Empty, "AuthorityKeyIdentifier X.509 extension contains CA names field of length zero.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 				for entity_name in aki.ca_names:
 					judgements += self._judge_single_authority_key_identifier_ca_name(entity_name)
 
 			if (aki.ca_names is None) and (aki.serial is not None):
 				standard = RFCReference(rfcno = 5280, sect = [ "A.2" ], verb = "MUST", text = "authorityCertIssuer and authorityCertSerialNumber MUST both be present or both be absent")
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_SerialWithoutName, "AuthorityKeyIdentifier X.509 extension contains CA serial number, but no CA issuer.", compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_SerialWithoutName, "AuthorityKeyIdentifier X.509 extension contains CA serial number, but no CA issuer.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 			elif (aki.ca_names is not None) and (aki.serial is None):
 				standard = RFCReference(rfcno = 5280, sect = [ "A.2" ], verb = "MUST", text = "authorityCertIssuer and authorityCertSerialNumber MUST both be present or both be absent")
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_NameWithoutSerial, "AuthorityKeyIdentifier X.509 extension contains CA issuer, but no CA serial number.", compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_NameWithoutSerial, "AuthorityKeyIdentifier X.509 extension contains CA issuer, but no CA serial number.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 		return judgements
 
 	def _judge_name_constraints(self, certificate):
@@ -192,10 +192,10 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		if nc is not None:
 			if not nc.critical:
 				standard = RFCReference(rfcno = 5280, sect = "4.2.1.10", verb = "MUST", text = "Conforming CAs MUST mark this extension as critical")
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_NameConstraints_PresentButNotCritical, "NameConstraints X.509 extension present, but not marked critical.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_NameConstraints_PresentButNotCritical, "NameConstraints X.509 extension present, but not marked critical.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 			if not certificate.is_ca_certificate:
 				standard = RFCReference(rfcno = 5280, sect = "4.2.1.10", verb = "MUST", text = "The name constraints extension, which MUST be used only in a CA certificate, indicates a name space within which all subject names in subsequent certificates in a certification path MUST be located.")
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_NameConstraints_PresentButNotCA, "NameConstraints X.509 extension present, but certificate is not a CA certificate.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_NameConstraints_PresentButNotCA, "NameConstraints X.509 extension present, but certificate is not a CA certificate.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 		return judgements
 
 
@@ -207,15 +207,15 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 			highest_allowed_bit_value = 8
 			if len(ku_ext.asn1) == 0:
 				standard = RFCReference(rfcno = 5280, sect = "4.2.1.3", verb = "MUST", text = "When the keyUsage extension appears in a certificate, at least one of the bits MUST be set to 1.")
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_KeyUsage_Empty, "KeyUsage extension present, but contains empty bitlist.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_KeyUsage_Empty, "KeyUsage extension present, but contains empty bitlist.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 			elif highest_bit_value > highest_allowed_bit_value:
 				standard = RFCReference(rfcno = 5280, sect = "4.2.1.3", verb = "MUST", text = "decipherOnly (8) }")
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_KeyUsage_TooLong, "KeyUsage extension present, but contains too many bits (highest bit value %d, but %d expected as maximum)." % (highest_bit_value, highest_allowed_bit_value), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_KeyUsage_TooLong, "KeyUsage extension present, but contains too many bits (highest bit value %d, but %d expected as maximum)." % (highest_bit_value, highest_allowed_bit_value), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 			if not ku_ext.critical:
 				if certificate.is_ca_certificate:
 					standard = RFCReference(rfcno = 5280, sect = "4.2.1.3", verb = "SHOULD", text = "When present, conforming CAs SHOULD mark this extension as critical.")
-					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_KeyUsage_NonCritical, "CA certificate contains KeyUsage X.509 extension, but it is not marked as critical.", commonness = Commonness.UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
+					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_KeyUsage_NonCritical, "CA certificate contains KeyUsage X.509 extension, but it is not marked as critical.", commonness = Commonness.UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 				else:
 					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_KeyUsage_NonCritical, "CA certificate contains KeyUsage X.509 extension, but it is not marked as critical.", commonness = Commonness.UNUSUAL)
 
@@ -223,14 +223,14 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 				bc = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("BasicConstraints"))
 				if bc is None:
 					standard = RFCReference(rfcno = 5280, sect = "4.2.1.3", verb = "MUST", text = "If the keyCertSign bit is asserted, then the cA bit in the basic constraints extension (Section 4.2.1.9) MUST also be asserted.")
-					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_KeyUsage_SignCertNoBasicConstraints, "KeyUsage extension contains the keyCertSign flag, but no BasicConstraints extension.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
+					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_KeyUsage_SignCertNoBasicConstraints, "KeyUsage extension contains the keyCertSign flag, but no BasicConstraints extension.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 				elif not bc.is_ca:
 					standard = RFCReference(rfcno = 5280, sect = "4.2.1.3", verb = "MUST", text = "If the keyCertSign bit is asserted, then the cA bit in the basic constraints extension (Section 4.2.1.9) MUST also be asserted.")
-					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_KeyUsage_SignCertNoCA, "KeyUsage extension contains the keyCertSign flag, but BasicConstraints extension do not mark as a CA certificate.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
+					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_KeyUsage_SignCertNoCA, "KeyUsage extension contains the keyCertSign flag, but BasicConstraints extension do not mark as a CA certificate.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 		else:
 			if certificate.is_ca_certificate:
 				standard = RFCReference(rfcno = 5280, sect = "4.2.1.3", verb = "MUST", text = "Conforming CAs MUST include this extension in certificates that contain public keys that are used to validate digital signatures on other public key certificates or CRLs.")
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_KeyUsage_Missing, "CA certificate must contain a KeyUsage X.509 extension, but it is missing.", commonness = Commonness.UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_KeyUsage_Missing, "CA certificate must contain a KeyUsage X.509 extension, but it is missing.", commonness = Commonness.UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 
 		return judgements
@@ -243,31 +243,31 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 			number_unique_oids = len(set(eku_ext.key_usage_oids))
 			if number_oids == 0:
 				standard = RFCReference(rfcno = 5280, sect = "4.2.1.12", verb = "MUST", text = "ExtKeyUsageSyntax ::= SEQUENCE SIZE (1..MAX) OF KeyPurposeId")
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_ExtKeyUsage_Empty, "ExtendedKeyUsage extension present, but contains no OIDs.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_ExtKeyUsage_Empty, "ExtendedKeyUsage extension present, but contains no OIDs.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 			if number_oids != number_unique_oids:
 				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_ExtKeyUsage_Duplicates, "ExtendedKeyUsage extension present, but contains duplicate OIDs. There are %d OIDs present, but only %d are unique." % (number_oids, number_unique_oids), commonness = Commonness.HIGHLY_UNUSUAL)
 			if eku_ext.any_key_usage and eku_ext.critical:
 				standard = RFCReference(rfcno = 5280, sect = "4.2.1.12", verb = "SHOULD", text = "Conforming CAs SHOULD NOT mark this extension as critical if the anyExtendedKeyUsage KeyPurposeId is present.")
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_ExtKeyUsage_AnyUsageCritical, "ExtendedKeyUsage extension contains the anyKeyUsage OID, but is also marked as critical.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_ExtKeyUsage_AnyUsageCritical, "ExtendedKeyUsage extension contains the anyKeyUsage OID, but is also marked as critical.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 		return judgements
 
 	def _judge_single_general_name(self, entity_name, allow_dnsname_wildcard_matches, extension_str, name_errors):
 		if entity_name.str_value == "":
-			return SecurityJudgement(name_errors["empty"].code, "%s of type %s has empty value." % (extension_str, entity_name.name), compatibility = Compatibility.STANDARDS_VIOLATION, standard = name_errors["empty"].standard)
+			return SecurityJudgement(name_errors["empty"].code, "%s of type %s has empty value." % (extension_str, entity_name.name), compatibility = Compatibility.STANDARDS_DEVIATION, standard = name_errors["empty"].standard)
 
 		if entity_name.name == "dNSName":
 			if allow_dnsname_wildcard_matches:
 				(result, label) = ValidationTools.validate_domainname_template(entity_name.str_value)
 				if result != ValidationTools.DomainnameTemplateValidationResult.Valid:
 					if result == ValidationTools.DomainnameTemplateValidationResult.InvalidCharacter:
-						return SecurityJudgement(name_errors["bad_domain"].code, "%s of type %s got invalid domain name \"%s\", error at label \"%s\"." % (extension_str, entity_name.name, entity_name.str_value, label), compatibility = Compatibility.STANDARDS_VIOLATION, standard = name_errors["bad_domain"].standard)
+						return SecurityJudgement(name_errors["bad_domain"].code, "%s of type %s got invalid domain name \"%s\", error at label \"%s\"." % (extension_str, entity_name.name, entity_name.str_value, label), compatibility = Compatibility.STANDARDS_DEVIATION, standard = name_errors["bad_domain"].standard)
 					elif result == ValidationTools.DomainnameTemplateValidationResult.FullWildcardNotLeftmost:
-						return SecurityJudgement(name_errors["bad_wc_notleftmost"].code, "%s of type %s got invalid domain name \"%s\". Full wildcard appears not as leftmost element." % (extension_str, entity_name.name, entity_name.str_value), compatibility = Compatibility.STANDARDS_VIOLATION, standard = name_errors["bad_wc_notleftmost"].standard)
+						return SecurityJudgement(name_errors["bad_wc_notleftmost"].code, "%s of type %s got invalid domain name \"%s\". Full wildcard appears not as leftmost element." % (extension_str, entity_name.name, entity_name.str_value), compatibility = Compatibility.STANDARDS_DEVIATION, standard = name_errors["bad_wc_notleftmost"].standard)
 					elif result == ValidationTools.DomainnameTemplateValidationResult.MoreThanOneWildcard:
-						return SecurityJudgement(name_errors["bad_wc_morethanone"].code, "%s of type %s got invalid domain name \"%s\". More than one wildcard label present." % (extension_str, entity_name.name, entity_name.str_value), compatibility = Compatibility.STANDARDS_VIOLATION, standard = name_errors["bad_wc_morethanone"].standard)
+						return SecurityJudgement(name_errors["bad_wc_morethanone"].code, "%s of type %s got invalid domain name \"%s\". More than one wildcard label present." % (extension_str, entity_name.name, entity_name.str_value), compatibility = Compatibility.STANDARDS_DEVIATION, standard = name_errors["bad_wc_morethanone"].standard)
 					elif result == ValidationTools.DomainnameTemplateValidationResult.WildcardInInternationalDomain:
-						return SecurityJudgement(name_errors["bad_wc_international"].code, "%s of type %s got invalid domain name \"%s\". Wildcard in international domain label \"%s\"." % (extension_str, entity_name.name, entity_name.str_value, label), compatibility = Compatibility.STANDARDS_VIOLATION, standard = name_errors["bad_wc_international"].standard)
+						return SecurityJudgement(name_errors["bad_wc_international"].code, "%s of type %s got invalid domain name \"%s\". Wildcard in international domain label \"%s\"." % (extension_str, entity_name.name, entity_name.str_value, label), compatibility = Compatibility.STANDARDS_DEVIATION, standard = name_errors["bad_wc_international"].standard)
 					else:
 						raise NotImplementedError(result)
 
@@ -279,17 +279,17 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 			else:
 				result = ValidationTools.validate_domainname(entity_name.str_value)
 				if not reuslt:
-					return SecurityJudgement(name_errors["bad_domain"].code, "%s of type %s got invalid domain name \"%s\"." % (extension_str, entity_name.name, entity_name.str_value), compatibility = Compatibility.STANDARDS_VIOLATION, standard = name_errors["bad_domain"].standard)
+					return SecurityJudgement(name_errors["bad_domain"].code, "%s of type %s got invalid domain name \"%s\"." % (extension_str, entity_name.name, entity_name.str_value), compatibility = Compatibility.STANDARDS_DEVIATION, standard = name_errors["bad_domain"].standard)
 
 		elif entity_name.name == "iPAddress":
 			if len(entity_name.asn1_value) not in [ 4, 16 ]:
-				return SecurityJudgement(name_errors["bad_ip"].code, "%s of type ipAddress expects either 4 or 16 bytes of data for IPv4/IPv6, but saw %d bytes." % (extension_str, len(entity_name.str_value)), compatibility = Compatibility.STANDARDS_VIOLATION, standard = name_errors["bad_ip"].standard)
+				return SecurityJudgement(name_errors["bad_ip"].code, "%s of type ipAddress expects either 4 or 16 bytes of data for IPv4/IPv6, but saw %d bytes." % (extension_str, len(entity_name.str_value)), compatibility = Compatibility.STANDARDS_DEVIATION, standard = name_errors["bad_ip"].standard)
 		elif entity_name.name == "rfc822Name":
 			if not ValidationTools.validate_email_address(entity_name.str_value):
-				return SecurityJudgement(name_errors["bad_email"].code, "%s of type %s got invalid email address \"%s\"." % (extension_str, entity_name.name, entity_name.str_value), compatibility = Compatibility.STANDARDS_VIOLATION, standard = name_errors["bad_email"].standard)
+				return SecurityJudgement(name_errors["bad_email"].code, "%s of type %s got invalid email address \"%s\"." % (extension_str, entity_name.name, entity_name.str_value), compatibility = Compatibility.STANDARDS_DEVIATION, standard = name_errors["bad_email"].standard)
 		elif entity_name.name == "uniformResourceIdentifier":
 			if not ValidationTools.validate_uri(str(entity_name.str_value)):
-				return SecurityJudgement(name_errors["bad_uri"].code, "%s of type %s got invalid URI \"%s\"." % (extension_str, entity_name.name, str(entity_name.str_value)), compatibility = Compatibility.STANDARDS_VIOLATION, standard = name_errors["bad_uri"].standard)
+				return SecurityJudgement(name_errors["bad_uri"].code, "%s of type %s got invalid URI \"%s\"." % (extension_str, entity_name.name, str(entity_name.str_value)), compatibility = Compatibility.STANDARDS_DEVIATION, standard = name_errors["bad_uri"].standard)
 
 		return None
 
@@ -312,23 +312,23 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		if san is not None:
 			if san.name_count == 0:
 				standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "If the subjectAltName extension is present, the sequence MUST contain at least one entry.")
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_Empty, "Subject Alternative Name X.509 extension with no contained names.", compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_Empty, "Subject Alternative Name X.509 extension with no contained names.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 			for entity_name in san:
 				judgements += self._judge_single_subject_alternative_name(entity_name)
 			if (not certificate.subject.empty) and san.critical:
 				standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "SHOULD", text = "When including the subjectAltName extension in a certificate that has a non-empty subject distinguished name, conforming CAs SHOULD mark the subjectAltName extension as non-critical.")
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_Critical, "Subject Alternative Name X.509 extension should not be critical when a subject is present.", compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_Critical, "Subject Alternative Name X.509 extension should not be critical when a subject is present.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 			elif certificate.subject.empty and (not san.critical):
 				standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "If the subject field contains an empty sequence, then the issuing CA MUST include a subjectAltName extension that is marked as critical.")
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_NotCritical, "Subject Alternative Name X.509 extension should be critical when no subject is present.", compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_NotCritical, "Subject Alternative Name X.509 extension should be critical when no subject is present.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 			if (not certificate.subject.empty) and (set(santuple.name for santuple in san) == set([ "rfc822Name" ])):
 				standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "Further, if the only subject identity included in the certificate is an alternative name form (e.g., an electronic mail address), then the subject distinguished name MUST be empty (an empty sequence), and the subjectAltName extension MUST be present.")
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_EmailOnly, "Subject Alternative Name X.509 extension only contains email addresses even though subject is non-empty.", compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_EmailOnly, "Subject Alternative Name X.509 extension only contains email addresses even though subject is non-empty.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 		else:
 			if certificate.subject.empty:
 				standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "If the subject field contains an empty sequence, then the issuing CA MUST include a subjectAltName extension that is marked as critical.")
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_Missing, "Subject Alternative Name X.509 missing although subject is empty.", compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_Missing, "Subject Alternative Name X.509 missing although subject is empty.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 		return judgements
 
@@ -338,10 +338,10 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		if aia is not None:
 			if aia.critical:
 				standard = RFCReference(rfcno = 5280, sect = "4.2.2.1", verb = "MUST", text = "Conforming CAs MUST mark this extension as non-critical.")
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityInformationAccess_Critical, "Authority Information Access X.509 extension is marked critical.", compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityInformationAccess_Critical, "Authority Information Access X.509 extension is marked critical.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 			if aia.method_count == 0:
 				standard = RFCReference(rfcno = 5280, sect = "4.2.2.1", verb = "MUST", text = "SEQUENCE SIZE (1..MAX) OF AccessDescription")
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityInformationAccess_Empty, "Authority Information Access X.509 extension contains no access methods.", compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityInformationAccess_Empty, "Authority Information Access X.509 extension contains no access methods.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 		return judgements
 

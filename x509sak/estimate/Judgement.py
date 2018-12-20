@@ -171,11 +171,11 @@ class Commonness(enum.IntEnum):
 	COMMON = 3
 
 class Compatibility(enum.IntEnum):
-	STANDARDS_VIOLATION = 0
+	STANDARDS_DEVIATION = 0
 	LIMITED_SUPPORT = 1
 	FULLY_COMPLIANT = 2
 
-class StandardViolationType(enum.IntEnum):
+class StandardDeviationType(enum.IntEnum):
 	RECOMMENDATION = 0
 	VIOLATION = 1
 
@@ -370,7 +370,7 @@ class StandardReference():
 		return cls._REGISTERED[data["type"]].from_dict(data)
 
 	@property
-	def violationtype(self):
+	def deviation_type(self):
 		raise NotImplementedError()
 
 	@classmethod
@@ -391,10 +391,10 @@ class RFCReference(StandardReference):
 		self._text = text
 
 	@property
-	def violationtype(self):
+	def deviation_type(self):
 		return {
-			"SHOULD":	StandardViolationType.RECOMMENDATION,
-			"MUST":		StandardViolationType.VIOLATION,
+			"SHOULD":	StandardDeviationType.RECOMMENDATION,
+			"MUST":		StandardDeviationType.VIOLATION,
 		}[self.verb]
 
 	@property
@@ -424,7 +424,7 @@ class RFCReference(StandardReference):
 			"sect":				self.sect,
 			"verb":				self.verb,
 			"text":				self.text,
-			"violationtype":	self.violationtype,
+			"deviation_type":	self.deviation_type,
 		}
 
 	def __str__(self):
