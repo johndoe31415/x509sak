@@ -36,9 +36,14 @@ class ActionExamineCert(BaseAction):
 
 	def __init__(self, cmdname, args):
 		BaseAction.__init__(self, cmdname, args)
+		if self._args.parent_certificate is None:
+			parent_ca_cert = None
+		else:
+			crt = X509Certificate.read_pemfile(self._args.parent_certificate)[0]
+			parent_ca_cert = self._CrtSource(source = self._args.parent_certificate, source_type = "pemcrt", crts = [ crt ])
 		if self._args.in_format in [ "pemcrt", "dercrt", "host" ]:
 			crt_sources = self._load_certificates()
-			analysis = self._analyze_certificates(crt_sources)
+			analysis = self._analyze_certificates(crt_sources, parent_ca_cert)
 		elif self._args.in_format == "json":
 			analysis = self._read_json()
 		else:
@@ -84,7 +89,7 @@ class ActionExamineCert(BaseAction):
 			sources.append(source)
 		return sources
 
-	def _analyze_certificates(self, crt_sources):
+	def _analyze_certificates(self, crt_sources, root_certificate):
 		utcnow = datetime.datetime.utcnow()
 		analyses = {
 			"timestamp_utc":	utcnow,
@@ -99,8 +104,12 @@ class ActionExamineCert(BaseAction):
 					"fqdn":					self._check_name(crt_source),
 					"utcnow":				utcnow,
 				}
+				if root_certificate is not None:
+					root_crt = root_certificate.crts[0]
+				else:
+					root_crt = None
 				analysis_options = AnalysisOptions(**analysis_options)
-				analysis = SecurityEstimator.handler("certificate")(analysis_options = analysis_options).analyze(crt)
+				analysis = SecurityEstimator.handler("certificate")(analysis_options = analysis_options).analyze(crt, root_crt)
 				analysis = JSONTools.translate(analysis)
 				analysis["source"] = {
 					"name":			crt_source.source,
@@ -108,6 +117,11 @@ class ActionExamineCert(BaseAction):
 					"cert_no":		crtno,
 					"certs_total":	len(crt_source.crts),
 				}
+				if root_certificate is not None:
+					analysis["root_source"] = {
+						"name":			root_certificate.source,
+						"srctype":		root_certificate.source_type,
+					}
 				analyses["data"].append(analysis)
 		return analyses
 

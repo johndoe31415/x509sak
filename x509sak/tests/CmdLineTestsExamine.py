@@ -99,9 +99,13 @@ class CmdLineTestsExamine(BaseTest):
 		with ResourceFileLoader(certname) as certfile:
 			SubprocessExecutor(self._x509sak + [ "examine", "--fast-rsa", "-f", "json", "-o", "-", certfile ], success_return_codes = [ 1 ]).run()
 
-	def _test_examine_x509test_resultcode(self, certname, expect_code):
+	def _test_examine_x509test_resultcode(self, certname, expect_code, parent_crtname = None):
 		with ResourceFileLoader(certname) as certfile, tempfile.NamedTemporaryFile(suffix = ".json") as outfile:
-			result = SubprocessExecutor(self._x509sak + [ "examine", "--fast-rsa", "-f", "json", "-o", outfile.name, certfile ]).run()
+			if parent_crtname is None:
+				result = SubprocessExecutor(self._x509sak + [ "examine", "--fast-rsa", "-f", "json", "-o", outfile.name, certfile ]).run()
+			else:
+				with ResourceFileLoader(parent_crtname) as parent_crt:
+					result = SubprocessExecutor(self._x509sak + [ "examine", "--fast-rsa", "--parent-certificate", parent_crt, "-f", "json", "-o", outfile.name, certfile ]).run()
 			with open(outfile.name) as f:
 				data = json.load(f)
 			codes = self._extract_codes_from_json(data)
@@ -444,11 +448,11 @@ class CmdLineTestsExamine(BaseTest):
 	def test_constructed_pubkey_ecc_G(self):
 		self._test_examine_x509test_resultcode("certs/constructed/pubkey_ecc_G.pem", "ECC_Pubkey_Is_G")
 
-#	def test_constructed_ecdsa_sig_r_bitbias(self):
-#		self._test_examine_x509test_resultcode("certs/constructed/ecdsa_sig_r_bitbias.pem", "ECDSA_Signature_R_BitBias")
+	def test_constructed_ecdsa_sig_r_bitbias(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ecdsa_sig_r_bitbias.pem", "ECDSA_Signature_R_BitBias", parent_crtname = "certs/ok/johannes-bauer.com.pem")
 
-#	def test_constructed_ecdsa_sig_s_bitbias(self):
-#		self._test_examine_x509test_resultcode("certs/constructed/ecdsa_sig_s_bitbias.pem", "ECDSA_Signature_S_BitBias")
+	def test_constructed_ecdsa_sig_s_bitbias(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ecdsa_sig_s_bitbias.pem", "ECDSA_Signature_S_BitBias", parent_crtname = "certs/ok/johannes-bauer.com.pem")
 
 	def test_constructed_rsa_bitbias(self):
 		self._test_examine_x509test_resultcode("certs/constructed/rsa_bitbias.pem", "RSA_Modulus_BitBias")
