@@ -20,12 +20,14 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 import pyasn1.codec.der.decoder
+from pyasn1_modules import rfc3279
 from x509sak.OID import OID
 import x509sak.ASN1Models as ASN1Models
-from x509sak.AlgorithmDB import SignatureAlgorithms, HashFunctions
+from x509sak.AlgorithmDB import SignatureAlgorithms, HashFunctions, SignatureFunctions
 from x509sak.estimate.BaseEstimator import BaseEstimator
 from x509sak.estimate import JudgementCode, Commonness, Compatibility
 from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements
+from x509sak.NumberTheory import NumberTheory
 
 @BaseEstimator.register
 class SignatureSecurityEstimator(BaseEstimator):
@@ -54,6 +56,8 @@ class SignatureSecurityEstimator(BaseEstimator):
 		elif signature_alg == SignatureAlgorithms.RSASSA_PSS:
 			# Need to look at parameters to determine hash function
 			(asn1, tail) = pyasn1.codec.der.decoder.decode(signature_alg_params, asn1Spec = ASN1Models.RSASSA_PSS_Params())
+			if len(tail) > 0:
+				judgements += SecurityJudgement(JudgementCode.RSA_PSS_Parameters_TrailingData, "RSA/PSS parameter encoding has %d bytes of trailing data." % (len(tail)), commonness = Commonness.HIGHLY_UNUSUAL)
 			if asn1["hashAlgorithm"].hasValue():
 				hash_oid = OID.from_str(str(asn1["hashAlgorithm"]["algorithm"]))
 				hash_fnc = HashFunctions.lookup("oid", hash_oid)
@@ -68,6 +72,26 @@ class SignatureSecurityEstimator(BaseEstimator):
 			judgements += self.algorithm("bits").analyze(JudgementCode.RSA_PSS_Salt_Length, saltlen * 8)
 		else:
 			judgements += SecurityJudgement(JudgementCode.Cert_Unknown_HashAlgorithm, "Certificate has unknown hash algorithm used in signature with OID %s. Cannot make security determination for that part." % (hash_oid), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
+
+		if signature_alg.value.sig_fnc == SignatureFunctions.ecdsa:
+			# Decode ECDSA signature
+			try:
+				(asn1, tail) = pyasn1.codec.der.decoder.decode(signature, asn1Spec = rfc3279.ECDSA_Sig_Value())
+				if len(tail) > 0:
+					judgements += SecurityJudgement(JudgementCode.ECDSA_Signature_TrailingData, "ECDSA signature encoding has %d bytes of trailing data." % (len(tail)), commonness = Commonness.HIGHLY_UNUSUAL)
+
+				# TODO: without root certificate we cannot determine the curve. We need the curve to continue here.
+
+				#hweight_analysis = NumberTheory.hamming_weight_analysis(int(asn1["r"]), min_bit_length = curve.field_bits)
+				#if not hweight_analysis.plausibly_random:
+				#	judgements += SecurityJudgement(JudgementCode.ECDSA_Signature_R_BitBias, "Hamming weight of ECDSA signature R parameter is %d at bitlength %d, but expected a weight between %d and %d when randomly chosen; this is likely not coincidential." % (hweight_analysis.hweight, hweight_analysis.bitlen, hweight_analysis.rnd_min_hweight, hweight_analysis.rnd_max_hweight), commonness = Commonness.HIGHLY_UNUSUAL)
+				#hweight_analysis = NumberTheory.hamming_weight_analysis(int(asn1["s"]), min_bit_length = curve.field_bits)
+				#if not hweight_analysis.plausibly_random:
+				#	judgements += SecurityJudgement(JudgementCode.ECDSA_Signature_S_BitBias, "Hamming weight of ECDSA signature S parameter is %d at bitlength %d, but expected a weight between %d and %d when randomly chosen; this is likely not coincidential." % (hweight_analysis.hweight, hweight_analysis.bitlen, hweight_analysis.rnd_min_hweight, hweight_analysis.rnd_max_hweight), commonness = Commonness.HIGHLY_UNUSUAL)
+
+			except pyasn1.error.PyAsn1Error:
+				standard = RFCReference(rfcno = 3279, sect = "2.2.3", verb = "MUST", text = "To easily transfer these two values as one signature, they MUST be ASN.1 encoded using the following ASN.1 structure:")
+				judgements += SecurityJudgement(JudgementCode.ECDSA_Signature_Undecodable, "ECDSA signature cannot be successfully decoded.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 		result = {
 			"name":				signature_alg.name,

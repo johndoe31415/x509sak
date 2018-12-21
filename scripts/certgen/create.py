@@ -24,10 +24,15 @@ import subprocess
 import os
 import re
 import collections
+import shutil
 
 class CertCreator(object):
 	def __init__(self, outdir):
 		self._outdir = outdir
+		try:
+			shutil.rmtree(self._outdir)
+		except FileNotFoundError:
+			pass
 		try:
 			os.makedirs(self._outdir)
 		except FileExistsError:
@@ -93,6 +98,6 @@ creator = CertCreator(outdir = "../../x509sak/tests/data/certs/constructed/")
 creator.create("normal.pem")
 creator.gentc("Cert_Serial_Large", "long_serial.pem", serial = "long")
 creator.gentc("ECC_Pubkey_Is_G", "pubkey_ecc_G.pem", pubkey = "secp384r1_G")
-creator.gentc("ECC_Signature_R_BitBias", "ecc_sig_r_bitbias.pem", signature = "ecc_secp384r1_biased_r")
-creator.gentc("ECC_Signature_S_BitBias", "ecc_sig_s_bitbias.pem", signature = "ecc_secp384r1_biased_s")
+creator.gentc("ECDSA_Signature_R_BitBias", "ecdsa_sig_r_bitbias.pem", signature = "ecc_secp384r1_biased_r")
+creator.gentc("ECDSA_Signature_S_BitBias", "ecdsa_sig_s_bitbias.pem", signature = "ecc_secp384r1_biased_s")
 creator.gentc("RSA_Modulus_BitBias", "rsa_bitbias.pem", pubkey = "rsa_bitbias")

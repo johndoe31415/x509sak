@@ -44,6 +44,8 @@ class JudgementCode(enum.Enum):
 	ECC_Pubkey_Is_G = ("ECC pubkey", "point is generator")
 	ECC_Pubkey_X_BitBias = ("ECC pubkey", "point's X coordinate has bit bias")
 	ECC_Pubkey_Y_BitBias = ("ECC pubkey", "point's Y coordinate has bit bias")
+	ECDSA_Signature_R_BitBias = ("ECDSA signature", "R value has bit bias")
+	ECDSA_Signature_S_BitBias = ("ECDSA signature", "S value has bit bias")
 	Cert_Validity_NeverValid = ("Certificate validity", "certificate can never be valid")
 	Cert_Validity_NotYetValid = ("Certificate validity", "certificate not yet valid")
 	Cert_Validity_Expired = ("Certificate validity", "certificate expired")
