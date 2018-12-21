@@ -441,3 +441,12 @@ class CmdLineTestsExamine(BaseTest):
 
 	def test_constructed_pubkey_ecc_G(self):
 		self._test_examine_x509test_resultcode("certs/constructed/pubkey_ecc_G.pem", "ECC_Pubkey_Is_G")
+
+#	def test_constructed_ecc_sig_r_bitbias(self):
+#		self._test_examine_x509test_resultcode("certs/constructed/ecc_sig_r_bitbias.pem", "ECC_Signature_R_BitBias")
+#
+#	def test_constructed_ecc_sig_s_bitbias(self):
+#		self._test_examine_x509test_resultcode("certs/constructed/ecc_sig_s_bitbias.pem", "ECC_Signature_S_BitBias")
+
+	def test_constructed_rsa_bitbias(self):
+		self._test_examine_x509test_resultcode("certs/constructed/rsa_bitbias.pem", "RSA_Modulus_BitBias")

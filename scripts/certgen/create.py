@@ -83,7 +83,16 @@ class CertCreator(object):
 		with open(self._outdir + "/" + output_filename, "wb") as f:
 			f.write(crt_data)
 
-creator = CertCreator(outdir = "output/")
+	def gentc(self, expect_code, output_filename, **kwargs):
+		self.create(output_filename, **kwargs)
+		print("	def test_constructed_%s(self):" % (output_filename.replace(".pem", "")))
+		print("		self._test_examine_x509test_resultcode(\"certs/constructed/%s\", \"%s\")" % (output_filename, expect_code))
+		print()
+
+creator = CertCreator(outdir = "../../x509sak/tests/data/certs/constructed/")
 creator.create("normal.pem")
-creator.create("long_serial.pem", serial = "long")
-creator.create("pubkey_ecc_G.pem", pubkey = "secp384r1_G")
+creator.gentc("Cert_Serial_Large", "long_serial.pem", serial = "long")
+creator.gentc("ECC_Pubkey_Is_G", "pubkey_ecc_G.pem", pubkey = "secp384r1_G")
+creator.gentc("ECC_Signature_R_BitBias", "ecc_sig_r_bitbias.pem", signature = "ecc_secp384r1_biased_r")
+creator.gentc("ECC_Signature_S_BitBias", "ecc_sig_s_bitbias.pem", signature = "ecc_secp384r1_biased_s")
+creator.gentc("RSA_Modulus_BitBias", "rsa_bitbias.pem", pubkey = "rsa_bitbias")
