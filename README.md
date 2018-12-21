@@ -822,8 +822,9 @@ certificate and want to bruteforce the offsets over which it is calculated.
 
 [//]: # (Begin of cmd-hashpart -- auto-generated, do not edit!)
 ```
-usage: ./x509sak.py hashpart [-h alg] [-o offset] [-a length] [-l length]
-                             [-s hexpattern] [-v] [--help]
+usage: ./x509sak.py hashpart [-h alg] [-o offset] [--max-offset offset]
+                             [-a length] [-l length] [-s hexpattern] [-v]
+                             [--help]
                              filename
 
 Hash all substrings of a file and search for a particular hash value
@@ -846,6 +847,9 @@ optional arguments:
                         Offset to seek into file. Supports hex/octal/binary
                         prefixes and SI/binary SI (k, ki, M, Mi, etc.)
                         suffixes. Defaults to 0.
+  --max-offset offset   Largest offset to consider. By default, this is end-
+                        of-file. Supports hex/octal/binary prefixes and
+                        SI/binary SI (k, ki, M, Mi, etc.) suffixes.
   -a length, --variable-hash-length length
                         For hash functions which have a variable output
                         length, try all of these hash lenghts. Length is given

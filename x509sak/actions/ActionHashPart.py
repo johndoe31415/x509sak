@@ -87,7 +87,11 @@ class ActionHashPart(BaseAction):
 		else:
 			full_hash_fnc_name = "%s-%d" % (hash_fnc_name, output_length_bits)
 
-		for offset in range(len(self._data)):
+		if self._args.max_offset is None:
+			iterator = range(len(self._data))
+		else:
+			iterator = range(min(len(self._data), self._args.max_offset + 1))
+		for offset in iterator:
 			for length in range(1, len(self._data) - offset + 1):
 				self._run_hash_iteration(full_hash_fnc_name, perform_hashing, offset, length)
 
