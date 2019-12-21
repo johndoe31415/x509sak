@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2018 Johannes Bauer
+#	Copyright (C) 2018-2019 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -25,7 +25,7 @@ import base64
 from x509sak.Tools import JSONTools
 from x509sak.Exceptions import InvalidInternalDataException
 
-class ModulusDB(object):
+class ModulusDB():
 	_ModulusMatch = collections.namedtuple("ModulusMatch", [ "hash", "text" ])
 	_DB_DATA = None
 

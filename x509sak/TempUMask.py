@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2018 Johannes Bauer
+#	Copyright (C) 2018-2019 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -21,7 +21,7 @@
 
 import os
 
-class TempUMask(object):
+class TempUMask():
 	def __init__(self, new_umask = 0o077):
 		self._prevmask = None
 		self._newmask = new_umask

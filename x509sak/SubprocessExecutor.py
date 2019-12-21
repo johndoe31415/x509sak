@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2018 Johannes Bauer
+#	Copyright (C) 2018-2019 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -26,7 +26,7 @@ from x509sak.Tools import CmdTools
 from x509sak.Exceptions import CmdExecutionFailedException
 from x509sak.HexDump import HexDump
 
-class ExecutionResult(object):
+class ExecutionResult():
 	def __init__(self, executor, stdout, stderr, return_code):
 		self._executor = executor
 		self._stdout = stdout
@@ -42,8 +42,8 @@ class ExecutionResult(object):
 		return self._stdout
 
 	@property
-	def stdout_text(self, codec = "utf-8"):
-		return self.stdout.decode(codec)
+	def stdout_text(self):
+		return self.stdout.decode(encoding = "utf-8")
 
 	@property
 	def stdout_json(self):
@@ -54,16 +54,16 @@ class ExecutionResult(object):
 		return self._stderr
 
 	@property
-	def stderr_text(self, codec = "utf-8"):
-		return self.stderr.decode(codec)
+	def stderr_text(self):
+		return self.stderr.decode(encoding = "utf-8")
 
 	@property
 	def stdouterr(self):
 		return self._stdout + self._stderr
 
 	@property
-	def stdouterr_text(self, codec = "utf-8"):
-		return self.stdouterr.decode(codec)
+	def stdouterr_text(self):
+		return self.stdouterr.decode(encoding = "utf-8")
 
 	@property
 	def return_code(self):
@@ -101,7 +101,7 @@ class ExecutionResult(object):
 		else:
 			self._dump_data("stderr", self.stderr)
 
-class SubprocessExecutor(object):
+class SubprocessExecutor():
 	_failed_verbose = False
 	_all_verbose = False
 	_pause_after_failed_execution = False

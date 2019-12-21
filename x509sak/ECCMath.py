@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2018 Johannes Bauer
+#	Copyright (C) 2018-2019 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -25,7 +25,7 @@ from x509sak.KwargsChecker import KwargsChecker
 from x509sak.NumberTheory import NumberTheory
 from x509sak.Exceptions import InvalidInputException, UnsupportedEncodingException
 
-class EllipticCurvePoint(object):
+class EllipticCurvePoint():
 	"""Affine representation of an ECC curve point."""
 	def __init__(self, curve, x, y):
 		self._curve = curve
@@ -66,7 +66,7 @@ class EllipticCurvePoint(object):
 	def __str__(self):
 		return "(0x%x, 0x%x) on %s" % (self.x, self.y, self.curve)
 
-class EllipticCurve(object):
+class EllipticCurve():
 	_DomainArgs = None
 
 	def __init__(self, metadata = None, **domain_parameters):

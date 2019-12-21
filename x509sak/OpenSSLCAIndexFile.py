@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2018 Johannes Bauer
+#	Copyright (C) 2018-2019 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -29,7 +29,7 @@ class CertificateStatus(enum.Enum):
 	Revoked = "R"
 	Expired = "E"
 
-class OpenSSLCAIndexFile(object):
+class OpenSSLCAIndexFile():
 	_CertificateIndexEntry = collections.namedtuple("ValidCertificateIndexEntry", [ "status", "issuing_ts", "revocation_ts", "serial", "crt_filename", "dn" ])
 
 	def __init__(self, filename):

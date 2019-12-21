@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2018 Johannes Bauer
+#	Copyright (C) 2018-2019 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -39,6 +39,7 @@ class JudgementCode(enum.Enum):
 	RSA_Modulus_BitBias = ("RSA Modulus", "n has bit bias")
 	RSA_Modulus_Length = ("RSA Modulus", "length of n")
 	RSA_PSS_Salt_Length = ("RSA/PSS Salt", "length of salt")
+	RSA_PSS_Parameters_TrailingData = ("RSA/PSS Encoding", "trailing garbage data")
 	ECC_Pubkey_CurveOrder = ("ECC pubkey", "curve order")
 	ECC_Pubkey_Not_On_Curve = ("ECC pubkey", "point not on curve")
 	ECC_Pubkey_Is_G = ("ECC pubkey", "point is generator")
@@ -46,6 +47,8 @@ class JudgementCode(enum.Enum):
 	ECC_Pubkey_Y_BitBias = ("ECC pubkey", "point's Y coordinate has bit bias")
 	ECDSA_Signature_R_BitBias = ("ECDSA signature", "R value has bit bias")
 	ECDSA_Signature_S_BitBias = ("ECDSA signature", "S value has bit bias")
+	ECDSA_Signature_TrailingData = ("ECDSA signature encoding", "trailing garbage data")
+	ECDSA_Signature_Undecodable = ("ECDSA signature encoding", "undecodable encoding")
 	Cert_Validity_NeverValid = ("Certificate validity", "certificate can never be valid")
 	Cert_Validity_NotYetValid = ("Certificate validity", "certificate not yet valid")
 	Cert_Validity_Expired = ("Certificate validity", "certificate expired")
@@ -156,6 +159,7 @@ class JudgementCode(enum.Enum):
 	DN_Contains_NonPrintable = ("Distinguished name", "non-printable type present")
 	DN_Contains_MultiValues = ("Distinguished name", "multi-valued RDN present")
 	Cert_Unknown_SignatureAlgorithm = ("Certificate signature", "unknown signature algorithm")
+	Cert_Unknown_HashAlgorithm = ("Certificate signature", "unknown hash function")
 
 	@property
 	def topic(self):

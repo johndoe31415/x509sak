@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2018 Johannes Bauer
+#	Copyright (C) 2018-2019 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -24,7 +24,7 @@ import json
 from x509sak.OpenSSLTools import OpenSSLTools
 from x509sak.PrivateKeyStorage import PrivateKeyStorage, PrivateKeyStorageForm
 
-class CAManager(object):
+class CAManager():
 	_FILTER_EXTENSIONS_FOR_CSR = set([ "authorityKeyIdentifier" ])
 	_EXTENSION_TEMPLATES = {
 		"rootca": {

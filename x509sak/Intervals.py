@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2018 Johannes Bauer
+#	Copyright (C) 2018-2019 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -33,7 +33,7 @@ class IntervalRelation(enum.IntEnum):
 	Contained = 3
 	Container = 4
 
-class Interval(object):
+class Interval():
 	def __init__(self, begin, end, data = None):
 		"""'begin' is inclusive, 'end' is exclusive."""
 		assert(isinstance(begin, int))
@@ -99,7 +99,7 @@ class Interval(object):
 	def __repr__(self):
 		return "Interval(%d, %d)" % (self.begin, self.end)
 
-class Intervals(object):
+class Intervals():
 	def __init__(self, allow_overlapping = True, allow_identical = True):
 		self._allow_overlapping = allow_overlapping
 		self._allow_identical = allow_identical

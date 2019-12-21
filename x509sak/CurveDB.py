@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2018 Johannes Bauer
+#	Copyright (C) 2018-2019 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -24,7 +24,7 @@ from x509sak.OID import OID
 from x509sak.Exceptions import LazyDeveloperException, CurveNotFoundException, InvalidInputException
 from x509sak.ECCMath import PrimeFieldEllipticCurve, BinaryFieldEllipticCurve, TwistedEdwardsEllipticCurve
 
-class CurveDB(object):
+class CurveDB():
 	_DB_DATA = None
 	_OID_BY_NAME = None
 

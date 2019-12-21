@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2018 Johannes Bauer
+#	Copyright (C) 2018-2019 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -35,7 +35,7 @@ from x509sak.Tools import PEMDataTools, JSONTools
 from x509sak.KwargsChecker import KwargsChecker
 from x509sak.Intervals import Intervals, Interval
 
-class _DERSanityCheck(object):
+class _DERSanityCheck():
 	class SanityCheckFailedException(Exception): pass
 
 	@classmethod
@@ -54,7 +54,7 @@ class _DERSanityCheck(object):
 		if r_bitlen <= 64:
 			raise cls.SanityCheckFailedException("Short (%d bit) DSA r value; likely not a valid DSA signature." % (r_bitlen))
 
-class ActionScrapeStats(object):
+class ActionScrapeStats():
 	_FRIENDLY_DATA_TYPE = {
 		"crt":				"X.509 Certificate",
 		"openssh_key":		"OpenSSH Private Key",

@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2018 Johannes Bauer
+#	Copyright (C) 2018-2019 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -23,7 +23,7 @@ import pyasn1.type.univ
 from x509sak.BijectiveDict import BijectiveDict
 from x509sak.Exceptions import InvalidInputException
 
-class OID(object):
+class OID():
 	def __init__(self, oid_value):
 		self._oid_value = tuple(oid_value)
 
@@ -59,7 +59,7 @@ class OID(object):
 	def __repr__(self):
 		return ".".join(str(value) for value in self._oid_value)
 
-class OIDDB(object):
+class OIDDB():
 	"""KeySpecification algorithm OIDs."""
 	KeySpecificationAlgorithms = BijectiveDict({
 		OID.from_str("1.2.840.113549.1.1.1"):	"rsaEncryption",

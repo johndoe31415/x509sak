@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2018 Johannes Bauer
+#	Copyright (C) 2018-2019 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -28,7 +28,7 @@ from pyasn1.type.char import UTF8String
 from x509sak.OID import OID, OIDDB
 from x509sak.Exceptions import InvalidInputException
 
-class RelativeDistinguishedName(object):
+class RelativeDistinguishedName():
 	_RDNItem = collections.namedtuple("RDNItem", [ "oid", "derdata", "asn1", "decodable", "printable" ])
 
 	def __init__(self, rdn_list):
@@ -155,7 +155,7 @@ class RelativeDistinguishedName(object):
 	def __str__(self):
 		return "RDN<%s>" % (self.rfc2253_str)
 
-class DistinguishedName(object):
+class DistinguishedName():
 	def __init__(self, rdns):
 		assert(isinstance(rdns, (list, tuple)))
 		assert(all(isinstance(rdn, RelativeDistinguishedName) for rdn in rdns))

@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2018 Johannes Bauer
+#	Copyright (C) 2018-2019 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -28,7 +28,7 @@ from x509sak.OID import OID, OIDDB
 from x509sak import ASN1Models
 from x509sak.ASN1Wrapper import ASN1NameWrapper
 
-class X509Extensions(object):
+class X509Extensions():
 	def __init__(self, extensions):
 		self._exts = extensions
 
@@ -85,7 +85,7 @@ class X509Extensions(object):
 	def __str__(self):
 		return "X509Extensions<%d>" % (len(self))
 
-class X509ExtensionRegistry(object):
+class X509ExtensionRegistry():
 	_KNOWN_EXTENSIONS = { }
 	_DEFAULT_CLASS = None
 
@@ -105,7 +105,7 @@ class X509ExtensionRegistry(object):
 		else:
 			return cls._DEFAULT_HANDLER(oid, critical, data)
 
-class X509Extension(object):
+class X509Extension():
 	_HANDLER_OID = None
 	_ASN1_MODEL = None
 

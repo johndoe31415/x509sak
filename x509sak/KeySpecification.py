@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2018 Johannes Bauer
+#	Copyright (C) 2018-2019 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -22,7 +22,7 @@
 from x509sak.KwargsChecker import KwargsChecker
 from x509sak.AlgorithmDB import Cryptosystems
 
-class KeySpecification(object):
+class KeySpecification():
 	def __init__(self, cryptosystem, parameters = None):
 		assert(isinstance(cryptosystem, Cryptosystems))
 		if parameters is None:

@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2018 Johannes Bauer
+#	Copyright (C) 2018-2019 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -22,7 +22,7 @@
 import logging
 from x509sak.SubprocessExecutor import SubprocessExecutor
 
-class BaseAction(object):
+class BaseAction():
 	def __init__(self, cmdname, args):
 		self._cmdname = cmdname
 		self._args = args
@@ -44,4 +44,4 @@ class BaseAction(object):
 		if self._args.verbose >= 3:
 			SubprocessExecutor.pause_after_failed_execution()
 
-		self._log = logging.getLogger("x509sak." + __class__.__name__)
+		self._log = logging.getLogger("x509sak." + self.__class__.__name__)

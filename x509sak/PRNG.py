@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2018 Johannes Bauer
+#	Copyright (C) 2018-2019 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -22,7 +22,7 @@
 import time
 import hashlib
 
-class PRNG(object):
+class PRNG():
 	def __init__(self, seed = None):
 		self._seed = seed
 		self._buffer = bytearray()

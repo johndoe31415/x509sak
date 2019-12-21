@@ -22,7 +22,7 @@
 import datetime
 from x509sak.ConsolePrinter import ConsolePrinter
 from x509sak.estimate.Judgement import SecurityJudgements
-from x509sak.estimate import Verdict, Commonness, Compatibility
+from x509sak.estimate import Verdict, Commonness, Compatibility, StandardDeviationType
 
 class AnalysisPrinter():
 	def __init__(self, outfile, analyses, **kwargs):
@@ -149,13 +149,13 @@ class AnalysisPrinterText(AnalysisPrinter):
 			self._printer.print("Source : %s (certificate %d of %d)" % (analysis["source"]["name"], analysis["source"]["cert_no"], analysis["source"]["certs_total"]))
 		self._printer.print("Issuer : %s" % (analysis["issuer"]["pretty"]))
 		if len(analysis["issuer"]["security"]["components"]) > 0:
-			self._print_security_judgements(printer, analysis["issuer"]["security"], indent = "  ")
+			self._print_security_judgements(analysis["issuer"]["security"], indent = "  ")
 		self._printer.print("Subject: %s" % (analysis["subject"]["pretty"]))
 		if len(analysis["subject"]["security"]["components"]) > 0:
-			self._print_security_judgements(printer, analysis["subject"]["security"], indent = "  ")
+			self._print_security_judgements(analysis["subject"]["security"], indent = "  ")
 		if len(analysis["security"]["components"]) > 0:
 			self._printer.print("Misc observations:")
-			self._print_security_judgements(printer, analysis["security"], indent = "  ")
+			self._print_security_judgements(analysis["security"], indent = "  ")
 		self._printer.print()
 
 		self._printer.heading("Validity")

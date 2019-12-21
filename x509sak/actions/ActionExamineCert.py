@@ -25,9 +25,7 @@ import collections
 from x509sak.BaseAction import BaseAction
 from x509sak import X509Certificate
 from x509sak.Tools import JSONTools
-from x509sak.estimate import SecurityEstimator, AnalysisOptions, Commonness, Verdict, Compatibility, StandardDeviationType
-from x509sak.estimate.Judgement import SecurityJudgements
-from x509sak.ConsolePrinter import ConsolePrinter
+from x509sak.estimate import SecurityEstimator, AnalysisOptions
 from x509sak.FileWriter import FileWriter
 from x509sak.OpenSSLTools import OpenSSLTools
 from x509sak.AnalysisPrinter import AnalysisPrinterText

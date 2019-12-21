@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2018 Johannes Bauer
+#	Copyright (C) 2018-2019 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -32,7 +32,7 @@ import urllib.parse
 import pyasn1.type.univ
 from x509sak.Exceptions import UnexpectedFileContentException, InvalidUsageException, InvalidInputException
 
-class PEMDataTools(object):
+class PEMDataTools():
 	@classmethod
 	def pem2data(cls, pem_text, marker, ignore_errors = False):
 		line_begin = "-----BEGIN %s-----" % (marker)
@@ -71,7 +71,7 @@ class PEMDataTools(object):
 		lines.append(line_end)
 		return "\n".join(lines)
 
-class CmdTools(object):
+class CmdTools():
 	_ENV_ALWAYS_EXPORT = [ "SOFTHSM2_CONF", "COVERAGE_FILE" ]
 
 	@classmethod
@@ -97,7 +97,7 @@ class CmdTools(object):
 			env_string = " ".join("%s=%s" % (key, escape(value)) for (key, value) in sorted(env.items()))
 			return (env_string + " " + command).lstrip()
 
-class ASN1Tools(object):
+class ASN1Tools():
 	_REGEX_UTCTime = re.compile(r"(?P<year>\d{2})(?P<month>\d{2})(?P<day>\d{2})(?P<hour>\d{2})(?P<minute>\d{2})(?P<second>\d{2})Z")
 	_REGEX_GeneralizedTime = re.compile(r"(?P<year>\d{4})(?P<month>\d{2})(?P<day>\d{2})(?P<hour>\d{2})(?P<minute>\d{2})(?P<second>\d{2})Z")
 
@@ -140,7 +140,7 @@ class ASN1Tools(object):
 				bitstring.append((bytevalue >> bit) & 1)
 		return pyasn1.type.univ.BitString(bitstring)
 
-class ECCTools(object):
+class ECCTools():
 	@classmethod
 	def decode_enc_pubkey(cls, enc_pubkey):
 		if enc_pubkey[0] != 0x04:
@@ -152,7 +152,7 @@ class ECCTools(object):
 		y = int.from_bytes(enc_pubkey[1 + bytelen : ], byteorder = "big")
 		return (x, y)
 
-class PathTools(object):
+class PathTools():
 	@classmethod
 	def find(cls, search_path, filename):
 		directories = search_path.split(":")
@@ -164,7 +164,7 @@ class PathTools(object):
 				return full_filename
 		return None
 
-class JSONTools(object):
+class JSONTools():
 	@classmethod
 	def translate(cls, obj):
 		if isinstance(obj, dict):
@@ -221,7 +221,7 @@ class JSONTools(object):
 		data = data.decode("ascii")
 		return json.loads(data)
 
-class TextTools(object):
+class TextTools():
 	@classmethod
 	def abbreviate(cls, text, to_length):
 		if len(text) <= to_length:
@@ -237,8 +237,7 @@ class TextTools(object):
 				# Abbreviate head and tail
 				return text[ : head] + "..." + text[-tail : ]
 
-
-class ValidationTools(object):
+class ValidationTools():
 	_DOMAIN_NAME_RE = re.compile(r"([-a-zA-Z0-9]+\.)*[-a-zA-Z0-9]+")
 	_EMAIL_ADDRESS_RE = re.compile(r"(?P<mailbox>[-a-zA-Z0-9.!#$%&'*+/=?^_`{|}~]+)@(?P<domainname>.*)")
 	_URI_RE = re.compile(r"(?P<scheme>[a-z]+):(?P<authority>/*[-a-zA-Z0-9+%_.:,=;@\[\]]+)?(?P<path>/[-a-zA-Z0-9+%_.:,=;@/]+)?(?P<query>\?[-a-zA-Z0-9+%_.:,=;@/?#]*)?")
@@ -309,7 +308,7 @@ class ValidationTools(object):
 		else:
 			return True
 
-class PaddingTools(object):
+class PaddingTools():
 	@classmethod
 	def unpad_pkcs1(cls, data):
 		if data[0] != 1:

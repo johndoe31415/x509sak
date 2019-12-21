@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2018 Johannes Bauer
+#	Copyright (C) 2018-2019 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -27,7 +27,7 @@ from .X509Certificate import X509Certificate
 
 _log = logging.getLogger("x509sak.CertificatePool")
 
-class CertificatePool(object):
+class CertificatePool():
 	_CertificateChain = collections.namedtuple("CertificateChain", [ "root", "chain", "leaf", "full_chain" ])
 	def __init__(self):
 		self._pool = collections.defaultdict(set)

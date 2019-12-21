@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2018 Johannes Bauer
+#	Copyright (C) 2018-2019 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -33,7 +33,7 @@ class PrivateKeyStorageForm(enum.IntEnum):
 	DER_FILE = 2
 	HARDWARE_TOKEN = 3
 
-class PrivateKeyStorage(object):
+class PrivateKeyStorage():
 	_PRIVATE_KEY_CLASSES = [ RSAPrivateKey, ECPrivateKey, EDPrivateKey ]
 
 	_PARAMETER_CONSTRAINTS = {

@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 #
 #	AdvancedColorPalette - Color palette/mixer capable of reading JSON input data.
-#	Copyright (C) 2018-2018 Johannes Bauer
+#	Copyright (C) 2018-2019 Johannes Bauer
 #
 #	This file is part of jpycommon.
 #
@@ -27,7 +27,7 @@ import json
 import bisect
 import collections
 
-class AdvancedColorPalette(object):
+class AdvancedColorPalette():
 	_ColorElement = collections.namedtuple("ColorElement", [ "pos", "name", "r", "g", "b" ])
 
 	def __init__(self, palette_data):

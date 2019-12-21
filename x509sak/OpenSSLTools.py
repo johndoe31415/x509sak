@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2018 Johannes Bauer
+#	Copyright (C) 2018-2019 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -31,10 +31,10 @@ from x509sak.TempUMask import TempUMask
 from x509sak.AlgorithmDB import Cryptosystems
 from x509sak.X509Certificate import X509Certificate
 
-class OpenSSLTools(object):
+class OpenSSLTools():
 	_EXECUTABLE = "openssl"
 	_CACHED_VERSION = None
-	_VERSION_RE = re.compile("^OpenSSL (?P<major>\d+)\.(?P<minor>\d+)\.(?P<fix>\d+)(?P<patch>[a-z])?")
+	_VERSION_RE = re.compile(r"^OpenSSL (?P<major>\d+)\.(?P<minor>\d+)\.(?P<fix>\d+)(?P<patch>[a-z])?")
 
 	@classmethod
 	def openssl_version(cls):

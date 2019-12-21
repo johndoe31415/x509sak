@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 #
 #	flightpanel - A Cortex-M4 based USB flight panel for flight simulators.
-#	Copyright (C) 2017-2017 Johannes Bauer
+#	Copyright (C) 2017-2019 Johannes Bauer
 #
 #	This file is part of flightpanel.
 #
@@ -23,7 +23,7 @@
 
 import os
 
-class WorkDir(object):
+class WorkDir():
 	def __init__(self, newdir):
 		self._prevdir = os.getcwd()
 		self._newdir = newdir

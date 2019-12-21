@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2018 Johannes Bauer
+#	Copyright (C) 2018-2019 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -21,7 +21,7 @@
 
 import argparse
 
-class KeyValue(object):
+class KeyValue():
 	def __init__(self, keyvalue_str):
 		if not "=" in keyvalue_str:
 			raise argparse.ArgumentTypeError("key and value need to be separated by '=' sign, i.e., key=value")

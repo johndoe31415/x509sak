@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2018 Johannes Bauer
+#	Copyright (C) 2018-2019 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -22,7 +22,7 @@
 from x509sak.PrivateKeyStorage import PrivateKeyStorageForm
 from x509sak.Tools import PathTools
 
-class OpenSSLConfig(object):
+class OpenSSLConfig():
 	def __init__(self):
 		self._engine_dynamic_path = None
 		self._engine_module_path = None

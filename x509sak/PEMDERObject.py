@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2018 Johannes Bauer
+#	Copyright (C) 2018-2019 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -25,7 +25,7 @@ import pyasn1.codec.der.encoder
 from x509sak.Tools import PEMDataTools
 from x509sak.Exceptions import LazyDeveloperException, UnexpectedFileContentException
 
-class PEMDERObject(object):
+class PEMDERObject():
 	_PEM_MARKER = None
 	_ASN1_MODEL = None
 

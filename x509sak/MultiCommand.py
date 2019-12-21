@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 #
 #	MultiCommand - Provide an openssl-style multi-command abstraction
-#	Copyright (C) 2011-2018 Johannes Bauer
+#	Copyright (C) 2011-2019 Johannes Bauer
 #
 #	This file is part of jpycommon.
 #
@@ -30,7 +30,7 @@ import textwrap
 from .FriendlyArgumentParser import FriendlyArgumentParser
 from .PrefixMatcher import PrefixMatcher
 
-class MultiCommand(object):
+class MultiCommand():
 	RegisteredCommand = collections.namedtuple("RegisteredCommand", [ "name", "description", "parsergenerator", "action", "aliases", "visible" ])
 	ParseResult = collections.namedtuple("ParseResults", [ "command", "effective_cmd", "supplied_cmd", "args" ])
 
@@ -113,7 +113,7 @@ class MultiCommand(object):
 	def run(self, cmdline, silent = False):
 		parseresult = self.parse(cmdline, silent)
 		if parseresult.command.action is None:
-			raise Exception("Should run command '%s', but no action was registered." % (parseresult.cmd.name))
+			raise Exception("Should run command '%s', but no action was registered." % (parseresult.command.name))
 		parseresult.command.action(parseresult.supplied_cmd, parseresult.args)
 
 if __name__ == "__main__":
@@ -122,7 +122,7 @@ if __name__ == "__main__":
 	def importaction(cmd, args):
 		print("Import:", cmd, args)
 
-	class ExportAction(object):
+	class ExportAction():
 		def __init__(self, cmd, args):
 			print("Export:", cmd, args)
 

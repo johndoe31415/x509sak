@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2018 Johannes Bauer
+#	Copyright (C) 2018-2019 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -23,7 +23,7 @@ import os
 import time
 import collections
 
-class ScrapeEngine(object):
+class ScrapeEngine():
 	_Pattern = collections.namedtuple("Pattern", [ "callback", "pattern", "min_length", "max_length" ])
 
 	def __init__(self, filename):

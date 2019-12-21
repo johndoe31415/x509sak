@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2018 Johannes Bauer
+#	Copyright (C) 2018-2019 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -26,7 +26,7 @@ from x509sak.SubprocessExecutor import SubprocessExecutor
 
 _log = logging.getLogger("x509sak.PrimeDB")
 
-class PrimeDB(object):
+class PrimeDB():
 	def __init__(self, directory = ".", generator_program = None):
 		self._directory = directory
 		self._generator = generator_program
