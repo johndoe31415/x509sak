@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 #	ratched - TLS connection router that performs a man-in-the-middle attack
-#	Copyright (C) 2017-2017 Johannes Bauer
+#	Copyright (C) 2017-2019 Johannes Bauer
 #
 #	This file is part of ratched.
 #
@@ -19,9 +19,10 @@
 #	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
+
 import re
 
-class Patcher(object):
+class Patcher():
 	def __init__(self, filename, filetype = "c"):
 		assert(filetype in [ "c", "markdown" ])
 		self._filename = filename
