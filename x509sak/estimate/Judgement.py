@@ -106,6 +106,7 @@ class JudgementCode(enum.Enum):
 	Cert_X509Ext_IssuerAltName_BadURI = ("X.509 IssuerAlternativeName", "invalid URI")
 	Cert_X509Ext_IssuerAltName_Missing = ("X.509 IssuerAlternativeName", "extension not present")
 	Cert_X509Ext_IssuerAltName_Critical = ("X.509 IssuerAlternativeName", "extension marked as critical")
+	Cert_X509Ext_SubjectAltName_Missing = ("X.509 SubjectAlternativeName", "extension not present")
 	Cert_X509Ext_SubjectAltName_Empty = ("X.509 SubjectAlternativeName", "no names given")
 	Cert_X509Ext_SubjectAltName_EmptyValue = ("X.509 SubjectAlternativeName", "no value given")
 	Cert_X509Ext_SubjectAltName_BadIP = ("X.509 SubjectAlternativeName", "invalid IP address")
@@ -192,7 +193,7 @@ class StandardDeviationType(enum.IntEnum):
 	RECOMMENDATION = 0
 	VIOLATION = 1
 
-class SecurityJudgement(object):
+class SecurityJudgement():
 	def __init__(self, code, text, bits = None, verdict = None, commonness = None, compatibility = None, prefix_topic = False, standard = None):
 		assert((code is None) or isinstance(code, JudgementCode))
 		assert((bits is None) or isinstance(bits, (int, float)))
@@ -294,7 +295,7 @@ class SecurityJudgement(object):
 	def __str__(self):
 		return "SecurityJudgement<%s>" % (self.text)
 
-class SecurityJudgements(object):
+class SecurityJudgements():
 	def __init__(self):
 		self._judgements = [ ]
 

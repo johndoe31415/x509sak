@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2018 Johannes Bauer
+#	Copyright (C) 2018-2019 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -44,7 +44,7 @@ class CmdLineTestsExamine(BaseTest):
 
 	def test_purpose_ca(self):
 		with ResourceFileLoader("certs/ok/johannes-bauer-root.pem") as crtfile:
-			SubprocessExecutor(self._x509sak + [ "examine", "-p", "ca", "--fast-rsa", crtfile ]).run().stdout
+			SubprocessExecutor(self._x509sak + [ "examine", "-p", "ca", "--fast-rsa", crtfile ]).run()
 
 	def test_purpose_tls_server(self):
 		with ResourceFileLoader("certs/ok/johannes-bauer.com.pem") as crtfile:
@@ -102,7 +102,7 @@ class CmdLineTestsExamine(BaseTest):
 	def _test_examine_x509test_resultcode(self, certname, expect_code, parent_crtname = None):
 		with ResourceFileLoader(certname) as certfile, tempfile.NamedTemporaryFile(suffix = ".json") as outfile:
 			if parent_crtname is None:
-				result = SubprocessExecutor(self._x509sak + [ "examine", "--fast-rsa", "-f", "json", "-o", outfile.name, certfile ]).run()
+				SubprocessExecutor(self._x509sak + [ "examine", "--fast-rsa", "-f", "json", "-o", outfile.name, certfile ]).run()
 			else:
 				with ResourceFileLoader(parent_crtname) as parent_crt:
 					result = SubprocessExecutor(self._x509sak + [ "examine", "--fast-rsa", "--parent-certificate", parent_crt, "-f", "json", "-o", outfile.name, certfile ]).run()
@@ -456,4 +456,3 @@ class CmdLineTestsExamine(BaseTest):
 
 	def test_constructed_rsa_bitbias(self):
 		self._test_examine_x509test_resultcode("certs/constructed/rsa_bitbias.pem", "RSA_Modulus_BitBias")
-

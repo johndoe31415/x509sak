@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2018 Johannes Bauer
+#	Copyright (C) 2018-2019 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -26,7 +26,7 @@ from x509sak.SubprocessExecutor import SubprocessExecutor
 from x509sak.Tools import PathTools
 from x509sak.WorkDir import WorkDir
 
-class SoftHSMInstance(object):
+class SoftHSMInstance():
 	_SO_SEARCH_PATH = "/usr/local/lib/softhsm:/usr/lib/softhsm:/usr/local/lib:/usr/lib:/usr/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu/openssl-1.0.2/engines:/usr/lib/x86_64-linux-gnu/engines-1.1"
 
 	def __init__(self):

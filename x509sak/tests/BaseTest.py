@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2018 Johannes Bauer
+#	Copyright (C) 2018-2019 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -29,7 +29,7 @@ from x509sak import X509Certificate
 from x509sak.PublicKey import PublicKey
 from x509sak.RSAPrivateKey import RSAPrivateKey
 
-class ResourceFileLoader(object):
+class ResourceFileLoader():
 	def __init__(self, *resource_names):
 		self._resource_names = resource_names
 		self._tempfiles = None

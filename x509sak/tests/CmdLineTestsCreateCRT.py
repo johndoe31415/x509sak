@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2018 Johannes Bauer
+#	Copyright (C) 2018-2019 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -110,7 +110,7 @@ class CmdLineTestsCreateCRT(BaseTest):
 			self._gencert(1)
 
 			# Try to reuse same CN for other certificate -- must fail!
-			SubprocessExecutor(self._x509sak + [ "createcsr", "-s" "/CN=CHILD1", "-t", "tls-client", "-c", "root_ca", "client2.key", "client2.crt" ], on_failure = "exception-nopause", success_return_codes = [ 1 ]).run()
+			SubprocessExecutor(self._x509sak + [ "createcsr", "-s", "/CN=CHILD1", "-t", "tls-client", "-c", "root_ca", "client2.key", "client2.crt" ], on_failure = "exception-nopause", success_return_codes = [ 1 ]).run()
 
 	def test_create_simple_csr(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
