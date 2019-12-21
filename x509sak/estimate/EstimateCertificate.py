@@ -64,7 +64,7 @@ class CertificateEstimator(BaseEstimator):
 		if oid_header != oid_sig:
 			name_header = OIDDB.SignatureAlgorithms.get(oid_header, str(oid_header))
 			name_sig = OIDDB.SignatureAlgorithms.get(oid_sig, str(oid_sig))
-			standard = RFCReference(rfcno = 5280, sect = [ "4.1.1.2", "4.1.2.3" ] verb = "MUST", text = "This field MUST contain the same algorithm identifier as the signature field in the sequence tbsCertificate (Section 4.1.2.3).")
+			standard = RFCReference(rfcno = 5280, sect = [ "4.1.1.2", "4.1.2.3" ], verb = "MUST", text = "This field MUST contain the same algorithm identifier as the signature field in the sequence tbsCertificate (Section 4.1.2.3).")
 			judgements += SecurityJudgement(JudgementCode.Cert_Signature_Algorithm_Mismatch, "Certificate indicates signature algorithm %s in header section and %s in signature section." % (name_header, name_sig), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 		return judgements
