@@ -30,8 +30,8 @@ class CmdLineTestsFindCRT(BaseTest):
 
 	def test_find_specific(self):
 		with ResourceFileLoader([ "certs/ok/johannes-bauer.com.pem", "certs/ok/johannes-bauer-root.pem", "certs/ok/pubkey_sig_ed25519.pem", "certs/ok/ecc_secp256r1.pem" ]) as srcdir:
-			stdout = SubprocessExecutor(self._x509sak + [ "find", "-h", "7e40", srcdir ]).run().stdout
-			self.assertIn(b"7e402e9323bb4124fa1ec82766532be5e59b9787f0d685f24f9229b59e74f093", stdout)
+			stdout = SubprocessExecutor(self._x509sak + [ "find", "-h", "853e", srcdir ]).run().stdout
+			self.assertIn(b"853ecf1f70c5f7db4d3883f3f217a9a06ec29445839e9c6acbcf69a399ecaea9", stdout)
 			self.assertOcurrences(stdout, b"BEGIN CERTIFICATE", 1)
 
 	def test_find_none(self):
