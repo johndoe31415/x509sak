@@ -10,3 +10,4 @@ htmlcov
 .dbgconsole_history
 __failed_crt.pem
 __tested_codes.json
+test_corpus_results.sqlite3

@@ -1,0 +1,188 @@
+#!/usr/bin/python3
+#	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
+#	Copyright (C) 2019-2019 Johannes Bauer
+#
+#	This file is part of x509sak.
+#
+#	x509sak is free software; you can redistribute it and/or modify
+#	it under the terms of the GNU General Public License as published by
+#	the Free Software Foundation; this program is ONLY licensed under
+#	version 3 of the License, later versions are explicitly excluded.
+#
+#	x509sak is distributed in the hope that it will be useful,
+#	but WITHOUT ANY WARRANTY; without even the implied warranty of
+#	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#	GNU General Public License for more details.
+#
+#	You should have received a copy of the GNU General Public License
+#	along with x509sak; if not, write to the Free Software
+#	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+#	Johannes Bauer <JohannesBauer@gmx.de>
+
+import sys
+import os
+import sqlite3
+import contextlib
+import glob
+import queue
+import multiprocessing
+import time
+import collections
+import tempfile
+import subprocess
+from x509sak.FriendlyArgumentParser import FriendlyArgumentParser
+
+parser = FriendlyArgumentParser(description = "Test x509sak by running a certificate test corpus against the 'examine' facility.")
+parser.add_argument("-p", "--parallel", metavar = "count", type = int, default = multiprocessing.cpu_count(), help = "How many test instances to run concurrently. Defaults to %(default)d processes.")
+parser.add_argument("-d", "--dbfile", metavar = "filename", type = str, default = "test_corpus_results.sqlite3", help = "Specifies database file to use. Defaults to %(default)s.")
+parser.add_argument("corpus_dir", metavar = "corpus_dir", type = str, help = "Root directory of the cloned git repository https://github.com/johndoe31415/x509-cert-testcorpus")
+args = parser.parse_args(sys.argv[1:])
+
+if not os.path.isdir(args.corpus_dir):
+	print("Not a directory: %s" % (args.corpus_dir), file = sys.stderr)
+	sys.exit(1)
+
+if not os.path.isfile(args.corpus_dir + "/CertDB.py"):
+	print("Not a clone of https://github.com/johndoe31415/x509-cert-testcorpus (CertDB.py missing): %s" % (args.corpus_dir), file = sys.stderr)
+	sys.exit(1)
+
+# Include corpus directory in include path so we can load CertDB.py
+sys.path.append(args.corpus_dir)
+from CertDB import CertDB
+
+WorkItem = collections.namedtuple("WorkItem", [ "db_filename", "domainname", "fetched_timet", "der_hash_md5", "der_cert" ])
+ResultItem = collections.namedtuple("ResultItem", [ "work_item", "returncode", "stdout", "stderr", "duration" ])
+
+class CorpusTester():
+	def __init__(self, args):
+		self._args = args
+		self._db = sqlite3.connect(self._args.dbfile)
+		self._cursor = self._db.cursor()
+		with contextlib.suppress(sqlite3.OperationalError):
+			self._cursor.execute("""
+			CREATE TABLE test_results (
+				id integer PRIMARY KEY,
+				domainname varchar NOT NULL,
+				fetched_timet integer NOT NULL,
+				returncode integer NOT NULL,
+				stdout varchar NOT NULL,
+				stderr varchar NOT NULL,
+				duration float NOT NULL,
+				db_filename varchar NOT NULL,
+				der_hash_md5 blob NOT NULL UNIQUE,
+				der_cert blob NULL
+			);
+			""")
+			self._hashes_already_tested = None
+			self._all_db_files = [ ]
+			self._certs_remaining = 0
+
+	def _run_db(self, cert_db_filename):
+		print(cert_db_filename)
+
+	def _worker_do_work(self, work_item):
+		# First, write certificate to a temporary filename
+		with tempfile.NamedTemporaryFile(prefix = "cert_", suffix = ".der") as f:
+			f.write(work_item.der_cert)
+			f.flush()
+
+			cmdline = [ "./x509sak.py", "examinecert", "--fast-rsa", "-p", "tls-server", "-n", work_item.domainname, "--in-format", "dercrt", f.name ]
+			t0 = time.time()
+			process_result = subprocess.run(cmdline, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+			t1 = time.time()
+
+			result_item = ResultItem(work_item = work_item, stdout = process_result.stdout, stderr = process_result.stderr, duration = t1 - t0, returncode = process_result.returncode)
+		return result_item
+
+	def _worker(self, work_queue, result_queue):
+		while True:
+			(command, work_item) = work_queue.get()
+			if command == "terminate":
+				break
+			elif command == "work":
+				result_item = self._worker_do_work(work_item)
+				result_queue.put(result_item)
+			else:
+				raise NotImplementedError(command)
+
+	def _feeder(self, work_queue, result_queue):
+		for work_item in self._work_generator():
+			if work_item.der_hash_md5 not in self._hashes_already_tested:
+				work_piece = ("work", work_item)
+				work_queue.put(work_piece)
+				self._hashes_already_tested.add(work_item.der_hash_md5)
+
+	def _eater(self, work_queue, result_queue):
+		tested_count = 0
+		failure_count = 0
+		while True:
+			result = result_queue.get()
+			if result is None:
+				# No more results coming
+				break
+			tested_count += 1
+			if (tested_count % 500) == 0:
+				self._db.commit()
+
+			if result.returncode != 0:
+				failure_count += 1
+			der_cert = None if (result.returncode == 0) else result.work_item.der_cert
+			self._cursor.execute("INSERT INTO test_results (domainname, fetched_timet, returncode, stdout, stderr, duration, db_filename, der_hash_md5, der_cert) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);", (result.work_item.domainname, result.work_item.fetched_timet, result.returncode, result.stdout, result.stderr, result.duration, result.work_item.db_filename, result.work_item.der_hash_md5, der_cert));
+			print("%d / %d (%.1f%%): %s (returncode %d); total failure_count %d" % (tested_count, self._certs_remaining, tested_count / self._certs_remaining * 100, result.work_item.domainname, result.returncode, failure_count))
+		self._db.commit()
+
+	def _work_generator(self):
+		for cert_db_filename in self._all_db_files:
+			db = CertDB(cert_db_filename)
+			for entry in db.get_all():
+				yield WorkItem(db_filename = os.path.basename(cert_db_filename), domainname = entry.domainname, fetched_timet = entry.fetched_timet, der_hash_md5 = entry.der_hash_md5, der_cert = entry.der_cert)
+
+	def run(self):
+		self._all_db_files = list(sorted(glob.glob(self._args.corpus_dir + "/certs/[0-9a-f][0-9a-f][0-9a-f].db")))
+
+		# First determine how many certificates we have
+		unique_hashes = set()
+		for entry in self._work_generator():
+			unique_hashes.add(entry.der_hash_md5)
+
+		# Determine all hashes we already have done
+		self._hashes_already_tested = set(row[0] for row in self._cursor.execute("SELECT der_hash_md5 FROM test_results;").fetchall())
+
+		# Determine amount of remaining
+		self._certs_remaining = len(unique_hashes - self._hashes_already_tested)
+
+		print("Found %d unique certificates in %d certificate databases. %d certificates tested so far, %d remaining." % (len(unique_hashes), len(self._all_db_files), len(self._hashes_already_tested), self._certs_remaining))
+
+		# Synchronization with workers using queues
+		work_queue = multiprocessing.Queue(maxsize = 100)
+		result_queue = multiprocessing.Queue(maxsize = 100)
+
+		# Start worker processes
+		processes = [ multiprocessing.Process(target = self._worker, args = (work_queue, result_queue)) for i in range(self._args.parallel) ]
+		for process in processes:
+			process.start()
+
+		# Start feeder and eater process
+		feeder = multiprocessing.Process(target = self._feeder, args = (work_queue, result_queue))
+		eater = multiprocessing.Process(target = self._eater, args = (work_queue, result_queue))
+		feeder.start()
+		eater.start()
+
+		# Wait for feeder to stop
+		feeder.join()
+
+		# Then feed workers the termination commands
+		for i in range(len(processes)):
+			work_queue.put(("terminate", None))
+
+		# Then wait for all workers to finish
+		for process in processes:
+			process.join()
+
+		# Finally, quit the eater process as well
+		result_queue.put(None)
+		eater.join()
+
+ct = CorpusTester(args)
+ct.run()
