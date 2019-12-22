@@ -80,13 +80,13 @@ def genparser(parser):
 	parser.add_argument("-f", "--format", choices = [ "dot", "png", "ps", "pdf" ], default = None, help = "Specifies the output file format. Can be one of %(choices)s. When unspecified, the file extension out the output file is used to determine the file type.")
 	parser.add_argument("-o", "--outfile", metavar = "file", required = True, help = "Specifies the output filename. Mandatory argument.")
 	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
-	parser.add_argument("crtsource", metavar = "crtsource", nargs = "+", type = str, help = "Certificate file (in PEM format) or directory (conainting PEM-formatted .pem or .crt files) which should be included in the graph.")
+	parser.add_argument("crtsource", metavar = "crtsource", nargs = "+", type = str, help = "Certificate file (in PEM format) or directory (containting PEM-formatted .pem or .crt files) which should be included in the graph.")
 mc.register("graph", "Graph a certificate pool", genparser, action = ActionGraphPool)
 
 def genparser(parser):
 	parser.add_argument("-h", "--hashval", metavar = "hash", type = str, help = "Find only certificates with a particular hash prefix.")
 	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
-	parser.add_argument("crtsource", metavar = "crtsource", nargs = "+", type = str, help = "Certificate file (in PEM format) or directory (conainting PEM-formatted .pem or .crt files) which should be included in the search.")
+	parser.add_argument("crtsource", metavar = "crtsource", nargs = "+", type = str, help = "Certificate file (in PEM format) or directory (containting PEM-formatted .pem or .crt files) which should be included in the search.")
 mc.register("findcrt", "Find a specific certificate", genparser, action = ActionFindCert)
 
 def genparser(parser):
@@ -137,7 +137,7 @@ def genparser(parser):
 	parser.add_argument("capath", metavar = "capath", type = str, help = "Directory of the signing CA.")
 	parser.add_argument("csr_filename", metavar = "in_csr_filename", type = str, help = "Filename of the input certificate signing request.")
 	parser.add_argument("crt_filename", metavar = "out_crt_filename", type = str, help = "Filename of the output certificate.")
-mc.register("signcsr", "Make a certificate authority (CA) sign a crtificate signing request (CSR) and output the certificate", genparser, action = ActionSignCSR)
+mc.register("signcsr", "Make a certificate authority (CA) sign a certificate signing request (CSR) and output the certificate", genparser, action = ActionSignCSR)
 
 def genparser(parser):
 	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
@@ -168,7 +168,7 @@ def genparser(parser):
 	parser.add_argument("-o", "--outfile", metavar = "file", type = str, default = "broken_rsa.key", help = "Output filename. Defaults to %(default)s.")
 	parser.add_argument("-f", "--force", action = "store_true", help = "Overwrite output file if it already exists instead of bailing out.")
 	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
-mc.register("genbrokenrsa", "Generate broken RSA keys for use in pentetration testing", genparser, action = ActionGenerateBrokenRSA)
+mc.register("genbrokenrsa", "Generate broken RSA keys for use in penetration testing", genparser, action = ActionGenerateBrokenRSA)
 
 def genparser(parser):
 	parser.add_argument("-t", "--key-type", choices = [ "rsa", "ecc", "eddsa" ], default = "rsa", help = "Type of private key to import. Can be one of %(choices)s, defaults to %(default)s. Disregarded for public keys and determined automatically.")
@@ -207,7 +207,7 @@ def genparser(parser):
 	parser.add_argument("-e", "--exclude-dertype", metavar = "class", action = "append", default = [ ], help = "Exclude the specified DER handler class in the search. Can be specified multiple times and must be one of %s." % (", ".join(sorted(ActionScrape.handler_classes))))
 	parser.add_argument("--extract-nested", action = "store_true", help = "By default, fully overlapping blobs will not be extracted. For example, every X.509 certificate also contains a public key inside that would otherwise be found as well. When this option is given, any blobs are extracted regardless if they're fully contained in another blob or not.")
 	parser.add_argument("--keep-original-der", action = "store_true", help = "When finding DER blobs, do not convert them to PEM format, but leave them as-is.")
-	parser.add_argument("--allow-non-unique-blobs", action = "store_true", help = "For all matches, the SHA256 hash is used to determine if the data is unique and findings are by default only written to disk once. With this option, blobs that very likely are duplicates are written to disk for every ocurrence.")
+	parser.add_argument("--allow-non-unique-blobs", action = "store_true", help = "For all matches, the SHA256 hash is used to determine if the data is unique and findings are by default only written to disk once. With this option, blobs that very likely are duplicates are written to disk for every occurrence.")
 	parser.add_argument("--disable-der-sanity-checks", action = "store_true", help = "For DER serialization, not only is it checked that deserialization is possible, but additional checks are performed for some data types to ensure a low false-positive rate. For example, DSA signatures with short r/s pairs are discarded by default or implausible version numbers for EC keys. With this option, these sanity checks will be disabled and therefore structurally correct (but implausible) false-positives are also written.")
 	parser.add_argument("--outmask", metavar = "mask", default = "scrape_%(offset)07x_%(type)s.%(ext)s", help = "Filename mask that's used for output. Defaults to %(default)s and can use printf-style substitutions offset, type and ext.")
 	parser.add_argument("-w", "--write-json", metavar = "filename", type = str, help = "Write the stats with detailed information about matches into the given filename.")

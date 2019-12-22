@@ -25,11 +25,11 @@ Options vary from command to command. To receive further info, type
     createca           Create a new certificate authority (CA)
     createcsr          Create a new certificate signing request (CSR) or
                        certificate
-    signcsr            Make a certificate authority (CA) sign a crtificate
+    signcsr            Make a certificate authority (CA) sign a certificate
                        signing request (CSR) and output the certificate
     revokecrt          Revoke a specific certificate
     createcrl          Generate a certificate revocation list (CRL)
-    genbrokenrsa       Generate broken RSA keys for use in pentetration testing
+    genbrokenrsa       Generate broken RSA keys for use in penetration testing
     dumpkey            Dump a key in text form
     examinecert        Examine an X.509 certificate
     forgecert          Forge an X.509 certificate
@@ -184,7 +184,7 @@ pkcs11 URIs internally.
 
 ## buildchain
 The "buildchain" command is useful if you want to have a complete (or partial)
-certificate chain from a given leaf certfificate and a bundle of CAs. x509sak
+certificate chain from a given leaf certificate and a bundle of CAs. x509sak
 will figure out which of the CAs are appropriate (if any) and generate a chain
 in the order you want (root to leaf or leaf to root) including the certs you
 want (e.g., all certificates, all except root cert, etc.). This is useful if
@@ -282,7 +282,7 @@ Graph a certificate pool
 
 positional arguments:
   crtsource             Certificate file (in PEM format) or directory
-                        (conainting PEM-formatted .pem or .crt files) which
+                        (containting PEM-formatted .pem or .crt files) which
                         should be included in the graph.
 
 optional arguments:
@@ -329,7 +329,7 @@ Find a specific certificate
 
 positional arguments:
   crtsource             Certificate file (in PEM format) or directory
-                        (conainting PEM-formatted .pem or .crt files) which
+                        (containting PEM-formatted .pem or .crt files) which
                         should be included in the search.
 
 optional arguments:
@@ -500,7 +500,7 @@ usage: ./x509sak.py signcsr [-s subject] [-d days] [-h alg]
                             [--extension key=value] [-f] [-v] [--help]
                             capath in_csr_filename out_crt_filename
 
-Make a certificate authority (CA) sign a crtificate signing request (CSR) and
+Make a certificate authority (CA) sign a certificate signing request (CSR) and
 output the certificate
 
 positional arguments:
@@ -606,7 +606,7 @@ usage: ./x509sak.py genbrokenrsa [-d path] [-b bits] [-e exp] [--switch-e-d]
                                  [--q-stepping int] [-o file] [-f] [-v]
                                  [--help]
 
-Generate broken RSA keys for use in pentetration testing
+Generate broken RSA keys for use in penetration testing
 
 optional arguments:
   -d path, --prime-db path
@@ -838,7 +838,7 @@ optional arguments:
                         if the data is unique and findings are by default only
                         written to disk once. With this option, blobs that
                         very likely are duplicates are written to disk for
-                        every ocurrence.
+                        every occurrence.
   --disable-der-sanity-checks
                         For DER serialization, not only is it checked that
                         deserialization is possible, but additional checks are
@@ -879,7 +879,7 @@ The hashpart facility allows the user to have all substrings of a file hashed
 with different hash algorithms in a brute-force manner. So for example, if you
 have a three-byte file "ABC" then the strings "A", "AB", "ABC", "BC" and "C"
 would be hashed by all selected hash functions. A search parameter allows you
-to have the tool only print those hexademical hash values which have a
+to have the tool only print those hexadecimal hash values which have a
 substring match. This makes sense when you for example have a hash value of a
 blob contained inside a larger blob but are unsure which hash function was used
 starting from which offset and which length the hash is computed over. A simple
