@@ -292,7 +292,7 @@ class ValidationTools():
 
 	@classmethod
 	def _escape_regex(cls, text):
-		for escape_char in "\\(*.+?":
+		for escape_char in "\\*.+?()[]":
 			text = text.replace(escape_char, "\\" + escape_char)
 		return text
 
