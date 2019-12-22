@@ -75,7 +75,7 @@ class CertificateEstimator(BaseEstimator):
 			"issuer":		self.algorithm("dn").analyze(cert.issuer),
 			"validity":		self.algorithm("crt_validity").analyze(cert),
 			"pubkey":		self.algorithm("pubkey").analyze(cert.pubkey),
-			"extensions":	self.algorithm("crt_exts").analyze(cert),
+			"extensions":	self.algorithm("crt_exts").analyze(cert, root_cert),
 			"signature":	self.algorithm("sig").analyze(cert.signature_alg_oid, cert.signature_alg_params, cert.signature, root_cert),
 			"purpose":		self.algorithm("purpose").analyze(cert),
 			"security":		self._analyze_certificate_general_issues(cert),

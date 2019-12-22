@@ -150,7 +150,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 			"bad_uri":				self._NameError(code = JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_CAName_BadURI, standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "The name MUST NOT be a relative URI, and it MUST follow the URI syntax and encoding rules specified in [RFC3986]. The name MUST include both a scheme (e.g., \"http\" or \"ftp\") and a scheme-specific-part. URIs that include an authority ([RFC3986], Section 3.2) MUST include a fully qualified domain name or IP address as the host.")),
 		})
 
-	def _judge_authority_key_identifier(self, certificate):
+	def _judge_authority_key_identifier(self, certificate, root_cert = None):
 		judgements = SecurityJudgements()
 		aki = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("AuthorityKeyIdentifier"))
 		if aki is None:
@@ -179,11 +179,20 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 					judgements += self._judge_single_authority_key_identifier_ca_name(entity_name)
 
 			if (aki.ca_names is None) and (aki.serial is not None):
-				standard = RFCReference(rfcno = 5280, sect = [ "A.2" ], verb = "MUST", text = "authorityCertIssuer and authorityCertSerialNumber MUST both be present or both be absent")
+				standard = RFCReference(rfcno = 5280, sect = "A.2", verb = "MUST", text = "authorityCertIssuer and authorityCertSerialNumber MUST both be present or both be absent")
 				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_SerialWithoutName, "AuthorityKeyIdentifier X.509 extension contains CA serial number, but no CA issuer.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 			elif (aki.ca_names is not None) and (aki.serial is None):
-				standard = RFCReference(rfcno = 5280, sect = [ "A.2" ], verb = "MUST", text = "authorityCertIssuer and authorityCertSerialNumber MUST both be present or both be absent")
+				standard = RFCReference(rfcno = 5280, sect = "A.2", verb = "MUST", text = "authorityCertIssuer and authorityCertSerialNumber MUST both be present or both be absent")
 				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_NameWithoutSerial, "AuthorityKeyIdentifier X.509 extension contains CA issuer, but no CA serial number.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+
+			if root_cert is not None:
+				root_ski = root_cert.extensions.get_first(OIDDB.X509Extensions.inverse("SubjectKeyIdentifier"))
+				if root_ski is None:
+					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_CA_NoSKI, "AuthorityKeyIdentifier X.509 extension present, but given root certificate does not contain any subject key identifier.", commonness = Commonness.HIGHLY_UNUSUAL)
+				else:
+					if aki.keyid != root_ski.keyid:
+						standard = RFCReference(rfcno = 5280, sect = "4.2.1.1", verb = "MUST", text = "authorityCertIssuer and authorityCertSerialNumber MUST both be present or both be absent")
+						judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_CA_Mismatch, "AuthorityKeyIdentifier X.509 extension refers to authority key ID %s, but CA has key ID %s as their SubjectKeyIdentifier." % (aki.keyid.hex(), root_ski.keyid.hex()), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 		return judgements
 
 	def _judge_name_constraints(self, certificate):
@@ -373,7 +382,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 
 		return judgements
 
-	def analyze(self, certificate):
+	def analyze(self, certificate, root_cert = None):
 		individual = [ ]
 		for extension in certificate.extensions:
 			individual.append(self._analyze_extension(extension))
@@ -386,7 +395,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		judgements += self._judge_uniqueness(certificate)
 		judgements += self._judge_basic_constraints(certificate)
 		judgements += self._judge_subject_key_identifier(certificate)
-		judgements += self._judge_authority_key_identifier(certificate)
+		judgements += self._judge_authority_key_identifier(certificate, root_cert)
 		judgements += self._judge_name_constraints(certificate)
 		judgements += self._judge_key_usage(certificate)
 		judgements += self._judge_extended_key_usage(certificate)

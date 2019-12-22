@@ -78,6 +78,8 @@ class JudgementCode(enum.Enum):
 	Cert_X509Ext_AuthorityKeyIdentifier_NoKeyIDPresent = ("X.509 AuthorityKeyIdentifier", "no key ID present")
 	Cert_X509Ext_AuthorityKeyIdentifier_KeyIDEmpty = ("X.509 AuthorityKeyIdentifier", "key ID present, but empty")
 	Cert_X509Ext_AuthorityKeyIdentifier_KeyIDLong = ("X.509 AuthorityKeyIdentifier", "key ID very long")
+	Cert_X509Ext_AuthorityKeyIdentifier_CA_NoSKI = ("X.509 AuthorityKeyIdentifier", "CA certificate does not contain SKI")
+	Cert_X509Ext_AuthorityKeyIdentifier_CA_Mismatch = ("X.509 AuthorityKeyIdentifier", "key ID does not match CAs SKI")
 	Cert_X509Ext_SubjectKeyIdentifier_Missing = ("X.509 SubjectKeyIdentifier extension", "SKI extension missing")
 	Cert_X509Ext_SubjectKeyIdentifier_SHA1 = ("X.509 SubjectKeyIdentifier extension", "SKI matches SHA-1 hash of public key")
 	Cert_X509Ext_SubjectKeyIdentifier_OtherHash = ("X.509 SubjectKeyIdentifier extension", "SKI matches a hash of public key, but not SHA-1")

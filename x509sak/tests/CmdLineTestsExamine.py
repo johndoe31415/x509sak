@@ -184,8 +184,8 @@ class CmdLineTestsExamine(BaseTest):
 	def test_examine_x509test_xf_ext_auth_keyid_invalid_issuer(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-keyid-invalid-issuer.pem", "Cert_X509Ext_AuthorityKeyIdentifier_CAName_BadIP")
 
-#	def test_examine_x509test_xf_ext_auth_keyid_mismatch(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-keyid-mismatch.pem", "")
+	def test_examine_x509test_xf_ext_auth_keyid_mismatch(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-keyid-mismatch.pem", "Cert_X509Ext_AuthorityKeyIdentifier_CA_Mismatch", parent_crtname = "certs/x509test/ok-ca.pem")
 
 	def test_examine_x509test_xf_ext_auth_keyid_noid(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-keyid-noid.pem", "Cert_X509Ext_AuthorityKeyIdentifier_NoKeyIDPresent")
