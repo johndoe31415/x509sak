@@ -91,11 +91,11 @@ class EllipticCurve():
 
 	@property
 	def order_bits(self):
-		raise NotImplementedError()
+		raise NotImplementedError(self.__class__.__name__)
 
 	@property
 	def field_bits(self):
-		raise NotImplementedError()
+		raise NotImplementedError(self.__class__.__name__)
 
 	@property
 	def element_octet_cnt(self):
@@ -110,13 +110,13 @@ class EllipticCurve():
 
 	@property
 	def neutral_point(self):
-		raise NotImplementedError()
+		raise NotImplementedError(self.__class__.__name__)
 
 	def on_curve(self, point):
-		raise NotImplementedError()
+		raise NotImplementedError(self.__class__.__name__)
 
 	def point_addition(self, P, Q):
-		raise NotImplementedError()
+		raise NotImplementedError(self.__class__.__name__)
 
 	def encode_point(self, point):
 		return bytes([ 0x04 ]) + point.x.to_bytes(length = self.element_octet_cnt, byteorder = "big") + point.y.to_bytes(length = self.element_octet_cnt, byteorder = "big")
@@ -172,6 +172,10 @@ class BinaryFieldEllipticCurve(EllipticCurve):
 	def __init__(self, **domain_parameters):
 		super().__init__(**domain_parameters)
 		self._domain_parameters["intpoly"] = sum(1 << bit for bit in set(self.poly))
+
+	@property
+	def order_bits(self):
+		return math.log(self.n, 2)
 
 	@property
 	def field_bits(self):
