@@ -34,6 +34,7 @@ import subprocess
 from x509sak.FriendlyArgumentParser import FriendlyArgumentParser
 
 parser = FriendlyArgumentParser(description = "Test x509sak by running a certificate test corpus against the 'examine' facility.")
+parser.add_argument("-r", "--retest", action = "store_true", help = "Only retest certificates that have failed before.")
 parser.add_argument("-p", "--parallel", metavar = "count", type = int, default = multiprocessing.cpu_count(), help = "How many test instances to run concurrently. Defaults to %(default)d processes.")
 parser.add_argument("-d", "--dbfile", metavar = "filename", type = str, default = "test_corpus_results.sqlite3", help = "Specifies database file to use. Defaults to %(default)s.")
 parser.add_argument("corpus_dir", metavar = "corpus_dir", type = str, help = "Root directory of the cloned git repository https://github.com/johndoe31415/x509-cert-testcorpus")
@@ -113,6 +114,10 @@ class CorpusTester():
 				work_queue.put(work_piece)
 				self._hashes_already_tested.add(work_item.der_hash_md5)
 
+		# Then feed workers the termination commands
+		for i in range(self._args.parallel):
+			work_queue.put(("terminate", None))
+
 	def _eater(self, work_queue, result_queue):
 		tested_count = 0
 		failure_count = 0
@@ -128,15 +133,23 @@ class CorpusTester():
 			if result.returncode != 0:
 				failure_count += 1
 			der_cert = None if (result.returncode == 0) else result.work_item.der_cert
-			self._cursor.execute("INSERT INTO test_results (domainname, fetched_timet, returncode, stdout, stderr, duration, db_filename, der_hash_md5, der_cert) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);", (result.work_item.domainname, result.work_item.fetched_timet, result.returncode, result.stdout, result.stderr, result.duration, result.work_item.db_filename, result.work_item.der_hash_md5, der_cert));
+			try:
+				self._cursor.execute("INSERT INTO test_results (domainname, fetched_timet, returncode, stdout, stderr, duration, db_filename, der_hash_md5, der_cert) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);", (result.work_item.domainname, result.work_item.fetched_timet, result.returncode, result.stdout, result.stderr, result.duration, result.work_item.db_filename, result.work_item.der_hash_md5, der_cert))
+			except sqlite3.IntegrityError:
+				self._cursor.execute("UPDATE test_results SET returncode = ?, stdout = ?, stderr = ?, duration = ? WHERE der_hash_md5 = ?;", (result.returncode, result.stdout, result.stderr, result.duration, result.work_item.der_hash_md5))
 			print("%d / %d (%.1f%%): %s (returncode %d); total failure_count %d" % (tested_count, self._certs_remaining, tested_count / self._certs_remaining * 100, result.work_item.domainname, result.returncode, failure_count))
 		self._db.commit()
 
 	def _work_generator(self):
-		for cert_db_filename in self._all_db_files:
-			db = CertDB(cert_db_filename)
-			for entry in db.get_all():
-				yield WorkItem(db_filename = os.path.basename(cert_db_filename), domainname = entry.domainname, fetched_timet = entry.fetched_timet, der_hash_md5 = entry.der_hash_md5, der_cert = entry.der_cert)
+		if not self._args.retest:
+			for cert_db_filename in self._all_db_files:
+				db = CertDB(cert_db_filename)
+				for entry in db.get_all():
+					yield WorkItem(db_filename = os.path.basename(cert_db_filename), domainname = entry.domainname, fetched_timet = entry.fetched_timet, der_hash_md5 = entry.der_hash_md5, der_cert = entry.der_cert)
+		else:
+			failed_certs = self._cursor.execute("SELECT db_filename, domainname, fetched_timet, der_hash_md5, der_cert FROM test_results WHERE returncode != 0;").fetchall()
+			for failed_cert in failed_certs:
+				yield WorkItem(*failed_cert)
 
 	def run(self):
 		self._all_db_files = list(sorted(glob.glob(self._args.corpus_dir + "/certs/[0-9a-f][0-9a-f][0-9a-f].db")))
@@ -147,7 +160,10 @@ class CorpusTester():
 			unique_hashes.add(entry.der_hash_md5)
 
 		# Determine all hashes we already have done
-		self._hashes_already_tested = set(row[0] for row in self._cursor.execute("SELECT der_hash_md5 FROM test_results;").fetchall())
+		if not self._args.retest:
+			self._hashes_already_tested = set(row[0] for row in self._cursor.execute("SELECT der_hash_md5 FROM test_results;").fetchall())
+		else:
+			self._hashes_already_tested = set()
 
 		# Determine amount of remaining
 		self._certs_remaining = len(unique_hashes - self._hashes_already_tested)
@@ -171,10 +187,6 @@ class CorpusTester():
 
 		# Wait for feeder to stop
 		feeder.join()
-
-		# Then feed workers the termination commands
-		for i in range(len(processes)):
-			work_queue.put(("terminate", None))
 
 		# Then wait for all workers to finish
 		for process in processes:
