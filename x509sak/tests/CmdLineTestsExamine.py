@@ -199,9 +199,8 @@ class CmdLineTestsExamine(BaseTest):
 	def test_examine_x509test_xf_ext_cert_policies_any_qual(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-cert-policies-any-qual.pem", "Cert_X509Ext_CertificatePolicies_AnyPolicyUnknownQualifier")
 
-#	def test_examine_x509test_xf_ext_cert_policies_bmp_unotice(self):
-#		Does not decode this at all?
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-cert-policies-bmp-unotice.pem", "")
+	def test_examine_x509test_xf_ext_cert_policies_bmp_unotice(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-cert-policies-bmp-unotice.pem", "Cert_X509Ext_CertificatePolicies_UserNoticeExplicitTextInvalidStringType")
 
 	def test_examine_x509test_xf_ext_cert_policies_dup(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-cert-policies-dup.pem", "Cert_X509Ext_CertificatePolicies_DuplicateOID")
