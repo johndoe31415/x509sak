@@ -428,6 +428,10 @@ class X509CertificatePoliciesExtension(X509Extension):
 	def policy_count(self):
 		return len(self._policies)
 
+	@property
+	def policy_oids(self):
+		return [ oid for (oid, qualifiers) in self._policies ]
+
 	def get_qualifier_asn1(self, policy_oid):
 		for (oid, qualifiers) in self._policies:
 			if oid == policy_oid:

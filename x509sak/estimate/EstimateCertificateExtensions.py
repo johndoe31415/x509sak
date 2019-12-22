@@ -396,6 +396,14 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 
 		policy = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("CertificatePolicies"))
 		if policy is not None:
+			seen_oids = { }
+			for (policy_number, policy_oid) in enumerate(policy.policy_oids, 1):
+				if policy_oid in seen_oids:
+					standard = RFCReference(rfcno = 5280, sect = "4.2.1.4", verb = "MUST", text = "A certificate policy OID MUST NOT appear more than once in a certificate policies extension.")
+					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificatePolicies_DuplicateOID, "OID %s used as certificate policy #%d has already been used in policy #%d and thus is an illegal duplicate." % (policy_oid, policy_number, seen_oids[policy_oid]), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard, commonness = Commonness.HIGHLY_UNUSUAL)
+				else:
+					seen_oids[policy_oid] = policy_number
+
 			any_policy = policy.get_qualifier_asn1(OIDDB.X509ExtensionCertificatePolicy.inverse("anyPolicy"))
 			if any_policy is not None:
 				for policy_qualifier_info in any_policy:

@@ -202,11 +202,10 @@ class CmdLineTestsExamine(BaseTest):
 #	def test_examine_x509test_xf_ext_cert_policies_bmp_unotice(self):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-cert-policies-bmp-unotice.pem", "")
 #		self._test_examine_x509test_noparse("certs/x509test/xf-ext-cert-policies-bmp-unotice.pem")
-#
-#	def test_examine_x509test_xf_ext_cert_policies_dup(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-cert-policies-dup.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-cert-policies-dup.pem")
-#
+
+	def test_examine_x509test_xf_ext_cert_policies_dup(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-cert-policies-dup.pem", "Cert_X509Ext_CertificatePolicies_DuplicateOID")
+
 #	def test_examine_x509test_xf_ext_cert_policies_unotice_ch(self):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-cert-policies-unotice-ch.pem", "")
 #		self._test_examine_x509test_noparse("certs/x509test/xf-ext-cert-policies-unotice-ch.pem")
