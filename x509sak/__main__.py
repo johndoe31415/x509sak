@@ -189,7 +189,7 @@ def genparser(parser):
 	parser.add_argument("-o", "--output", metavar = "filename", help = "Specify the output file. Defaults to stdout.")
 	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
 	parser.add_argument("infiles", metavar = "filename/uri", type = str, nargs = "+", help = "Filename of the input certificate or certificates in PEM format.")
-mc.register("examinecert", "Examine an X.509 certificate", genparser, action = ActionExamineCert, aliases = [ "analyze" ], visible = False)
+mc.register("examinecert", "Examine an X.509 certificate", genparser, action = ActionExamineCert, aliases = [ "analyze" ])
 
 def genparser(parser):
 	parser.add_argument("--key_template", metavar = "path", default = "forged_%02d.key", help = "Output template for key files. Should contain '%%d' to indicate element in chain. Defaults to '%(default)s'.")

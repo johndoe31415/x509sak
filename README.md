@@ -31,6 +31,7 @@ Options vary from command to command. To receive further info, type
     createcrl          Generate a certificate revocation list (CRL)
     genbrokenrsa       Generate broken RSA keys for use in pentetration testing
     dumpkey            Dump a key in text form
+    examinecert        Examine an X.509 certificate
     forgecert          Forge an X.509 certificate
     scrape             Scrape input file for certificates, keys or signatures
     hashpart           Hash all substrings of a file and search for a
@@ -680,6 +681,71 @@ optional arguments:
   --help                Show this help page.
 ```
 [//]: # (End of cmd-dumpkey -- auto-generated, do not edit!)
+
+## examinecert
+Using the examinecert facility you can plausibilize certificates and check them
+for all kinds of errors that can happen. It also gives a security estimate of
+the used algorithms and highlights things that are unusual. For example, RSA
+with large exponents is something that is entirely safe, but definitely
+unusual. Missing key usage flags or important extensions will also be reported
+along with standards violations (mainly RFC5280) -- it also gives you the exact
+location of the RFC (including section) that has been violated.
+
+[//]: # (Begin of cmd-examinecert -- auto-generated, do not edit!)
+```
+usage: ./x509sak.py examinecert [-p {ca,tls-server,tls-client}] [-n fqdn]
+                                [-f {ansitext,text,json}]
+                                [-i {pemcrt,dercrt,json,host}] [-r pemfile]
+                                [--no-automatic-host-check] [--fast-rsa]
+                                [--include-raw-data] [-o filename] [-v]
+                                [--help]
+                                filename/uri [filename/uri ...]
+
+Examine an X.509 certificate
+
+positional arguments:
+  filename/uri          Filename of the input certificate or certificates in
+                        PEM format.
+
+optional arguments:
+  -p {ca,tls-server,tls-client}, --purpose {ca,tls-server,tls-client}
+                        Check if the certificate is fit for the given purpose.
+                        Can be any of ca, tls-server, tls-client, can be
+                        specified multiple times.
+  -n fqdn, --server-name fqdn
+                        Check if the certificate is valid for the given
+                        hostname.
+  -f {ansitext,text,json}, --out-format {ansitext,text,json}
+                        Determine the output format. Can be one of ansitext,
+                        text, json, defaults to ansitext.
+  -i {pemcrt,dercrt,json,host}, --in-format {pemcrt,dercrt,json,host}
+                        Specifies the type of file that is read in. Can be
+                        either certificate files in PEM or DER format, a pre-
+                        processed JSON output from a previous run or a
+                        hostname[:port] combination to query a TLS server
+                        directly (port defaults to 443 if omitted). Valid
+                        choices are pemcrt, dercrt, json, host, defaults to
+                        pemcrt.
+  -r pemfile, --parent-certificate pemfile
+                        Specifies a parent CA certificate that is used to run
+                        additional checks against the certificate.
+  --no-automatic-host-check
+                        By default, when the input format is a given hostname,
+                        the server name is assumed as well and the purpose is
+                        assumed to be a TLS server. When this option is
+                        specified, these automatic checks are omitted.
+  --fast-rsa            Skip some time-intensive number theoretical tests for
+                        RSA moduli in order to speed up checking. Less
+                        thorough, but much faster.
+  --include-raw-data    Add the raw data such as base64-encoded certificate
+                        and signatures into the result as well.
+  -o filename, --output filename
+                        Specify the output file. Defaults to stdout.
+  -v, --verbose         Increase verbosity level. Can be specified multiple
+                        times.
+  --help                Show this help page.
+```
+[//]: # (End of cmd-examinecert -- auto-generated, do not edit!)
 
 ## forgecert
 With the forgecert tool you can forge a certificate chain. The input PEM file
