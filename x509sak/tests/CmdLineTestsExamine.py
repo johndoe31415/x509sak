@@ -99,13 +99,17 @@ class CmdLineTestsExamine(BaseTest):
 		with ResourceFileLoader(certname) as certfile:
 			SubprocessExecutor(self._x509sak + [ "examine", "--fast-rsa", "-f", "json", "-o", "-", certfile ], success_return_codes = [ 1 ]).run()
 
-	def _test_examine_x509test_resultcode(self, certname, expect_code, parent_crtname = None):
+	def _test_examine_x509test_resultcode(self, certname, expect_code, parent_crtname = None, fast_rsa = True):
+		if fast_rsa:
+			fast_rsa = [ "--fast-rsa" ]
+		else:
+			fast_rsa = [ ]
 		with ResourceFileLoader(certname) as certfile, tempfile.NamedTemporaryFile(suffix = ".json") as outfile:
 			if parent_crtname is None:
-				SubprocessExecutor(self._x509sak + [ "examine", "--fast-rsa", "-f", "json", "-o", outfile.name, certfile ]).run()
+				SubprocessExecutor(self._x509sak + [ "examine" ] + fast_rsa + [ "-f", "json", "-o", outfile.name, certfile ]).run()
 			else:
 				with ResourceFileLoader(parent_crtname) as parent_crt:
-					result = SubprocessExecutor(self._x509sak + [ "examine", "--fast-rsa", "--parent-certificate", parent_crt, "-f", "json", "-o", outfile.name, certfile ]).run()
+					result = SubprocessExecutor(self._x509sak + [ "examine" ] + fast_rsa + [ "--parent-certificate", parent_crt, "-f", "json", "-o", outfile.name, certfile ]).run()
 			with open(outfile.name) as f:
 				data = json.load(f)
 			codes = self._extract_codes_from_json(data)
@@ -452,6 +456,15 @@ class CmdLineTestsExamine(BaseTest):
 
 	def test_constructed_rsa_bitbias(self):
 		self._test_examine_x509test_resultcode("certs/constructed/rsa_bitbias.pem", "RSA_Modulus_BitBias")
+
+	def test_constructed_rsa_modulus_prime(self):
+		self._test_examine_x509test_resultcode("certs/constructed/rsa_modulus_prime.pem", "RSA_Modulus_Prime", fast_rsa = False)
+
+	def test_constructed_rsa_modulus_smallfactor(self):
+		self._test_examine_x509test_resultcode("certs/constructed/rsa_modulus_smallfactor.pem", "RSA_Modulus_Factorable", fast_rsa = False)
+
+	def test_constructed_rsa_modulus_compromised(self):
+		self._test_examine_x509test_resultcode("certs/constructed/rsa_modulus_compromised.pem", "RSA_Modulus_FactorizationKnown")
 
 	def test_constructed_rsa_exponent1(self):
 		self._test_examine_x509test_resultcode("certs/constructed/rsa_exponent1.pem", "RSA_Exponent_Is_0x1")
