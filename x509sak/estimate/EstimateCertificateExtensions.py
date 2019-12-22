@@ -20,6 +20,7 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 import collections
+import pyasn1.type.base
 from x509sak.OID import OID, OIDDB
 from x509sak.AlgorithmDB import HashFunctions
 from x509sak.X509Extensions import X509ExtendedKeyUsageExtension
@@ -389,28 +390,92 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		judgements = SecurityJudgements()
 
 		old_oid = OIDDB.X509Extensions.inverse("oldCertificatePolicies")
-		old_policy = certificate.extensions.get_first(old_oid)
-		if old_policy is not None:
+		old_policies = certificate.extensions.get_first(old_oid)
+		if old_policies is not None:
 			standard = RFCReference(rfcno = 5280, sect = "A.2", verb = "MUST", text = "id-ce-certificatePolicies OBJECT IDENTIFIER ::=  { id-ce 32 }")
 			judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificatePolicies_DeprecatedOID, "Deprecated OID %s used to encode certificate policies." % (old_oid), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard, commonness = Commonness.HIGHLY_UNUSUAL)
 
-		policy = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("CertificatePolicies"))
-		if policy is not None:
+		policies_ext = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("CertificatePolicies"))
+		if policies_ext is not None:
+			policies = list(policies_ext.policies)
 			seen_oids = { }
-			for (policy_number, policy_oid) in enumerate(policy.policy_oids, 1):
-				if policy_oid in seen_oids:
+			for (policy_number, policy) in enumerate(policies, 1):
+				if policy.oid in seen_oids:
 					standard = RFCReference(rfcno = 5280, sect = "4.2.1.4", verb = "MUST", text = "A certificate policy OID MUST NOT appear more than once in a certificate policies extension.")
-					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificatePolicies_DuplicateOID, "OID %s used as certificate policy #%d has already been used in policy #%d and thus is an illegal duplicate." % (policy_oid, policy_number, seen_oids[policy_oid]), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard, commonness = Commonness.HIGHLY_UNUSUAL)
+					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificatePolicies_DuplicateOID, "OID %s used as certificate policy #%d has already been used in policy #%d and thus is an illegal duplicate." % (policy.oid, policy_number, seen_oids[policy.oid]), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard, commonness = Commonness.HIGHLY_UNUSUAL)
 				else:
-					seen_oids[policy_oid] = policy_number
+					seen_oids[policy.oid] = policy_number
 
-			any_policy = policy.get_qualifier_asn1(OIDDB.X509ExtensionCertificatePolicy.inverse("anyPolicy"))
+			any_policy = policies_ext.get_policy(OIDDB.X509ExtensionCertificatePolicy.inverse("anyPolicy"))
 			if any_policy is not None:
-				for policy_qualifier_info in any_policy:
-					policy_qualifier_oid = OID.from_asn1(policy_qualifier_info["policyQualifierId"])
-					if policy_qualifier_oid not in OIDDB.X509ExtensionCertificatePolicyQualifierOIDs:
+				for qualifier in any_policy.qualifiers:
+					if qualifier.oid not in OIDDB.X509ExtensionCertificatePolicyQualifierOIDs:
 						standard = RFCReference(rfcno = 5280, sect = "4.2.1.4", verb = "MUST", text = "When qualifiers are used with the special policy anyPolicy, they MUST be limited to the qualifiers identified in this section.")
-						judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificatePolicies_AnyPolicyUnknownQualifier, "Unknown OID %s used in a qualification of an anyPolicy certificate policy." % (policy_qualifier_oid), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard, commonness = Commonness.HIGHLY_UNUSUAL)
+						judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificatePolicies_AnyPolicyUnknownQualifier, "Unknown OID %s used in a qualification of an anyPolicy certificate policy." % (qualifier.oid), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard, commonness = Commonness.HIGHLY_UNUSUAL)
+
+			if policies_ext.policy_count > 1:
+				standard = RFCReference(rfcno = 5280, sect = "4.2.1.4", verb = "RECOMMEND", text = "To promote interoperability, this profile RECOMMENDS that policy information terms consist of only an OID.")
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificatePolicies_MoreThanOnePolicy, "%d policies present in certificate, but only one is recommended." % (policies_ext.policy_count), compatibility = Compatibility.LIMITED_SUPPORT, standard = standard)
+
+			# Check if qualifier is used twice. Not technically forbidden, but definitely weird.
+			for policy in policies:
+				qualifier_oids = [ qualifier.oid for qualifier in policy.qualifiers ]
+				seen_oids = { }
+				for (qualifier_no, qualifier) in enumerate(policy.qualifiers, 1):
+					if qualifier.oid in seen_oids:
+						judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificatePolicies_DuplicateQualifierOID, "Qualifier #%d (OID %s) has been used previously in policy %s as #%d." % (qualifier_no, qualifier.oid, policy.oid, seen_oids[qualifier.oid]), commonness = Commonness.UNUSUAL)
+					else:
+						seen_oids[qualifier.oid] = qualifier_no
+
+			# Check for use of noticeRef
+			for policy in policies:
+				for qualifier in policy.qualifiers:
+					if qualifier.oid == OIDDB.X509ExtensionCertificatePolicyQualifierOIDs.inverse("id-qt-unotice"):
+						# User notice field is present
+						if qualifier.decoded_qualifier is None:
+							standard = RFCReference(rfcno = 5280, sect = "4.2.1.4", verb = "MUST", text = "UserNotice ::= SEQUENCE {")
+							judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificatePolicies_UserNoticeDecodeError, "Could not decode user notice qualifier in X.509 Certificate Policies extension of policy %s." % (policy.oid), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard, commonness = Commonness.HIGHLY_UNUSUAL)
+						else:
+							# Check if noticeRef is present
+							# TODO: Is this correct? See https://github.com/etingof/pyasn1/issues/189
+							notice_ref = qualifier.decoded_qualifier.asn1.getComponentByName("noticeRef", instantiate = False)
+							if not isinstance(notice_ref, pyasn1.type.base.NoValue):
+								standard = RFCReference(rfcno = 5280, sect = "4.2.1.4", verb = "MUST", text = "Conforming CAs SHOULD NOT use the noticeRef option.")
+								judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificatePolicies_UserNoticeRefPresent, "User notice qualifier of policy %s contains a noticeRef in the qualifier body." % (policy.oid), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+
+							# Check if encoding of explicitText is UTF8String or IA5String
+							explicit_text = qualifier.decoded_qualifier.asn1.getComponentByName("explicitText", instantiate = False)
+							if isinstance(explicit_text, pyasn1.type.base.NoValue):
+								# No explicit_text set?
+								judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificatePolicies_UserNoticeExplicitTextAbsent, "User notice qualifier of policy %s does not contain an explicitText element in the qualifier body." % (policy.oid), compatibility = Compatibility.LIMITED_SUPPORT)
+							else:
+								explicit_text = explicit_text.getComponent()
+								if isinstance(explicit_text, pyasn1.type.char.UTF8String):
+									# Recommendation fulfilled, don't do anything
+									pass
+								elif isinstance(explicit_text, pyasn1.type.char.IA5String):
+									standard = RFCReference(rfcno = 5280, sect = "4.2.1.4", verb = "MAY", text = "Conforming CAs SHOULD use the UTF8String encoding for explicitText, but MAY use IA5String.")
+									judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificatePolicies_UserNoticeExplicitTextIA5String, "User notice qualifier of policy %s does not contain an explicitText element of type IA5String, although UTF8String is the preferred one." % (policy.oid), compatibility = Compatibility.LIMITED_SUPPORT, standard = standard)
+								else:
+									standard = RFCReference(rfcno = 5280, sect = "4.2.1.4", verb = "MUST", text = "Conforming CAs SHOULD use the UTF8String encoding for explicitText, but MAY use IA5String.")
+									judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificatePolicies_UserNoticeExplicitTextInvalidStringType, "User notice qualifier of policy %s does not contain an explicitText element of type %s, but only UTF8String or IA5String are permitted." % (policy.oid, type(explicit_text).__name__), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+
+								contained_chars = set(ord(char) for char in str(explicit_text))
+								for char in sorted(contained_chars):
+									if (0 <= char <= 0x1f) or (0x7f <= char <= 0x9f):
+										standard = RFCReference(rfcno = 5280, sect = "4.2.1.4", verb = "SHOULD", text = "The explicitText string SHOULD NOT include any control characters (e.g., U+0000 to U+001F and U+007F to U+009F).")
+										judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificatePolicies_UserNoticeExplicitTextControlCharacters, "User notice qualifier of policy %s does not contains control character 0x%x in its explicitText element." % (policy.oid, char), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+										break
+
+					elif qualifier.oid == OIDDB.X509ExtensionCertificatePolicyQualifierOIDs.inverse("id-qt-cps"):
+						# CPS field is present
+						if qualifier.decoded_qualifier is None:
+							standard = RFCReference(rfcno = 5280, sect = "4.2.1.4", verb = "MUST", text = "CPSuri ::= IA5String")
+							judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificatePolicies_CPSDecodeError, "Could not decode CPS qualifier in X.509 Certificate Policies extension of policy %s." % (policy.oid), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard, commonness = Commonness.HIGHLY_UNUSUAL)
+						else:
+							uri = str(qualifier.decoded_qualifier.asn1)
+							if (not uri.startswith("http://")) and (not uri.startswith("https://")):
+								judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificatePolicies_CPSUnusualSchema, "CPS URI of policy %s does not follow http/https schema: %s" % (policy.oid, uri), compatibility = Compatibility.LIMITED_SUPPORT, commonness = Commonness.UNUSUAL)
 		return judgements
 
 	def analyze(self, certificate, root_cert = None):

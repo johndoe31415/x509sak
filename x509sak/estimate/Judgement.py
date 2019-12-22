@@ -127,7 +127,16 @@ class JudgementCode(enum.Enum):
 	Cert_X509Ext_AuthorityInformationAccess_Empty = ("X.509 AuthorityInformationAccess", "extension contains no data")
 	Cert_X509Ext_CertificatePolicies_DeprecatedOID = ("X.509 Certificate Policies extension", "deprectated OID used")
 	Cert_X509Ext_CertificatePolicies_DuplicateOID = ("X.509 Certificate Policies extension", "duplicate OID used")
+	Cert_X509Ext_CertificatePolicies_MoreThanOnePolicy = ("X.509 Certificate Policies extension", "more than one policy present")
+	Cert_X509Ext_CertificatePolicies_DuplicateQualifierOID = ("X.509 Certificate Policies extension", "duplicate qualifier OID present")
 	Cert_X509Ext_CertificatePolicies_AnyPolicyUnknownQualifier = ("X.509 Certificate Policies extension", "unknown qualifier OID used in anyPolicy")
+	Cert_X509Ext_CertificatePolicies_NoticeRefUsed = ("X.509 Certificate Policies extension", "noticeRef field set in user notice")
+	Cert_X509Ext_CertificatePolicies_UserNoticeDecodeError = ("X.509 Certificate Policies extension", "error decoding user notice qualifier")
+	Cert_X509Ext_CertificatePolicies_UserNoticeExplicitTextInvalidStringType = ("X.509 Certificate Policies extension", "invalid explicitText string type")
+	Cert_X509Ext_CertificatePolicies_UserNoticeExplicitTextIA5String = ("X.509 Certificate Policies extension", "explicitText uses IA5String instead of UTF8String")
+	Cert_X509Ext_CertificatePolicies_UserNoticeExplicitTextControlCharacters = ("X.509 Certificate Policies extension", "control characters within explicitText")
+	Cert_X509Ext_CertificatePolicies_CPSDecodeError = ("X.509 Certificate Policies extension", "error decoding CPS qualifier")
+	Cert_X509Ext_CertificatePolicies_CPSUnusualSchema = ("X.509 Certificate Policies extension", "CPS URI uses unusual schema")
 	SignatureFunction_UncommonPaddingScheme = ("Signature function", "uncommon padding scheme")
 	SignatureFunction_UncommonCryptosystem = ("Signature function", "uncommon cryptosystem")
 	SignatureFunction_Common = ("Signature function", "common signature function")
@@ -403,7 +412,7 @@ class RFCReference(StandardReference):
 	_STD_TYPE = "RFC"
 
 	def __init__(self, rfcno, sect, verb, text):
-		assert(verb in [ "SHOULD", "MUST" ])
+		assert(verb in [ "SHOULD", "MUST", "RECOMMEND", "MAY" ])
 		StandardReference.__init__(self)
 		self._rfcno = rfcno
 		self._sect = sect
@@ -413,8 +422,10 @@ class RFCReference(StandardReference):
 	@property
 	def deviation_type(self):
 		return {
-			"SHOULD":	StandardDeviationType.RECOMMENDATION,
-			"MUST":		StandardDeviationType.VIOLATION,
+			"SHOULD":		StandardDeviationType.RECOMMENDATION,
+			"RECOMMEND":	StandardDeviationType.RECOMMENDATION,
+			"MAY":			StandardDeviationType.RECOMMENDATION,
+			"MUST":			StandardDeviationType.VIOLATION,
 		}[self.verb]
 
 	@property

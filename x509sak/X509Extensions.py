@@ -19,6 +19,8 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
+import contextlib
+import collections
 import pyasn1.codec.der.decoder
 import pyasn1.error
 import pyasn1.type.univ
@@ -424,25 +426,50 @@ class X509CertificatePoliciesExtension(X509Extension):
 	_HANDLER_OID = OIDDB.X509Extensions.inverse("CertificatePolicies")
 	_ASN1_MODEL = rfc5280.CertificatePolicies
 
+	_CertificatePolicy = collections.namedtuple("CertificatePolicy", [ "oid", "qualifiers" ])
+	_CertificatePolicyQualifier = collections.namedtuple("CertificatePolicyQualifier", [ "oid", "qualifier_data", "decoded_qualifier" ])
+	_DecodedQualifier = collections.namedtuple("DecodedQualifier", [ "asn1", "trailing_data" ])
+
+	@property
+	def policies(self):
+		return iter(self._policies)
+
 	@property
 	def policy_count(self):
 		return len(self._policies)
 
 	@property
 	def policy_oids(self):
-		return [ oid for (oid, qualifiers) in self._policies ]
+		return [ policy.oid for policy in self.policies ]
 
-	def get_qualifier_asn1(self, policy_oid):
-		for (oid, qualifiers) in self._policies:
-			if oid == policy_oid:
-				return qualifiers
+	@classmethod
+	def decode_qualifier(cls, oid, qualifier_data):
+		decoded_qualifier = None
+		if oid == OIDDB.X509ExtensionCertificatePolicyQualifierOIDs.inverse("id-qt-cps"):
+			with contextlib.suppress(pyasn1.error.PyAsn1UnicodeDecodeError):
+				decoded_qualifier = cls._DecodedQualifier(*pyasn1.codec.der.decoder.decode(qualifier_data, asn1Spec = rfc5280.CPSuri()))
+		elif oid == OIDDB.X509ExtensionCertificatePolicyQualifierOIDs.inverse("id-qt-unotice"):
+			with contextlib.suppress(pyasn1.error.PyAsn1UnicodeDecodeError):
+				decoded_qualifier = cls._DecodedQualifier(*pyasn1.codec.der.decoder.decode(qualifier_data, asn1Spec = rfc5280.UserNotice()))
+		return decoded_qualifier
+
+	def get_policy(self, policy_oid):
+		for policy in self._policies:
+			if policy.oid == policy_oid:
+				return policy
 
 	def _decode_hook(self):
 		self._policies = [ ]
 		for item in self._asn1:
-			oid = OID.from_asn1(item["policyIdentifier"])
-			qualifiers = item["policyQualifiers"]
-			self._policies.append((oid, qualifiers))
+			policy_oid = OID.from_asn1(item["policyIdentifier"])
+			qualifiers = [ ]
+			for qualifier in item["policyQualifiers"]:
+				qualifier_oid = OID.from_asn1(qualifier["policyQualifierId"])
+				qualifier_data = bytes(qualifier["qualifier"])
+				qualifier = self._CertificatePolicyQualifier(oid = qualifier_oid, qualifier_data = qualifier_data, decoded_qualifier = self.decode_qualifier(qualifier_oid, qualifier_data))
+				qualifiers.append(qualifier)
+			policy = self._CertificatePolicy(oid = policy_oid, qualifiers = tuple(qualifiers))
+			self._policies.append(policy)
 
 	def __repr__(self):
 		return "%s<%s>" % (self.__class__.__name__, ", ".join(str(oid) for (oid, qualifiers) in self._policies))

@@ -198,17 +198,16 @@ class CmdLineTestsExamine(BaseTest):
 
 	def test_examine_x509test_xf_ext_cert_policies_any_qual(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-cert-policies-any-qual.pem", "Cert_X509Ext_CertificatePolicies_AnyPolicyUnknownQualifier")
-#
+
 #	def test_examine_x509test_xf_ext_cert_policies_bmp_unotice(self):
+#		Does not decode this at all?
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-cert-policies-bmp-unotice.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-cert-policies-bmp-unotice.pem")
 
 	def test_examine_x509test_xf_ext_cert_policies_dup(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-cert-policies-dup.pem", "Cert_X509Ext_CertificatePolicies_DuplicateOID")
 
-#	def test_examine_x509test_xf_ext_cert_policies_unotice_ch(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-cert-policies-unotice-ch.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-cert-policies-unotice-ch.pem")
+	def test_examine_x509test_xf_ext_cert_policies_unotice_ch(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-cert-policies-unotice-ch.pem", "Cert_X509Ext_CertificatePolicies_UserNoticeExplicitTextControlCharacters")
 
 	def test_examine_x509test_xf_ext_constraints_neg_pathlen(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-constraints-neg-pathlen.pem", "Cert_X509Ext_Malformed")
