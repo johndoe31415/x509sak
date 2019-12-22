@@ -185,7 +185,7 @@ class CmdLineTestsExamine(BaseTest):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-keyid-invalid-issuer.pem", "Cert_X509Ext_AuthorityKeyIdentifier_CAName_BadIP")
 
 	def test_examine_x509test_xf_ext_auth_keyid_mismatch(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-keyid-mismatch.pem", "Cert_X509Ext_AuthorityKeyIdentifier_CA_Mismatch", parent_crtname = "certs/x509test/ok-ca.pem")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-keyid-mismatch.pem", "Cert_X509Ext_AuthorityKeyIdentifier_CA_KeyIDMismatch", parent_crtname = "certs/x509test/ok-ca.pem")
 
 	def test_examine_x509test_xf_ext_auth_keyid_noid(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-keyid-noid.pem", "Cert_X509Ext_AuthorityKeyIdentifier_NoKeyIDPresent")
@@ -193,8 +193,8 @@ class CmdLineTestsExamine(BaseTest):
 	def test_examine_x509test_xf_ext_auth_keyid_onlyserial(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-keyid-onlyserial.pem", "Cert_X509Ext_AuthorityKeyIdentifier_SerialWithoutName")
 
-#	def test_examine_x509test_xf_ext_auth_keyid_serial_mismatch(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-keyid-serial-mismatch.pem", "")
+	def test_examine_x509test_xf_ext_auth_keyid_serial_mismatch(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-keyid-serial-mismatch.pem", "Cert_X509Ext_AuthorityKeyIdentifier_CA_SerialMismatch", parent_crtname = "certs/x509test/ok-ca.pem")
 
 #	def test_examine_x509test_xf_ext_cert_policies_any_qual(self):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-cert-policies-any-qual.pem", "")

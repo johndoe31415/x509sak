@@ -190,9 +190,13 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 				if root_ski is None:
 					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_CA_NoSKI, "AuthorityKeyIdentifier X.509 extension present, but given root certificate does not contain any subject key identifier.", commonness = Commonness.HIGHLY_UNUSUAL)
 				else:
-					if aki.keyid != root_ski.keyid:
-						standard = RFCReference(rfcno = 5280, sect = "4.2.1.1", verb = "MUST", text = "authorityCertIssuer and authorityCertSerialNumber MUST both be present or both be absent")
-						judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_CA_Mismatch, "AuthorityKeyIdentifier X.509 extension refers to authority key ID %s, but CA has key ID %s as their SubjectKeyIdentifier." % (aki.keyid.hex(), root_ski.keyid.hex()), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+					if (aki.keyid is not None) and (aki.keyid != root_ski.keyid):
+						standard = RFCReference(rfcno = 5280, sect = "4.2.1.1", verb = "MUST", text = "The authority key identifier extension provides a means of identifying the public key corresponding to the private key used to sign a certificate.")
+						judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_CA_KeyIDMismatch, "AuthorityKeyIdentifier X.509 extension refers to authority key ID %s, but CA has key ID %s as their SubjectKeyIdentifier." % (aki.keyid.hex(), root_ski.keyid.hex()), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard, commonness = Commonness.HIGHLY_UNUSUAL)
+					if (aki.serial is not None) and (aki.serial != root_cert.serial):
+						standard = RFCReference(rfcno = 5280, sect = "4.2.1.1", verb = "MUST", text = "The authority key identifier extension provides a means of identifying the public key corresponding to the private key used to sign a certificate.")
+						judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_CA_SerialMismatch, "AuthorityKeyIdentifier X.509 extension refers to CA certificate with serial number 0x%x, but given CA has serial number 0x%x." % (aki.serial, root_cert.serial), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard, commonness = Commonness.HIGHLY_UNUSUAL)
+					print(aki)
 		return judgements
 
 	def _judge_name_constraints(self, certificate):
