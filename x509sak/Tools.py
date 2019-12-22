@@ -291,8 +291,14 @@ class ValidationTools():
 		return (cls.DomainnameTemplateValidationResult.Valid, domainname_template)
 
 	@classmethod
+	def _escape_regex(cls, text):
+		for escape_char in "\\(*.+?":
+			text = text.replace(escape_char, "\\" + escape_char)
+		return text
+
+	@classmethod
 	def validate_domainname_template_match(cls, template, domainname):
-		template_re = template.lower().replace(".", r"\.").replace("*", r"[-a-z0-9]*")
+		template_re = cls._escape_regex(template.lower()).replace("\\*", r"[-a-z0-9]*")
 		match = re.fullmatch(template_re, domainname.lower())
 		return match is not None
 
