@@ -128,24 +128,20 @@ class ActionGraphPool(BaseAction):
 			X509CertificateClass.ServerAuth:		self._NodeAttributes(shape = None, fill_color = self._palette_flatui.get_hex_color("peter-river"), stroke_color = None, text_color = None),
 		}.get(classification, self._NodeAttributes(shape = None, fill_color = self._palette_flatui.get_hex_color("concrete"), stroke_color = None, text_color = None))
 
-	def _get_cert_attributes_keytype(self, crt):
-		# TODO: Support EdDSA
+	def _color_cryptosystem(self, cryptosystem):
 		return {
-			Cryptosystems.RSA:	self._NodeAttributes(shape = None, fill_color = self._palette_flatui.get_hex_color("peter-river"), stroke_color = None, text_color = None),
-			Cryptosystems.ECC:	self._NodeAttributes(shape = None, fill_color = self._palette_flatui.get_hex_color("emerland"), stroke_color = None, text_color = None),
-		}.get(crt.pubkey.pk_alg.value.cryptosystem, self._NodeAttributes(shape = None, fill_color = self._palette_flatui.get_hex_color("concrete"), stroke_color = None, text_color = None))
+			Cryptosystems.RSA:			self._NodeAttributes(shape = None, fill_color = self._palette_flatui.get_hex_color("peter-river"), stroke_color = None, text_color = None),
+			Cryptosystems.ECC_ECDSA:	self._NodeAttributes(shape = None, fill_color = self._palette_flatui.get_hex_color("emerland"), stroke_color = None, text_color = None),
+			Cryptosystems.ECC_EdDSA:	self._NodeAttributes(shape = None, fill_color = self._palette_flatui.get_hex_color("orange"), stroke_color = None, text_color = None),
+		}.get(cryptosystem, self._NodeAttributes(shape = None, fill_color = self._palette_flatui.get_hex_color("concrete"), stroke_color = None, text_color = None))
+
+	def _get_cert_attributes_keytype(self, crt):
+		return self._color_cryptosystem(crt.pubkey.pk_alg.value.cryptosystem)
 
 	def _get_cert_attributes_sigtype(self, crt):
-		# TODO Refactor signature algorithms
-		sigalg = crt.signature_algorithm
-		return {
-			"rsaEncryption":	self._NodeAttributes(shape = None, fill_color = self._palette_flatui.get_hex_color("peter-river"), stroke_color = None, text_color = None),
-			"ECDSA":			self._NodeAttributes(shape = None, fill_color = self._palette_flatui.get_hex_color("emerland"), stroke_color = None, text_color = None),
-		}.get(sigalg.scheme, self._NodeAttributes(shape = None, fill_color = self._palette_flatui.get_hex_color("concrete"), stroke_color = None, text_color = None))
-
-#	def _get_cert_attributes_security(self, crt):
-#		# TODO Implement this!
-#		raise NotImplementedError()
+		signature_function = crt.signature_algorithm.value.sig_fnc.value
+		cryptosystem = signature_function.cryptosystem
+		return self._color_cryptosystem(cryptosystem)
 
 	def _substitute_derhash(self, crt):
 		return crt.hashval.hex()[:8]
