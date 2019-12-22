@@ -153,6 +153,11 @@ class PrimeFieldEllipticCurve(EllipticCurve):
 	_DomainArgs = KwargsChecker(required_arguments = set([ "p", "a", "b", "n", "h" ]), optional_arguments = set([ "Gx", "Gy" ]))
 
 	@property
+	def is_koblitz(self):
+		"""Test if a = 0 and b is sufficiently small."""
+		return (self.a == 0) and (self.b < 1000)
+
+	@property
 	def order_bits(self):
 		return math.log(self.n, 2)
 
@@ -172,6 +177,11 @@ class BinaryFieldEllipticCurve(EllipticCurve):
 	def __init__(self, **domain_parameters):
 		super().__init__(**domain_parameters)
 		self._domain_parameters["intpoly"] = sum(1 << bit for bit in set(self.poly))
+
+	@property
+	def is_koblitz(self):
+		"""Test if a, b \in [ 0, 1 ]."""
+		return (self.a in  [ 0, 1 ]) and (self.b in [ 0, 1 ])
 
 	@property
 	def order_bits(self):

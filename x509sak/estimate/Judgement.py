@@ -45,6 +45,9 @@ class JudgementCode(enum.Enum):
 	ECC_Pubkey_Is_G = ("ECC pubkey", "point is generator")
 	ECC_Pubkey_X_BitBias = ("ECC pubkey", "point's X coordinate has bit bias")
 	ECC_Pubkey_Y_BitBias = ("ECC pubkey", "point's Y coordinate has bit bias")
+	ECC_BinaryField = ("ECC domain", "binary finite field used for ECC")
+	ECC_BinaryFieldKoblitz = ("ECC domain", "Koblitz curve in binary field")
+	ECC_PrimeFieldKoblitz = ("ECC domain", "Koblitz curve in prime field")
 	ECDSA_Signature_R_BitBias = ("ECDSA signature", "R value has bit bias")
 	ECDSA_Signature_S_BitBias = ("ECDSA signature", "S value has bit bias")
 	ECDSA_Signature_TrailingData = ("ECDSA signature encoding", "trailing garbage data")
@@ -209,7 +212,7 @@ class StandardDeviationType(enum.IntEnum):
 	VIOLATION = 1
 
 class SecurityJudgement():
-	def __init__(self, code, text, bits = None, verdict = None, commonness = None, compatibility = None, prefix_topic = False, standard = None):
+	def __init__(self, code, text, bits = None, verdict = None, commonness = None, compatibility = None, prefix_topic = False, standard = None, literature = None):
 		assert((code is None) or isinstance(code, JudgementCode))
 		assert((bits is None) or isinstance(bits, (int, float)))
 		assert((verdict is None) or isinstance(verdict, Verdict))
@@ -223,6 +226,7 @@ class SecurityJudgement():
 		self._compatibility = compatibility
 		self._prefix_topic = prefix_topic
 		self._standard = standard
+		self._literature = literature
 		if self._bits == 0:
 			if self._verdict is None:
 				self._verdict = Verdict.NO_SECURITY
@@ -271,6 +275,10 @@ class SecurityJudgement():
 	def standard(self):
 		return self._standard
 
+	@property
+	def literature(self):
+		return self._literature
+
 	@classmethod
 	def from_dict(cls, judgement_data):
 		if "code" in judgement_data:
@@ -291,7 +299,10 @@ class SecurityJudgement():
 		standard = judgement_data.get("standard")
 		if standard is not None:
 			standard = StandardReference.from_dict(standard)
-		return cls(code = code, text = text, bits = bits, verdict = verdict, commonness = commonness, compatibility = compatibility, standard = standard)
+		literature = judgement_data.get("literature")
+		if literature is not None:
+			literature = LiteratureReference.from_dict(literature)
+		return cls(code = code, text = text, bits = bits, verdict = verdict, commonness = commonness, compatibility = compatibility, standard = standard, literature = literature)
 
 	def to_dict(self):
 		result = {
@@ -304,6 +315,7 @@ class SecurityJudgement():
 			"commonness":		JSONTools.translate(self.commonness) if (self.commonness is not None) else None,
 			"compatibility":	JSONTools.translate(self.compatibility) if (self.compatibility is not None) else None,
 			"standard":			self.standard.to_dict() if (self.standard is not None) else None,
+			"literature":		self.literature.to_dict() if (self.literature is not None) else None,
 		}
 		return { key: value for (key, value) in result.items() if value is not None }
 
@@ -463,3 +475,33 @@ class RFCReference(StandardReference):
 			return "RFC%d Sect. %s" % (self.rfcno, self.sect)
 		else:
 			return "RFC%d Sects. %s" % (self.rfcno, " / ".join(self.sect))
+
+class LiteratureReference():
+	def __init__(self, author, title, year = None, month = None, source = None):
+		assert((year is None) or isinstance(year, int))
+		assert((month is None) or (isinstance(month, int) and (1 <= month <= 12)))
+		if isinstance(author, str):
+			author = [ author ]
+		else:
+			author = list(author)
+		self._fields = {
+			"author":		author,
+			"title":		title,
+			"year":			year,
+			"month":		month,
+			"source":		source,
+		}
+
+	@classmethod
+	def from_dict(cls, data):
+		return cls(author = data["author"], title = data["title"], year = data.get("year"), month = data.get("month"), source = data.get("source"))
+
+	def to_dict(self):
+		return self._fields
+
+	def __str__(self):
+		text = " and ".join(self._fields["author"])
+		if self._fields["year"] is not None:
+			text += " (%d)" % (self._fields["year"])
+		text += ". \"%s\"" % (self._fields["title"])
+		return text

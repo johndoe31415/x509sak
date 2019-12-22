@@ -24,7 +24,8 @@ from x509sak.AlgorithmDB import Cryptosystems
 from x509sak.NumberTheory import NumberTheory
 from x509sak.estimate.BaseEstimator import BaseEstimator
 from x509sak.estimate import JudgementCode, Commonness
-from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements
+from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, LiteratureReference
+from x509sak.ECCMath import PrimeFieldEllipticCurve, BinaryFieldEllipticCurve
 
 @BaseEstimator.register
 class ECCSecurityEstimator(BaseEstimator):
@@ -52,6 +53,30 @@ class ECCSecurityEstimator(BaseEstimator):
 		# b = log2(sqrt(n / 32)) = (log2(n) / 2) - 2.5
 		approx_curve_order_bits = curve.order_bits
 		bits_security = (approx_curve_order_bits / 2) - 2.5
+
+		# We then take into account anomalous binary curves (Koblitz curves) as
+		# well and use the approximations of Wiener/Zuccherato ("Faster Attacks
+		# on Elliptic Curve Cryptosystems")
+		literature = LiteratureReference(author = [ "Michael J. Wiener", "Robert J. Zuccherato" ], title = "Faster Attacks on Elliptic Curve Cryptosystems", year = 1999, source = "Selected Areas in Cryptography 1998; LNCS 1556")
+		if isinstance(curve, BinaryFieldEllipticCurve) and curve.is_koblitz:
+			speedup = math.sqrt(2 * curve.m)
+			bits_security -= math.log(speedup, 2)
+			judgements += SecurityJudgement(JudgementCode.ECC_BinaryFieldKoblitz, "Binary field Koblitz curves (anomalous binary curves) have more efficient attacks than their non-anomalous binary curves; in this case improving attack performance by a factor of ~%.1f." % (speedup), commonness = Commonness.UNUSUAL, literature = literature)
+
+		if isinstance(curve, PrimeFieldEllipticCurve) and curve.is_koblitz:
+			# The math here is a bit shady. Firstly, Koblitz curves over F_p
+			# only mean there's an efficiently computable endomorphism (e.g.,
+			# R. Gallant (1999); "Faster elliptic curve cryptography using
+			# efficient endomorphisms"). We do not check for that, however, but
+			# instead rely on dull "b = 0 and a is small" check.
+			# Additionally, Wiener and Zuccherato describe curves of form
+			# y^2 = x^3 - ax or y^2 = x^3 + b (which, for our a/b check, is not
+			# the case) and, for the latter, describe a sqrt(6) speedup. We
+			# just take that as is, knowing full well it's just guesswork.
+			speedup = math.sqrt(6)
+			bits_security -= math.log(speedup, 2)
+			judgements += SecurityJudgement(JudgementCode.ECC_PrimeFieldKoblitz, "Prime field Koblitz curves might have more efficient attacks than non-Koblitz curves. In this case, attack performance improves roughly by a factor of ~%.1f." % (speedup), commonness = Commonness.UNUSUAL, literature = literature)
+
 		bits_security = math.floor(bits_security)
 		judgements += self.algorithm("bits").analyze(JudgementCode.ECC_Pubkey_CurveOrder, bits_security)
 
@@ -67,6 +92,10 @@ class ECCSecurityEstimator(BaseEstimator):
 		hweight_analysis = NumberTheory.hamming_weight_analysis(pubkey.y, min_bit_length = curve.field_bits)
 		if not hweight_analysis.plausibly_random:
 			judgements += SecurityJudgement(JudgementCode.ECC_Pubkey_Y_BitBias, "Hamming weight of public key field element's Y coordinate is %d at bitlength %d, but expected a weight between %d and %d when randomly chosen; this is likely not coincidential." % (hweight_analysis.hweight, hweight_analysis.bitlen, hweight_analysis.rnd_min_hweight, hweight_analysis.rnd_max_hweight), commonness = Commonness.HIGHLY_UNUSUAL)
+
+		if isinstance(curve, BinaryFieldEllipticCurve):
+			literature = LiteratureReference(author = [ "Steven D. Galbraith", "Shishay W. Gebregiyorgis" ], title = "Summation polynomial algorithms for elliptic curves in characteristic two", year = 2014, source = "Progress in Cryptology -- INDOCRYPT 2014; LNCS 8885")
+			judgements += SecurityJudgement(JudgementCode.ECC_BinaryField, "Binary finite field elliptic curve is used. Recent advances in cryptography show there might be efficient attacks on such curves, hence it is recommended to use prime-field curves instead.", commonness = Commonness.UNUSUAL, literature = literature)
 
 		result = {
 			"specific":	{
