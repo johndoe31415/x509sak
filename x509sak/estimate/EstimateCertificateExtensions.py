@@ -196,7 +196,6 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 					if (aki.serial is not None) and (aki.serial != root_cert.serial):
 						standard = RFCReference(rfcno = 5280, sect = "4.2.1.1", verb = "MUST", text = "The authority key identifier extension provides a means of identifying the public key corresponding to the private key used to sign a certificate.")
 						judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_CA_SerialMismatch, "AuthorityKeyIdentifier X.509 extension refers to CA certificate with serial number 0x%x, but given CA has serial number 0x%x." % (aki.serial, root_cert.serial), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard, commonness = Commonness.HIGHLY_UNUSUAL)
-					print(aki)
 		return judgements
 
 	def _judge_name_constraints(self, certificate):
