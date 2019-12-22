@@ -419,3 +419,27 @@ class X509AuthorityInformationAccessExtension(X509Extension):
 	def __repr__(self):
 		return "%s<%s>" % (self.__class__.__name__, ", ".join(str(oid) for (oid, location) in self._methods))
 X509ExtensionRegistry.set_handler_class(X509AuthorityInformationAccessExtension)
+
+class X509CertificatePoliciesExtension(X509Extension):
+	_HANDLER_OID = OIDDB.X509Extensions.inverse("CertificatePolicies")
+	_ASN1_MODEL = rfc5280.CertificatePolicies
+
+	@property
+	def policy_count(self):
+		return len(self._policies)
+
+	def get_qualifier_asn1(self, policy_oid):
+		for (oid, qualifiers) in self._policies:
+			if oid == policy_oid:
+				return qualifiers
+
+	def _decode_hook(self):
+		self._policies = [ ]
+		for item in self._asn1:
+			oid = OID.from_asn1(item["policyIdentifier"])
+			qualifiers = item["policyQualifiers"]
+			self._policies.append((oid, qualifiers))
+
+	def __repr__(self):
+		return "%s<%s>" % (self.__class__.__name__, ", ".join(str(oid) for (oid, qualifiers) in self._policies))
+X509ExtensionRegistry.set_handler_class(X509CertificatePoliciesExtension)

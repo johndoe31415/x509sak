@@ -20,7 +20,7 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 import collections
-from x509sak.OID import OIDDB
+from x509sak.OID import OID, OIDDB
 from x509sak.AlgorithmDB import HashFunctions
 from x509sak.X509Extensions import X509ExtendedKeyUsageExtension
 from x509sak.estimate.BaseEstimator import BaseEstimator
@@ -385,6 +385,26 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 
 		return judgements
 
+	def _judge_certificate_policy(self, certificate):
+		judgements = SecurityJudgements()
+
+		old_oid = OIDDB.X509Extensions.inverse("oldCertificatePolicies")
+		old_policy = certificate.extensions.get_first(old_oid)
+		if old_policy is not None:
+			standard = RFCReference(rfcno = 5280, sect = "A.2", verb = "MUST", text = "id-ce-certificatePolicies OBJECT IDENTIFIER ::=  { id-ce 32 }")
+			judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificatePolicies_DeprecatedOID, "Deprecated OID %s used to encode certificate policies." % (old_oid), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard, commonness = Commonness.HIGHLY_UNUSUAL)
+
+		policy = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("CertificatePolicies"))
+		if policy is not None:
+			any_policy = policy.get_qualifier_asn1(OIDDB.X509ExtensionCertificatePolicy.inverse("anyPolicy"))
+			if any_policy is not None:
+				for policy_qualifier_info in any_policy:
+					policy_qualifier_oid = OID.from_asn1(policy_qualifier_info["policyQualifierId"])
+					if policy_qualifier_oid not in OIDDB.X509ExtensionCertificatePolicyQualifierOIDs:
+						standard = RFCReference(rfcno = 5280, sect = "4.2.1.4", verb = "MUST", text = "When qualifiers are used with the special policy anyPolicy, they MUST be limited to the qualifiers identified in this section.")
+						judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificatePolicies_AnyPolicyUnknownQualifier, "Unknown OID %s used in a qualification of an anyPolicy certificate policy." % (policy_qualifier_oid), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard, commonness = Commonness.HIGHLY_UNUSUAL)
+		return judgements
+
 	def analyze(self, certificate, root_cert = None):
 		individual = [ ]
 		for extension in certificate.extensions:
@@ -405,6 +425,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		judgements += self._judge_subject_alternative_name(certificate)
 		judgements += self._judge_issuer_alternative_name(certificate)
 		judgements += self._judge_authority_information_access(certificate)
+		judgements += self._judge_certificate_policy(certificate)
 
 		return {
 			"individual":	individual,

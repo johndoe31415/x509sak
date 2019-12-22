@@ -196,9 +196,8 @@ class CmdLineTestsExamine(BaseTest):
 	def test_examine_x509test_xf_ext_auth_keyid_serial_mismatch(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-keyid-serial-mismatch.pem", "Cert_X509Ext_AuthorityKeyIdentifier_CA_SerialMismatch", parent_crtname = "certs/x509test/ok-ca.pem")
 
-#	def test_examine_x509test_xf_ext_cert_policies_any_qual(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-cert-policies-any-qual.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-cert-policies-any-qual.pem")
+	def test_examine_x509test_xf_ext_cert_policies_any_qual(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-cert-policies-any-qual.pem", "Cert_X509Ext_CertificatePolicies_AnyPolicyUnknownQualifier")
 #
 #	def test_examine_x509test_xf_ext_cert_policies_bmp_unotice(self):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-cert-policies-bmp-unotice.pem", "")

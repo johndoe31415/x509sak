@@ -197,6 +197,17 @@ class OIDDB():
 		OID.from_str("2.16.840.1.113719.1.9.4.1"):	"NovellSecurityAttributes",
 	})
 
+	"""X.509 Certificate Policy OIDs."""
+	X509ExtensionCertificatePolicy = BijectiveDict({
+		OID.from_str("2.5.29.32.0"):				"anyPolicy",
+	})
+
+	"""X.509 Certificate Policy Qualifier OIDs."""
+	X509ExtensionCertificatePolicyQualifierOIDs = BijectiveDict({
+		OID.from_str("1.3.6.1.5.5.7.2.1"):			"id-qt-cps",
+		OID.from_str("1.3.6.1.5.5.7.2.2"):			"id-qt-unotice",
+	})
+
 	"""Hash functions."""
 	HashFunctions = BijectiveDict({
 		OID.from_str("1.3.14.3.2.26"):				"sha1",
