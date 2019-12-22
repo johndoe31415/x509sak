@@ -452,3 +452,18 @@ class CmdLineTestsExamine(BaseTest):
 
 	def test_constructed_rsa_bitbias(self):
 		self._test_examine_x509test_resultcode("certs/constructed/rsa_bitbias.pem", "RSA_Modulus_BitBias")
+
+	def test_constructed_rsa_exponent1(self):
+		self._test_examine_x509test_resultcode("certs/constructed/rsa_exponent1.pem", "RSA_Exponent_Is_0x1")
+
+	def test_constructed_rsa_exponent3(self):
+		self._test_examine_x509test_resultcode("certs/constructed/rsa_exponent3.pem", "RSA_Exponent_Small")
+
+	def test_constructed_rsa_exponent101(self):
+		self._test_examine_x509test_resultcode("certs/constructed/rsa_exponent101.pem", "RSA_Exponent_SmallUnusual")
+
+	def test_constructed_rsa_exponent_long(self):
+		self._test_examine_x509test_resultcode("certs/constructed/rsa_exponent_long.pem", "RSA_Exponent_Large")
+
+	def test_constructed_rsa_parameter_missing(self):
+		self._test_examine_x509test_resultcode("certs/constructed/rsa_parameter_missing.pem", "RSA_Parameter_Field_Not_Present")
