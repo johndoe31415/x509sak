@@ -385,11 +385,10 @@ class CmdLineTestsExamine(BaseTest):
 #	def test_examine_x509test_xf_pubkey_ecdsa_secp192r1(self):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-pubkey-ecdsa-secp192r1.pem", "")
 #		self._test_examine_x509test_noparse("certs/x509test/xf-pubkey-ecdsa-secp192r1.pem")
-#
-#	def test_examine_x509test_xf_pubkey_ecdsa_unknown_curve(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-pubkey-ecdsa-unknown-curve.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-pubkey-ecdsa-unknown-curve.pem")
-#
+
+	def test_examine_x509test_xf_pubkey_ecdsa_unknown_curve(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-pubkey-ecdsa-unknown-curve.pem", "ECC_Curve_Unknown")
+
 	def test_examine_x509test_xf_pubkey_rsa_exponent_negative(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-pubkey-rsa-exponent-negative.pem", "RSA_Exponent_Is_Zero_Or_Negative")
 
