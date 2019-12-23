@@ -111,7 +111,7 @@ class CmdLineTestsExamine(BaseTest):
 		with ResourceFileLoader(certname) as certfile:
 			SubprocessExecutor(self._x509sak + [ "examine", "--fast-rsa", "-f", "json", "-o", "-", certfile ], success_return_codes = [ 1 ]).run()
 
-	def _test_examine_x509test_resultcode(self, certname, expect_codes, parent_crtname = None, fast_rsa = True):
+	def _test_examine_x509test_resultcode(self, certname, expect_codes, parent_certname = None, fast_rsa = True):
 		if not isinstance(expect_codes, (list, tuple)):
 			expect_codes = (expect_codes, )
 
@@ -120,10 +120,10 @@ class CmdLineTestsExamine(BaseTest):
 		else:
 			fast_rsa = [ ]
 		with ResourceFileLoader(certname) as certfile, tempfile.NamedTemporaryFile(suffix = ".json") as outfile:
-			if parent_crtname is None:
+			if parent_certname is None:
 				SubprocessExecutor(self._x509sak + [ "examine" ] + fast_rsa + [ "-f", "json", "-o", outfile.name, certfile ]).run()
 			else:
-				with ResourceFileLoader(parent_crtname) as parent_crt:
+				with ResourceFileLoader(parent_certname) as parent_crt:
 					result = SubprocessExecutor(self._x509sak + [ "examine" ] + fast_rsa + [ "--parent-certificate", parent_crt, "-f", "json", "-o", outfile.name, certfile ]).run()
 
 			# Read all codes from the generated JSON
@@ -133,7 +133,7 @@ class CmdLineTestsExamine(BaseTest):
 
 			# If we're in debugging mode, update the consolidated JSON stat file
 			if self._debug_dumps:
-				self._update_stats_file(certname = certname, parent_crtname = parent_crtname, encountered_codes = encountered_codes, checked_codes = expect_codes)
+				self._update_stats_file(certname = certname, parent_certname = parent_certname, encountered_codes = encountered_codes, checked_codes = expect_codes)
 			for expect_code in expect_codes:
 				self.assertIn(expect_code, encountered_codes)
 
@@ -207,7 +207,7 @@ class CmdLineTestsExamine(BaseTest):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-keyid-invalid-issuer.pem", "Cert_X509Ext_AuthorityKeyIdentifier_CAName_BadIP")
 
 	def test_examine_x509test_xf_ext_auth_keyid_mismatch(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-keyid-mismatch.pem", "Cert_X509Ext_AuthorityKeyIdentifier_CA_KeyIDMismatch", parent_crtname = "certs/x509test/ok-ca.pem")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-keyid-mismatch.pem", "Cert_X509Ext_AuthorityKeyIdentifier_CA_KeyIDMismatch", parent_certname = "certs/x509test/ok-ca.pem")
 
 	def test_examine_x509test_xf_ext_auth_keyid_noid(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-keyid-noid.pem", "Cert_X509Ext_AuthorityKeyIdentifier_NoKeyIDPresent")
@@ -216,7 +216,7 @@ class CmdLineTestsExamine(BaseTest):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-keyid-onlyserial.pem", "Cert_X509Ext_AuthorityKeyIdentifier_SerialWithoutName")
 
 	def test_examine_x509test_xf_ext_auth_keyid_serial_mismatch(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-keyid-serial-mismatch.pem", "Cert_X509Ext_AuthorityKeyIdentifier_CA_SerialMismatch", parent_crtname = "certs/x509test/ok-ca.pem")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-keyid-serial-mismatch.pem", "Cert_X509Ext_AuthorityKeyIdentifier_CA_SerialMismatch", parent_certname = "certs/x509test/ok-ca.pem")
 
 	def test_examine_x509test_xf_ext_cert_policies_any_qual(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-cert-policies-any-qual.pem", "Cert_X509Ext_CertificatePolicies_AnyPolicyUnknownQualifier")
@@ -466,10 +466,10 @@ class CmdLineTestsExamine(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/pubkey_ecc_G.pem", "ECC_Pubkey_Is_G")
 
 	def test_constructed_ecdsa_sig_r_bitbias(self):
-		self._test_examine_x509test_resultcode("certs/constructed/ecdsa_sig_r_bitbias.pem", "ECDSA_Signature_R_BitBias", parent_crtname = "certs/ok/johannes-bauer.com.pem")
+		self._test_examine_x509test_resultcode("certs/constructed/ecdsa_sig_r_bitbias.pem", "ECDSA_Signature_R_BitBias", parent_certname = "certs/ok/johannes-bauer.com.pem")
 
 	def test_constructed_ecdsa_sig_s_bitbias(self):
-		self._test_examine_x509test_resultcode("certs/constructed/ecdsa_sig_s_bitbias.pem", "ECDSA_Signature_S_BitBias", parent_crtname = "certs/ok/johannes-bauer.com.pem")
+		self._test_examine_x509test_resultcode("certs/constructed/ecdsa_sig_s_bitbias.pem", "ECDSA_Signature_S_BitBias", parent_certname = "certs/ok/johannes-bauer.com.pem")
 
 	def test_constructed_rsa_bitbias(self):
 		self._test_examine_x509test_resultcode("certs/constructed/rsa_bitbias.pem", "RSA_Modulus_BitBias")
