@@ -111,9 +111,16 @@ class CmdLineTestsExamine(BaseTest):
 		with ResourceFileLoader(certname) as certfile:
 			SubprocessExecutor(self._x509sak + [ "examine", "--fast-rsa", "-f", "json", "-o", "-", certfile ], success_return_codes = [ 1 ]).run()
 
-	def _test_examine_x509test_resultcode(self, certname, expect_codes, parent_certname = None, fast_rsa = True):
-		if not isinstance(expect_codes, (list, tuple)):
-			expect_codes = (expect_codes, )
+	def _test_examine_x509test_resultcode(self, certname, expect_present = None, expect_absent = None, parent_certname = None, fast_rsa = True):
+		if expect_present is None:
+			expect_present = tuple()
+		if not isinstance(expect_present, (list, tuple)):
+			expect_present = (expect_present, )
+
+		if expect_absent is None:
+			expect_absent = tuple()
+		if not isinstance(expect_absent, (list, tuple)):
+			expect_absent = (expect_absent, )
 
 		if fast_rsa:
 			fast_rsa = [ "--fast-rsa" ]
@@ -133,9 +140,11 @@ class CmdLineTestsExamine(BaseTest):
 
 			# If we're in debugging mode, update the consolidated JSON stat file
 			if self._debug_dumps:
-				self._update_stats_file(certname = certname, parent_certname = parent_certname, encountered_codes = encountered_codes, checked_codes = expect_codes)
-			for expect_code in expect_codes:
-				self.assertIn(expect_code, encountered_codes)
+				self._update_stats_file(certname = certname, parent_certname = parent_certname, encountered_codes = encountered_codes, checked_codes = expect_present)
+			for code in expect_present:
+				self.assertIn(code, encountered_codes)
+			for code in expect_absent:
+				self.assertNotIn(code, encountered_codes)
 
 	def test_examine_x509test_xf_algo_mismatch1(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-algo-mismatch1.pem", "Cert_Signature_Algorithm_Mismatch")
@@ -464,6 +473,18 @@ class CmdLineTestsExamine(BaseTest):
 
 	def test_constructed_pubkey_ecc_G(self):
 		self._test_examine_x509test_resultcode("certs/constructed/pubkey_ecc_G.pem", "ECC_Pubkey_Is_G")
+
+	def test_constructed_pubkey_ecc_fp_non_koblitz(self):
+		self._test_examine_x509test_resultcode("certs/ok/ecc_secp256r1.pem", expect_absent = "ECC_PrimeFieldKoblitz")
+
+	def test_constructed_pubkey_ecc_fp_koblitz(self):
+		self._test_examine_x509test_resultcode("certs/ok/ecc_secp256k1.pem", "ECC_PrimeFieldKoblitz")
+
+	def test_constructed_pubkey_ecc_f2m_non_koblitz(self):
+		self._test_examine_x509test_resultcode("certs/ok/ecc_sect283r1.pem", "ECC_BinaryField", expect_absent = "ECC_BinaryFieldKoblitz")
+
+	def test_constructed_pubkey_ecc_f2m_koblitz(self):
+		self._test_examine_x509test_resultcode("certs/ok/ecc_sect283k1.pem", [ "ECC_BinaryField", "ECC_BinaryFieldKoblitz" ])
 
 	def test_constructed_ecdsa_sig_r_bitbias(self):
 		self._test_examine_x509test_resultcode("certs/constructed/ecdsa_sig_r_bitbias.pem", "ECDSA_Signature_R_BitBias", parent_certname = "certs/ok/johannes-bauer.com.pem")

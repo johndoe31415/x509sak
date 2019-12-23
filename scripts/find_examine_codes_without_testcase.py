@@ -65,7 +65,7 @@ class ResultCollector():
 	def finished_callback(self, call_args, result):
 		if result is None:
 			return
-		(basefilename, encounterd_codes) = call_args
+		(basefilename, encountered_codes) = call_args
 
 		for encountered_code in encountered_codes:
 			if encountered_code not in self._encountered_certs:
