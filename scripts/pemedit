@@ -1,0 +1,114 @@
+#!/usr/bin/python3
+#	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
+#	Copyright (C) 2018-2018 Johannes Bauer
+#
+#	This file is part of x509sak.
+#
+#	x509sak is free software; you can redistribute it and/or modify
+#	it under the terms of the GNU General Public License as published by
+#	the Free Software Foundation; this program is ONLY licensed under
+#	version 3 of the License, later versions are explicitly excluded.
+#
+#	x509sak is distributed in the hope that it will be useful,
+#	but WITHOUT ANY WARRANTY; without even the implied warranty of
+#	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#	GNU General Public License for more details.
+#
+#	You should have received a copy of the GNU General Public License
+#	along with x509sak; if not, write to the Free Software
+#	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+#	Johannes Bauer <JohannesBauer@gmx.de>
+
+import sys
+import os
+import subprocess
+import tempfile
+import re
+from x509sak.FriendlyArgumentParser import FriendlyArgumentParser
+
+parser = FriendlyArgumentParser(description = "Edit a PEM file in its raw representation.")
+parser.add_argument("filename", metavar = "filename", type = str, help = "PEM file to edit")
+args = parser.parse_args(sys.argv[1:])
+
+oid_replacements = {
+	"1.2.840.113549.1.1.11":	"sha256WithRSAEncryption",
+	"1.2.840.113549.1.1.12":	"sha384WithRSAEncryption",
+	"1.2.840.113549.1.1.1":		"rsaEncryption",
+	"2.5.29.14":				"subjectKeyIdentifier",
+	"2.5.29.15":				"keyUsage",
+	"2.5.29.19":				"basicConstraints",
+	"2.5.29.35":				"authorityKeyIdentifier",
+	"2.5.4.10":					 "organizationName",
+	"2.5.4.11":					"organizationUnitName",
+	"2.5.4.3":					"commonName",
+}
+
+def simplify(asciider_bindata):
+	asciider = asciider_bindata.decode("ascii")
+	for (oid, oid_name) in oid_replacements.items():
+		# Replace OIDs with their names
+		regex = re.compile("OBJECT_IDENTIFIER\s*{\s*%s\s*}" % (oid))
+		asciider = regex.sub("OBJECT_IDENTIFIER { oid=%s }" % (oid_name), asciider)
+
+		# Remove comment lines for those we know
+		regex = re.compile("^\s*# %s\s*\n" % (oid_name), flags = re.MULTILINE)
+		asciider = regex.sub("", asciider)
+	return asciider.encode("ascii")
+
+def expand(asciider_bindata):
+	asciider = asciider_bindata.decode("ascii")
+	for (oid, oid_name) in oid_replacements.items():
+		# Replace OIDs with their names
+		regex = re.compile("OBJECT_IDENTIFIER\s*{\s*oid=%s\s*}" % (oid_name))
+		asciider = regex.sub("OBJECT_IDENTIFIER { %s }" % (oid), asciider)
+	return asciider.encode("ascii")
+
+def pem2der(pemdata, filetype):
+	if filetype == "cert":
+		return subprocess.check_output([ "openssl", "x509", "-outform", "der" ], input = pemdata)
+	else:
+		raise NotImplementedError(filetype)
+
+def der2pem(derdata, filetype):
+	if filetype == "cert":
+		return subprocess.check_output([ "openssl", "x509", "-inform", "der", "-text" ], input = derdata)
+	else:
+		raise NotImplementedError(filetype)
+
+def print_pem_text(pemdata, filetype):
+	if filetype == "cert":
+		sys.stdout.write(subprocess.check_output([ "openssl", "x509", "-noout", "-text" ], input = pemdata).decode())
+	else:
+		raise NotImplementedError(filetype)
+
+with open(args.filename, "rb") as f:
+	pemfile = f.read()
+
+if b"-----BEGIN CERTIFICATE-----" in pemfile:
+	filetype = "cert"
+else:
+	raise NotImplementedError("Could not determine filetype of %s." % (args.filename))
+
+der_data = pem2der(pemfile, filetype)
+ascii_der = subprocess.check_output([ "der2ascii" ], input = der_data)
+transcoded_ascii_der = simplify(ascii_der)
+
+with tempfile.NamedTemporaryFile(prefix = "pemedit_", suffix = ".txt") as f:
+	f.write(transcoded_ascii_der)
+	f.flush()
+
+	syntax_file = os.path.dirname(__file__) + "/asciider.vim"
+	subprocess.check_call([ "vi", "-f", "-c", ":source %s" % (syntax_file), f.name ])
+
+	# Read the changed file
+	f.seek(0)
+	modified_ascii_der = f.read()
+
+
+ascii_der = expand(modified_ascii_der)
+der_data = subprocess.check_output([ "ascii2der" ], input = ascii_der)
+pem_data = der2pem(der_data, filetype)
+with open(args.filename, "wb") as f:
+	f.write(pem_data)
+print_pem_text(pem_data, filetype)
