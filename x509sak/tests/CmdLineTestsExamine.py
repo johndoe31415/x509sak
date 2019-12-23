@@ -23,6 +23,7 @@ import tempfile
 import json
 from x509sak.tests import BaseTest, ResourceFileLoader
 from x509sak.SubprocessExecutor import SubprocessExecutor
+from x509sak.Tools import FileLockTools
 
 class CmdLineTestsExamine(BaseTest):
 	def test_crt_with_custom_key_usage(self):
@@ -77,6 +78,28 @@ class CmdLineTestsExamine(BaseTest):
 		with open("__tested_codes.json", "w") as f:
 			json.dump(codes, f)
 
+	def _update_stats_file(self, encountered_codes, checked_code):
+		stats_filename = ".examinecert_stats.json"
+		with FileLockTools.lock(stats_filename):
+			try:
+				with open(stats_filename) as f:
+					stats = json.load(f)
+			except (FileNotFoundError, json.JSONDecodeError):
+				stats = { }
+
+			if "encountered_codes" not in stats:
+				stats["encountered_codes"] = [ ]
+			stats["encountered_codes"] = list(set(stats["encountered_codes"]) | set(encountered_codes))
+
+			if "checked_codes" not in stats:
+				stats["checked_codes"] = [ ]
+			stats["checked_codes"] = set(stats["checked_codes"])
+			stats["checked_codes"].add(checked_code)
+			stats["checked_codes"] = list(stats["checked_codes"])
+
+			with open(stats_filename, "w") as f:
+				json.dump(stats, f)
+
 	def _extract_codes_from_json(self, data):
 		def recurse_through_data(data, result):
 			if result is None:
@@ -110,14 +133,16 @@ class CmdLineTestsExamine(BaseTest):
 			else:
 				with ResourceFileLoader(parent_crtname) as parent_crt:
 					result = SubprocessExecutor(self._x509sak + [ "examine" ] + fast_rsa + [ "--parent-certificate", parent_crt, "-f", "json", "-o", outfile.name, certfile ]).run()
+
+			# Read all codes from the generated JSON
 			with open(outfile.name) as f:
 				data = json.load(f)
-			codes = self._extract_codes_from_json(data)
-			if (not expect_code in codes) and self._debug_dumps:
-				# Testcase will fail the assertion, write out the failed certificate.
-				with open(certfile, "rb") as infile, open("__failed_crt.pem", "wb") as outfile:
-					outfile.write(infile.read())
-			self.assertIn(expect_code, codes)
+			encountered_codes = self._extract_codes_from_json(data)
+
+			# If we're in debugging mode, update the consolidated JSON stat file
+			if self._debug_dumps:
+				self._update_stats_file(encountered_codes = encountered_codes, checked_code = expect_code)
+			self.assertIn(expect_code, encountered_codes)
 
 	def test_examine_x509test_xf_algo_mismatch1(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-algo-mismatch1.pem", "Cert_Signature_Algorithm_Mismatch")
@@ -464,6 +489,9 @@ class CmdLineTestsExamine(BaseTest):
 
 	def test_constructed_rsa_modulus_compromised(self):
 		self._test_examine_x509test_resultcode("certs/constructed/rsa_modulus_compromised.pem", "RSA_Modulus_FactorizationKnown")
+
+	def test_constructed_rsa_exponent0(self):
+		self._test_examine_x509test_resultcode("certs/constructed/rsa_exponent0.pem", "RSA_Exponent_Is_Zero_Or_Negative")
 
 	def test_constructed_rsa_exponent1(self):
 		self._test_examine_x509test_resultcode("certs/constructed/rsa_exponent1.pem", "RSA_Exponent_Is_0x1")

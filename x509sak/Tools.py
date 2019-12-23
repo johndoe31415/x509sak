@@ -30,6 +30,7 @@ import textwrap
 import datetime
 import urllib.parse
 import pyasn1.type.univ
+import time
 from x509sak.Exceptions import UnexpectedFileContentException, InvalidUsageException, InvalidInputException
 
 class PEMDataTools():
@@ -335,3 +336,31 @@ class PaddingTools():
 		if last_char is None:
 			raise InvalidInputException("PKCS#1 padding does not seem to contain data.")
 		return data[i + 1:]
+
+class FileLockTools():
+	class _FileLockObject():
+		def __init__(self, lock_dir):
+			self._lock_dir = lock_dir
+
+		def __enter__(self):
+			return self
+
+		def __exit__(self, *args):
+			try:
+				os.rmdir(self._lock_dir)
+			except FileNotFoundError:
+				pass
+
+	@classmethod
+	def lock(cls, filename, retry = 0.25):
+		filename = os.path.realpath(filename)
+		lock_name = os.path.dirname(filename) + "/." + os.path.basename(filename) + ".lock"
+		while True:
+			try:
+				os.mkdir(lock_name)
+				# Acquired lock
+				break
+			except FileExistsError:
+				# Other process holds lock
+				time.sleep(retry)
+		return FileLockTools._FileLockObject(lock_name)

@@ -27,6 +27,7 @@ import sys
 import x509sak
 import x509sak.estimate
 from Parallelizer import Parallelizer
+from x509sak.FriendlyArgumentParser import FriendlyArgumentParser
 
 class ResultCollector():
 	def __init__(self):
@@ -66,23 +67,51 @@ class ResultCollector():
 		self._analyze(result)
 
 	def dump(self):
-		print("%d failed:" % (len(self._errors)))
-		for filename in sorted(self._errors):
-			print("    %s" % (filename))
-		print()
+		if len(self._errors) > 0:
+			print("%d files failed:" % (len(self._errors)))
+			for filename in sorted(self._errors):
+				print("    %s" % (filename))
+			print()
 		encountered = set(getattr(x509sak.estimate.Judgement.JudgementCode, name) for name in self._codes)
 		all_codes = set(x509sak.estimate.Judgement.JudgementCode)
 		missing = all_codes - encountered
-		print("%d codes encountered, %d total. %d missing:" % (len(encountered), len(all_codes), len(missing)))
+		print("%d of %d codes encountered when scanning all present test certificates. %d missing:" % (len(encountered), len(all_codes), len(missing)))
 		for item in sorted([ code.name for code in missing ]):
 			print("    %s" % (item))
+		print()
+
+		try:
+			with open(".examinecert_stats.json") as f:
+				stats = json.load(f)
+
+			tc_encountered = set(stats["encountered_codes"])
+			missing = all_codes - tc_encountered
+			print("%d of %d codes encountered when running testcases. %d missing:" % (len(tc_encountered), len(all_codes), len(missing)))
+			for item in sorted([ code.name for code in missing ]):
+				print("    %s" % (item))
+			print()
+
+			tc_checked = set(stats["checked_codes"])
+			missing = all_codes - tc_checked
+			print("%d of %d codes actively checked for when running testcases. %d missing:" % (len(tc_checked), len(all_codes), len(missing)))
+			for item in sorted([ code.name for code in missing ]):
+				print("    %s" % (item))
+			print()
+
+		except (FileNotFoundError, json.JSONDecodeError):
+			# No stat file available
+			print("No stat file available, not checking against run testcases.")
 
 	def add_codes(self, codes):
 		self._codes |= set(codes)
 
+parser = FriendlyArgumentParser(description = "Find untested result codes for the examinecert facility.")
+parser.add_argument("-s", "--scan", action = "store_true", help = "Scan all certificates in the test/ subdirectory as well to find out which codes would be emitted")
+args = parser.parse_args(sys.argv[1:])
+
 rc = ResultCollector()
-if len(sys.argv) != 2:
-	parallelizer = Parallelizer()
+parallelizer = Parallelizer()
+if args.scan:
 	base_dir = "x509sak/tests/data"
 	for (dirname, subdirs, files) in os.walk(base_dir):
 		for filename in sorted(files):
@@ -91,9 +120,5 @@ if len(sys.argv) != 2:
 
 			full_filename = dirname + "/" + filename
 			parallelizer.run(rc.run, args = (full_filename, ), finished_callback = rc.finished_callback)
-	parallelizer.wait()
-else:
-	with open(sys.argv[1]) as f:
-		codes = json.load(f)
-	rc.add_codes(codes)
+parallelizer.wait()
 rc.dump()
