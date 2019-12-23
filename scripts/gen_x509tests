@@ -22,7 +22,7 @@
 
 import os
 
-dirname = "../x509sak/tests/data/certs/x509test/"
+dirname = os.path.dirname(__file__) + "/../x509sak/tests/data/certs/x509test/"
 for filename in sorted(os.listdir(dirname)):
 	if not filename.startswith("xf-"):
 		continue
