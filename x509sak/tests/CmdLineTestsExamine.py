@@ -66,19 +66,7 @@ class CmdLineTestsExamine(BaseTest):
 		with ResourceFileLoader("certs/ok/rsapss_sha256_salt_32.pem") as crtfile:
 			SubprocessExecutor(self._x509sak + [ "examine", "-p", "tls-client", "--fast-rsa", "-f", "json", crtfile ]).run().stdout_json
 
-	def _write_codes(self, codes):
-		if not self._debug_dumps:
-			return
-		try:
-			with open("__tested_codes.json") as f:
-				present_codes = set(json.load(f))
-		except (FileNotFoundError, json.JSONDecodeError):
-			present_codes = set()
-		codes = list(codes | present_codes)
-		with open("__tested_codes.json", "w") as f:
-			json.dump(codes, f)
-
-	def _update_stats_file(self, encountered_codes, checked_code):
+	def _update_stats_file(self, certname, parent_certname, encountered_codes, checked_codes):
 		stats_filename = ".examinecert_stats.json"
 		with FileLockTools.lock(stats_filename):
 			try:
@@ -88,14 +76,16 @@ class CmdLineTestsExamine(BaseTest):
 				stats = { }
 
 			if "encountered_codes" not in stats:
-				stats["encountered_codes"] = [ ]
-			stats["encountered_codes"] = list(set(stats["encountered_codes"]) | set(encountered_codes))
+				stats["encountered_codes"] = { }
+			for encountered_code in encountered_codes:
+				if encountered_code not in stats["encountered_codes"]:
+					stats["encountered_codes"][encountered_code] = [ certname, parent_certname ]
 
 			if "checked_codes" not in stats:
-				stats["checked_codes"] = [ ]
-			stats["checked_codes"] = set(stats["checked_codes"])
-			stats["checked_codes"].add(checked_code)
-			stats["checked_codes"] = list(stats["checked_codes"])
+				stats["checked_codes"] = { }
+			for checked_code in checked_codes:
+				if checked_code not in stats["checked_codes"]:
+					stats["checked_codes"][checked_code] = [ certname, parent_certname ]
 
 			with open(stats_filename, "w") as f:
 				json.dump(stats, f)
@@ -115,14 +105,16 @@ class CmdLineTestsExamine(BaseTest):
 
 		result = set()
 		recurse_through_data(data, result)
-		self._write_codes(result)
 		return result
 
 	def _test_examine_x509test_noparse(self, certname):
 		with ResourceFileLoader(certname) as certfile:
 			SubprocessExecutor(self._x509sak + [ "examine", "--fast-rsa", "-f", "json", "-o", "-", certfile ], success_return_codes = [ 1 ]).run()
 
-	def _test_examine_x509test_resultcode(self, certname, expect_code, parent_crtname = None, fast_rsa = True):
+	def _test_examine_x509test_resultcode(self, certname, expect_codes, parent_crtname = None, fast_rsa = True):
+		if not isinstance(expect_codes, (list, tuple)):
+			expect_codes = (expect_codes, )
+
 		if fast_rsa:
 			fast_rsa = [ "--fast-rsa" ]
 		else:
@@ -141,8 +133,9 @@ class CmdLineTestsExamine(BaseTest):
 
 			# If we're in debugging mode, update the consolidated JSON stat file
 			if self._debug_dumps:
-				self._update_stats_file(encountered_codes = encountered_codes, checked_code = expect_code)
-			self.assertIn(expect_code, encountered_codes)
+				self._update_stats_file(certname = certname, parent_crtname = parent_crtname, encountered_codes = encountered_codes, checked_codes = expect_codes)
+			for expect_code in expect_codes:
+				self.assertIn(expect_code, encountered_codes)
 
 	def test_examine_x509test_xf_algo_mismatch1(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-algo-mismatch1.pem", "Cert_Signature_Algorithm_Mismatch")
