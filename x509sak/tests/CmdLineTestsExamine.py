@@ -111,7 +111,7 @@ class CmdLineTestsExamine(BaseTest):
 		with ResourceFileLoader(certname) as certfile:
 			SubprocessExecutor(self._x509sak + [ "examine", "--fast-rsa", "-f", "json", "-o", "-", certfile ], success_return_codes = [ 1 ]).run()
 
-	def _test_examine_x509test_resultcode(self, certname, expect_present = None, expect_absent = None, parent_certname = None, fast_rsa = True):
+	def _test_examine_x509test_resultcode(self, certname, expect_present = None, expect_absent = None, parent_certname = None, fast_rsa = True, host_check = None):
 		if expect_present is None:
 			expect_present = tuple()
 		if not isinstance(expect_present, (list, tuple)):
@@ -122,16 +122,27 @@ class CmdLineTestsExamine(BaseTest):
 		if not isinstance(expect_absent, (list, tuple)):
 			expect_absent = (expect_absent, )
 
-		if fast_rsa:
-			fast_rsa = [ "--fast-rsa" ]
-		else:
-			fast_rsa = [ ]
+		def gen_cmdline(fast_rsa, host_check, certfile_name, cacertfile_name, outfile_name):
+			cmdline = self._x509sak + [ "examine" ]
+			if fast_rsa:
+				cmdline += [ "--fast-rsa" ]
+			cmdline += [ "-f", "json" ]
+			cmdline += [ "-o", outfile_name ]
+			if cacertfile_name is not None:
+				cmdline += [ "--parent-certificate", cacertfile_name ]
+			if host_check is not None:
+				cmdline += [ "-p", "tls-server", "--server-name", host_check ]
+			cmdline += [ certfile_name ]
+			return cmdline
+
 		with ResourceFileLoader(certname) as certfile, tempfile.NamedTemporaryFile(suffix = ".json") as outfile:
 			if parent_certname is None:
-				SubprocessExecutor(self._x509sak + [ "examine" ] + fast_rsa + [ "-f", "json", "-o", outfile.name, certfile ]).run()
+				cmdline = gen_cmdline(fast_rsa, host_check, certfile_name = certfile, cacertfile_name = None, outfile_name = outfile.name)
+				SubprocessExecutor(cmdline).run()
 			else:
 				with ResourceFileLoader(parent_certname) as parent_crt:
-					result = SubprocessExecutor(self._x509sak + [ "examine" ] + fast_rsa + [ "--parent-certificate", parent_crt, "-f", "json", "-o", outfile.name, certfile ]).run()
+					cmdline = gen_cmdline(fast_rsa, host_check, certfile_name = certfile, cacertfile_name = parent_crt, outfile_name = outfile.name)
+					SubprocessExecutor(cmdline).run()
 
 			# Read all codes from the generated JSON
 			with open(outfile.name) as f:
@@ -487,10 +498,22 @@ class CmdLineTestsExamine(BaseTest):
 		self._test_examine_x509test_resultcode("certs/ok/ecc_sect283k1.pem", [ "ECC_BinaryField", "ECC_BinaryFieldKoblitz" ])
 
 	def test_constructed_ecdsa_sig_r_bitbias(self):
+		# Need the CA for this test, since the signature can only be checked
+		# when the curve is known, which is encoded in the CA's public key.
 		self._test_examine_x509test_resultcode("certs/constructed/ecdsa_sig_r_bitbias.pem", "ECDSA_Signature_R_BitBias", parent_certname = "certs/ok/johannes-bauer.com.pem")
 
 	def test_constructed_ecdsa_sig_s_bitbias(self):
+		# Need the CA for this test, since the signature can only be checked
+		# when the curve is known, which is encoded in the CA's public key.
 		self._test_examine_x509test_resultcode("certs/constructed/ecdsa_sig_s_bitbias.pem", "ECDSA_Signature_S_BitBias", parent_certname = "certs/ok/johannes-bauer.com.pem")
+
+	def test_hostname_ok(self):
+		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", "Cert_SAN_Match", expect_absent = "Cert_SAN_NoMatch", host_check = "mail.johannes-bauer.com")
+		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", "Cert_SAN_Match", expect_absent = "Cert_SAN_NoMatch", host_check = "www.johannes-bauer.com")
+		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", "Cert_SAN_Match", expect_absent = "Cert_SAN_NoMatch", host_check = "johannes-bauer.com")
+
+	def test_hostname_not_ok(self):
+		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", "Cert_SAN_NoMatch", expect_absent = "Cert_SAN_Match", host_check = "wwwQjohannes-bauer.com")
 
 	def test_constructed_rsa_bitbias(self):
 		self._test_examine_x509test_resultcode("certs/constructed/rsa_bitbias.pem", "RSA_Modulus_BitBias")

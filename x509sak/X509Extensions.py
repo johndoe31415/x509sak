@@ -366,13 +366,19 @@ class X509KeyUsageExtension(X509Extension):
 		return self._flags
 
 	def _decode_hook(self):
-		self._flags = set()
-		for (name, bit) in self._ASN1_MODEL.namedValues.items():
-			if (len(self._asn1) > bit) and self._asn1[bit]:
-				self._flags.add(name)
+		if self._asn1 is None:
+			self._flags = None
+		else:
+			self._flags = set()
+			for (name, bit) in self._ASN1_MODEL.namedValues.items():
+				if (len(self._asn1) > bit) and self._asn1[bit]:
+					self._flags.add(name)
 
 	def __repr__(self):
-		return "%s<%s>" % (self.__class__.__name__, ", ".join(sorted(self._flags)))
+		if self.flags is not None:
+			return "%s<%s>" % (self.__class__.__name__, ", ".join(sorted(self._flags)))
+		else:
+			return "%s<flags unparsable>" % (self.__class__.__name__)
 X509ExtensionRegistry.set_handler_class(X509KeyUsageExtension)
 
 

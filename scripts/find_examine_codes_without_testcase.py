@@ -65,8 +65,7 @@ class ResultCollector():
 	def finished_callback(self, call_args, result):
 		if result is None:
 			return
-		(basefilename, encountered_codes) = call_args
-
+		(basefilename, encountered_codes) = result
 		for encountered_code in encountered_codes:
 			if encountered_code not in self._encountered_certs:
 				self._encountered_certs[encountered_code] = (basefilename, None)
@@ -80,6 +79,7 @@ class ResultCollector():
 		print()
 
 	def _dump_codes(self, codes, scantype):
+		assert(len(set(codes) - self._all_codes) == 0)
 		missing = self._all_codes - set(codes)
 		print("%s: %d of %d codes seen (%.1f%%), %d missing (%.1f%%):" % (scantype, len(codes), len(self._all_codes), len(codes) / len(self._all_codes) * 100, len(missing), len(missing) / len(self._all_codes) * 100))
 		for codename in sorted(missing):
@@ -132,7 +132,7 @@ if args.scan:
 				continue
 
 			full_filename = dirname + "/" + filename
-			base_filename = full_filename[len(base_dir) : ]
+			base_filename = full_filename[len(base_dir) + 1 : ]
 			parallelizer.run(rc.run, args = (base_filename, full_filename), finished_callback = rc.finished_callback)
 parallelizer.wait()
 rc.dump()
