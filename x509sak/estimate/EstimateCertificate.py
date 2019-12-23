@@ -25,6 +25,7 @@ from x509sak.OID import OID, OIDDB
 from x509sak.estimate.BaseEstimator import BaseEstimator
 from x509sak.estimate import JudgementCode, Commonness, Compatibility
 from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, RFCReference
+from x509sak.CurveDB import CurveNotFoundException
 
 @BaseEstimator.register
 class CertificateEstimator(BaseEstimator):
@@ -58,6 +59,8 @@ class CertificateEstimator(BaseEstimator):
 				judgements += SecurityJudgement(JudgementCode.Cert_Pubkey_Invalid_DER, "Certificate public key uses invalid DER encoding. Decoding and re-encoding yields %d byte blob while original was %d bytes." % (len(pubkey_reencoding), len(certificate.pubkey.der_data)), compatibility = Compatibility.STANDARDS_DEVIATION)
 		except pyasn1.error.PyAsn1Error:
 			judgements += SecurityJudgement(JudgementCode.Cert_Pubkey_Invalid_DER, "Certificate public key uses invalid DER encoding. Re-encoding was not possible.", compatibility = Compatibility.STANDARDS_DEVIATION)
+		except CurveNotFoundException:
+			pass
 
 		oid_header = OID.from_asn1(certificate.asn1["tbsCertificate"]["signature"]["algorithm"])
 		oid_sig = OID.from_asn1(certificate.asn1["signatureAlgorithm"]["algorithm"])
@@ -74,7 +77,7 @@ class CertificateEstimator(BaseEstimator):
 			"subject":		self.algorithm("dn").analyze(cert.subject),
 			"issuer":		self.algorithm("dn").analyze(cert.issuer),
 			"validity":		self.algorithm("crt_validity").analyze(cert),
-			"pubkey":		self.algorithm("pubkey").analyze(cert.pubkey),
+			"pubkey":		self.algorithm("pubkey").analyze(cert),
 			"extensions":	self.algorithm("crt_exts").analyze(cert, root_cert),
 			"signature":	self.algorithm("sig").analyze(cert.signature_alg_oid, cert.signature_alg_params, cert.signature, root_cert),
 			"purpose":		self.algorithm("purpose").analyze(cert),

@@ -22,12 +22,30 @@
 from x509sak.AlgorithmDB import Cryptosystems
 from x509sak.estimate.BaseEstimator import BaseEstimator
 from x509sak.Exceptions import LazyDeveloperException
+from x509sak.CurveDB import CurveNotFoundException
+from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, JudgementCode, Compatibility, Commonness
 
 @BaseEstimator.register
 class PublicKeyEstimator(BaseEstimator):
 	_ALG_NAME = "pubkey"
 
-	def analyze(self, pubkey):
+	def _error_curve_not_found(self, certificate, exception):
+		judgements = SecurityJudgements()
+		judgements += SecurityJudgement(JudgementCode.ECC_Curve_Unknown, "Certificate public key relies on unknown elliptic curve: %s Conservatively estimating broken security." % (str(exception)), bits = 0, compatibility = Compatibility.LIMITED_SUPPORT, commonness = Commonness.HIGHLY_UNUSUAL)
+		result = {
+			"pubkey_alg":	None,
+			"pretty":		"Unrecognized elliptic curve: %s" % (str(exception)),
+			"security":		judgements,
+		}
+
+		return result
+
+	def analyze(self, certificate):
+		try:
+			pubkey = certificate.pubkey
+		except CurveNotFoundException as e:
+			return self._error_curve_not_found(certificate, e)
+
 		result = {
 			"pubkey_alg":	pubkey.pk_alg.value.name,
 		}

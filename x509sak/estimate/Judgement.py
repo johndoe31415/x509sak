@@ -48,6 +48,7 @@ class JudgementCode(enum.Enum):
 	ECC_BinaryField = ("ECC domain", "binary finite field used for ECC")
 	ECC_BinaryFieldKoblitz = ("ECC domain", "Koblitz curve in binary field")
 	ECC_PrimeFieldKoblitz = ("ECC domain", "Koblitz curve in prime field")
+	ECC_Curve_Unknown = ("ECC pubkey", "curve unknown")
 	ECDSA_Signature_R_BitBias = ("ECDSA signature", "R value has bit bias")
 	ECDSA_Signature_S_BitBias = ("ECDSA signature", "S value has bit bias")
 	ECDSA_Signature_TrailingData = ("ECDSA signature encoding", "trailing garbage data")
