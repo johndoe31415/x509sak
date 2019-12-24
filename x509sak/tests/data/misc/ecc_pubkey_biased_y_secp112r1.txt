@@ -1,3 +1,6 @@
+# Hamming weight of affine Y coordine and affine point coordinates of points
+# on secp112r1
+
 41 (0xc3bad8d750a358956ef2c4e0caf1, 0x802e30d4011621d132cacb6843c0)
 41 (0x2a65f8b061f34fa50da712d36cec, 0x904d57889209010d3a904c2370b2)
 37 (0xc3bad8d750a358956ef2c4e0ce23, 0x26642206c143a348a4c309016441)
