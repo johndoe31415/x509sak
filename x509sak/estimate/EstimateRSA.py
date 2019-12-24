@@ -133,6 +133,6 @@ class RSASecurityEstimator(BaseEstimator):
 		judgements += result["specific"]["e"]["security"]
 
 		if self._analysis_options.include_raw_data:
-			result["n"]["value"] = pubkey.n
-			result["e"]["value"] = pubkey.e
+			result["specific"]["n"]["value"] = pubkey.n
+			result["specific"]["e"]["value"] = pubkey.e
 		return result

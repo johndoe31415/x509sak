@@ -111,7 +111,7 @@ class CmdLineTestsExamine(BaseTest):
 		with ResourceFileLoader(certname) as certfile:
 			SubprocessExecutor(self._x509sak + [ "examine", "--fast-rsa", "-f", "json", "-o", "-", certfile ], success_return_codes = [ 1 ]).run()
 
-	def _test_examine_x509test_resultcode(self, certname, expect_present = None, expect_absent = None, parent_certname = None, fast_rsa = True, host_check = None):
+	def _test_examine_x509test_resultcode(self, certname, expect_present = None, expect_absent = None, parent_certname = None, fast_rsa = True, host_check = None, include_raw = False):
 		if expect_present is None:
 			expect_present = tuple()
 		if not isinstance(expect_present, (list, tuple)):
@@ -122,7 +122,7 @@ class CmdLineTestsExamine(BaseTest):
 		if not isinstance(expect_absent, (list, tuple)):
 			expect_absent = (expect_absent, )
 
-		def gen_cmdline(fast_rsa, host_check, certfile_name, cacertfile_name, outfile_name):
+		def gen_cmdline(fast_rsa, host_check, include_raw, certfile_name, cacertfile_name, outfile_name):
 			cmdline = self._x509sak + [ "examine" ]
 			if fast_rsa:
 				cmdline += [ "--fast-rsa" ]
@@ -132,16 +132,18 @@ class CmdLineTestsExamine(BaseTest):
 				cmdline += [ "--parent-certificate", cacertfile_name ]
 			if host_check is not None:
 				cmdline += [ "-p", "tls-server", "--server-name", host_check ]
+			if include_raw:
+				cmdline += [ "--include-raw-data" ]
 			cmdline += [ certfile_name ]
 			return cmdline
 
 		with ResourceFileLoader(certname) as certfile, tempfile.NamedTemporaryFile(suffix = ".json") as outfile:
 			if parent_certname is None:
-				cmdline = gen_cmdline(fast_rsa, host_check, certfile_name = certfile, cacertfile_name = None, outfile_name = outfile.name)
+				cmdline = gen_cmdline(fast_rsa, host_check, include_raw, certfile_name = certfile, cacertfile_name = None, outfile_name = outfile.name)
 				SubprocessExecutor(cmdline).run()
 			else:
 				with ResourceFileLoader(parent_certname) as parent_crt:
-					cmdline = gen_cmdline(fast_rsa, host_check, certfile_name = certfile, cacertfile_name = parent_crt, outfile_name = outfile.name)
+					cmdline = gen_cmdline(fast_rsa, host_check, include_raw, certfile_name = certfile, cacertfile_name = parent_crt, outfile_name = outfile.name)
 					SubprocessExecutor(cmdline).run()
 
 			# Read all codes from the generated JSON
@@ -553,3 +555,15 @@ class CmdLineTestsExamine(BaseTest):
 
 	def test_constructed_rsa_parameter_missing(self):
 		self._test_examine_x509test_resultcode("certs/constructed/rsa_parameter_missing.pem", "RSA_Parameter_Field_Not_Present")
+
+	def test_include_raw_data_rsa(self):
+		self._test_examine_x509test_resultcode("certs/ok/rsa_512.pem", include_raw = True)
+
+	def test_include_raw_data_ecc_fp(self):
+		self._test_examine_x509test_resultcode("certs/ok/ecc_secp256r1.pem", include_raw = True)
+
+	def test_include_raw_data_ecc_f2m(self):
+		self._test_examine_x509test_resultcode("certs/ok/ecc_sect283r1.pem", include_raw = True)
+
+	def test_include_raw_data_ecc_twedwards(self):
+		self._test_examine_x509test_resultcode("certs/ok/pubkey_sig_ed25519.pem", include_raw = True)
