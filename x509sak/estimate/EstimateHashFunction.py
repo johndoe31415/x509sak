@@ -44,4 +44,6 @@ class HashFunctionSecurityEstimator(BaseEstimator):
 			"bitlen":		hash_fnc.value.output_bits,
 			"security":		judgements,
 		}
+		if self._analysis_options.include_raw_data:
+			result["oid"] = str(hash_fnc.value.oid)
 		return result
