@@ -507,8 +507,11 @@ class CmdLineTestsExamine(BaseTest):
 		# when the curve is known, which is encoded in the CA's public key.
 		self._test_examine_x509test_resultcode("certs/constructed/ecdsa_sig_s_bitbias.pem", "ECDSA_Signature_S_BitBias", parent_certname = "certs/ok/johannes-bauer.com.pem")
 
-	def test_constructed_pubkey_bitbias_x(self):
-		self._test_examine_x509test_resultcode("certs/constructed/ecc_pubkey_x_bitbias.pem", "ECC_Pubkey_X_BitBias", expect_absent = "ECC_Pubkey_Y_BitBias")
+	def test_constructed_pubkey_bitbias_x_low_hweight(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ecc_pubkey_x_bitbias1.pem", "ECC_Pubkey_X_BitBias", expect_absent = "ECC_Pubkey_Y_BitBias")
+
+	def test_constructed_pubkey_bitbias_x_high_hweight(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ecc_pubkey_x_bitbias2.pem", "ECC_Pubkey_X_BitBias", expect_absent = "ECC_Pubkey_Y_BitBias")
 
 	def test_constructed_pubkey_bitbias_y(self):
 		self._test_examine_x509test_resultcode("certs/constructed/ecc_pubkey_y_bitbias.pem", "ECC_Pubkey_Y_BitBias", expect_absent = "ECC_Pubkey_X_BitBias")
