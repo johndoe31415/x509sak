@@ -135,7 +135,7 @@ class JudgementCode(enum.Enum):
 	Cert_X509Ext_CertificatePolicies_MoreThanOnePolicy = ("X.509 Certificate Policies extension", "more than one policy present")
 	Cert_X509Ext_CertificatePolicies_DuplicateQualifierOID = ("X.509 Certificate Policies extension", "duplicate qualifier OID present")
 	Cert_X509Ext_CertificatePolicies_AnyPolicyUnknownQualifier = ("X.509 Certificate Policies extension", "unknown qualifier OID used in anyPolicy")
-	Cert_X509Ext_CertificatePolicies_NoticeRefUsed = ("X.509 Certificate Policies extension", "noticeRef field set in user notice")
+	Cert_X509Ext_CertificatePolicies_UserNoticeRefPresent = ("X.509 Certificate Policies extension", "noticeRef field set in user notice")
 	Cert_X509Ext_CertificatePolicies_UserNoticeDecodeError = ("X.509 Certificate Policies extension", "error decoding user notice qualifier")
 	Cert_X509Ext_CertificatePolicies_UserNoticeExplicitTextInvalidStringType = ("X.509 Certificate Policies extension", "invalid explicitText string type")
 	Cert_X509Ext_CertificatePolicies_UserNoticeExplicitTextIA5String = ("X.509 Certificate Policies extension", "explicitText uses IA5String instead of UTF8String")
