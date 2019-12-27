@@ -31,6 +31,7 @@ import time
 import collections
 import tempfile
 import subprocess
+import hashlib
 from x509sak.FriendlyArgumentParser import FriendlyArgumentParser
 
 parser = FriendlyArgumentParser(description = "Test x509sak by running a certificate test corpus against the 'examine' facility.")
@@ -44,15 +45,15 @@ if not os.path.isdir(args.corpus_dir):
 	print("Not a directory: %s" % (args.corpus_dir), file = sys.stderr)
 	sys.exit(1)
 
-if not os.path.isfile(args.corpus_dir + "/CertDB.py"):
-	print("Not a clone of https://github.com/johndoe31415/x509-cert-testcorpus (CertDB.py missing): %s" % (args.corpus_dir), file = sys.stderr)
+if not os.path.isfile(args.corpus_dir + "/CertTOC.py"):
+	print("Not a clone of https://github.com/johndoe31415/x509-cert-testcorpus (CertTOC.py missing): %s" % (args.corpus_dir), file = sys.stderr)
 	sys.exit(1)
 
 # Include corpus directory in include path so we can load CertDB.py
 sys.path.append(args.corpus_dir)
-from CertDB import CertDB
+from CertTOC import CertTOC
 
-WorkItem = collections.namedtuple("WorkItem", [ "db_filename", "domainname", "fetched_timet", "der_hash_md5", "der_cert" ])
+WorkItem = collections.namedtuple("WorkItem", [ "cert_no", "fetch_timestamp", "cert_der_sha256", "cert_der", "ca_cert_der", "cert_fqdn", "cert_usage" ])
 ResultItem = collections.namedtuple("ResultItem", [ "work_item", "returncode", "stdout", "stderr", "duration" ])
 
 class CorpusTester():
@@ -60,35 +61,45 @@ class CorpusTester():
 		self._args = args
 		self._db = sqlite3.connect(self._args.dbfile)
 		self._cursor = self._db.cursor()
+		self._toc = CertTOC(self._args.corpus_dir + "/certs/toc.sqlite3")
+		self._exclude_hashes = None
 		with contextlib.suppress(sqlite3.OperationalError):
 			self._cursor.execute("""
 			CREATE TABLE test_results (
 				id integer PRIMARY KEY,
-				domainname varchar NOT NULL,
-				fetched_timet integer NOT NULL,
+				conn_id integer NOT NULL,
+				cert_no integer NOT NULL,
+				fetch_timestamp integer NOT NULL,
 				returncode integer NOT NULL,
 				stdout varchar NOT NULL,
 				stderr varchar NOT NULL,
 				duration float NOT NULL,
-				db_filename varchar NOT NULL,
-				der_hash_md5 blob NOT NULL UNIQUE,
-				der_cert blob NULL
+				cert_der_sha256 blob NOT NULL,
+				cert_der blob NULL,
+				ca_cert_der blob NULL,
+				cert_fqdn varchar NULL,
+				cert_usage varchar NULL
 			);
 			""")
-			self._hashes_already_tested = None
-			self._all_db_files = [ ]
-			self._certs_remaining = 0
-
-	def _run_db(self, cert_db_filename):
-		print(cert_db_filename)
 
 	def _worker_do_work(self, work_item):
 		# First, write certificate to a temporary filename
-		with tempfile.NamedTemporaryFile(prefix = "cert_", suffix = ".der") as f:
-			f.write(work_item.der_cert)
-			f.flush()
+		with tempfile.NamedTemporaryFile(prefix = "cert_", suffix = ".der") as cert_f, tempfile.NamedTemporaryFile(prefix = "cert_ca_", suffix = ".der") as ca_f:
+			cert_f.write(work_item.cert_der)
+			cert_f.flush()
+			if work_item.ca_cert_der is not None:
+				ca_f.write(work_item.ca_cert_der)
+				ca_f.flush()
 
-			cmdline = [ "./x509sak.py", "examinecert", "--fast-rsa", "-p", "tls-server", "-n", work_item.domainname, "--in-format", "dercrt", f.name ]
+			cmdline = [ "./x509sak.py", "examinecert", "--fast-rsa" ]
+			if work_item.cert_usage is not None:
+				cmdline += [ "-p", work_item.cert_usage ]
+			if work_item.cert_fqdn is not None:
+				cmdline += [ "-n", work_item.cert_fqdn ]
+			if work_item.ca_cert_der is not None:
+				cmdline += [ "-r", ca_f.name ]
+			cmdline += [ "--in-format", "dercrt", "--out-format", "json", cert_f.name ]
+
 			t0 = time.time()
 			process_result = subprocess.run(cmdline, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
 			t1 = time.time()
@@ -109,10 +120,10 @@ class CorpusTester():
 
 	def _feeder(self, work_queue, result_queue):
 		for work_item in self._work_generator():
-			if work_item.der_hash_md5 not in self._hashes_already_tested:
+			if work_item.cert_der_sha256 not in self._exclude_hashes:
 				work_piece = ("work", work_item)
 				work_queue.put(work_piece)
-				self._hashes_already_tested.add(work_item.der_hash_md5)
+				self._exclude_hashes.add(work_item.cert_der_sha256)
 
 		# Then feed workers the termination commands
 		for i in range(self._args.parallel):
@@ -132,43 +143,50 @@ class CorpusTester():
 
 			if result.returncode != 0:
 				failure_count += 1
-			der_cert = None if (result.returncode == 0) else result.work_item.der_cert
+			cert_der = None if (result.returncode == 0) else result.work_item.cert_der
+			ca_cert_der = None if (result.returncode == 0) else result.work_item.ca_cert_der
 			try:
-				self._cursor.execute("INSERT INTO test_results (domainname, fetched_timet, returncode, stdout, stderr, duration, db_filename, der_hash_md5, der_cert) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);", (result.work_item.domainname, result.work_item.fetched_timet, result.returncode, result.stdout, result.stderr, result.duration, result.work_item.db_filename, result.work_item.der_hash_md5, der_cert))
+				self._cursor.execute("INSERT INTO test_results (returncode, stdout, stderr, duration, fetch_timestamp) VALUES (?, ?, ?, ?, ?);", (result.returncode, result.stdout, result.stderr, result.duration, result.work_item.fetch_timestamp))
 			except sqlite3.IntegrityError:
-				self._cursor.execute("UPDATE test_results SET returncode = ?, stdout = ?, stderr = ?, duration = ? WHERE der_hash_md5 = ?;", (result.returncode, result.stdout, result.stderr, result.duration, result.work_item.der_hash_md5))
-			print("%d / %d (%.1f%%): %s (returncode %d); total failure_count %d" % (tested_count, self._certs_remaining, tested_count / self._certs_remaining * 100, result.work_item.domainname, result.returncode, failure_count))
+				self._cursor.execute("UPDATE test_results SET returncode = ?, stdout = ?, stderr = ?, duration = ? WHERE cert_der_sha256 = ?;", (result.returncode, result.stdout, result.stderr, result.duration, result.work_item.cert_der_sha256))
+			print("%d / %d (%.1f%%): %s/%s (returncode %d); total failure_count %d" % (tested_count, self._work_amount, tested_count / self._work_amount * 100, result.work_item.cert_fqdn, result.work_item.cert_usage, result.returncode, failure_count))
 		self._db.commit()
 
 	def _work_generator(self):
 		if not self._args.retest:
-			for cert_db_filename in self._all_db_files:
-				db = CertDB(cert_db_filename)
-				for entry in db.get_all():
-					yield WorkItem(db_filename = os.path.basename(cert_db_filename), domainname = entry.domainname, fetched_timet = entry.fetched_timet, der_hash_md5 = entry.der_hash_md5, der_cert = entry.der_cert)
+			for connection in self._toc.get_all_connections():
+				for (cert_no, cert) in enumerate(connection.certs):
+					if cert_no + 1 < len(connection.certs):
+						next_cert = connections.certs[cert_no + 1]
+					else:
+						next_cert = None
+					if cert_no == 0:
+						cert_fqdn = connection.servername
+						cert_usage = "tls-server"
+					else:
+						cert_fqdn = None
+						cert_usage = "ca"
+					cert_der_sha256 = hashlib.sha256(cert).digest()
+					yield WorkItem(cert_no = cert_no, fetch_timestamp = connection.fetch_timestamp, cert_der_sha256 = cert_der_sha256, cert_der = cert, ca_cert_der = next_cert, cert_fqdn = cert_fqdn, cert_usage = cert_usage)
 		else:
-			failed_certs = self._cursor.execute("SELECT db_filename, domainname, fetched_timet, der_hash_md5, der_cert FROM test_results WHERE returncode != 0;").fetchall()
+			failed_certs = self._cursor.execute("SELECT db_filename, domainname, fetch_timestamp, cert_der_sha256, der_cert FROM test_results WHERE returncode != 0;").fetchall()
 			for failed_cert in failed_certs:
 				yield WorkItem(*failed_cert)
 
+	@property
+	def checked_certificate_count(self):
+		return self._cursor.execute("SELECT COUNT(*) FROM test_results;").fetchone()[0]
+
 	def run(self):
-		self._all_db_files = list(sorted(glob.glob(self._args.corpus_dir + "/certs/[0-9a-f][0-9a-f][0-9a-f].db")))
-
-		# First determine how many certificates we have
-		unique_hashes = set()
-		for entry in self._work_generator():
-			unique_hashes.add(entry.der_hash_md5)
-
-		# Determine all hashes we already have done
+		# Determine which hashes of those returned from work_generator we discerd
 		if not self._args.retest:
-			self._hashes_already_tested = set(row[0] for row in self._cursor.execute("SELECT der_hash_md5 FROM test_results;").fetchall())
+			self._exclude_hashes = set(row[0] for row in self._cursor.execute("SELECT cert_der_sha256 FROM test_results;").fetchall())
+			self._work_amount = self._toc.certificate_count - len(self._exclude_hashes)
 		else:
-			self._hashes_already_tested = set()
+			self._exclude_hashes = set()
+			self._work_amount = self._get_failed_certificate_count()
 
-		# Determine amount of remaining
-		self._certs_remaining = len(unique_hashes - self._hashes_already_tested)
-
-		print("Found %d unique certificates in %d certificate databases. %d certificates tested so far, %d remaining." % (len(unique_hashes), len(self._all_db_files), len(self._hashes_already_tested), self._certs_remaining))
+		print("Found %d unique certificates in %d connections. %d certificates tested so far, %d remaining." % (self._toc.certificate_count, self._toc.connection_count, self.checked_certificate_count, self._work_amount))
 
 		# Synchronization with workers using queues
 		work_queue = multiprocessing.Queue(maxsize = 100)
