@@ -49,7 +49,7 @@ class ECPrivateKey(PEMDERObject):
 			raise InvalidInputException("ECC private key does not contain public key. Cannot proceed.")
 
 		curve_oid = OID.from_asn1(self._asn1["parameters"])
-		self._curve = CurveDB().instanciate(oid = curve_oid)
+		self._curve = CurveDB().instantiate(oid = curve_oid)
 
 		self._d = int.from_bytes(self._asn1["privateKey"], byteorder = "big")
 		(self._x, self._y) = ECCTools.decode_enc_pubkey(ASN1Tools.bitstring2bytes(self._asn1["publicKey"]))

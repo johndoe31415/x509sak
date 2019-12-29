@@ -86,7 +86,7 @@ class PublicKey(PEMDERObject):
 			if isinstance(alg_params, pyasn1.type.univ.ObjectIdentifier):
 				# Named curve
 				alg_oid = OID.from_asn1(alg_params)
-				curve = CurveDB().instanciate(oid = alg_oid)
+				curve = CurveDB().instantiate(oid = alg_oid)
 				pk_point = curve.decode_point(inner_key)
 				self._key = {
 					"x":			pk_point.x,
@@ -104,13 +104,14 @@ class PublicKey(PEMDERObject):
 					"named_curve":	False,
 				}
 		elif self.pk_alg.value.cryptosystem == Cryptosystems.ECC_EdDSA:
-			curve = CurveDB().instanciate(oid = alg_oid)
+			curve = CurveDB().instantiate(oid = alg_oid)
 			self._key = dict(self._pk_alg.value.fixed_params)
 			pk_point = curve.decode_point(inner_key)
 			self._key.update({
-				"x":		pk_point.x,
-				"y":		pk_point.y,
-				"curve":	curve,
+				"x":			pk_point.x,
+				"y":			pk_point.y,
+				"curve":		curve,
+				"named_curve":	True,
 			})
 		else:
 			raise LazyDeveloperException(NotImplemented, self._pk_alg.cryptosystem)

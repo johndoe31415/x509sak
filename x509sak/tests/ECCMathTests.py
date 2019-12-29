@@ -25,34 +25,34 @@ from x509sak.Exceptions import InvalidInputException, UnsupportedEncodingExcepti
 
 class ECCMathTests(BaseTest):
 	def test_ecc_prime_curve(self):
-		curve = CurveDB().instanciate(name = "secp112r1")
+		curve = CurveDB().instantiate(name = "secp112r1")
 		self.assertTrue(curve.G.on_curve)
 
 	def test_ecc_binary_trinomial_basis_poly(self):
-		curve = CurveDB().instanciate(name = "sect113r1")
+		curve = CurveDB().instantiate(name = "sect113r1")
 		self.assertEqual(sorted(curve.poly), [ 0, 9, 113 ])
 
 	def test_ecc_binary_pentanomial_basis_poly(self):
-		curve = CurveDB().instanciate(name = "sect163r1")
+		curve = CurveDB().instantiate(name = "sect163r1")
 		self.assertEqual(sorted(curve.poly), [ 0, 3, 6, 7, 163 ])
 
 	def test_ecc_curvedb(self):
 		db = CurveDB()
 		for curve_oid in db:
-			curve = db.instanciate(oid = curve_oid)
+			curve = db.instantiate(oid = curve_oid)
 			self.assertTrue(curve.G.on_curve())
 
 	def test_point_encode(self):
-		point = CurveDB().instanciate(name = "sect113r1").G
+		point = CurveDB().instantiate(name = "sect113r1").G
 		self.assertEqual(point.encode(), bytes.fromhex("04 009d73616f35f4ab1407d73562c10f 00a52830277958ee84d1315ed31886"))
 
 	def test_point_decode(self):
-		curve = CurveDB().instanciate(name = "sect113r1")
+		curve = CurveDB().instantiate(name = "sect113r1")
 		decoded_point = curve.decode_point(bytes.fromhex("04 009d73616f35f4ab1407d73562c10f 00a52830277958ee84d1315ed31886"))
 		self.assertEqual(decoded_point, curve.G)
 
 	def test_point_decode_fail(self):
-		curve = CurveDB().instanciate(name = "sect113r1")
+		curve = CurveDB().instantiate(name = "sect113r1")
 		with self.assertRaises(InvalidInputException):
 			curve.decode_point(bytes.fromhex("04 0011 2233"))
 
@@ -60,14 +60,14 @@ class ECCMathTests(BaseTest):
 			curve.decode_point(bytes.fromhex("02 0011 2233"))
 
 	def test_point_str(self):
-		point = CurveDB().instanciate(name = "sect113r1").G
+		point = CurveDB().instantiate(name = "sect113r1").G
 		point_str = str(point)
 		self.assertIn("0x9d7361", point_str)
 		self.assertIn("0xa52830", point_str)
 		self.assertIn("sect113r1", point_str)
 
 	def test_point_decode_ed25519(self):
-		curve = CurveDB().instanciate(name = "ed25519")
+		curve = CurveDB().instantiate(name = "ed25519")
 
 		Q = curve.decode_point(bytes(32))
 		self.assertEqual(Q.x, 0x2b8324804fc1df0b2b4d00993dfbd7a72f431806ad2fe478c4ee1b274a0ea0b0)
@@ -102,7 +102,7 @@ class ECCMathTests(BaseTest):
 			curve.decode_point(bytes.fromhex("0305334e381af78f141cb666f6199f57bc3495335a256a95bd2a55bf546663f6"))
 
 	def test_scalar_mul_ed25519(self):
-		curve = CurveDB().instanciate(name = "ed25519")
+		curve = CurveDB().instantiate(name = "ed25519")
 		self.assertEqual(curve.G.scalar_mul(0), curve.point(0, 1))
 		self.assertEqual(curve.G.scalar_mul(1), curve.G)
 		self.assertEqual(curve.G, curve.point(0x216936d3cd6e53fec0a4e231fdd6dc5c692cc7609525a7b2c9562d608f25d51a, 0x6666666666666666666666666666666666666666666666666666666666666658))
@@ -111,19 +111,19 @@ class ECCMathTests(BaseTest):
 		self.assertEqual(curve.G.scalar_mul(123456789), curve.point(0x547df969eeaad777ccc47f172eb04d76d148ac6fe7e6f03c5f764f1e15327545, 0x5bd3c1a4f2053b458e38123b41e36ddeb5d13a6f63365d93e90ddc6880adff17))
 
 	def test_secret_expand_ed25519(self):
-		curve = CurveDB().instanciate(name = "ed25519")
+		curve = CurveDB().instantiate(name = "ed25519")
 		(scalar, Q) = curve.expand_secret(bytes.fromhex("9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60"))
 		self.assertEqual(scalar, 36144925721603087658594284515452164870581325872720374094707712194495455132720)
 		self.assertEqual(Q.encode(), bytes.fromhex("d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a"))
 
 	def test_ed448_generator(self):
-		curve = CurveDB().instanciate(name = "ed448")
+		curve = CurveDB().instantiate(name = "ed448")
 		rfc_8032_G = curve.point(224580040295924300187604334099896036246789641632564134246125461686950415467406032909029192869357953282578032075146446173674602635247710, 298819210078481492676017930443930673437544040154080242095928241372331506189835876003536878655418784733982303233503462500531545062832660)
 		self.assertTrue(rfc_8032_G.on_curve())
 		self.assertEqual(curve.G, rfc_8032_G)
 
 	def test_secret_expand_ed448(self):
-		curve = CurveDB().instanciate(name = "ed448")
+		curve = CurveDB().instantiate(name = "ed448")
 		(scalar, Q) = curve.expand_secret(bytes.fromhex("6c82a562cb808d10d632be89c8513ebf6c929f34ddfa8c9f63c9960ef6e348a3528c8a3fcc2f044e39a3fc5b94492f8f032e7549a20098f95b"))
 		self.assertEqual(scalar, 521658399617511624509929819094270498323007786671637499019582168374758478770958028340603419308639592898868374490003595203618871291427304)
 		self.assertEqual(Q.encode(), bytes.fromhex("5fd7449b59b461fd2ce787ec616ad46a1da1342485a70e1f8a0ea75d80e96778edf124769b46c7061bd6783df1e50f6cd1fa1abeafe8256180"))

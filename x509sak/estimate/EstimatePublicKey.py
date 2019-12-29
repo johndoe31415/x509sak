@@ -31,7 +31,7 @@ class PublicKeyEstimator(BaseEstimator):
 
 	def _error_curve_not_found(self, certificate, exception):
 		judgements = SecurityJudgements()
-		judgements += SecurityJudgement(JudgementCode.ECC_Curve_Unknown, "Certificate public key relies on unknown elliptic curve: %s Conservatively estimating broken security." % (str(exception)), bits = 0, compatibility = Compatibility.LIMITED_SUPPORT, commonness = Commonness.HIGHLY_UNUSUAL)
+		judgements += SecurityJudgement(JudgementCode.ECC_UnknownNamedCurve, "Certificate public key relies on unknown elliptic curve: %s Conservatively estimating broken security." % (str(exception)), bits = 0, compatibility = Compatibility.LIMITED_SUPPORT, commonness = Commonness.HIGHLY_UNUSUAL)
 		result = {
 			"pubkey_alg":	None,
 			"pretty":		"Unrecognized elliptic curve: %s" % (str(exception)),

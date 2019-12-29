@@ -71,6 +71,7 @@ class EllipticCurvePoint():
 		return "(0x%x, 0x%x) on %s" % (self.x, self.y, self.curve)
 
 class EllipticCurve():
+	_CURVE_TYPE = None
 	_DomainArgs = None
 	_CurveTypes = { }
 
@@ -81,6 +82,21 @@ class EllipticCurve():
 		self._metadata = metadata
 		if self._metadata is None:
 			self._metadata = { }
+
+	@classmethod
+	def register(cls, ec_class):
+		cls._CurveTypes[ec_class._CURVE_TYPE] = ec_class
+		return ec_class
+
+	@classmethod
+	def get_class_for_curvetype(cls, curve_type):
+		return cls._CurveTypes.get(curve_type)
+
+	@property
+	def curvetype(self):
+		if self._CURVE_TYPE is None:
+			raise NotImplementedError(self.__class__.__name__)
+		return self._CURVE_TYPE
 
 	@property
 	def name(self):
@@ -170,21 +186,22 @@ class EllipticCurve():
 			domain_parameters.update({
 				"p":	int(field_params),
 			})
-			return cls._CurveTypes["prime"].instanciate(domain_parameters, base_point)
+			return cls.get_class_for_curvetype("prime").instantiate(domain_parameters, base_point)
 		elif field_type_id == "characteristic-two-field":
 			(field_params, tail) = pyasn1.codec.der.decoder.decode(bytes(specified_domain["fieldID"]["parameters"]), asn1Spec = ECFieldParametersCharacteristicTwoField())
 			if len(tail) != 0:
 				raise KeyCorruptException("Attempted to decode the excplicit EC domain and encountered %d bytes of trailing data of the characteristic two field Sequence." % (len(tail)))
 
-			# Field width is common to all two-fields
-			domain_parameters.update({
-				"m":		int(field_params["m"]),
-			})
-
 			basis_type = OID.from_asn1(field_params["basis"])
 			basis_type_id = OIDDB.ECTwoFieldBasistype.get(basis_type)
 			if basis_type_id is None:
 				raise KeyCorruptException("Unknown two-field basis type with OID %s found in public key." % (str(basis_type)))
+
+			# Field width is common to all two-fields
+			domain_parameters.update({
+				"m":		int(field_params["m"]),
+				"basis":	basis_type_id,
+			})
 
 			if basis_type_id == "gnBasis":
 				raise KeyCorruptException("Binary field explicit domain parameters with Gaussian polynomial basis is not implemented.")
@@ -204,12 +221,12 @@ class EllipticCurve():
 				"m":		int(field_params["m"]),
 				"poly":		poly,
 			})
-			return cls._CurveTypes["twofield"].instanciate(domain_parameters, base_point)
+			return cls.get_class_for_curvetype("binary").instantiate(domain_parameters, base_point)
 		else:
 			raise NotImplementedError("Explicit EC domain parameter encoding for field type \"%s\" is not implemented." % (field_type_id))
 
 	@classmethod
-	def instanciate(cls, domain_parameters, encoded_base_point):
+	def instantiate(cls, domain_parameters, encoded_base_point):
 		curve_without_generator = cls(**domain_parameters)
 		G = curve_without_generator.decode_point(encoded_base_point)
 		domain_parameters.update({
@@ -219,11 +236,21 @@ class EllipticCurve():
 		curve = cls(**domain_parameters)
 		return curve
 
+	def __hash__(self):
+		return hash(self.characteristic_cmpkey)
+
 	def __eq__(self, other):
-		# TODO: Two curves with different names will not be equal. Right now we
-		# don't have that case because we don't support explicit curve
-		# encodings, but we might in the future.
-		return self._domain_parameters == other._domain_parameters
+		return self.characteristic_cmpkey == other.characteristic_cmpkey
+
+	def __lt__(self, other):
+		return self.characteristic_cmpkey < other.characteristic_cmpkey
+
+	def __neq__(self, other):
+		return not (self == other)
+
+	@property
+	def characteristic_cmpkey(self):
+		raise NotImplementedError(self.__class__.__name__)
 
 	def __getattr__(self, key):
 		return self._domain_parameters[key]
@@ -234,9 +261,11 @@ class EllipticCurve():
 		else:
 			return "%s %s" % (self.__class__.__name__, self.name)
 
+@EllipticCurve.register
 class PrimeFieldEllipticCurve(EllipticCurve):
 	"""y^2 = x^3 + ax + b (mod p)"""
 	_DomainArgs = KwargsChecker(required_arguments = set([ "p", "a", "b", "n", "h" ]), optional_arguments = set([ "Gx", "Gy" ]))
+	_CURVE_TYPE = "prime"
 
 	@property
 	def is_koblitz(self):
@@ -251,15 +280,20 @@ class PrimeFieldEllipticCurve(EllipticCurve):
 	def field_bits(self):
 		return self.p.bit_length()
 
+	@property
+	def characteristic_cmpkey(self):
+		return (self.curvetype, self.a, self.b, self.n, self.h, self._domain_parameters.get("Gx"), self._domain_parameters.get("Gy"), self.p)
+
 	def on_curve(self, point):
 		lhs = (point.y * point.y) % self.p
 		rhs = ((point.x ** 3) + (self.a * point.x) + self.b) % self.p
 		return lhs == rhs
-EllipticCurve._CurveTypes["prime"] = PrimeFieldEllipticCurve
 
+@EllipticCurve.register
 class BinaryFieldEllipticCurve(EllipticCurve):
 	"""y^2 + xy = x^3 + ax^2 + b (in F_{2^m}, reduced by irreducible poly)"""
-	_DomainArgs = KwargsChecker(required_arguments = set([ "m", "poly", "a", "b", "n", "h" ]), optional_arguments = set([ "Gx", "Gy" ]))
+	_DomainArgs = KwargsChecker(required_arguments = set([ "m", "poly", "a", "b", "n", "h" ]), optional_arguments = set([ "Gx", "Gy", "basis" ]))
+	_CURVE_TYPE = "binary"
 
 	def __init__(self, **domain_parameters):
 		super().__init__(**domain_parameters)
@@ -278,15 +312,21 @@ class BinaryFieldEllipticCurve(EllipticCurve):
 	def field_bits(self):
 		return self.m
 
+	@property
+	def characteristic_cmpkey(self):
+		return (self.curvetype, self.a, self.b, self.n, self.h, self._domain_parameters.get("Gx"), self._domain_parameters.get("Gy"), self.m, tuple(sorted(set(self.poly))))
+
 	def on_curve(self, point):
 		lhs = NumberTheory.binpoly_reduce(NumberTheory.cl_mul(point.y, point.y) ^ NumberTheory.cl_mul(point.x, point.y), self.intpoly)
 		rhs = NumberTheory.binpoly_reduce(NumberTheory.cl_mul(NumberTheory.cl_mul(point.x, point.x), point.x) ^ NumberTheory.cl_mul(NumberTheory.cl_mul(self.a, point.x), point.x) ^ self.b, self.intpoly)
 		return lhs == rhs
-EllipticCurve._CurveTypes["twofield"] = BinaryFieldEllipticCurve
 
+@EllipticCurve.register
 class TwistedEdwardsEllipticCurve(EllipticCurve):
 	"""ax^2 + y^2 = 1 + dx^2 y^2 (mod p)"""
 	_DomainArgs = KwargsChecker(required_arguments = set([ "p", "a", "d", "element_octet_cnt", "expand_bitwise_and", "expand_bitwise_or", "expand_hashfnc" ]), optional_arguments = set([ "Gx", "Gy", "expand_hashlen" ]))
+	_CURVE_TYPE = "twisted_edwards"
+
 	def __init__(self, **domain_parameters):
 		super().__init__(**domain_parameters)
 		self._sqrt_neg1_modp = pow(2, (self.p - 1) // 4, self.p)
@@ -368,3 +408,7 @@ class TwistedEdwardsEllipticCurve(EllipticCurve):
 		scalar &= self.expand_bitwise_and
 		scalar |= self.expand_bitwise_or
 		return (scalar, self.G.scalar_mul(scalar))
+
+	@property
+	def characteristic_cmpkey(self):
+		return (self.curvetype, self.a, self.d, self.p, self._domain_parameters.get("Gx"), self._domain_parameters.get("Gy"), self.element_octet_cnt, self.expand_bitwise_and, self.expand_bitwise_or, self.expand_hashfnc, self._domain_params.get("expand_hashlen"))

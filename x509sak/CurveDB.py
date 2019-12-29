@@ -22,7 +22,7 @@
 from x509sak.Tools import JSONTools
 from x509sak.OID import OID
 from x509sak.Exceptions import LazyDeveloperException, CurveNotFoundException, InvalidInputException
-from x509sak.ECCMath import PrimeFieldEllipticCurve, BinaryFieldEllipticCurve, TwistedEdwardsEllipticCurve
+from x509sak.ECCMath import EllipticCurve
 
 class CurveDB():
 	_DB_DATA = None
@@ -62,7 +62,7 @@ class CurveDB():
 				raise CurveNotFoundException("No such curve with name %s in database." % (name))
 		return curve_data
 
-	def instanciate(self, oid = None, name = None):
+	def instantiate(self, oid = None, name = None):
 		curve_data = self.lookup(oid = oid, name = name, on_error = "raise")
 
 		domain = curve_data["domain"]
@@ -70,14 +70,19 @@ class CurveDB():
 			"name":		curve_data["name"],
 			"oid":		curve_data["oid"],
 		}
-		if curve_data["curvetype"] == "prime":
-			return PrimeFieldEllipticCurve(metadata = metadata, **domain)
-		elif curve_data["curvetype"] == "binary":
-			return BinaryFieldEllipticCurve(metadata = metadata, **domain)
-		elif curve_data["curvetype"] == "twisted_edwards":
-			return TwistedEdwardsEllipticCurve(metadata = metadata, **domain)
-		else:
+		handling_class = EllipticCurve.get_class_for_curvetype(curve_data["curvetype"])
+		if handling_class is None:
 			raise LazyDeveloperException(NotImplemented, curve_data["curvetype"])
+		return handling_class(metadata = metadata, **domain)
+
+	def lookup_by_params(self, curve):
+		for curvedata in self._DB_DATA.values():
+			if curvedata["curvetype"] == curve.curvetype:
+				instance = self.instantiate(name = curvedata["name"])
+				print("compare", instance)
+				if instance == curve:
+					return instance
+		return None
 
 	def __iter__(self):
 		return iter(self._DB_DATA)

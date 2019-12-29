@@ -427,7 +427,7 @@ class CmdLineTestsExamine(BaseTest):
 #		self._test_examine_x509test_noparse("certs/x509test/xf-pubkey-ecdsa-secp192r1.pem")
 
 	def test_examine_x509test_xf_pubkey_ecdsa_unknown_curve(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-pubkey-ecdsa-unknown-curve.pem", "ECC_Curve_Unknown")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-pubkey-ecdsa-unknown-curve.pem", "ECC_UnknownNamedCurve")
 
 	def test_examine_x509test_xf_pubkey_rsa_exponent_negative(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-pubkey-rsa-exponent-negative.pem", "RSA_Exponent_Is_Zero_Or_Negative")
@@ -567,3 +567,21 @@ class CmdLineTestsExamine(BaseTest):
 
 	def test_include_raw_data_ecc_twedwards(self):
 		self._test_examine_x509test_resultcode("certs/ok/pubkey_sig_ed25519.pem", include_raw = True)
+
+	def test_explicit_prime(self):
+		self._test_examine_x509test_resultcode("certs/ok/ecc_explicit_param_prime.pem", "ECC_ExplicitCurveEncoding", expect_absent = "ECC_UnknownExplicitCurve")
+
+	def test_explicit_twofield_ppbasis(self):
+		self._test_examine_x509test_resultcode("certs/ok/ecc_explicit_param_twofield_ppbasis.pem", "ECC_ExplicitCurveEncoding", expect_absent = [ "ECC_InvalidPolynomialPower", "ECC_DuplicatePolynomialPower", "ECC_UnknownExplicitCurve" ])
+
+	def test_explicit_twofield_tpbasis(self):
+		self._test_examine_x509test_resultcode("certs/ok/ecc_explicit_param_twofield_tpbasis.pem", "ECC_ExplicitCurveEncoding", expect_absent = [ "ECC_InvalidPolynomialPower", "ECC_DuplicatePolynomialPower", "ECC_UnknownExplicitCurve" ])
+
+	def test_explicit_twofield_poly_invalid_power(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ecc_explicit_param_twofield_invalid_power.pem", "ECC_InvalidPolynomialPower")
+
+	def test_explicit_twofield_poly_duplicate_power(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ecc_explicit_param_twofield_duplicate_power.pem", "ECC_DuplicatePolynomialPower")
+
+	def test_explicit_unknown(self):
+		self._test_examine_x509test_resultcode("certs/ok/ecc_explicit_param_prime_custom_domain.pem", expect_present = [ "ECC_ExplicitCurveEncoding", "ECC_UnknownExplicitCurve" ])

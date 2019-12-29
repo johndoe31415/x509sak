@@ -48,7 +48,7 @@ class EDPrivateKey(PEMDERObject):
 
 		curve_oid = OID.from_asn1(self._asn1["privateKeyAlgorithm"]["algorithm"])
 		pk_alg = PublicKeyAlgorithms.lookup("oid", curve_oid)
-		self._curve = CurveDB().instanciate(oid = curve_oid)
+		self._curve = CurveDB().instantiate(oid = curve_oid)
 		self._prehash = pk_alg.value.fixed_params["prehash"]
 		private_key = bytes(self._asn1["privateKey"])
 		if (private_key[0] != 0x04) or (private_key[1] != self.curve.element_octet_cnt):

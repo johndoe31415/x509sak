@@ -68,18 +68,24 @@ def expand(asciider_bindata):
 def pem2der(pemdata, filetype):
 	if filetype == "cert":
 		return subprocess.check_output([ "openssl", "x509", "-outform", "der" ], input = pemdata)
+	elif filetype == "ecparam":
+		return subprocess.check_output([ "openssl", "ecparam", "-outform", "der" ], input = pemdata)
 	else:
 		raise NotImplementedError(filetype)
 
 def der2pem(derdata, filetype):
 	if filetype == "cert":
 		return subprocess.check_output([ "openssl", "x509", "-inform", "der", "-text" ], input = derdata)
+	elif filetype == "ecparam":
+		return subprocess.check_output([ "openssl", "ecparam", "-inform", "der", "-text" ], input = derdata)
 	else:
 		raise NotImplementedError(filetype)
 
 def print_pem_text(pemdata, filetype):
 	if filetype == "cert":
 		sys.stdout.write(subprocess.check_output([ "openssl", "x509", "-noout", "-text" ], input = pemdata).decode())
+	elif filetype == "ecparam":
+		sys.stdout.write(subprocess.check_output([ "openssl", "ecparam", "-noout", "-text" ], input = pemdata).decode())
 	else:
 		raise NotImplementedError(filetype)
 
@@ -89,6 +95,8 @@ def edit_file(filename, do_edit = True):
 
 	if b"-----BEGIN CERTIFICATE-----" in pemfile:
 		filetype = "cert"
+	elif b"-----BEGIN EC PARAMETERS-----" in pemfile:
+		filetype = "ecparam"
 	else:
 		raise NotImplementedError("Could not determine filetype of %s." % (filename))
 

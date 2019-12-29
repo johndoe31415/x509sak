@@ -23,13 +23,34 @@ import math
 from x509sak.AlgorithmDB import Cryptosystems
 from x509sak.NumberTheory import NumberTheory
 from x509sak.estimate.BaseEstimator import BaseEstimator
-from x509sak.estimate import JudgementCode, Commonness
+from x509sak.estimate import JudgementCode, Commonness, Compatibility
 from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, LiteratureReference
 from x509sak.ECCMath import PrimeFieldEllipticCurve, BinaryFieldEllipticCurve
+from x509sak.CurveDB import CurveDB
 
 @BaseEstimator.register
 class ECCSecurityEstimator(BaseEstimator):
 	_ALG_NAME = "ecc"
+
+	def _check_explicit_curve_params(self, curve):
+		judgements = SecurityJudgements()
+
+		curve_db = CurveDB()
+		known_curve = curve_db.lookup_by_params(curve)
+		if known_curve is None:
+			judgements += SecurityJudgement(JudgementCode.ECC_UnknownExplicitCurve, "Explicit curve domain parameter encoding with domain parameters that are not present in the database. Highly suspect, convervatively rating as broken security.", commonness = Commonness.HIGHLY_UNUSUAL, bits = 0)
+
+		if curve.curvetype == "binary":
+			if len(curve.poly) != len(set(curve.poly)):
+				judgements += SecurityJudgement(JudgementCode.ECC_DuplicatePolynomialPower, "ECC field polynomial contains duplicate powers: %s -- Conservatively rating as broken security." % (str(curve.poly)), commonness = Commonness.HIGHLY_UNUSUAL, bits = 0)
+
+			for custom_coeff in curve.poly[1 : -1]:
+				if custom_coeff <= 1:
+					judgements += SecurityJudgement(JudgementCode.ECC_InvalidPolynomialPower, "ECC field polynomial contains x^%d where it would be expected to see a power of two or higher." % (custom_coeff), commonness = Commonness.HIGHLY_UNUSUAL, bits = 0)
+				elif custom_coeff >= curve.m:
+					judgements += SecurityJudgement(JudgementCode.ECC_InvalidPolynomialPower, "ECC field polynomial contains x^%d where it would be expected to see a power of less than x^m (i.e., x^%d)." % (custom_coeff, curve.m), commonness = Commonness.HIGHLY_UNUSUAL, bits = 0)
+
+		return judgements
 
 	def analyze(self, pubkey):
 		curve = pubkey.curve
@@ -96,6 +117,10 @@ class ECCSecurityEstimator(BaseEstimator):
 		if isinstance(curve, BinaryFieldEllipticCurve):
 			literature = LiteratureReference(author = [ "Steven D. Galbraith", "Shishay W. Gebregiyorgis" ], title = "Summation polynomial algorithms for elliptic curves in characteristic two", year = 2014, source = "Progress in Cryptology -- INDOCRYPT 2014; LNCS 8885")
 			judgements += SecurityJudgement(JudgementCode.ECC_BinaryField, "Binary finite field elliptic curve is used. Recent advances in cryptography show there might be efficient attacks on such curves, hence it is recommended to use prime-field curves instead.", commonness = Commonness.UNUSUAL, literature = literature)
+
+		if not pubkey.named_curve:
+			judgements += SecurityJudgement(JudgementCode.ECC_ExplicitCurveEncoding, "Curve uses explicit encoding for domain parameters. Typically, named curves are used; explicit encoding of domain parameters is not recommended and may be rejected by implementations for simplicity reasons.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
+			judgements += self._check_explicit_curve_params(curve)
 
 		result = {
 			"specific":	{

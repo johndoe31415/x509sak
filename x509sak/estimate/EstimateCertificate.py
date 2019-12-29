@@ -63,7 +63,7 @@ class CertificateEstimator(BaseEstimator):
 			judgements += SecurityJudgement(JudgementCode.Cert_Pubkey_ReencodingCheckMissing, "Missing check due to non-implemented functionality: %s" % (str(e)), commonness = Commonness.UNUSUAL)
 		except CurveNotFoundException:
 			# We ignore this for the re-encoding, but have an explcit check for
-			# it in the EC checks that raises ECC_Curve_Unknown
+			# it in the EC checks that raises ECC_UnknownNamedCurve
 			pass
 
 		oid_header = OID.from_asn1(certificate.asn1["tbsCertificate"]["signature"]["algorithm"])
