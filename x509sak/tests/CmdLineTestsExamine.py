@@ -577,8 +577,11 @@ class CmdLineTestsExamine(BaseTest):
 	def test_explicit_twofield_tpbasis(self):
 		self._test_examine_x509test_resultcode("certs/ok/ecc_explicit_param_twofield_tpbasis.pem", "ECC_ExplicitCurveEncoding", expect_absent = [ "ECC_InvalidPolynomialPower", "ECC_DuplicatePolynomialPower", "ECC_UnknownExplicitCurve" ])
 
-	def test_explicit_twofield_poly_invalid_power(self):
-		self._test_examine_x509test_resultcode("certs/constructed/ecc_explicit_param_twofield_invalid_power.pem", "ECC_InvalidPolynomialPower")
+	def test_explicit_twofield_poly_invalid_power1(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ecc_explicit_param_twofield_invalid_power1.pem", "ECC_InvalidPolynomialPower")
+
+	def test_explicit_twofield_poly_invalid_power2(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ecc_explicit_param_twofield_invalid_power2.pem", "ECC_InvalidPolynomialPower")
 
 	def test_explicit_twofield_poly_duplicate_power(self):
 		self._test_examine_x509test_resultcode("certs/constructed/ecc_explicit_param_twofield_duplicate_power.pem", "ECC_DuplicatePolynomialPower")

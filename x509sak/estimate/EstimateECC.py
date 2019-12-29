@@ -39,6 +39,8 @@ class ECCSecurityEstimator(BaseEstimator):
 		known_curve = curve_db.lookup_by_params(curve)
 		if known_curve is None:
 			judgements += SecurityJudgement(JudgementCode.ECC_UnknownExplicitCurve, "Explicit curve domain parameter encoding with domain parameters that are not present in the database. Highly suspect, convervatively rating as broken security.", commonness = Commonness.HIGHLY_UNUSUAL, bits = 0)
+		else:
+			judgements += SecurityJudgement(JudgementCode.ECC_UnusedCurveName, "Explicit curve domain parameter encoding is used; curve domain parameters are equal to curve %s (OID %s). Recommend switching to that named curve." % (known_curve.name, known_curve.oid))
 
 		if curve.curvetype == "binary":
 			if len(curve.poly) != len(set(curve.poly)):
