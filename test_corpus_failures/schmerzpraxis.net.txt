@@ -1,0 +1,91 @@
+Returncode: 1
+Database  : b37.db
+
+========================================================================================================================
+
+stdout:
+
+
+========================================================================================================================
+
+stderr:
+Traceback (most recent call last):
+  File "/home/joe/.local/lib/python3.7/site-packages/pyasn1/type/constraint.py", line 32, in __call__
+    self._testValue(value, idx)
+  File "/home/joe/.local/lib/python3.7/site-packages/pyasn1/type/constraint.py", line 298, in _testValue
+    raise error.ValueConstraintError(value)
+pyasn1.type.error.ValueConstraintError: This certificate was issued according to the Class 1 Validation requirements of the StartCom Certification Authority policy and may be relied upon only for the intended purpose and in compliance of the relying party obligations. Liability and warranties are limited!
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/joe/.local/lib/python3.7/site-packages/pyasn1/type/constraint.py", line 32, in __call__
+    self._testValue(value, idx)
+  File "/home/joe/.local/lib/python3.7/site-packages/pyasn1/type/constraint.py", line 643, in _testValue
+    constraint(value, idx)
+  File "/home/joe/.local/lib/python3.7/site-packages/pyasn1/type/constraint.py", line 36, in __call__
+    '%s failed at: %r' % (self, sys.exc_info()[1])
+pyasn1.type.error.ValueConstraintError: <ValueSizeConstraint object, consts 1, 200> failed at: ValueConstraintError('This certificate was issued according to the Class 1 Validation requirements of the StartCom Certification Authority policy and may be relied upon only for the intended purpose and in compliance of the relying party obligations. Liability and warranties are limited!')
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/joe/.local/lib/python3.7/site-packages/pyasn1/type/base.py", line 269, in __init__
+    self.subtypeSpec(value)
+  File "/home/joe/.local/lib/python3.7/site-packages/pyasn1/type/constraint.py", line 36, in __call__
+    '%s failed at: %r' % (self, sys.exc_info()[1])
+pyasn1.type.error.ValueConstraintError: <ConstraintsIntersection object, consts <ValueSizeConstraint object, consts 1, 200>> failed at: ValueConstraintError("<ValueSizeConstraint object, consts 1, 200> failed at: ValueConstraintError('This certificate was issued according to the Class 1 Validation requirements of the StartCom Certification Authority policy and may be relied upon only for the intended purpose and in compliance of the relying party obligations. Liability and warranties are limited!')")
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "./x509sak.py", line 23, in <module>
+    import x509sak.__main__
+  File "/home/joe/Eigene_Dokumente/Programmieren/Python/x509sak/x509sak/__main__.py", line 242, in <module>
+    mc.run(sys.argv[1:])
+  File "/home/joe/Eigene_Dokumente/Programmieren/Python/x509sak/x509sak/MultiCommand.py", line 117, in run
+    parseresult.command.action(parseresult.supplied_cmd, parseresult.args)
+  File "/home/joe/Eigene_Dokumente/Programmieren/Python/x509sak/x509sak/actions/ActionExamineCert.py", line 45, in __init__
+    analysis = self._analyze_certificates(crt_sources, parent_ca_cert)
+  File "/home/joe/Eigene_Dokumente/Programmieren/Python/x509sak/x509sak/actions/ActionExamineCert.py", line 111, in _analyze_certificates
+    analysis = SecurityEstimator.handler("certificate")(analysis_options = analysis_options).analyze(crt, root_crt)
+  File "/home/joe/Eigene_Dokumente/Programmieren/Python/x509sak/x509sak/estimate/EstimateCertificate.py", line 79, in analyze
+    "validity":		self.algorithm("crt_validity").analyze(cert),
+  File "/home/joe/Eigene_Dokumente/Programmieren/Python/x509sak/x509sak/estimate/EstimateCertificateValidity.py", line 42, in analyze
+    is_ca = certificate.is_ca_certificate
+  File "/home/joe/Eigene_Dokumente/Programmieren/Python/x509sak/x509sak/X509Certificate.py", line 193, in is_ca_certificate
+    if len(self.extensions) == 0:
+  File "/home/joe/Eigene_Dokumente/Programmieren/Python/x509sak/x509sak/X509Certificate.py", line 126, in extensions
+    self._extensions = self._get_extensions()
+  File "/home/joe/Eigene_Dokumente/Programmieren/Python/x509sak/x509sak/X509Certificate.py", line 146, in _get_extensions
+    result.append(X509ExtensionRegistry.create(oid, critical, value))
+  File "/home/joe/Eigene_Dokumente/Programmieren/Python/x509sak/x509sak/X509Extensions.py", line 106, in create
+    return cls._KNOWN_EXTENSIONS[oid](oid, critical, data)
+  File "/home/joe/Eigene_Dokumente/Programmieren/Python/x509sak/x509sak/X509Extensions.py", line 129, in __init__
+    self._decode_hook()
+  File "/home/joe/Eigene_Dokumente/Programmieren/Python/x509sak/x509sak/X509Extensions.py", line 475, in _decode_hook
+    qualifier = self._CertificatePolicyQualifier(oid = qualifier_oid, qualifier_data = qualifier_data, decoded_qualifier = self.decode_qualifier(qualifier_oid, qualifier_data))
+  File "/home/joe/Eigene_Dokumente/Programmieren/Python/x509sak/x509sak/X509Extensions.py", line 459, in decode_qualifier
+    decoded_qualifier = cls._DecodedQualifier(*pyasn1.codec.der.decoder.decode(qualifier_data, asn1Spec = rfc5280.UserNotice()))
+  File "/home/joe/.local/lib/python3.7/site-packages/pyasn1/codec/ber/decoder.py", line 1557, in __call__
+    **options
+  File "/home/joe/.local/lib/python3.7/site-packages/pyasn1/codec/ber/decoder.py", line 609, in valueDecoder
+    component, head = decodeFun(head, componentType, **options)
+  File "/home/joe/.local/lib/python3.7/site-packages/pyasn1/codec/ber/decoder.py", line 1557, in __call__
+    **options
+  File "/home/joe/.local/lib/python3.7/site-packages/pyasn1/codec/ber/decoder.py", line 980, in valueDecoder
+    tagSet, length, state, **options
+  File "/home/joe/.local/lib/python3.7/site-packages/pyasn1/codec/ber/decoder.py", line 1557, in __call__
+    **options
+  File "/home/joe/.local/lib/python3.7/site-packages/pyasn1/codec/ber/decoder.py", line 244, in valueDecoder
+    return self._createComponent(asn1Spec, tagSet, head, **options), tail
+  File "/home/joe/.local/lib/python3.7/site-packages/pyasn1/codec/ber/decoder.py", line 55, in _createComponent
+    return asn1Spec.clone(value)
+  File "/home/joe/.local/lib/python3.7/site-packages/pyasn1/type/base.py", line 376, in clone
+    return self.__class__(value, **initializers)
+  File "/home/joe/.local/lib/python3.7/site-packages/pyasn1/type/univ.py", line 837, in __init__
+    base.SimpleAsn1Type.__init__(self, value, **kwargs)
+  File "/home/joe/.local/lib/python3.7/site-packages/pyasn1/type/base.py", line 273, in __init__
+    raise exType('%s at %s' % (exValue, self.__class__.__name__))
+pyasn1.type.error.ValueConstraintError: <ConstraintsIntersection object, consts <ValueSizeConstraint object, consts 1, 200>> failed at: ValueConstraintError("<ValueSizeConstraint object, consts 1, 200> failed at: ValueConstraintError('This certificate was issued according to the Class 1 Validation requirements of the StartCom Certification Authority policy and may be relied upon only for the intended purpose and in compliance of the relying party obligations. Liability and warranties are limited!')") at VisibleString
+
