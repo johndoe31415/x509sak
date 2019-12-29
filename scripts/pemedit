@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2018 Johannes Bauer
+#	Copyright (C) 2019-2019 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -26,23 +26,52 @@ import subprocess
 import tempfile
 import re
 from x509sak.FriendlyArgumentParser import FriendlyArgumentParser
+from x509sak.OID import OID
 
 parser = FriendlyArgumentParser(description = "Edit a PEM file in its raw representation.")
+parser.add_argument("--dump-oids", action = "store_true", help = "Dump known OIDs so they can be added to the 'oid_replacements' dictionary.")
 parser.add_argument("--no-edit", action = "store_true", help = "Do not actually edit files, just decode and re-encode. Mainly for debugging purposes.")
 parser.add_argument("filename", metavar = "filename", type = str, nargs = "+", help = "PEM file(s) to edit")
 args = parser.parse_args(sys.argv[1:])
 
+oid_regex = re.compile("# (?P<oid_name>[-A-Za-z0-9]+)\s+OBJECT_IDENTIFIER { (?P<oid_value>[.0-9]+) }", flags = re.MULTILINE)
 oid_replacements = {
-	"1.2.840.113549.1.1.11":	"sha256WithRSAEncryption",
-	"1.2.840.113549.1.1.12":	"sha384WithRSAEncryption",
-	"1.2.840.113549.1.1.1":		"rsaEncryption",
-	"2.5.29.14":				"subjectKeyIdentifier",
-	"2.5.29.15":				"keyUsage",
-	"2.5.29.19":				"basicConstraints",
-	"2.5.29.35":				"authorityKeyIdentifier",
-	"2.5.4.10":					 "organizationName",
-	"2.5.4.11":					"organizationUnitName",
-	"2.5.4.3":					"commonName",
+	"1.2.840.10045.1.1": "prime-field",
+	"1.2.840.10045.2.1": "ecPublicKey",
+	"1.2.840.10045.3.1.7": "secp256r1",
+	"1.2.840.10045.4.3.2": "ecdsa-with-SHA256",
+	"1.2.840.113549.1.1.1": "rsaEncryption",
+	"1.2.840.113549.1.1.4": "md5WithRSAEncryption",
+	"1.2.840.113549.1.1.5": "sha1WithRSAEncryption",
+	"1.2.840.113549.1.1.8": "mgf1",
+	"1.2.840.113549.1.1.10": "rsassa-pss",
+	"1.2.840.113549.1.1.11": "sha256WithRSAEncryption",
+	"1.2.840.113549.1.1.12": "sha384WithRSAEncryption",
+	"1.3.6.1.4.1.11129.2.4.2": "embeddedSCTList",
+	"1.3.6.1.5.5.7.1.1": "authorityInfoAccess",
+	"1.3.6.1.5.5.7.2.2": "unotice",
+	"1.3.6.1.5.5.7.3.1": "serverAuth",
+	"1.3.6.1.5.5.7.3.2": "clientAuth",
+	"1.3.6.1.5.5.7.3.3": "codeSigning",
+	"1.3.6.1.5.5.7.48.1": "ocsp",
+	"1.3.6.1.5.5.7.48.2": "caIssuers",
+	"1.3.101.112": "ed25519",
+	"1.3.101.113": "ed448",
+	"1.3.132.0.34": "secp384r1",
+	"2.5.4.3": "commonName",
+	"2.5.4.6": "countryName",
+	"2.5.4.10": "organizationName",
+	"2.5.4.11": "organizationUnitName",
+	"2.5.29.14": "subjectKeyIdentifier",
+	"2.5.29.15": "keyUsage",
+	"2.5.29.17": "subjectAltName",
+	"2.5.29.19": "basicConstraints",
+	"2.5.29.31": "cRLDistributionPoints",
+	"2.5.29.32": "certificatePolicies",
+	"2.5.29.35": "authorityKeyIdentifier",
+	"2.5.29.37": "extKeyUsage",
+	"2.16.840.1.101.3.4.2.1": "sha256",
+	"2.23.140.1.2.1": "domain-validated",
 }
 
 def simplify(asciider_bindata):
@@ -65,6 +94,12 @@ def expand(asciider_bindata):
 		asciider = regex.sub("OBJECT_IDENTIFIER { %s }" % (oid), asciider)
 	return asciider.encode("ascii")
 
+def rstrip_whitespace(bindata):
+	text = bindata.decode()
+	text = [ line.rstrip(" \t\r") for line in text.split("\n") ]
+	text = "\n".join(text)
+	return text.encode()
+
 def pem2der(pemdata, filetype):
 	if filetype == "cert":
 		return subprocess.check_output([ "openssl", "x509", "-outform", "der" ], input = pemdata)
@@ -75,21 +110,21 @@ def pem2der(pemdata, filetype):
 
 def der2pem(derdata, filetype):
 	if filetype == "cert":
-		return subprocess.check_output([ "openssl", "x509", "-inform", "der", "-text" ], input = derdata)
+		return rstrip_whitespace(subprocess.check_output([ "openssl", "x509", "-inform", "der", "-text" ], input = derdata))
 	elif filetype == "ecparam":
-		return subprocess.check_output([ "openssl", "ecparam", "-inform", "der", "-text" ], input = derdata)
+		return rstrip_whitespace(subprocess.check_output([ "openssl", "ecparam", "-inform", "der", "-text" ], input = derdata))
 	else:
 		raise NotImplementedError(filetype)
 
 def print_pem_text(pemdata, filetype):
 	if filetype == "cert":
-		sys.stdout.write(subprocess.check_output([ "openssl", "x509", "-noout", "-text" ], input = pemdata).decode())
+		return rstrip_whitespace(subprocess.check_output([ "openssl", "x509", "-noout", "-text" ], input = pemdata)).decode()
 	elif filetype == "ecparam":
-		sys.stdout.write(subprocess.check_output([ "openssl", "ecparam", "-noout", "-text" ], input = pemdata).decode())
+		return rstrip_whitespace(subprocess.check_output([ "openssl", "ecparam", "-noout", "-text" ], input = pemdata)).decode()
 	else:
 		raise NotImplementedError(filetype)
 
-def edit_file(filename, do_edit = True):
+def edit_file(filename, do_edit = True, dump_oids = None):
 	with open(filename, "rb") as f:
 		pemfile = f.read()
 
@@ -109,6 +144,11 @@ def edit_file(filename, do_edit = True):
 		f.write(transcoded_ascii_der)
 		f.flush()
 
+		if dump_oids is not None:
+			for match in oid_regex.finditer(transcoded_ascii_der.decode()):
+				match = match.groupdict()
+				dump_oids[match["oid_value"]] = match["oid_name"]
+
 		if do_edit:
 			syntax_file = os.path.dirname(__file__) + "/asciider.vim"
 			subprocess.check_call([ "vi", "-f", "-c", ":source %s" % (syntax_file), f.name ])
@@ -122,7 +162,19 @@ def edit_file(filename, do_edit = True):
 	pem_data = der2pem(der_data, filetype)
 	with open(filename, "wb") as f:
 		f.write(pem_data)
-	print_pem_text(pem_data, filetype)
+	if do_edit:
+		print_pem_text(pem_data, filetype)
+
+if args.dump_oids:
+	dump_oids = { }
+else:
+	dump_oids = None
 
 for filename in args.filename:
-	edit_file(filename, do_edit = not args.no_edit)
+	edit_file(filename, do_edit = not args.no_edit, dump_oids = dump_oids)
+
+if dump_oids is not None:
+	oid_replacements.update(dump_oids)
+	oid_replacements = { OID.from_str(str_oid): name for (str_oid, name) in oid_replacements.items() }
+	for (oid, name) in sorted(oid_replacements.items()):
+		print("	\"%s\": \"%s\"," % (oid, name))
