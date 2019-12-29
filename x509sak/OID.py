@@ -54,6 +54,8 @@ class OID():
 
 	@classmethod
 	def from_asn1(cls, oid_asn1):
+		if not isinstance(oid_asn1, pyasn1.type.univ.ObjectIdentifier):
+			raise InvalidInputException("Tried to construct an OID from ASN.1 of type %s." % (oid_asn1.__class__.__name__))
 		return cls.from_str(str(oid_asn1))
 
 	def __repr__(self):
