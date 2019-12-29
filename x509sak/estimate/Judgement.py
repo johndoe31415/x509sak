@@ -185,6 +185,9 @@ class JudgementCode(enum.Enum):
 	DN_Contains_Deprecated_Type = ("Distinguished name", "deprecated type present")
 	DN_Contains_NonPrintable = ("Distinguished name", "non-printable type present")
 	DN_Contains_MultiValues = ("Distinguished name", "multi-valued RDN present")
+	DN_Contains_Long_RDN = ("Distinguished name", "length of RDN exceeds maximum")
+	DN_Contains_Malformed_RDN = ("Distinguished name", "RDN is malformed")
+	DN_Contains_Unusually_Many_RDNs = ("Distinguished name", "unusually many RDNs present")
 	Cert_Unknown_SignatureAlgorithm = ("Certificate signature", "unknown signature algorithm")
 	Cert_Unknown_HashAlgorithm = ("Certificate signature", "unknown hash function")
 

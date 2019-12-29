@@ -31,6 +31,7 @@ from x509sak.OID import OID
 parser = FriendlyArgumentParser(description = "Edit a PEM file in its raw representation.")
 parser.add_argument("--dump-oids", action = "store_true", help = "Dump known OIDs so they can be added to the 'oid_replacements' dictionary.")
 parser.add_argument("--no-edit", action = "store_true", help = "Do not actually edit files, just decode and re-encode. Mainly for debugging purposes.")
+parser.add_argument("-o", "--original-oids", action = "store_true", help = "Do not replace OIDs before editing.")
 parser.add_argument("filename", metavar = "filename", type = str, nargs = "+", help = "PEM file(s) to edit")
 args = parser.parse_args(sys.argv[1:])
 
@@ -118,13 +119,13 @@ def der2pem(derdata, filetype):
 
 def print_pem_text(pemdata, filetype):
 	if filetype == "cert":
-		return rstrip_whitespace(subprocess.check_output([ "openssl", "x509", "-noout", "-text" ], input = pemdata)).decode()
+		sys.stdout.write(rstrip_whitespace(subprocess.check_output([ "openssl", "x509", "-noout", "-text" ], input = pemdata)).decode())
 	elif filetype == "ecparam":
-		return rstrip_whitespace(subprocess.check_output([ "openssl", "ecparam", "-noout", "-text" ], input = pemdata)).decode()
+		sys.stdout.write(rstrip_whitespace(subprocess.check_output([ "openssl", "ecparam", "-noout", "-text" ], input = pemdata)).decode())
 	else:
 		raise NotImplementedError(filetype)
 
-def edit_file(filename, do_edit = True, dump_oids = None):
+def edit_file(filename, do_edit = True, dump_oids = None, original_oids = True):
 	with open(filename, "rb") as f:
 		pemfile = f.read()
 
@@ -137,7 +138,9 @@ def edit_file(filename, do_edit = True, dump_oids = None):
 
 	der_data = pem2der(pemfile, filetype)
 	ascii_der = subprocess.check_output([ "der2ascii" ], input = der_data)
-	transcoded_ascii_der = simplify(ascii_der)
+	transcoded_ascii_der = ascii_der
+	if not original_oids:
+		transcoded_ascii_der = simplify(transcoded_ascii_der)
 
 	transcoded_ascii_der = (("# " + filename + "\n\n").encode("utf-8")) + transcoded_ascii_der
 	with tempfile.NamedTemporaryFile(prefix = "pemedit_", suffix = ".txt") as f:
@@ -171,7 +174,7 @@ else:
 	dump_oids = None
 
 for filename in args.filename:
-	edit_file(filename, do_edit = not args.no_edit, dump_oids = dump_oids)
+	edit_file(filename, do_edit = not args.no_edit, dump_oids = dump_oids, original_oids = args.original_oids)
 
 if dump_oids is not None:
 	oid_replacements.update(dump_oids)
