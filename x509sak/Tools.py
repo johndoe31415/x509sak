@@ -172,6 +172,14 @@ class PathTools():
 				return full_filename
 		return None
 
+class DateTimeTools():
+	@classmethod
+	def strfmt_iso(cls, timestamp):
+		"""timestamp.strftime("%Y-%m-%dT%H:%M:%S") produces for years less than
+		4 digits no leading zeros. This is something that strptime then cannot
+		parse anymore. We therefore implement it ourselves."""
+		return "%04d-%02d-%02dT%02d:%02d:%02dZ" % (timestamp.year, timestamp.month, timestamp.day, timestamp.hour, timestamp.minute, timestamp.second)
+
 class JSONTools():
 	@classmethod
 	def translate(cls, obj):

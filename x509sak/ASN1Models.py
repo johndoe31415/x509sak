@@ -22,7 +22,7 @@
 from pyasn1.type import namedtype
 from pyasn1.type import namedval
 from pyasn1.type import tag
-from pyasn1.type import univ
+from pyasn1.type import univ, char
 from pyasn1_modules import rfc2315, rfc3280
 
 class ECPVer(univ.Integer):
@@ -268,4 +268,24 @@ class NetscapeCertificateType(univ.BitString):
 		("sslCA", 5),
 		("emailCA", 6),
 		("objCA", 7),
+	)
+
+class RelaxedDisplayText(univ.Choice):
+	componentType = namedtype.NamedTypes(
+		namedtype.NamedType("ia5String", char.IA5String()),
+		namedtype.NamedType("visibleString", char.VisibleString()),
+		namedtype.NamedType("bmpString", char.BMPString()),
+		namedtype.NamedType("utf8String", char.UTF8String()),
+	)
+
+class RelaxedNoticeReference(univ.Sequence):
+	componentType = namedtype.NamedTypes(
+		namedtype.NamedType("organization", RelaxedDisplayText()),
+	    namedtype.NamedType("noticeNumbers", univ.SequenceOf(componentType = univ.Integer())),
+	)
+
+class RelaxedUserNotice(univ.Sequence):
+	componentType = namedtype.NamedTypes(
+		namedtype.OptionalNamedType("noticeRef", RelaxedNoticeReference()),
+		namedtype.OptionalNamedType("explicitText", RelaxedDisplayText()),
 	)

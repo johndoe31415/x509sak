@@ -22,6 +22,7 @@
 import datetime
 import calendar
 from pyasn1.type.useful import GeneralizedTime
+from x509sak.Tools import DateTimeTools
 from x509sak.estimate.BaseEstimator import BaseEstimator
 from x509sak.estimate import JudgementCode, Verdict, Commonness, Compatibility
 from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, RFCReference
@@ -32,7 +33,7 @@ class CrtValiditySecurityEstimator(BaseEstimator):
 
 	def _format_datetime(self, dt):
 		return {
-			"iso":		dt.strftime("%Y-%m-%dT%H:%M:%SZ"),
+			"iso":		DateTimeTools.strfmt_iso(dt),
 			"timet":	calendar.timegm(dt.utctimetuple()),
 		}
 

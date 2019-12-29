@@ -430,12 +430,17 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 			# Check for use of noticeRef
 			for policy in policies:
 				for qualifier in policy.qualifiers:
+
 					if qualifier.oid == OIDDB.X509ExtensionCertificatePolicyQualifierOIDs.inverse("id-qt-unotice"):
 						# User notice field is present
 						if qualifier.decoded_qualifier is None:
 							standard = RFCReference(rfcno = 5280, sect = "4.2.1.4", verb = "MUST", text = "UserNotice ::= SEQUENCE {")
 							judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificatePolicies_UserNoticeDecodeError, "Could not decode user notice qualifier in X.509 Certificate Policies extension of policy %s." % (policy.oid), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard, commonness = Commonness.HIGHLY_UNUSUAL)
 						else:
+							if qualifier.decoded_qualifier.constraint_violation:
+								standard = RFCReference(rfcno = 5280, sect = "4.2.1.4", verb = "MUST", text = "While the explicitText has a maximum size of 200 characters, some non-conforming CAs exceed this limit. Therefore, certificate users SHOULD gracefully handle explicitText with more than 200 characters.")
+								judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificatePolicies_UserNoticeConstraintViolation, "User notice qualifier of policy %s contains a qualifier which breaks the ASN.1 length constraint of 200 characters." % (policy.oid), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+
 							# Check if noticeRef is present
 							# TODO: Is this correct? See https://github.com/etingof/pyasn1/issues/189
 							notice_ref = qualifier.decoded_qualifier.asn1.getComponentByName("noticeRef", instantiate = False)

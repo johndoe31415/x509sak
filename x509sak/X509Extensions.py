@@ -434,7 +434,7 @@ class X509CertificatePoliciesExtension(X509Extension):
 
 	_CertificatePolicy = collections.namedtuple("CertificatePolicy", [ "oid", "qualifiers" ])
 	_CertificatePolicyQualifier = collections.namedtuple("CertificatePolicyQualifier", [ "oid", "qualifier_data", "decoded_qualifier" ])
-	_DecodedQualifier = collections.namedtuple("DecodedQualifier", [ "asn1", "trailing_data" ])
+	_DecodedQualifier = collections.namedtuple("DecodedQualifier", [ "asn1", "trailing_data", "constraint_violation" ])
 
 	@property
 	def policies(self):
@@ -453,10 +453,14 @@ class X509CertificatePoliciesExtension(X509Extension):
 		decoded_qualifier = None
 		if oid == OIDDB.X509ExtensionCertificatePolicyQualifierOIDs.inverse("id-qt-cps"):
 			with contextlib.suppress(pyasn1.error.PyAsn1UnicodeDecodeError):
-				decoded_qualifier = cls._DecodedQualifier(*pyasn1.codec.der.decoder.decode(qualifier_data, asn1Spec = rfc5280.CPSuri()))
+				decoded_qualifier = cls._DecodedQualifier(*pyasn1.codec.der.decoder.decode(qualifier_data, asn1Spec = rfc5280.CPSuri()), constraint_violation = False)
 		elif oid == OIDDB.X509ExtensionCertificatePolicyQualifierOIDs.inverse("id-qt-unotice"):
-			with contextlib.suppress(pyasn1.error.PyAsn1UnicodeDecodeError):
-				decoded_qualifier = cls._DecodedQualifier(*pyasn1.codec.der.decoder.decode(qualifier_data, asn1Spec = rfc5280.UserNotice()))
+			try:
+				with contextlib.suppress(pyasn1.error.PyAsn1UnicodeDecodeError):
+					decoded_qualifier = cls._DecodedQualifier(*pyasn1.codec.der.decoder.decode(qualifier_data, asn1Spec = rfc5280.UserNotice()), constraint_violation = False)
+			except pyasn1.type.error.ValueConstraintError:
+				with contextlib.suppress(pyasn1.error.PyAsn1UnicodeDecodeError):
+					decoded_qualifier = cls._DecodedQualifier(*pyasn1.codec.der.decoder.decode(qualifier_data, asn1Spec = ASN1Models.RelaxedUserNotice()), constraint_violation = True)
 		return decoded_qualifier
 
 	def get_policy(self, policy_oid):
