@@ -112,6 +112,54 @@ class ECParameters(univ.Choice):
 		namedtype.NamedType("specifiedCurve", SpecifiedECDomain()),
 	)
 
+class ECFieldParametersPrimeField(univ.Integer):
+	"""X9.62-1998: Public Key Cryptography for the Financial Services Industry
+
+	Prime-p ::= INTEGER        -- Finite field F(p), where p is an odd prime
+	"""
+	pass
+
+class ECFieldParametersCharacteristicTwoField(univ.Sequence):
+	"""X9.62-1998: Public Key Cryptography for the Financial Services Industry
+
+	Characteristic-two ::= SEQUENCE {
+		m INTEGER,			-- Field size 2^m
+		basis CHARACTERISTIC-TWO.&id({BasisTypes}),
+		parameters CHARACTERISTIC-TWO.&Type({BasisTypes}{@basis})
+	}
+	"""
+	componentType = namedtype.NamedTypes(
+		namedtype.NamedType("m", univ.Integer()),
+		namedtype.NamedType("basis", univ.ObjectIdentifier()),
+		namedtype.NamedType("parameters", univ.Any()),
+	)
+
+class ECFieldParametersCharacteristicTwoFieldTrinomial(univ.Integer):
+	"""X9.62-1998: Public Key Cryptography for the Financial Services Industry
+
+	x^m + x^k + 1
+
+	Trinomial ::= INTEGER
+	"""
+	pass
+
+class ECFieldParametersCharacteristicTwoFieldPentanomial(univ.Sequence):
+	"""X9.62-1998: Public Key Cryptography for the Financial Services Industry
+
+	x^m + x^k3 + x^k2 + x^k1 + 1
+
+	Pentanomial ::= SEQUENCE {
+		k1 INTEGER,
+		k2 INTEGER,
+		k3 INTEGER
+	}
+	"""
+	componentType = namedtype.NamedTypes(
+		namedtype.NamedType("k1", univ.Integer()),
+		namedtype.NamedType("k2", univ.Integer()),
+		namedtype.NamedType("k3", univ.Integer()),
+	)
+
 class ECPrivateKeyVersion(univ.Integer):
 	namedValues = namedval.NamedValues(
 		("ecPrivkeyVer1", 1),

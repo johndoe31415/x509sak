@@ -21,9 +21,13 @@
 
 import math
 import hashlib
+import pyasn1.codec.der.decoder
 from x509sak.KwargsChecker import KwargsChecker
 from x509sak.NumberTheory import NumberTheory
 from x509sak.Exceptions import InvalidInputException, UnsupportedEncodingException
+from x509sak.ASN1Models import SpecifiedECDomain, ECFieldParametersPrimeField, ECFieldParametersCharacteristicTwoField, ECFieldParametersCharacteristicTwoFieldTrinomial, ECFieldParametersCharacteristicTwoFieldPentanomial
+from x509sak.Tools import ASN1Tools
+from x509sak.OID import OID, OIDDB
 
 class EllipticCurvePoint():
 	"""Affine representation of an ECC curve point."""
@@ -68,6 +72,7 @@ class EllipticCurvePoint():
 
 class EllipticCurve():
 	_DomainArgs = None
+	_CurveTypes = { }
 
 	def __init__(self, metadata = None, **domain_parameters):
 		if self._DomainArgs is not None:
@@ -133,6 +138,87 @@ class EllipticCurve():
 		else:
 			raise UnsupportedEncodingException("Do not know how to decode serialized point in non-explicit point format 0x%x." % (serialized_point[0]))
 
+	@classmethod
+	def from_asn1(cls, asn1):
+		"""Decode explicitly encoded elliptic curve domain parameters, given as a Sequence (SpecifiedECDomain)."""
+
+		(specified_domain, tail) = ASN1Tools.redecode(asn1, SpecifiedECDomain())
+		if len(tail) != 0:
+			raise KeyCorruptException("Attempted to decode the excplicit EC domain and encountered %d bytes of trailing data." % (len(tail)))
+
+		version = int(specified_domain["version"])
+		if version != 1:
+			raise KeyCorruptException("Attempted to decode the excplicit EC domain and saw unknown version %d." % (version))
+
+		field_type = OID.from_asn1(specified_domain["fieldID"]["fieldType"])
+		field_type_id = OIDDB.ECFieldType.get(field_type)
+		if field_type_id is None:
+			raise KeyCorruptException("Encountered explicit EC domain parameters in unknown field with OID %s." % (str(field_type)))
+
+		domain_parameters = {
+			"a":	int.from_bytes(bytes(specified_domain["curve"]["a"]), byteorder = "big"),
+			"b":	int.from_bytes(bytes(specified_domain["curve"]["b"]), byteorder = "big"),
+			"n":	int(specified_domain["order"]),
+			"h":	int(specified_domain["cofactor"]),		# TODO cofactor is optional
+		}
+		base_point = bytes(specified_domain["base"])
+		if field_type_id == "prime-field":
+			(field_params, tail) = pyasn1.codec.der.decoder.decode(bytes(specified_domain["fieldID"]["parameters"]), asn1Spec = ECFieldParametersPrimeField())
+			if len(tail) != 0:
+				raise KeyCorruptException("Attempted to decode the excplicit EC domain and encountered %d bytes of trailing data of the prime basis Integer." % (len(tail)))
+
+			domain_parameters.update({
+				"p":	int(field_params),
+			})
+			return cls._CurveTypes["prime"].instanciate(domain_parameters, base_point)
+		elif field_type_id == "characteristic-two-field":
+			(field_params, tail) = pyasn1.codec.der.decoder.decode(bytes(specified_domain["fieldID"]["parameters"]), asn1Spec = ECFieldParametersCharacteristicTwoField())
+			if len(tail) != 0:
+				raise KeyCorruptException("Attempted to decode the excplicit EC domain and encountered %d bytes of trailing data of the characteristic two field Sequence." % (len(tail)))
+
+			# Field width is common to all two-fields
+			domain_parameters.update({
+				"m":		int(field_params["m"]),
+			})
+
+			basis_type = OID.from_asn1(field_params["basis"])
+			basis_type_id = OIDDB.ECTwoFieldBasistype.get(basis_type)
+			if basis_type_id is None:
+				raise KeyCorruptException("Unknown two-field basis type with OID %s found in public key." % (str(basis_type)))
+
+			if basis_type_id == "gnBasis":
+				raise KeyCorruptException("Binary field explicit domain parameters with Gaussian polynomial basis is not implemented.")
+			elif basis_type_id == "tpBasis":
+				(params, tail) = ASN1Tools.redecode(field_params["parameters"], ECFieldParametersCharacteristicTwoFieldTrinomial())
+				if len(tail) != 0:
+					raise KeyCorruptException("Attempted to decode the excplicit EC domain and encountered %d bytes of trailing data of the characteristic two field trinomial basis." % (len(tail)))
+				poly = [ domain_parameters["m"], int(params), 0 ]
+			elif basis_type_id == "ppBasis":
+				(params, tail) = ASN1Tools.redecode(field_params["parameters"], ECFieldParametersCharacteristicTwoFieldPentanomial())
+				if len(tail) != 0:
+					raise KeyCorruptException("Attempted to decode the excplicit EC domain and encountered %d bytes of trailing data of the characteristic two field pentanomial basis." % (len(tail)))
+				poly = [ domain_parameters["m"], int(params["k1"]), int(params["k2"]), int(params["k3"]), 0 ]
+			else:
+				raise NotImplementedError("Binary field basis", basis_type_id)
+			domain_parameters.update({
+				"m":		int(field_params["m"]),
+				"poly":		poly,
+			})
+			return cls._CurveTypes["twofield"].instanciate(domain_parameters, base_point)
+		else:
+			raise NotImplementedError("Explicit EC domain parameter encoding for field type \"%s\" is not implemented." % (field_type_id))
+
+	@classmethod
+	def instanciate(cls, domain_parameters, encoded_base_point):
+		curve_without_generator = cls(**domain_parameters)
+		G = curve_without_generator.decode_point(encoded_base_point)
+		domain_parameters.update({
+			"Gx":	G.x,
+			"Gy":	G.y,
+		})
+		curve = cls(**domain_parameters)
+		return curve
+
 	def __eq__(self, other):
 		# TODO: Two curves with different names will not be equal. Right now we
 		# don't have that case because we don't support explicit curve
@@ -169,6 +255,7 @@ class PrimeFieldEllipticCurve(EllipticCurve):
 		lhs = (point.y * point.y) % self.p
 		rhs = ((point.x ** 3) + (self.a * point.x) + self.b) % self.p
 		return lhs == rhs
+EllipticCurve._CurveTypes["prime"] = PrimeFieldEllipticCurve
 
 class BinaryFieldEllipticCurve(EllipticCurve):
 	"""y^2 + xy = x^3 + ax^2 + b (in F_{2^m}, reduced by irreducible poly)"""
@@ -195,6 +282,7 @@ class BinaryFieldEllipticCurve(EllipticCurve):
 		lhs = NumberTheory.binpoly_reduce(NumberTheory.cl_mul(point.y, point.y) ^ NumberTheory.cl_mul(point.x, point.y), self.intpoly)
 		rhs = NumberTheory.binpoly_reduce(NumberTheory.cl_mul(NumberTheory.cl_mul(point.x, point.x), point.x) ^ NumberTheory.cl_mul(NumberTheory.cl_mul(self.a, point.x), point.x) ^ self.b, self.intpoly)
 		return lhs == rhs
+EllipticCurve._CurveTypes["twofield"] = BinaryFieldEllipticCurve
 
 class TwistedEdwardsEllipticCurve(EllipticCurve):
 	"""ax^2 + y^2 = 1 + dx^2 y^2 (mod p)"""

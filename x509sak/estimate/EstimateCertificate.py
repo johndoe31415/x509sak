@@ -59,8 +59,11 @@ class CertificateEstimator(BaseEstimator):
 				judgements += SecurityJudgement(JudgementCode.Cert_Pubkey_Invalid_DER, "Certificate public key uses invalid DER encoding. Decoding and re-encoding yields %d byte blob while original was %d bytes." % (len(pubkey_reencoding), len(certificate.pubkey.der_data)), compatibility = Compatibility.STANDARDS_DEVIATION)
 		except pyasn1.error.PyAsn1Error:
 			judgements += SecurityJudgement(JudgementCode.Cert_Pubkey_Invalid_DER, "Certificate public key uses invalid DER encoding. Re-encoding was not possible.", compatibility = Compatibility.STANDARDS_DEVIATION)
-		except CurveNotFoundException:
-			pass
+		except NotImplementedError as e:
+			judgements += SecurityJudgement(JudgementCode.Cert_Pubkey_ReencodingCheckMissing, "Missing check due to non-implemented functionality: %s" % (str(e)), commonness = Commonness.UNUSUAL)
+# TODO: Why are we silently discarding this?
+#		except CurveNotFoundException:
+#			pass
 
 		oid_header = OID.from_asn1(certificate.asn1["tbsCertificate"]["signature"]["algorithm"])
 		oid_sig = OID.from_asn1(certificate.asn1["signatureAlgorithm"]["algorithm"])

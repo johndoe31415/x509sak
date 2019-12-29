@@ -29,7 +29,9 @@ from x509sak.Tools import ASN1Tools
 from x509sak.KeySpecification import KeySpecification
 from x509sak.Exceptions import UnknownAlgorithmException, LazyDeveloperException, InvalidUseException
 from x509sak.CurveDB import CurveDB
+from x509sak.ECCMath import EllipticCurve
 from x509sak.AlgorithmDB import PublicKeyAlgorithms, Cryptosystems
+from x509sak.ASN1Models import SpecifiedECDomain
 
 class PublicKey(PEMDERObject):
 	_PEM_MARKER = "PUBLIC KEY"
@@ -93,9 +95,14 @@ class PublicKey(PEMDERObject):
 					"named_curve":	True,
 				}
 			else:
-				# Explicit parameter encoding
-				print(alg_params)
-				raise NotImplementedError("explicit curve domain parameters")
+				curve = EllipticCurve.from_asn1(alg_params)
+				pk_point = curve.decode_point(inner_key)
+				self._key = {
+					"x":			pk_point.x,
+					"y":			pk_point.y,
+					"curve":		curve,
+					"named_curve":	False,
+				}
 		elif self.pk_alg.value.cryptosystem == Cryptosystems.ECC_EdDSA:
 			curve = CurveDB().instanciate(oid = alg_oid)
 			self._key = dict(self._pk_alg.value.fixed_params)
@@ -122,7 +129,14 @@ class PublicKey(PEMDERObject):
 		elif cryptosystem == Cryptosystems.ECC_ECDSA:
 			curve = parameters["curve"]
 			asn1["algorithm"]["algorithm"] = OIDDB.KeySpecificationAlgorithms.inverse("ecPublicKey").to_asn1()
-			asn1["algorithm"]["parameters"] = pyasn1.codec.der.encoder.encode(curve.oid.to_asn1())
+			if curve.oid is not None:
+				asn1["algorithm"]["parameters"] = pyasn1.codec.der.encoder.encode(curve.oid.to_asn1())
+			else:
+				# TODO not implemented
+				#domain_params = SpecifiedECDomain()
+				#domain_params["version"] = 1
+				#asn1["algorithm"]["parameters"] = domain_params
+				raise NotImplementedError("Re-encoding of explicitly specified elliptic curve domain parameters (i.e., non-named curves) is not implemented in x509sak")
 			inner_key = curve.point(parameters["x"], parameters["y"]).encode()
 		elif cryptosystem == Cryptosystems.ECC_EdDSA:
 			curve = parameters["curve"]

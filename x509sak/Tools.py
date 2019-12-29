@@ -30,6 +30,8 @@ import textwrap
 import datetime
 import urllib.parse
 import pyasn1.type.univ
+import pyasn1.codec.der.encoder
+import pyasn1.codec.der.decoder
 import time
 from x509sak.Exceptions import UnexpectedFileContentException, InvalidUsageException, InvalidInputException
 
@@ -140,6 +142,11 @@ class ASN1Tools():
 			for bit in reversed(range(8)):
 				bitstring.append((bytevalue >> bit) & 1)
 		return pyasn1.type.univ.BitString(bitstring)
+
+	@classmethod
+	def redecode(cls, asn1, asn1_spec):
+		encoded_asn1 = pyasn1.codec.der.encoder.encode(asn1)
+		return pyasn1.codec.der.decoder.decode(encoded_asn1, asn1Spec = asn1_spec)
 
 class ECCTools():
 	@classmethod

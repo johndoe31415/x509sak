@@ -259,3 +259,16 @@ class OIDDB():
 		OID.from_str("1.2.203.7064.1.1.369791.1"):	"CSN369791-TLS-CLIENT",
 		OID.from_str("1.2.203.7064.1.1.369791.2"):	"CSN369791-TLS-SERVER",
 	})
+
+	"""ECC field type."""
+	ECFieldType = BijectiveDict({
+		OID.from_str("1.2.840.10045.1.1"):			"prime-field",
+		OID.from_str("1.2.840.10045.1.2"):			"characteristic-two-field",
+	})
+
+	"""ECC twofield basisType."""
+	ECTwoFieldBasistype = BijectiveDict({
+		OID.from_str("1.2.840.10045.1.2.3.1"):		"gnBasis",		# Gaussian basis
+		OID.from_str("1.2.840.10045.1.2.3.2"):		"tpBasis",		# Trinomial basis
+		OID.from_str("1.2.840.10045.1.2.3.3"):		"ppBasis",		# Pentanomial basis
+	})
