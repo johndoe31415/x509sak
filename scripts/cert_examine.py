@@ -41,7 +41,7 @@ def execute(certno, domain, infile, outfile):
 	except FileExistsError:
 		pass
 
-	cmd = [ "../x509sak.py", "examine", "-p", "tls-server", "-n", domain, "-f", "json", "-o", outfile, "-i", "dercrt", infile ]
+	cmd = [ "../x509sak.py", "examine", "-p", "tls-server", "--server-name=%s" % (domain), "-f", "json", "-o", outfile, "-i", "dercrt", infile ]
 	print("%6d %s" % (certno, " ".join(cmd)))
 	try:
 		subprocess.check_call(cmd)
