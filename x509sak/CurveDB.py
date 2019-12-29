@@ -79,7 +79,6 @@ class CurveDB():
 		for curvedata in self._DB_DATA.values():
 			if curvedata["curvetype"] == curve.curvetype:
 				instance = self.instantiate(name = curvedata["name"])
-				print("compare", instance)
 				if instance == curve:
 					return instance
 		return None
