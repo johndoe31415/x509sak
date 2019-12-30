@@ -181,7 +181,7 @@ class CmdLineTestsExamine(BaseTest):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-duplicate-extension2.pem", "Cert_X509Ext_Duplicate")
 
 	def test_examine_x509test_xf_ext_altname_blank_domain(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-blank-domain.pem", "Cert_X509Ext_SubjectAltName_BadDomain")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-blank-domain.pem", "Cert_X509Ext_SubjectAltName_BadDomain_Space")
 
 	def test_examine_x509test_xf_ext_altname_critical_subject(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-critical-subject.pem", "Cert_X509Ext_SubjectAltName_Critical")
@@ -588,3 +588,33 @@ class CmdLineTestsExamine(BaseTest):
 
 	def test_explicit_unknown(self):
 		self._test_examine_x509test_resultcode("certs/ok/ecc_explicit_param_prime_custom_domain.pem", expect_present = [ "ECC_ExplicitCurveEncoding", "ECC_UnknownExplicitCurve" ])
+
+	def test_san_broad_mactch1(self):
+		self._test_examine_x509test_resultcode("certs/constructed/san_broad_match1.pem", expect_present = "Cert_X509Ext_SubjectAltName_BadWildcardDomain_BroadMatch")
+
+	def test_san_broad_mactch2(self):
+		self._test_examine_x509test_resultcode("certs/constructed/san_broad_match2.pem", expect_present = "Cert_X509Ext_SubjectAltName_BadWildcardDomain_BroadMatch")
+
+	def test_san_bad_email(self):
+		self._test_examine_x509test_resultcode("certs/constructed/san_bad_email.pem", expect_present = "Cert_X509Ext_SubjectAltName_BadEmail")
+
+	def test_san_bad_ip(self):
+		self._test_examine_x509test_resultcode("certs/constructed/san_bad_ip.pem", expect_present = "Cert_X509Ext_SubjectAltName_BadIP")
+
+	def test_san_wildcard_not_leftmost(self):
+		self._test_examine_x509test_resultcode("certs/constructed/san_wildcard_not_leftmost.pem", expect_present = "Cert_X509Ext_SubjectAltName_BadWildcardDomain_NotLeftmost")
+
+	def test_san_wildcard_more_than_one(self):
+		self._test_examine_x509test_resultcode("certs/constructed/san_wildcard_more_than_one.pem", expect_present = "Cert_X509Ext_SubjectAltName_BadWildcardDomain_MoreThanOneWildcard")
+
+	def test_san_international_label_ok(self):
+		self._test_examine_x509test_resultcode("certs/constructed/san_international_label_ok.pem", expect_absent = "Cert_X509Ext_SubjectAltName_BadWildcardDomain_InternationalLabel")
+
+	def test_san_international_label_wrong(self):
+		self._test_examine_x509test_resultcode("certs/constructed/san_international_label_wrong.pem", expect_present = "Cert_X509Ext_SubjectAltName_BadWildcardDomain_InternationalLabel")
+
+	def test_san_bad_domain(self):
+		self._test_examine_x509test_resultcode("certs/constructed/san_bad_domain.pem", expect_present = "Cert_X509Ext_SubjectAltName_BadDomain")
+
+	def test_san_bad_domain_space(self):
+		self._test_examine_x509test_resultcode("certs/constructed/san_bad_domain_space.pem", expect_present = "Cert_X509Ext_SubjectAltName_BadDomain_Space")

@@ -270,6 +270,9 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 			return SecurityJudgement(name_errors["empty"].code, "%s of type %s has empty value." % (extension_str, entity_name.name), compatibility = Compatibility.STANDARDS_DEVIATION, standard = name_errors["empty"].standard)
 
 		if entity_name.name == "dNSName":
+			if entity_name.str_value == " ":
+				return SecurityJudgement(name_errors["bad_domain_space"].code, "%s of type %s got invalid domain name \"%s\"." % (extension_str, entity_name.name, entity_name.str_value), compatibility = Compatibility.STANDARDS_DEVIATION, standard = name_errors["bad_domain_space"].standard)
+
 			if allow_dnsname_wildcard_matches:
 				(result, label) = ValidationTools.validate_domainname_template(entity_name.str_value)
 				if result != ValidationTools.DomainnameTemplateValidationResult.Valid:
@@ -289,10 +292,13 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 					labels = entity_name.str_value.split(".")
 					if len(labels) <= 2:
 						return SecurityJudgement(name_errors["bad_wc_broad"].code, "%s of type %s and wildcard value \"%s\" has very broad domain match." % (extension_str, entity_name.name, entity_name.str_value), commonness = Commonness.HIGHLY_UNUSUAL)
-			else:
-				result = ValidationTools.validate_domainname(entity_name.str_value)
-				if not result:
-					return SecurityJudgement(name_errors["bad_domain"].code, "%s of type %s got invalid domain name \"%s\"." % (extension_str, entity_name.name, entity_name.str_value), compatibility = Compatibility.STANDARDS_DEVIATION, standard = name_errors["bad_domain"].standard)
+
+			validation_name = entity_name.str_value
+			if allow_dnsname_wildcard_matches:
+				validation_name = validation_name.replace("*", "a")
+			result = ValidationTools.validate_domainname(validation_name)
+			if not result:
+				return SecurityJudgement(name_errors["bad_domain"].code, "%s of type %s got invalid domain name \"%s\" (wildcard matches %s)." % (extension_str, entity_name.name, entity_name.str_value, "permitted" if allow_dnsname_wildcard_matches else "forbidden"), compatibility = Compatibility.STANDARDS_DEVIATION, standard = name_errors["bad_domain"].standard)
 
 		elif entity_name.name == "iPAddress":
 			if len(entity_name.asn1_value) not in [ 4, 16 ]:
@@ -310,6 +316,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		return self._judge_single_general_name(entity_name, allow_dnsname_wildcard_matches = True, extension_str = "Subject Alternative X.509 extension", name_errors = {
 			"empty":				self._NameError(code = JudgementCode.Cert_X509Ext_SubjectAltName_EmptyValue, standard = RFCReference(rfcno = 5280, sect = [ "4.2.1.1", "4.2.1.6" ], verb = "MUST", text = "GeneralName ::= CHOICE {")),
 			"bad_domain":			self._NameError(code = JudgementCode.Cert_X509Ext_SubjectAltName_BadDomain, standard = RFCReference(rfcno = 1034, sect = "3.5", verb = "MUST", text = "The following syntax will result in fewer problems with many applications that use domain names (e.g., mail, TELNET).")),
+			"bad_domain_space":		self._NameError(code = JudgementCode.Cert_X509Ext_SubjectAltName_BadDomain_Space, standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "In addition, while the string \" \" is a legal domain name, subjectAltName extensions with a dNSName of \" \" MUST NOT be used.")),
 			"bad_wc_notleftmost":	self._NameError(code = JudgementCode.Cert_X509Ext_SubjectAltName_BadWildcardDomain_NotLeftmost, standard = RFCReference(rfcno = 6125, sect = "6.4.3", verb = "SHOULD", text = "The client SHOULD NOT attempt to match a presented identifier in which the wildcard character comprises a label other than the left-most label")),
 			"bad_wc_morethanone":	self._NameError(code = JudgementCode.Cert_X509Ext_SubjectAltName_BadWildcardDomain_MoreThanOneWildcard, standard = RFCReference(rfcno = 6125, sect = "6.4.3", verb = "SHOULD", text = "If the wildcard character is the only character of the left-most label in the presented identifier, the client SHOULD NOT compare against anything but the left-most label of the reference identifier")),
 			"bad_wc_international":	self._NameError(code = JudgementCode.Cert_X509Ext_SubjectAltName_BadWildcardDomain_InternationalLabel, standard = RFCReference(rfcno = 6125, sect = "6.4.3", verb = "SHOULD", text = "However, the client SHOULD NOT attempt to match a presented identifier where the wildcard character is embedded within an A-label or U-label [IDNA-DEFS] of an internationalized domain name [IDNA-PROTO].")),

@@ -79,7 +79,9 @@ class ResultCollector():
 		print()
 
 	def _dump_codes(self, codes, scantype):
-		assert(len(set(codes) - self._all_codes) == 0)
+		if len(set(codes) - self._all_codes) != 0:
+			raise Exception("Found codes as encountered that are not defined (%s). Re-run test suite?" % (", ".join(sorted(set(codes) - self._all_codes))))
+
 		missing = self._all_codes - set(codes)
 		print("%s: %d of %d codes seen (%.1f%%), %d missing (%.1f%%):" % (scantype, len(codes), len(self._all_codes), len(codes) / len(self._all_codes) * 100, len(missing), len(missing) / len(self._all_codes) * 100))
 		for codename in sorted(missing):

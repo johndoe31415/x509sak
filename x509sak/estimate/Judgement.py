@@ -125,6 +125,7 @@ class JudgementCode(enum.Enum):
 	Cert_X509Ext_SubjectAltName_BadIP = ("X.509 SubjectAlternativeName", "invalid IP address")
 	Cert_X509Ext_SubjectAltName_BadEmail = ("X.509 SubjectAlternativeName", "invalid email address")
 	Cert_X509Ext_SubjectAltName_BadDomain = ("X.509 SubjectAlternativeName", "invalid domain name")
+	Cert_X509Ext_SubjectAltName_BadDomain_Space = ("X.509 SubjectAlternativeName", "domain name is just a space character")
 	Cert_X509Ext_SubjectAltName_BadWildcardDomain_NotLeftmost = ("X.509 SubjectAlternativeName", "wildcard appears not leftmost")
 	Cert_X509Ext_SubjectAltName_BadWildcardDomain_MoreThanOneWildcard = ("X.509 SubjectAlternativeName", "more than one wildcard present")
 	Cert_X509Ext_SubjectAltName_BadWildcardDomain_InternationalLabel = ("X.509 SubjectAlternativeName", "wildcard present in international label")
