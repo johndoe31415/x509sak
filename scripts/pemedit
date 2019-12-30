@@ -25,8 +25,217 @@ import os
 import subprocess
 import tempfile
 import re
+import base64
 from x509sak.FriendlyArgumentParser import FriendlyArgumentParser
 from x509sak.OID import OID
+
+class ASN1Editor():
+	_PEM_ENVELOPE = re.compile(r"-----BEGIN (?P<datatype>[A-Z ]+)-----(?P<content>[\sA-Za-z0-9+/=]+)-----END (?P=datatype)-----", flags = re.MULTILINE)
+	_OID_REGEX = re.compile(r"# (?P<oid_name>[-A-Za-z0-9]+)\s+OBJECT_IDENTIFIER { (?P<oid_value>[.0-9]+) }", flags = re.MULTILINE)
+	_OID_REPLACEMENTS = {
+		"0.9.2342.19200300.100.1.1": [ "UID" ],
+		"0.9.2342.19200300.100.1.25": [ "DC" ],
+		"1.2.840.10045.1.1": [ "prime-field" ],
+		"1.2.840.10045.2.1": [ "ecPublicKey" ],
+		"1.2.840.10045.3.1.7": [ "secp256r1" ],
+		"1.2.840.10045.4.3.2": [ "ecdsa-with-SHA256" ],
+		"1.2.840.113549.1.1.1": [ "rsaEncryption" ],
+		"1.2.840.113549.1.1.4": [ "md5WithRSAEncryption" ],
+		"1.2.840.113549.1.1.5": [ "sha1WithRSAEncryption" ],
+		"1.2.840.113549.1.1.8": [ "mgf1" ],
+		"1.2.840.113549.1.1.10": [ "rsassa-pss" ],
+		"1.2.840.113549.1.1.11": [ "sha256WithRSAEncryption" ],
+		"1.2.840.113549.1.1.12": [ "sha384WithRSAEncryption" ],
+		"1.2.840.113549.1.9.1": [ "emailAddress" ],
+		"1.3.6.1.4.1.11129.2.4.2": [ "embeddedSCTList" ],
+		"1.3.6.1.5.5.7.1.1": [ "authorityInfoAccess" ],
+		"1.3.6.1.5.5.7.2.2": [ "unotice" ],
+		"1.3.6.1.5.5.7.3.1": [ "serverAuth" ],
+		"1.3.6.1.5.5.7.3.2": [ "clientAuth" ],
+		"1.3.6.1.5.5.7.3.3": [ "codeSigning" ],
+		"1.3.6.1.5.5.7.48.1": [ "ocsp" ],
+		"1.3.6.1.5.5.7.48.2": [ "caIssuers" ],
+		"1.3.101.112": [ "ed25519" ],
+		"1.3.101.113": [ "ed448" ],
+		"1.3.132.0.6": [ "secp112r1" ],
+		"1.3.132.0.34": [ "secp384r1" ],
+		"2.5.4.3": [ "CN", "commonName" ],
+		"2.5.4.4": [ "SN" ],
+		"2.5.4.6": [ "C", "countryName" ],
+		"2.5.4.7": [ "L", "localityName" ],
+		"2.5.4.10": [ "O", "organizationName" ],
+		"2.5.4.11": [ "OU", "organizationUnitName" ],
+		"2.5.29.14": [ "subjectKeyIdentifier" ],
+		"2.5.29.15": [ "keyUsage" ],
+		"2.5.29.17": [ "subjectAltName" ],
+		"2.5.29.19": [ "basicConstraints" ],
+		"2.5.29.31": [ "cRLDistributionPoints" ],
+		"2.5.29.32": [ "certificatePolicies" ],
+		"2.5.29.35": [ "authorityKeyIdentifier" ],
+		"2.5.29.37": [ "extKeyUsage" ],
+		"2.16.840.1.101.3.4.2.1": [ "sha256" ],
+		"2.23.140.1.2.1": [ "domain-validated" ],
+	}
+
+	def __init__(self, args):
+		self._args = args
+		self._new_oids = False
+
+	@staticmethod
+	def _confirm(text):
+		while True:
+			yn = input(text)
+			yn = yn.lower()
+			if yn == "y":
+				return True
+			elif yn == "n":
+				return False
+
+	def _print_oids(self):
+		oids = { OID.from_str(oid_str): oid_names for (oid_str, oid_names) in self._OID_REPLACEMENTS.items() }
+		for (oid, names) in sorted(oids.items()):
+				print("		\"%s\": [ %s ]," % (oid, ", ".join("\"%s\"" % (name) for name in names)))
+
+	def _update_oid_database(self, binary_ascii_der):
+		for match in self._OID_REGEX.finditer(binary_ascii_der.decode()):
+			match = match.groupdict()
+			if match["oid_value"] not in self._OID_REPLACEMENTS:
+				self._OID_REPLACEMENTS[match["oid_value"]] = [ ]
+			if match["oid_name"] not in self._OID_REPLACEMENTS[match["oid_value"]]:
+				self._new_oids = True
+				self._OID_REPLACEMENTS[match["oid_value"]].append(match["oid_name"])
+
+	def _pem_decode(self, binary_pem_content):
+		data = [ ]
+		pem_text = binary_pem_content.decode()
+		for match in self._PEM_ENVELOPE.finditer(pem_text):
+			match = match.groupdict()
+			data.append((match["datatype"], base64.b64decode(match["content"].replace("\n", ""))))
+		return data
+
+	def _openssl_text(self, filetype, der_data):
+		facility = {
+			"CERTIFICATE":		"x509",
+			"EC PRIVATE KEY":	"ec",
+			"EC PARAMETERS":	"ecparam",
+		}.get(filetype)
+		if facility is None:
+			return None
+
+		result = subprocess.run([ "openssl", facility, "-inform", "der", "-noout", "-text" ], stdout = subprocess.PIPE, stderr = subprocess.STDOUT, input = der_data)
+		text = result.stdout.decode()
+		lines = [ line.rstrip("\r\t ") for line in text.split("\n") ]
+		return "\n".join(lines)
+
+	def _pem_encode(self, filetype, der_data):
+		b64 = base64.b64encode(der_data).decode()
+		lines = [ b64[i : i + 64] for i in range(0, len(b64), 64) ]
+		lines.insert(0, "-----BEGIN %s-----" % (filetype))
+		lines.append("-----END %s-----" % (filetype))
+		lines.append("")
+		pem_data = "\n".join(lines)
+
+		openssl_output = self._openssl_text(filetype, der_data)
+		if openssl_output is not None:
+			print(openssl_output)
+			pem_data = openssl_output + pem_data
+
+		return pem_data.encode()
+
+
+	def _substitute_ascii_der(self, binary_ascii_der):
+		ascii_der = binary_ascii_der.decode()
+		for (oid, oid_names) in self._OID_REPLACEMENTS.items():
+			for oid_name in oid_names:
+				# Replace OIDs with their names
+				regex = re.compile("OBJECT_IDENTIFIER\s*{\s*%s\s*}" % (oid))
+				ascii_der = regex.sub("OBJECT_IDENTIFIER { oid=%s }" % (oid_name), ascii_der)
+
+				# Remove comment lines for those we know
+				regex = re.compile("^\s*# %s\s*\n" % (oid_name), flags = re.MULTILINE)
+				ascii_der = regex.sub("", ascii_der)
+		binary_ascii_der = ascii_der.encode()
+		return binary_ascii_der
+
+	def _back_substitute_ascii_der(self, binary_ascii_der):
+		ascii_der = binary_ascii_der.decode()
+		for (oid, oid_names) in self._OID_REPLACEMENTS.items():
+			for oid_name in oid_names:
+				# Replace OIDs with their names
+				regex = re.compile("OBJECT_IDENTIFIER\s*{\s*oid=%s\s*}" % (oid_name))
+				ascii_der = regex.sub("OBJECT_IDENTIFIER { %s }" % (oid), ascii_der)
+		binary_ascii_der = ascii_der.encode()
+		return binary_ascii_der
+
+	def _edit(self, binary_ascii_der):
+		with tempfile.NamedTemporaryFile(prefix = "pemedit_", suffix = ".txt") as f:
+			f.write(binary_ascii_der)
+			f.flush()
+
+			vim_syntax_file = os.path.dirname(__file__) + "/asciider.vim"
+			while True:
+				subprocess.check_call([ "vi", "-f", "-c", ":source %s" % (vim_syntax_file), f.name ])
+
+				# Read the changed file
+				f.seek(0)
+				binary_ascii_der = f.read()
+				binary_ascii_der = self._back_substitute_ascii_der(binary_ascii_der)
+
+				# Attempt to create DER from it
+				try:
+					return subprocess.check_output([ "ascii2der" ], input = binary_ascii_der)
+				except subprocess.CalledProcessError:
+					yn = self._confirm("PEM editing had syntax errors. Retry (y/n)? ")
+					if not yn:
+						return None
+
+	def _write_file(self, filename, filetype, der_data):
+		with open(filename, "wb") as f:
+			if self._args.edit_der:
+				f.write(der_data)
+			else:
+				# Write PEM file
+				pem_data = self._pem_encode(filetype, der_data)
+				f.write(pem_data)
+
+	def _process_file(self, filename):
+		with open(filename, "rb") as f:
+			content = f.read()
+
+		if self._args.edit_der:
+			original_der_data = content
+			filetype = None
+		else:
+			pem_data = self._pem_decode(content)
+			if len(pem_data) != 1:
+				raise NotImplementedError("When editing PEM content, expect exactly one data type, but %d found." % (len(pem_data)))
+			(filetype, original_der_data) = pem_data[0]
+
+		ascii_der = subprocess.check_output([ "der2ascii" ], input = original_der_data)
+		self._update_oid_database(ascii_der)
+		if not self._args.original_oids:
+			ascii_der = self._substitute_ascii_der(ascii_der)
+
+		# Prepend original filename
+		ascii_der = (("# " + filename + "\n\n").encode("utf-8")) + ascii_der
+
+		# Now actually edit the file
+		if not self._args.no_edit:
+			modified_der_data = self._edit(ascii_der)
+			if modified_der_data == original_der_data:
+				print("File has not been changed.")
+			else:
+				self._write_file(filename, filetype, modified_der_data)
+
+	def run(self):
+		for filename in self._args.filename:
+			self._process_file(filename)
+		if self._args.dump_oids:
+			if not self._new_oids:
+				print("No new OIDs.")
+			else:
+				self._print_oids()
+
 
 parser = FriendlyArgumentParser(description = "Edit a PEM file in its raw representation.")
 parser.add_argument("-d", "--edit-der", action = "store_true", help = "Edit the DER representation instead of PEM.")
@@ -36,212 +245,5 @@ parser.add_argument("-o", "--original-oids", action = "store_true", help = "Do n
 parser.add_argument("filename", metavar = "filename", type = str, nargs = "+", help = "PEM file(s) to edit")
 args = parser.parse_args(sys.argv[1:])
 
-oid_regex = re.compile("# (?P<oid_name>[-A-Za-z0-9]+)\s+OBJECT_IDENTIFIER { (?P<oid_value>[.0-9]+) }", flags = re.MULTILINE)
-oid_replacements = {
-	"0.9.2342.19200300.100.1.1": "UID",
-	"0.9.2342.19200300.100.1.25": "DC",
-	"1.2.840.10045.1.1": "prime-field",
-	"1.2.840.10045.2.1": "ecPublicKey",
-	"1.2.840.10045.3.1.7": "secp256r1",
-	"1.2.840.10045.4.3.2": "ecdsa-with-SHA256",
-	"1.2.840.113549.1.1.1": "rsaEncryption",
-	"1.2.840.113549.1.1.4": "md5WithRSAEncryption",
-	"1.2.840.113549.1.1.5": "sha1WithRSAEncryption",
-	"1.2.840.113549.1.1.8": "mgf1",
-	"1.2.840.113549.1.1.10": "rsassa-pss",
-	"1.2.840.113549.1.1.11": "sha256WithRSAEncryption",
-	"1.2.840.113549.1.1.12": "sha384WithRSAEncryption",
-	"1.2.840.113549.1.9.1": "emailAddress",
-	"1.3.6.1.4.1.11129.2.4.2": "embeddedSCTList",
-	"1.3.6.1.5.5.7.1.1": "authorityInfoAccess",
-	"1.3.6.1.5.5.7.2.2": "unotice",
-	"1.3.6.1.5.5.7.3.1": "serverAuth",
-	"1.3.6.1.5.5.7.3.2": "clientAuth",
-	"1.3.6.1.5.5.7.3.3": "codeSigning",
-	"1.3.6.1.5.5.7.48.1": "ocsp",
-	"1.3.6.1.5.5.7.48.2": "caIssuers",
-	"1.3.101.112": "ed25519",
-	"1.3.101.113": "ed448",
-	"1.3.132.0.6": "secp112r1",
-	"1.3.132.0.34": "secp384r1",
-	"2.5.4.3": ("CN", "commonName"),
-	"2.5.4.4": "SN",
-	"2.5.4.6": ("C", "countryName"),
-	"2.5.4.7": ("L", "localityName"),
-	"2.5.4.10": ("O", "organizationName"),
-	"2.5.4.11": ("OU", "organizationUnitName"),
-	"2.5.29.14": "subjectKeyIdentifier",
-	"2.5.29.15": "keyUsage",
-	"2.5.29.17": "subjectAltName",
-	"2.5.29.19": "basicConstraints",
-	"2.5.29.31": "cRLDistributionPoints",
-	"2.5.29.32": "certificatePolicies",
-	"2.5.29.35": "authorityKeyIdentifier",
-	"2.5.29.37": "extKeyUsage",
-	"2.16.840.1.101.3.4.2.1": "sha256",
-	"2.23.140.1.2.1": "domain-validated",
-}
-
-def confirm(text):
-	while True:
-		yn = input(text)
-		yn = yn.lower()
-		if yn == "y":
-			return True
-		elif yn == "n":
-			return False
-
-def simplify(asciider_bindata):
-	asciider = asciider_bindata.decode("ascii")
-	for (oid, oid_names) in oid_replacements.items():
-		if isinstance(oid_names, str):
-			oid_names = (oid_names, )
-		for oid_name in oid_names:
-			# Replace OIDs with their names
-			regex = re.compile("OBJECT_IDENTIFIER\s*{\s*%s\s*}" % (oid))
-			asciider = regex.sub("OBJECT_IDENTIFIER { oid=%s }" % (oid_name), asciider)
-
-			# Remove comment lines for those we know
-			regex = re.compile("^\s*# %s\s*\n" % (oid_name), flags = re.MULTILINE)
-			asciider = regex.sub("", asciider)
-	return asciider.encode("ascii")
-
-def expand(asciider_bindata):
-	asciider = asciider_bindata.decode("ascii")
-	for (oid, oid_names) in oid_replacements.items():
-		if isinstance(oid_names, str):
-			oid_names = (oid_names, )
-		for oid_name in oid_names:
-			# Replace OIDs with their names
-			regex = re.compile("OBJECT_IDENTIFIER\s*{\s*oid=%s\s*}" % (oid_name))
-			asciider = regex.sub("OBJECT_IDENTIFIER { %s }" % (oid), asciider)
-	return asciider.encode("ascii")
-
-def rstrip_whitespace(bindata):
-	text = bindata.decode()
-	text = [ line.rstrip(" \t\r") for line in text.split("\n") ]
-	text = "\n".join(text)
-	return text.encode()
-
-def pem2der(pemdata, filetype):
-	if filetype == "cert":
-		return subprocess.check_output([ "openssl", "x509", "-outform", "der" ], input = pemdata)
-	elif filetype == "ecparam":
-		return subprocess.check_output([ "openssl", "ecparam", "-outform", "der" ], input = pemdata)
-	elif filetype == "ecprivkey":
-		return subprocess.check_output([ "openssl", "ec", "-outform", "der" ], input = pemdata)
-	else:
-		raise NotImplementedError(filetype)
-
-def der2pem(derdata, filetype):
-	if filetype == "cert":
-		return rstrip_whitespace(subprocess.check_output([ "openssl", "x509", "-inform", "der", "-text" ], input = derdata))
-	elif filetype == "ecparam":
-		return rstrip_whitespace(subprocess.check_output([ "openssl", "ecparam", "-inform", "der", "-text" ], input = derdata))
-	elif filetype == "ecprivkey":
-		return rstrip_whitespace(subprocess.check_output([ "openssl", "ec", "-inform", "der", "-text" ], input = derdata))
-	else:
-		raise NotImplementedError(filetype)
-
-def print_pem_text(pemdata, filetype):
-	if filetype == "cert":
-		sys.stdout.write(rstrip_whitespace(subprocess.check_output([ "openssl", "x509", "-noout", "-text" ], input = pemdata)).decode())
-	elif filetype == "ecparam":
-		sys.stdout.write(rstrip_whitespace(subprocess.check_output([ "openssl", "ecparam", "-noout", "-text" ], input = pemdata)).decode())
-	elif filetype == "ecprivkey":
-		sys.stdout.write(rstrip_whitespace(subprocess.check_output([ "openssl", "ec", "-noout", "-text" ], input = pemdata)).decode())
-	else:
-		raise NotImplementedError(filetype)
-
-def edit_file(filename, do_edit = True, dump_oids = None, original_oids = True, edit_der = False):
-	with open(filename, "rb") as f:
-		if not edit_der:
-			pemfile = f.read()
-		else:
-			der_data = f.read()
-
-	if not edit_der:
-		if b"-----BEGIN CERTIFICATE-----" in pemfile:
-			filetype = "cert"
-		elif b"-----BEGIN EC PARAMETERS-----" in pemfile:
-			filetype = "ecparam"
-		elif b"-----BEGIN EC PRIVATE KEY-----" in pemfile:
-			filetype = "ecprivkey"
-		else:
-			raise NotImplementedError("Could not determine filetype of %s." % (filename))
-		der_data = pem2der(pemfile, filetype)
-	ascii_der = subprocess.check_output([ "der2ascii" ], input = der_data)
-	transcoded_ascii_der = ascii_der
-	if (not original_oids) and (dump_oids is None):
-		transcoded_ascii_der = simplify(transcoded_ascii_der)
-
-	transcoded_ascii_der = (("# " + filename + "\n\n").encode("utf-8")) + transcoded_ascii_der
-	with tempfile.NamedTemporaryFile(prefix = "pemedit_", suffix = ".txt") as f:
-		f.write(transcoded_ascii_der)
-		f.flush()
-
-		if dump_oids is not None:
-			for match in oid_regex.finditer(transcoded_ascii_der.decode()):
-				match = match.groupdict()
-				dump_oids[match["oid_value"]] = match["oid_name"]
-
-		while True:
-			if do_edit:
-				syntax_file = os.path.dirname(__file__) + "/asciider.vim"
-				subprocess.check_call([ "vi", "-f", "-c", ":source %s" % (syntax_file), f.name ])
-
-			# Read the changed file
-			f.seek(0)
-			modified_ascii_der = f.read()
-
-			ascii_der = expand(modified_ascii_der)
-			try:
-				der_data = subprocess.check_output([ "ascii2der" ], input = ascii_der)
-			except subprocess.CalledProcessError:
-				yn = confirm("PEM editing had syntax errors. Retry (y/n)? ")
-				if yn:
-					continue
-			break
-
-	with open(filename, "wb") as f:
-		if not edit_der:
-			pem_data = der2pem(der_data, filetype)
-			f.write(pem_data)
-		else:
-			f.write(der_data)
-	if do_edit and (not edit_der):
-		print_pem_text(pem_data, filetype)
-
-if args.dump_oids:
-	dump_oids = { }
-else:
-	dump_oids = None
-
-for filename in args.filename:
-	edit_file(filename, do_edit = not args.no_edit, dump_oids = dump_oids, original_oids = args.original_oids, edit_der = args.edit_der)
-
-if dump_oids is not None:
-	for (new_oid, new_name) in dump_oids.items():
-		if new_oid not in oid_replacements:
-			oid_replacements[new_oid] = new_name
-		else:
-			current_names = oid_replacements[new_oid]
-			if not isinstance(current_names, tuple):
-				current_names = [ current_names ]
-			else:
-				current_names = list(current_names)
-
-			if new_name not in current_names:
-				current_names.append(new_name)
-
-			if len(current_names) == 1:
-				oid_replacements[new_oid] = current_names[0]
-			else:
-				oid_replacements[new_oid] = tuple(current_names)
-
-	oid_replacements = { OID.from_str(str_oid): name for (str_oid, name) in oid_replacements.items() }
-	for (oid, names) in sorted(oid_replacements.items()):
-		if isinstance(names, str):
-			print("	\"%s\": \"%s\"," % (oid, names))
-		else:
-			print("	\"%s\": (%s)," % (oid, ", ".join("\"%s\"" % (name) for name in names)))
+editor = ASN1Editor(args)
+editor.run()
