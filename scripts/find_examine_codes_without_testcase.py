@@ -102,7 +102,7 @@ class ResultCollector():
 		except (FileNotFoundError, json.JSONDecodeError):
 			# No stat file available
 			print("No stat file available, not checking against testcases that ran.", file = sys.stderr)
-			local_stats = False
+			local_stats = None
 
 		self._all_scans = dict(self._encountered_certs)
 		if local_stats is not None:
@@ -113,9 +113,9 @@ class ResultCollector():
 			self._dump_errors()
 			self._dump_codes(self._encountered_certs, "Local certificate scan")
 
-		self._dump_codes(local_stats["encountered_codes"], "Testcases encountered")
-		self._dump_codes(local_stats["checked_codes"], "Testcases specifically tested for")
-
+		if local_stats is not None:
+			self._dump_codes(local_stats["encountered_codes"], "Testcases encountered")
+			self._dump_codes(local_stats["checked_codes"], "Testcases specifically tested for")
 
 	def add_codes(self, codes):
 		self._codes |= set(codes)
