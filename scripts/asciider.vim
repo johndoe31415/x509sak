@@ -9,8 +9,7 @@ endif
 
 syn keyword asciiderKeyword BOOLEAN FALSE TRUE 
 syn keyword asciiderKeyword BIT_STRING NULL OCTET_STRING OBJECT_IDENTIFIER SEQUENCE INTEGER SET CHOICE PRIMITIVE
-syn keyword asciiderKeyword UTCTime UTF8String
-
+syn keyword asciiderKeyword UTCTime UTF8String PrintableString
 
 syn match asciiderComment "#.*$"
 syn match asciiderOID "\(\d\+\.\)\+\d\+"
@@ -26,3 +25,4 @@ hi def link asciiderHex			Type
 hi def link asciiderTag			Constant
 hi def link asciiderOID			Constant
 hi def link asciiderKeyword		Statement
+set tw=0
