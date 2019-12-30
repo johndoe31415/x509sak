@@ -223,7 +223,7 @@ class ASN1Editor():
 		if not self._args.no_edit:
 			modified_der_data = self._edit(ascii_der)
 			if modified_der_data == original_der_data:
-				print("File has not been changed.")
+				print("%s: no changes" % (filename))
 			else:
 				self._write_file(filename, filetype, modified_der_data)
 
