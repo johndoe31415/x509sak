@@ -38,6 +38,8 @@ args = parser.parse_args(sys.argv[1:])
 
 oid_regex = re.compile("# (?P<oid_name>[-A-Za-z0-9]+)\s+OBJECT_IDENTIFIER { (?P<oid_value>[.0-9]+) }", flags = re.MULTILINE)
 oid_replacements = {
+	"0.9.2342.19200300.100.1.1": "UID",
+	"0.9.2342.19200300.100.1.25": "DC",
 	"1.2.840.10045.1.1": "prime-field",
 	"1.2.840.10045.2.1": "ecPublicKey",
 	"1.2.840.10045.3.1.7": "secp256r1",
@@ -49,6 +51,7 @@ oid_replacements = {
 	"1.2.840.113549.1.1.10": "rsassa-pss",
 	"1.2.840.113549.1.1.11": "sha256WithRSAEncryption",
 	"1.2.840.113549.1.1.12": "sha384WithRSAEncryption",
+	"1.2.840.113549.1.9.1": "emailAddress",
 	"1.3.6.1.4.1.11129.2.4.2": "embeddedSCTList",
 	"1.3.6.1.5.5.7.1.1": "authorityInfoAccess",
 	"1.3.6.1.5.5.7.2.2": "unotice",
@@ -61,10 +64,12 @@ oid_replacements = {
 	"1.3.101.113": "ed448",
 	"1.3.132.0.6": "secp112r1",
 	"1.3.132.0.34": "secp384r1",
-	"2.5.4.3": "commonName",
-	"2.5.4.6": "countryName",
-	"2.5.4.10": "organizationName",
-	"2.5.4.11": "organizationUnitName",
+	"2.5.4.3": ("CN", "commonName"),
+	"2.5.4.4": "SN",
+	"2.5.4.6": ("C", "countryName"),
+	"2.5.4.7": ("L", "localityName"),
+	"2.5.4.10": ("O", "organizationName"),
+	"2.5.4.11": ("OU", "organizationUnitName"),
 	"2.5.29.14": "subjectKeyIdentifier",
 	"2.5.29.15": "keyUsage",
 	"2.5.29.17": "subjectAltName",
@@ -77,24 +82,39 @@ oid_replacements = {
 	"2.23.140.1.2.1": "domain-validated",
 }
 
+def confirm(text):
+	while True:
+		yn = input(text)
+		yn = yn.lower()
+		if yn == "y":
+			return True
+		elif yn == "n":
+			return False
+
 def simplify(asciider_bindata):
 	asciider = asciider_bindata.decode("ascii")
-	for (oid, oid_name) in oid_replacements.items():
-		# Replace OIDs with their names
-		regex = re.compile("OBJECT_IDENTIFIER\s*{\s*%s\s*}" % (oid))
-		asciider = regex.sub("OBJECT_IDENTIFIER { oid=%s }" % (oid_name), asciider)
+	for (oid, oid_names) in oid_replacements.items():
+		if isinstance(oid_names, str):
+			oid_names = (oid_names, )
+		for oid_name in oid_names:
+			# Replace OIDs with their names
+			regex = re.compile("OBJECT_IDENTIFIER\s*{\s*%s\s*}" % (oid))
+			asciider = regex.sub("OBJECT_IDENTIFIER { oid=%s }" % (oid_name), asciider)
 
-		# Remove comment lines for those we know
-		regex = re.compile("^\s*# %s\s*\n" % (oid_name), flags = re.MULTILINE)
-		asciider = regex.sub("", asciider)
+			# Remove comment lines for those we know
+			regex = re.compile("^\s*# %s\s*\n" % (oid_name), flags = re.MULTILINE)
+			asciider = regex.sub("", asciider)
 	return asciider.encode("ascii")
 
 def expand(asciider_bindata):
 	asciider = asciider_bindata.decode("ascii")
-	for (oid, oid_name) in oid_replacements.items():
-		# Replace OIDs with their names
-		regex = re.compile("OBJECT_IDENTIFIER\s*{\s*oid=%s\s*}" % (oid_name))
-		asciider = regex.sub("OBJECT_IDENTIFIER { %s }" % (oid), asciider)
+	for (oid, oid_names) in oid_replacements.items():
+		if isinstance(oid_names, str):
+			oid_names = (oid_names, )
+		for oid_name in oid_names:
+			# Replace OIDs with their names
+			regex = re.compile("OBJECT_IDENTIFIER\s*{\s*oid=%s\s*}" % (oid_name))
+			asciider = regex.sub("OBJECT_IDENTIFIER { %s }" % (oid), asciider)
 	return asciider.encode("ascii")
 
 def rstrip_whitespace(bindata):
@@ -152,7 +172,7 @@ def edit_file(filename, do_edit = True, dump_oids = None, original_oids = True, 
 		der_data = pem2der(pemfile, filetype)
 	ascii_der = subprocess.check_output([ "der2ascii" ], input = der_data)
 	transcoded_ascii_der = ascii_der
-	if not original_oids:
+	if (not original_oids) and (dump_oids is None):
 		transcoded_ascii_der = simplify(transcoded_ascii_der)
 
 	transcoded_ascii_der = (("# " + filename + "\n\n").encode("utf-8")) + transcoded_ascii_der
@@ -165,16 +185,23 @@ def edit_file(filename, do_edit = True, dump_oids = None, original_oids = True, 
 				match = match.groupdict()
 				dump_oids[match["oid_value"]] = match["oid_name"]
 
-		if do_edit:
-			syntax_file = os.path.dirname(__file__) + "/asciider.vim"
-			subprocess.check_call([ "vi", "-f", "-c", ":source %s" % (syntax_file), f.name ])
+		while True:
+			if do_edit:
+				syntax_file = os.path.dirname(__file__) + "/asciider.vim"
+				subprocess.check_call([ "vi", "-f", "-c", ":source %s" % (syntax_file), f.name ])
 
-		# Read the changed file
-		f.seek(0)
-		modified_ascii_der = f.read()
+			# Read the changed file
+			f.seek(0)
+			modified_ascii_der = f.read()
 
-	ascii_der = expand(modified_ascii_der)
-	der_data = subprocess.check_output([ "ascii2der" ], input = ascii_der)
+			ascii_der = expand(modified_ascii_der)
+			try:
+				der_data = subprocess.check_output([ "ascii2der" ], input = ascii_der)
+			except subprocess.CalledProcessError:
+				yn = confirm("PEM editing had syntax errors. Retry (y/n)? ")
+				if yn:
+					continue
+			break
 
 	with open(filename, "wb") as f:
 		if not edit_der:
@@ -194,7 +221,27 @@ for filename in args.filename:
 	edit_file(filename, do_edit = not args.no_edit, dump_oids = dump_oids, original_oids = args.original_oids, edit_der = args.edit_der)
 
 if dump_oids is not None:
-	oid_replacements.update(dump_oids)
+	for (new_oid, new_name) in dump_oids.items():
+		if new_oid not in oid_replacements:
+			oid_replacements[new_oid] = new_name
+		else:
+			current_names = oid_replacements[new_oid]
+			if not isinstance(current_names, tuple):
+				current_names = [ current_names ]
+			else:
+				current_names = list(current_names)
+
+			if new_name not in current_names:
+				current_names.append(new_name)
+
+			if len(current_names) == 1:
+				oid_replacements[new_oid] = current_names[0]
+			else:
+				oid_replacements[new_oid] = tuple(current_names)
+
 	oid_replacements = { OID.from_str(str_oid): name for (str_oid, name) in oid_replacements.items() }
-	for (oid, name) in sorted(oid_replacements.items()):
-		print("	\"%s\": \"%s\"," % (oid, name))
+	for (oid, names) in sorted(oid_replacements.items()):
+		if isinstance(names, str):
+			print("	\"%s\": \"%s\"," % (oid, names))
+		else:
+			print("	\"%s\": (%s)," % (oid, ", ".join("\"%s\"" % (name) for name in names)))
