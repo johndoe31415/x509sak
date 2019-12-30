@@ -60,7 +60,7 @@ class DistinguishedNameSecurityEstimator(BaseEstimator):
 	"""
 	_MAX_LENGTH = {
 		OIDDB.RDNTypes.inverse("CN"):			64,
-		OIDDB.RDNTypes.inverse("C"):			64,
+		OIDDB.RDNTypes.inverse("C"):			2,
 		OIDDB.RDNTypes.inverse("emailAddress"):	255,
 		OIDDB.RDNTypes.inverse("GN"):			16,
 		OIDDB.RDNTypes.inverse("initials"):		5,
@@ -77,7 +77,7 @@ class DistinguishedNameSecurityEstimator(BaseEstimator):
 		asn1type = type(rdn_item.asn1)
 		if asn1type in self._VALID_ALPHABETS:
 			valid_chars = self._VALID_ALPHABETS[asn1type]
-			illegal_chars = set(rdn_item.printable) - valid_chars
+			illegal_chars = set(rdn_item.printable_value) - valid_chars
 			if len(illegal_chars) > 0:
 				judgements += SecurityJudgement(JudgementCode.DN_Contains_Illegal_Char, "Distinguished name contains character(s) \"%s\" which are invalid for a %s at element \"%s\"." % ("".join(sorted(illegal_chars)), asn1type.__name__, OIDDB.RDNTypes.get(rdn_item.oid, str(rdn_item.oid))), compatibility = Compatibility.STANDARDS_DEVIATION)
 
@@ -89,17 +89,34 @@ class DistinguishedNameSecurityEstimator(BaseEstimator):
 		else:
 			max_length = self._MAX_LENGTH.get(rdn_item.oid)
 			if max_length is not None:
-				if len(rdn_item.printable) > max_length:
+				if len(rdn_item.printable_value) > max_length:
 					standard = RFCReference(rfcno = 5280, sect = "A.1", verb = "MUST", text = "specifications of Upper Bounds MUST be regarded as mandatory from Annex B of ITU-T X.411 Reference Definition of MTS Parameter Upper Bounds")
-					judgements += SecurityJudgement(JudgementCode.DN_Contains_Long_RDN, "Distinguished name contains RDN element \"%s\" which is supposed to have a maximum length of %d characters, but actually has a length of %d characters." % (OIDDB.RDNTypes.get(rdn_item.oid, str(rdn_item.oid)), max_length, len(rdn_item.printable)), commonness = Commonness.UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+					judgements += SecurityJudgement(JudgementCode.DN_Contains_Long_RDN, "Distinguished name contains RDN element \"%s\" which is supposed to have a maximum length of %d characters, but actually has a length of %d characters." % (OIDDB.RDNTypes.get(rdn_item.oid, str(rdn_item.oid)), max_length, len(rdn_item.printable_value)), commonness = Commonness.UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+
+		if not rdn_item.printable:
+			# TODO standards reference?
+			judgements += SecurityJudgement(JudgementCode.DN_Contains_NonPrintable, "Distinguished name contains RDN element item \"%s\" (ASN.1 type %s) which is not printable." % (OIDDB.RDNTypes.get(rdn_item.oid, str(rdn_item.oid)), rdn_item.asn1.__class__.__name__), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION)
 
 		return judgements
 
 	def analyze(self, dn):
 		judgements = SecurityJudgements()
+
+		seen_oid_keys = set()
 		for rdn in dn:
+			if rdn.component_cnt > 1:
+				judgements += SecurityJudgement(JudgementCode.DN_Contains_MultiValues, "Distinguished name contains a multivalue RDN: %s" % (rdn.pretty_str), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
+
 			for rdn_item in rdn:
 				judgements += self._analyze_rdn_item(rdn_item)
+
+			oidkey = rdn.oidkey
+			if oidkey in seen_oid_keys:
+				oidkey_str = " + ".join(OIDDB.RDNTypes.get(oid, str(oid)) for oid in oidkey)
+				judgements += SecurityJudgement(JudgementCode.DN_Contains_DuplicateRDNs, "Distinguished name contains RDN element at least twice: %s (at element %s)" % (oidkey_str, rdn.pretty_str), commonness = Commonness.UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
+			else:
+				seen_oid_keys.add(oidkey)
+
 		if dn.rdn_count > self._LARGE_RDN_AMOUNT:
 			judgements += SecurityJudgement(JudgementCode.DN_Contains_Unusually_Many_RDNs, "Distinguished name contains an unusually high amount of RDNs (%d)." % (dn.rdn_count), commonness = Commonness.UNUSUAL)
 

@@ -618,3 +618,29 @@ class CmdLineTestsExamine(BaseTest):
 
 	def test_san_bad_domain_space(self):
 		self._test_examine_x509test_resultcode("certs/constructed/san_bad_domain_space.pem", expect_present = "Cert_X509Ext_SubjectAltName_BadDomain_Space")
+
+	def test_dn_all_ok(self):
+		self._test_examine_x509test_resultcode("certs/constructed/dn_all_okay.pem", expect_absent = [ "DN_Contains_Long_RDN" ])
+
+	def test_dn_long_rdn_cn64(self):
+		# Still barely okay, 64 characters is limit for CN
+		self._test_examine_x509test_resultcode("certs/constructed/dn_long_rdn_cn64.pem", expect_absent = "DN_Contains_Long_RDN")
+
+	def test_dn_long_rdn_cn65(self):
+		# Straw that breaks the camel's back
+		self._test_examine_x509test_resultcode("certs/constructed/dn_long_rdn_cn65.pem", expect_present = "DN_Contains_Long_RDN")
+
+	def test_dn_long_rdn_c(self):
+		self._test_examine_x509test_resultcode("certs/constructed/dn_long_rdn_c.pem", expect_present = "DN_Contains_Long_RDN")
+
+	def test_dn_multivalue(self):
+		self._test_examine_x509test_resultcode("certs/constructed/dn_multivalue.pem", expect_present = "DN_Contains_MultiValues")
+
+	def test_dn_nonprintable(self):
+		self._test_examine_x509test_resultcode("certs/constructed/dn_nonprintable.pem", expect_present = "DN_Contains_NonPrintable")
+
+	def test_dn_duplicate_rdns(self):
+		self._test_examine_x509test_resultcode("certs/constructed/dn_multiple_identical_rdns.pem", expect_present = "DN_Contains_DuplicateRDNs")
+
+	def test_dn_many_rdns(self):
+		self._test_examine_x509test_resultcode("certs/constructed/dn_many_rdns.pem", expect_present = "DN_Contains_Unusually_Many_RDNs")

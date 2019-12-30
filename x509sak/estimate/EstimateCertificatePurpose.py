@@ -39,7 +39,7 @@ class PurposeEstimator(BaseEstimator):
 			rdn = None
 			for rdn in rdns:
 				value = rdn.get_value(OIDDB.RDNTypes.inverse("CN"))
-				if ValidationTools.validate_domainname_template_match(value.printable, name):
+				if ValidationTools.validate_domainname_template_match(value.printable_value, name):
 					have_valid_cn = True
 					break
 			if have_valid_cn:

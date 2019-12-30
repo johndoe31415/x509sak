@@ -29,7 +29,7 @@ from x509sak.OID import OID, OIDDB
 from x509sak.Exceptions import InvalidInputException
 
 class RelativeDistinguishedName():
-	_RDNItem = collections.namedtuple("RDNItem", [ "oid", "derdata", "asn1", "decodable", "printable" ])
+	_RDNItem = collections.namedtuple("RDNItem", [ "oid", "derdata", "asn1", "decodable", "printable", "printable_value" ])
 
 	def __init__(self, rdn_list):
 		assert(isinstance(rdn_list, (tuple, list)))
@@ -65,18 +65,23 @@ class RelativeDistinguishedName():
 		except pyasn1.error.PyAsn1Error:
 			decoded_attribute_value = None
 
-		if isinstance(decoded_attribute_value, (pyasn1.type.char.UTF8String, pyasn1.type.char.PrintableString, pyasn1.type.char.IA5String, pyasn1.type.char.TeletexString, pyasn1.type.char.BMPString, pyasn1.type.char.UniversalString)):
+		printable = isinstance(decoded_attribute_value, (pyasn1.type.char.UTF8String, pyasn1.type.char.PrintableString, pyasn1.type.char.IA5String, pyasn1.type.char.TeletexString, pyasn1.type.char.BMPString, pyasn1.type.char.UniversalString))
+		if printable:
 			# Use the string representation
 			printable_value = str(decoded_attribute_value)
 		else:
 			# Use the bytes representation
 			printable_value = "#" + derdata.hex()
 
-		return cls._RDNItem(oid = oid, derdata = derdata, asn1 = decoded_attribute_value, decodable = decoded_attribute_value is not None, printable = printable_value)
+		return cls._RDNItem(oid = oid, derdata = derdata, asn1 = decoded_attribute_value, decodable = decoded_attribute_value is not None, printable = printable, printable_value = printable_value)
 
 	@property
 	def component_cnt(self):
 		return len(self._rdn_list)
+
+	@property
+	def oidkey(self):
+		return tuple(rdn_item.oid for rdn_item in self._rdn_list)
 
 	def has_component(self, oid):
 		assert(isinstance(oid, OID))
@@ -125,7 +130,7 @@ class RelativeDistinguishedName():
 			else:
 				# bytes handling
 				return "#" + text.hex()
-		return "+".join("%s=%s" % (OIDDB.RDNTypes.get(item.oid, item.oid), escape(item.printable or "/")) for item in reversed(self._rdn_list))
+		return "+".join("%s=%s" % (OIDDB.RDNTypes.get(item.oid, item.oid), escape(item.printable_value or "/")) for item in reversed(self._rdn_list))
 
 	@property
 	def pretty_str(self):
@@ -134,7 +139,7 @@ class RelativeDistinguishedName():
 				return "\"%s\"" % (text.replace("\"", "\\\""))
 			else:
 				return text
-		return ", ".join("%s = %s" % (OIDDB.RDNTypes.get(item.oid, item.oid), escape(item.printable or "/")) for item in sorted(self._rdn_list))
+		return ", ".join("%s = %s" % (OIDDB.RDNTypes.get(item.oid, item.oid), escape(item.printable_value or "/")) for item in sorted(self._rdn_list))
 
 	def dump(self, indent = ""):
 		for rdn in self:

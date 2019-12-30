@@ -190,6 +190,7 @@ class JudgementCode(enum.Enum):
 	DN_Contains_Long_RDN = ("Distinguished name", "length of RDN exceeds maximum")
 	DN_Contains_Malformed_RDN = ("Distinguished name", "RDN is malformed")
 	DN_Contains_Unusually_Many_RDNs = ("Distinguished name", "unusually many RDNs present")
+	DN_Contains_DuplicateRDNs = ("Distinguished name", "duplicate RDNs present")
 	Cert_Unknown_SignatureAlgorithm = ("Certificate signature", "unknown signature algorithm")
 	Cert_Unknown_HashAlgorithm = ("Certificate signature", "unknown hash function")
 
