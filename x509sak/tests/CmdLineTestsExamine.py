@@ -680,3 +680,15 @@ class CmdLineTestsExamine(BaseTest):
 
 	def test_check_algorithm_alternate_oid(self):
 		self._test_examine_x509test_resultcode("certs/constructed/algorithm_alternate_oid.pem", expect_present = "SignatureFunction_NonPreferred_OID")
+
+	def test_validity_never_valid(self):
+		self._test_examine_x509test_resultcode("certs/constructed/validity_never_valid.pem", expect_present = "Cert_Validity_NeverValid")
+
+	def test_validity_expired(self):
+		self._test_examine_x509test_resultcode("certs/constructed/validity_expired.pem", expect_present = "Cert_Validity_Expired")
+
+	def test_validity_valid(self):
+		self._test_examine_x509test_resultcode("certs/constructed/validity_valid.pem", expect_present = "Cert_Validity_Valid")
+
+	def test_not_yet_validity_not_yet_valid(self):
+		self._test_examine_x509test_resultcode("certs/constructed/validity_not_yet_valid.pem", expect_present = "Cert_Validity_NotYetValid")
