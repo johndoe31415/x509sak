@@ -158,7 +158,6 @@ class JudgementCode(enum.Enum):
 	Cert_Invalid_DER = ("Certificate encoding", "invalid DER used")
 	Cert_Pubkey_ReencodingCheckMissing = ("Certificate encoding", "re-encoding of key not implemented")
 	Cert_Pubkey_Invalid_DER = ("Certificate encoding", "invalid DER used in public key")
-	Cert_Has_No_CN = ("Certificate identity", "no CN present")
 	Cert_CN_Match = ("Certificate identity", "CN matches expected name")
 	Cert_CN_Match_MultiValue_RDN = ("Certificate identity", "CN matches expected name, but is multivalue RDN")
 	Cert_CN_NoMatch = ("Certificate identity", "CN does not match expected name")
@@ -191,6 +190,8 @@ class JudgementCode(enum.Enum):
 	DN_Contains_Malformed_RDN = ("Distinguished name", "RDN is malformed")
 	DN_Contains_Unusually_Many_RDNs = ("Distinguished name", "unusually many RDNs present")
 	DN_Contains_DuplicateRDNs = ("Distinguished name", "duplicate RDNs present")
+	DN_Contains_No_CN = ("Distinguished name", "no CN present")
+	DN_Contains_Multiple_CN = ("Distinguished name", "multiple CN fields present")
 	Cert_Unknown_SignatureAlgorithm = ("Certificate signature", "unknown signature algorithm")
 	Cert_Unknown_HashAlgorithm = ("Certificate signature", "unknown hash function")
 

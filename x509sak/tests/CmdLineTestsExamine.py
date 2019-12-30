@@ -644,3 +644,18 @@ class CmdLineTestsExamine(BaseTest):
 
 	def test_dn_many_rdns(self):
 		self._test_examine_x509test_resultcode("certs/constructed/dn_many_rdns.pem", expect_present = "DN_Contains_Unusually_Many_RDNs")
+
+	def test_dn_no_cn(self):
+		self._test_examine_x509test_resultcode("certs/constructed/dn_no_cn.pem", expect_present = "DN_Contains_No_CN")
+
+	def test_dn_multiple_cns(self):
+		self._test_examine_x509test_resultcode("certs/constructed/dn_multiple_cn.pem", expect_present = "DN_Contains_Multiple_CN")
+
+	def test_cn_match_fqdn(self):
+		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", expect_present = "Cert_CN_Match", host_check = "johannes-bauer.com")
+
+	def test_cn_no_match_fqdn(self):
+		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", expect_present = "Cert_CN_NoMatch", host_check = "pupannes-bauer.com")
+
+	def test_cn_match_fqdn_but_multivalue_rdn(self):
+		self._test_examine_x509test_resultcode("certs/constructed/dn_cn_hostname_multivalue_rdn.pem", expect_present = "Cert_CN_Match_MultiValue_RDN", expect_absent = "DN_Contains_No_CN", host_check = "multivalue.com")

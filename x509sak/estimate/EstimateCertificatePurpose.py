@@ -33,20 +33,18 @@ class PurposeEstimator(BaseEstimator):
 		judgements = SecurityJudgements()
 		rdns = certificate.subject.get_all(OIDDB.RDNTypes.inverse("CN"))
 		have_valid_cn = False
-		if len(rdns) == 0:
-			judgements += SecurityJudgement(JudgementCode.Cert_Has_No_CN, "Certificate does not have any common name (CN) set.", commonness = Commonness.HIGHLY_UNUSUAL)
-		else:
-			rdn = None
+		if len(rdns) > 0:
+			found_rdn = None
 			for rdn in rdns:
 				value = rdn.get_value(OIDDB.RDNTypes.inverse("CN"))
 				if ValidationTools.validate_domainname_template_match(value.printable_value, name):
-					have_valid_cn = True
+					found_rdn = rdn
 					break
-			if have_valid_cn:
-				if rdn.component_cnt == 1:
+			if found_rdn is not None:
+				if found_rdn.component_cnt == 1:
 					judgements += SecurityJudgement(JudgementCode.Cert_CN_Match, "Common name (CN) matches '%s'." % (name), commonness = Commonness.COMMON)
 				else:
-					judgements += SecurityJudgement(JudgementCode.Cert_CN_Match_MultiValue_RDN, "Common name (CN) matches '%s', but is part of a multi-valued RDN." % (name), commonness = Commonness.HIGHLY_UNUSUAL)
+					judgements += SecurityJudgement(JudgementCode.Cert_CN_Match_MultiValue_RDN, "Common name (CN) matches '%s', but is part of a multi-valued RDN: %s" % (name, found_rdn.pretty_str), commonness = Commonness.HIGHLY_UNUSUAL)
 			else:
 				judgements += SecurityJudgement(JudgementCode.Cert_CN_NoMatch, "No common name (CN) matches '%s'." % (name), commonness = Commonness.UNUSUAL)
 

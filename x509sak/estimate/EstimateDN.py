@@ -102,6 +102,12 @@ class DistinguishedNameSecurityEstimator(BaseEstimator):
 	def analyze(self, dn):
 		judgements = SecurityJudgements()
 
+		all_cns = dn.get_all(OIDDB.RDNTypes.inverse("CN"))
+		if len(all_cns) == 0:
+			judgements += SecurityJudgement(JudgementCode.DN_Contains_No_CN, "Certificate does not have any common name (CN) set.", commonness = Commonness.HIGHLY_UNUSUAL)
+		elif len(all_cns) > 1:
+			judgements += SecurityJudgement(JudgementCode.DN_Contains_Multiple_CN, "Certificate does have more than one common name (CN) set; in particular, %d CN fields were encountered." % (len(all_cns)), commonness = Commonness.UNUSUAL)
+
 		seen_oid_keys = set()
 		for rdn in dn:
 			if rdn.component_cnt > 1:
