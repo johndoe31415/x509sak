@@ -111,7 +111,7 @@ class CmdLineTestsExamine(BaseTest):
 		with ResourceFileLoader(certname) as certfile:
 			SubprocessExecutor(self._x509sak + [ "examine", "--fast-rsa", "-f", "json", "-o", "-", certfile ], success_return_codes = [ 1 ]).run()
 
-	def _test_examine_x509test_resultcode(self, certname, expect_present = None, expect_absent = None, parent_certname = None, fast_rsa = True, host_check = None, include_raw = False):
+	def _test_examine_x509test_resultcode(self, certname, expect_present = None, expect_absent = None, parent_certname = None, fast_rsa = True, host_check = None, include_raw = False, purpose = None):
 		if expect_present is None:
 			expect_present = tuple()
 		if not isinstance(expect_present, (list, tuple)):
@@ -132,6 +132,9 @@ class CmdLineTestsExamine(BaseTest):
 				cmdline += [ "--parent-certificate", cacertfile_name ]
 			if host_check is not None:
 				cmdline += [ "-p", "tls-server", "--server-name", host_check ]
+			elif purpose is not None:
+				cmdline += [ "-p", purpose ]
+
 			if include_raw:
 				cmdline += [ "--include-raw-data" ]
 			cmdline += [ certfile_name ]
@@ -550,6 +553,9 @@ class CmdLineTestsExamine(BaseTest):
 	def test_constructed_rsa_exponent101(self):
 		self._test_examine_x509test_resultcode("certs/constructed/rsa_exponent101.pem", "RSA_Exponent_SmallUnusual")
 
+	def test_constructed_rsa_exponent65537(self):
+		self._test_examine_x509test_resultcode("certs/constructed/rsa_exponent65537.pem", "RSA_Exponent_Is_0x10001")
+
 	def test_constructed_rsa_exponent_long(self):
 		self._test_examine_x509test_resultcode("certs/constructed/rsa_exponent_long.pem", "RSA_Exponent_Large")
 
@@ -589,10 +595,10 @@ class CmdLineTestsExamine(BaseTest):
 	def test_explicit_unknown(self):
 		self._test_examine_x509test_resultcode("certs/ok/ecc_explicit_param_prime_custom_domain.pem", expect_present = [ "ECC_ExplicitCurveEncoding", "ECC_UnknownExplicitCurve" ])
 
-	def test_san_broad_mactch1(self):
+	def test_san_broad_match1(self):
 		self._test_examine_x509test_resultcode("certs/constructed/san_broad_match1.pem", expect_present = "Cert_X509Ext_SubjectAltName_BadWildcardDomain_BroadMatch")
 
-	def test_san_broad_mactch2(self):
+	def test_san_broad_match2(self):
 		self._test_examine_x509test_resultcode("certs/constructed/san_broad_match2.pem", expect_present = "Cert_X509Ext_SubjectAltName_BadWildcardDomain_BroadMatch")
 
 	def test_san_bad_email(self):
@@ -618,6 +624,9 @@ class CmdLineTestsExamine(BaseTest):
 
 	def test_san_bad_domain_space(self):
 		self._test_examine_x509test_resultcode("certs/constructed/san_bad_domain_space.pem", expect_present = "Cert_X509Ext_SubjectAltName_BadDomain_Space")
+
+	def test_san_missing(self):
+		self._test_examine_x509test_resultcode("certs/constructed/san_missing.pem", expect_present = "Cert_No_SAN_Present")
 
 	def test_dn_all_ok(self):
 		self._test_examine_x509test_resultcode("certs/constructed/dn_all_okay.pem", expect_absent = [ "DN_Contains_Long_RDN" ])
@@ -652,10 +661,22 @@ class CmdLineTestsExamine(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/dn_multiple_cn.pem", expect_present = "DN_Contains_Multiple_CN")
 
 	def test_cn_match_fqdn(self):
-		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", expect_present = "Cert_CN_Match", host_check = "johannes-bauer.com")
+		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", expect_present = "Cert_CN_Match", expect_absent = "Cert_No_SAN_Present", host_check = "johannes-bauer.com")
 
 	def test_cn_no_match_fqdn(self):
-		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", expect_present = "Cert_CN_NoMatch", host_check = "pupannes-bauer.com")
+		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", expect_present = [ "Cert_CN_NoMatch", "Cert_Name_Verification_Failed" ], host_check = "pupannes-bauer.com")
 
 	def test_cn_match_fqdn_but_multivalue_rdn(self):
 		self._test_examine_x509test_resultcode("certs/constructed/dn_cn_hostname_multivalue_rdn.pem", expect_present = "Cert_CN_Match_MultiValue_RDN", expect_absent = "DN_Contains_No_CN", host_check = "multivalue.com")
+
+	def test_check_no_ca_when_expecting_ca(self):
+		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", expect_present = "Cert_Unexpectedly_No_CA_Cert", purpose = "ca")
+
+	def test_check_ca_when_expecting_no_ca(self):
+		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer-intermediate.pem", expect_present = "Cert_Unexpectedly_CA_Cert", purpose = "tls-server")
+
+	def test_check_version(self):
+		self._test_examine_x509test_resultcode("certs/constructed/version1.pem", expect_present = "Cert_Version_Not_3")
+
+	def test_check_algorithm_alternate_oid(self):
+		self._test_examine_x509test_resultcode("certs/constructed/algorithm_alternate_oid.pem", expect_present = "SignatureFunction_NonPreferred_OID")
