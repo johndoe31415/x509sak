@@ -725,3 +725,21 @@ class CmdLineTestsExamine(BaseTest):
 
 	def test_rsa_pss_multiple_hashes(self):
 		self._test_examine_x509test_resultcode("certs/constructed/rsapss_multiple_hashes.pem", expect_present = "RSA_PSS_Multiple_Hash_Functions")
+
+	def test_rsa_pss_mismatch_algo1(self):
+		self._test_examine_x509test_resultcode("certs/constructed/rsapss_mismatch_algo1.pem", expect_present = "Cert_Signature_Algorithm_Mismatch")
+
+	def test_rsa_pss_mismatch_algo2(self):
+		self._test_examine_x509test_resultcode("certs/constructed/rsapss_mismatch_algo2.pem", expect_present = "Cert_Signature_Algorithm_Mismatch")
+
+	def test_rsa_pss_mismatch_algo3(self):
+		self._test_examine_x509test_resultcode("certs/constructed/rsapss_mismatch_algo3.pem", expect_present = "Cert_Signature_Algorithm_Mismatch")
+
+	def test_rsa_pss_mismatch_algo4(self):
+		self._test_examine_x509test_resultcode("certs/constructed/rsapss_mismatch_algo4.pem", expect_present = "Cert_Signature_Algorithm_Mismatch")
+
+	def test_rsa_pss_mismatch_algo5(self):
+		self._test_examine_x509test_resultcode("certs/constructed/rsapss_mismatch_algo5.pem", expect_present = "Cert_Signature_Algorithm_Mismatch")
+
+	def test_mismatch_header_footer_sigparams(self):
+		self._test_examine_x509test_resultcode("certs/constructed/mismatch_header_footer_sigparams.pem", expect_present = "Cert_Signature_Algorithm_Mismatch")

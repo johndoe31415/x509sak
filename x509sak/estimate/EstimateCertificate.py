@@ -66,13 +66,25 @@ class CertificateEstimator(BaseEstimator):
 			# it in the EC checks that raises ECC_UnknownNamedCurve
 			pass
 
+		standard = RFCReference(rfcno = 5280, sect = [ "4.1.1.2", "4.1.2.3" ], verb = "MUST", text = "This field MUST contain the same algorithm identifier as the signature field in the sequence tbsCertificate (Section 4.1.2.3).")
 		oid_header = OID.from_asn1(certificate.asn1["tbsCertificate"]["signature"]["algorithm"])
 		oid_sig = OID.from_asn1(certificate.asn1["signatureAlgorithm"]["algorithm"])
 		if oid_header != oid_sig:
 			name_header = OIDDB.SignatureAlgorithms.get(oid_header, str(oid_header))
 			name_sig = OIDDB.SignatureAlgorithms.get(oid_sig, str(oid_sig))
-			standard = RFCReference(rfcno = 5280, sect = [ "4.1.1.2", "4.1.2.3" ], verb = "MUST", text = "This field MUST contain the same algorithm identifier as the signature field in the sequence tbsCertificate (Section 4.1.2.3).")
 			judgements += SecurityJudgement(JudgementCode.Cert_Signature_Algorithm_Mismatch, "Certificate indicates signature algorithm %s in header section and %s in signature section." % (name_header, name_sig), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+		else:
+			# OIDs might be same, but parameters could differ (e.g., for RSA-PSS)
+			header_hasvalue = certificate.asn1["tbsCertificate"]["signature"]["parameters"].hasValue()
+			signature_hasvalue = certificate.asn1["signatureAlgorithm"]["parameters"].hasValue()
+			if header_hasvalue and signature_hasvalue:
+				name_header = OIDDB.SignatureAlgorithms.get(oid_header, str(oid_header))
+				parameters_header = bytes(certificate.asn1["tbsCertificate"]["signature"]["parameters"])
+				parameters_signature = bytes(certificate.asn1["signatureAlgorithm"]["parameters"])
+				if parameters_header != parameters_signature:
+					judgements += SecurityJudgement(JudgementCode.Cert_Signature_Algorithm_Mismatch, "Certificate indicates same signature algorithm in both header section and signature section (%s), but parameterization of each differ." % (name_header), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+			elif header_hasvalue != signature_hasvalue:
+				judgements += SecurityJudgement(JudgementCode.Cert_Signature_Algorithm_Mismatch, "Certificate indicates same signature algorithm in both header section and signature section, but header %s while signature section %s." % ("has parameters" if header_hasvalue else "has no parameters", "does" if signature_hasvalue else "does not"), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 		return judgements
 
