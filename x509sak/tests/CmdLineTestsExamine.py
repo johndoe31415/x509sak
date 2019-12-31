@@ -563,7 +563,7 @@ class CmdLineTestsExamine(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/rsa_parameter_missing.pem", "RSA_Parameter_Field_Not_Present")
 
 	def test_include_raw_data_rsa(self):
-		self._test_examine_x509test_resultcode("certs/ok/rsa_512.pem", include_raw = True)
+		self._test_examine_x509test_resultcode("certs/ok/rsa_512.pem", expect_present = "HashFunction_Derated", include_raw = True)
 
 	def test_include_raw_data_ecc_fp(self):
 		self._test_examine_x509test_resultcode("certs/ok/ecc_secp256r1.pem", include_raw = True)
@@ -692,3 +692,36 @@ class CmdLineTestsExamine(BaseTest):
 
 	def test_not_yet_validity_not_yet_valid(self):
 		self._test_examine_x509test_resultcode("certs/constructed/validity_not_yet_valid.pem", expect_present = "Cert_Validity_NotYetValid")
+
+	def test_unknown_sigfnc(self):
+		self._test_examine_x509test_resultcode("certs/constructed/unknown_sigfnc.pem", expect_present = "Cert_Unknown_SignatureAlgorithm")
+
+	def test_rsa_pss_unknown_hashfnc1(self):
+		self._test_examine_x509test_resultcode("certs/constructed/unknown_hashfnc1.pem", expect_present = "Cert_Unknown_HashAlgorithm")
+
+	def test_rsa_pss_unknown_hashfnc2(self):
+		self._test_examine_x509test_resultcode("certs/constructed/unknown_hashfnc2.pem", expect_present = "Cert_Unknown_HashAlgorithm")
+
+	def test_rsa_pss_unknown_maskfnc(self):
+		self._test_examine_x509test_resultcode("certs/constructed/unknown_maskfnc.pem", expect_present = "Cert_Unknown_MaskAlgorithm")
+
+	def test_rsa_pss_malformed1(self):
+		self._test_examine_x509test_resultcode("certs/constructed/rsapss_malformed1.pem", expect_present = "RSA_PSS_Invalid_Salt_Length")
+
+	def test_rsa_pss_malformed2(self):
+		self._test_examine_x509test_resultcode("certs/constructed/rsapss_malformed2.pem", expect_present = "RSA_PSS_Unknown_Trailer_Field")
+
+	def test_rsa_pss_malformed3(self):
+		self._test_examine_x509test_resultcode("certs/constructed/rsapss_malformed3.pem", expect_present = "RSA_PSS_Unknown_Trailer_Field")
+
+	def test_rsa_pss_salt0(self):
+		self._test_examine_x509test_resultcode("certs/constructed/rsapss_salt0.pem", expect_present = "RSA_PSS_No_Salt_Used")
+
+	def test_rsa_pss_salt3(self):
+		self._test_examine_x509test_resultcode("certs/constructed/rsapss_salt3.pem", expect_present = "RSA_PSS_Short_Salt_Used")
+
+	def test_rsa_pss_salt16(self):
+		self._test_examine_x509test_resultcode("certs/constructed/rsapss_salt16.pem", expect_present = "RSA_PSS_Salt_Length")
+
+	def test_rsa_pss_multiple_hashes(self):
+		self._test_examine_x509test_resultcode("certs/constructed/rsapss_multiple_hashes.pem", expect_present = "RSA_PSS_Multiple_Hash_Functions")

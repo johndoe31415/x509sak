@@ -38,8 +38,13 @@ class JudgementCode(enum.Enum):
 	RSA_Modulus_FactorizationKnown = ("RSA Modulus", "factorization of n is public")
 	RSA_Modulus_BitBias = ("RSA Modulus", "n has bit bias")
 	RSA_Modulus_Length = ("RSA Modulus", "length of n")
-	RSA_PSS_Salt_Length = ("RSA/PSS Salt", "length of salt")
 	RSA_PSS_Parameters_TrailingData = ("RSA/PSS Encoding", "trailing garbage data")
+	RSA_PSS_Invalid_Salt_Length = ("RSA/PSS Salt", "length of salt invalid")
+	RSA_PSS_No_Salt_Used = ("RSA/PSS Salt", "no salt applied")
+	RSA_PSS_Short_Salt_Used = ("RSA/PSS Salt", "comparatively short salt value")
+	RSA_PSS_Salt_Length = ("RSA/PSS Salt", "length of salt")
+	RSA_PSS_Unknown_Trailer_Field = ("RSA/PSS Salt", "trailer field unknown")
+	RSA_PSS_Multiple_Hash_Functions = ("RSA/PSS Salt", "multiple hash functions used")
 	ECC_Pubkey_CurveOrder = ("ECC pubkey", "curve order")
 	ECC_Pubkey_Not_On_Curve = ("ECC pubkey", "point not on curve")
 	ECC_Pubkey_Is_G = ("ECC pubkey", "point is generator")
@@ -194,6 +199,7 @@ class JudgementCode(enum.Enum):
 	DN_Contains_Multiple_CN = ("Distinguished name", "multiple CN fields present")
 	Cert_Unknown_SignatureAlgorithm = ("Certificate signature", "unknown signature algorithm")
 	Cert_Unknown_HashAlgorithm = ("Certificate signature", "unknown hash function")
+	Cert_Unknown_MaskAlgorithm = ("Certificate signature", "unknown mask function")
 
 	@property
 	def topic(self):

@@ -22,16 +22,60 @@
 import pyasn1.codec.der.decoder
 from pyasn1_modules import rfc3279
 from x509sak.OID import OID
-import x509sak.ASN1Models as ASN1Models
 from x509sak.AlgorithmDB import SignatureAlgorithms, HashFunctions, SignatureFunctions, Cryptosystems
 from x509sak.estimate.BaseEstimator import BaseEstimator
 from x509sak.estimate import JudgementCode, Commonness, Compatibility
 from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, RFCReference
 from x509sak.NumberTheory import NumberTheory
+from x509sak.RSAPSSParameters import RSAPSSParameters
 
 @BaseEstimator.register
 class SignatureSecurityEstimator(BaseEstimator):
 	_ALG_NAME = "sig"
+
+	def _analyze_rsa_pss_signature_params(self, signature_alg_params):
+		judgements = SecurityJudgements()
+		rsapss = RSAPSSParameters.decode(signature_alg_params)
+
+		if len(rsapss.asn1_tail) > 0:
+			judgements += SecurityJudgement(JudgementCode.RSA_PSS_Parameters_TrailingData, "RSA/PSS parameter encoding has %d bytes of trailing data." % (len(rsapss.asn1_tail)), commonness = Commonness.HIGHLY_UNUSUAL)
+
+		if rsapss.hash_algorithm is None:
+			judgements += SecurityJudgement(JudgementCode.Cert_Unknown_HashAlgorithm, "Certificate has unknown hash function for use in RSA-PSS, OID %s. Cannot make security determination for that part." % (rsapss.hash_algorithm_oid), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
+
+		if rsapss.mask_algorithm is None:
+			judgements += SecurityJudgement(JudgementCode.Cert_Unknown_MaskAlgorithm, "Certificate has unknown mask function for use in RSA-PSS, OID %s." % (rsapss.mask_algorithm_oid), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
+
+		if rsapss.mask_hash_algorithm is None:
+			judgements += SecurityJudgement(JudgementCode.Cert_Unknown_HashAlgorithm, "Certificate has unknown mask hash function for use in RSA-PSS, OID %s." % (rsapss.mask_hash_algorithm_oid), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
+
+		if rsapss.trailer_field_value is None:
+			judgements += SecurityJudgement(JudgementCode.RSA_PSS_Unknown_Trailer_Field, "Certificate has unknown trailer field for use in RSA-PSS, trailer field ID %d." % (rsapss.trailer_field), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
+
+		if (rsapss.hash_algorithm is not None) and (rsapss.mask_hash_algorithm is not None) and (rsapss.hash_algorithm != rsapss.mask_hash_algorithm):
+			standard = RFCReference(rfcno = 3447, sect = "8.1", verb = "RECOMMEND", text = "Therefore, it is recommended that the EMSA-PSS mask generation function be based on the same hash function.")
+			judgements += SecurityJudgement(JudgementCode.RSA_PSS_Multiple_Hash_Functions, "RSA-PSS uses hash function %s for hashing, but %s for masking. This is discouraged." % (rsapss.hash_algorithm.name, rsapss.mask_hash_algorithm.name), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT, standard = standard)
+
+		if rsapss.salt_length < 0:
+			judgements += SecurityJudgement(JudgementCode.RSA_PSS_Invalid_Salt_Length, "Certificate has negative salt length for use in RSA-PSS, %d bytes specified." % (rsapss.salt_length), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, bits = 0)
+		elif rsapss.salt_length == 0:
+			judgements += SecurityJudgement(JudgementCode.RSA_PSS_No_Salt_Used, "RSA-PSS does not use any salt.", commonness = Commonness.HIGHLY_UNUSUAL)
+		elif rsapss.salt_length < 16:
+			judgements += SecurityJudgement(JudgementCode.RSA_PSS_Short_Salt_Used, "RSA-PSS uses a comparatively short salt value of %d bits." % (rsapss.salt_length * 8), commonness = Commonness.UNUSUAL)
+		else:
+			judgements += SecurityJudgement(JudgementCode.RSA_PSS_Salt_Length, "RSA-PSS uses a salt of %d bits." % (rsapss.salt_length * 8))
+		return (rsapss.hash_algorithm, judgements)
+
+	def _determine_hash_function(self, signature_alg, signature_alg_params):
+		hash_fnc = None
+		judgements = SecurityJudgements()
+		if signature_alg == SignatureAlgorithms.RSASSA_PSS:
+			(hash_fnc, new_judgements) = self._analyze_rsa_pss_signature_params(signature_alg_params)
+			judgements += new_judgements
+		else:
+			judgements += SecurityJudgement(JudgementCode.Analysis_Not_Implemented, "Cannot determine hash function for signature algorithm %s. This might be a shortcoming of x509sak; please report the certificate in question to the developers." % (signature_alg.name))
+
+		return (hash_fnc, judgements)
 
 	def analyze(self, signature_alg_oid, signature_alg_params, signature, root_cert = None):
 		judgements = SecurityJudgements()
@@ -51,27 +95,12 @@ class SignatureSecurityEstimator(BaseEstimator):
 				judgements += SecurityJudgement(JudgementCode.SignatureFunction_NonPreferred_OID, "Signature algorithm uses alternate OID %s for algorithm %s. Preferred OID would be %s." % (signature_alg_oid, signature_alg.name, signature_alg.value.oid[0]), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
 
 		if signature_alg.value.hash_fnc is not None:
-			# Signature algorithm requires a particular hash function
+			# Signature algorithm already implies a concrete hash function, already done.
 			hash_fnc = signature_alg.value.hash_fnc
-		elif signature_alg == SignatureAlgorithms.RSASSA_PSS:
-			# Need to look at parameters to determine hash function
-			(asn1, tail) = pyasn1.codec.der.decoder.decode(signature_alg_params, asn1Spec = ASN1Models.RSASSA_PSS_Params())
-			if len(tail) > 0:
-				judgements += SecurityJudgement(JudgementCode.RSA_PSS_Parameters_TrailingData, "RSA/PSS parameter encoding has %d bytes of trailing data." % (len(tail)), commonness = Commonness.HIGHLY_UNUSUAL)
-			if asn1["hashAlgorithm"].hasValue():
-				hash_oid = OID.from_str(str(asn1["hashAlgorithm"]["algorithm"]))
-				hash_fnc = HashFunctions.lookup("oid", hash_oid)
-			else:
-				# Default for RSASSA-PSS is SHA-1
-				hash_fnc = HashFunctions["sha1"]
-
-			if asn1["saltLength"].hasValue():
-				saltlen = int(asn1["saltLength"])
-			else:
-				saltlen = 20
-			judgements += self.algorithm("bits").analyze(JudgementCode.RSA_PSS_Salt_Length, saltlen * 8)
 		else:
-			judgements += SecurityJudgement(JudgementCode.Cert_Unknown_HashAlgorithm, "Certificate has unknown hash algorithm used in signature with OID %s. Cannot make security determination for that part." % (hash_oid), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
+			# Signature algorithms depends and is not implied.
+			(hash_fnc, new_judgements) = self._determine_hash_function(signature_alg, signature_alg_params)
+			judgements += new_judgements
 
 		if signature_alg.value.sig_fnc == SignatureFunctions.ecdsa:
 			# Decode ECDSA signature
@@ -106,6 +135,6 @@ class SignatureSecurityEstimator(BaseEstimator):
 			})
 		else:
 			result.update({
-				"pretty":		 "%s with hash function %s" % (signature_alg.value.sig_fnc.value.pretty_name, hash_oid)
+				"pretty":		 "%s with undetermined hash function" % (signature_alg.value.sig_fnc.value.pretty_name)
 			})
 		return result

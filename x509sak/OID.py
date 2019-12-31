@@ -301,3 +301,8 @@ class OIDDB():
 		OID.from_str("1.2.840.10045.1.2.3.2"):		"tpBasis",		# Trinomial basis
 		OID.from_str("1.2.840.10045.1.2.3.3"):		"ppBasis",		# Pentanomial basis
 	})
+
+	"""RSAPSS Mask Generation Functions."""
+	RSAPSSMaskGenerationAlgorithm = BijectiveDict({
+		OID.from_str("1.2.840.113549.1.1.8"):		"mgf1",
+	})

@@ -242,7 +242,7 @@ class MaskGenAlgorithm(rfc3280.AlgorithmIdentifier): pass
 class TrailerField(univ.Integer): pass
 
 class RSASSA_PSS_Params(univ.Sequence):
-	"""RFC3447:
+	"""RFC3447: Public-Key Cryptography Standards (PKCS) #1: RSA Cryptography Specifications Version 2.1
 
 	RSASSA-PSS-params ::= SEQUENCE {
 		hashAlgorithm      [0] HashAlgorithm    DEFAULT sha1,
