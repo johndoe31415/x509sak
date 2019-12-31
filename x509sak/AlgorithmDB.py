@@ -67,6 +67,7 @@ HashFunctions = _to_enum("HashFunctions", [
 Cryptosystem = collections.namedtuple("Cryptosystem", [ "name", "shortcut", "spec_parameters" ])
 Cryptosystems = _to_enum("Cryptosystems", [
 	Cryptosystem(name = "RSA", shortcut = "rsa", spec_parameters = [ ("bitlen", int) ]),
+	Cryptosystem(name = "DSA", shortcut = "dsa", spec_parameters = [ ("L", int), ("N", int) ]),		# L is modulus bitlength, N is bitlenght of q
 	Cryptosystem(name = "ECC/ECDSA", shortcut = "ecc", spec_parameters = [ ("curvename", str) ]),
 	Cryptosystem(name = "ECC/EdDSA", shortcut = "eddsa", spec_parameters = [ ("curvename", str) ]),
 	Cryptosystem(name = "ECC/ECDH", shortcut = "ed-ecdh", spec_parameters = [ ("curvename", str) ]),
@@ -76,6 +77,7 @@ SignatureFunction = collections.namedtuple("SignatureFunction", [ "name", "prett
 SignatureFunctions = _to_enum("SignatureFunctions", [
 	SignatureFunction(name = "rsa-encryption", pretty_name = "RSA encryption", cryptosystem = Cryptosystems.RSA),
 	SignatureFunction(name = "rsa-ssa-pss", pretty_name = "RSA/PSS", cryptosystem = Cryptosystems.RSA),
+	SignatureFunction(name = "dsa", pretty_name = "DSA", cryptosystem = Cryptosystems.DSA),
 	SignatureFunction(name = "ecdsa", pretty_name = "ECDSA", cryptosystem = Cryptosystems.ECC_ECDSA),
 	SignatureFunction(name = "eddsa", pretty_name = "EdDSA", cryptosystem = Cryptosystems.ECC_EdDSA),
 ])
@@ -92,6 +94,11 @@ SignatureAlgorithms = _to_enum("SignatureAlgorithms", [
 	SignatureAlgorithm(name = "sha256WithRsaEncryption", hash_fnc = HashFunctions.sha256, sig_fnc = SignatureFunctions.rsa_encryption, sig_params = None, oid = OIDDB.SignatureAlgorithms.inverse("sha256WithRsaEncryption")),
 	SignatureAlgorithm(name = "sha384WithRsaEncryption", hash_fnc = HashFunctions.sha384, sig_fnc = SignatureFunctions.rsa_encryption, sig_params = None, oid = OIDDB.SignatureAlgorithms.inverse("sha384WithRsaEncryption")),
 	SignatureAlgorithm(name = "sha512WithRsaEncryption", hash_fnc = HashFunctions.sha512, sig_fnc = SignatureFunctions.rsa_encryption, sig_params = None, oid = OIDDB.SignatureAlgorithms.inverse("sha512WithRsaEncryption")),
+	SignatureAlgorithm(name = "dsa_with_SHA1", hash_fnc = HashFunctions.sha1, sig_fnc = SignatureFunctions.dsa, sig_params = None, oid = OIDDB.SignatureAlgorithms.inverse("dsa-with-sha1")),
+	SignatureAlgorithm(name = "dsa_with_SHA224", hash_fnc = HashFunctions.sha224, sig_fnc = SignatureFunctions.dsa, sig_params = None, oid = OIDDB.SignatureAlgorithms.inverse("dsa-with-sha224")),
+	SignatureAlgorithm(name = "dsa_with_SHA256", hash_fnc = HashFunctions.sha256, sig_fnc = SignatureFunctions.dsa, sig_params = None, oid = OIDDB.SignatureAlgorithms.inverse("dsa-with-sha256")),
+	SignatureAlgorithm(name = "dsa_with_SHA384", hash_fnc = HashFunctions.sha384, sig_fnc = SignatureFunctions.dsa, sig_params = None, oid = OIDDB.SignatureAlgorithms.inverse("dsa-with-sha384")),
+	SignatureAlgorithm(name = "dsa_with_SHA512", hash_fnc = HashFunctions.sha512, sig_fnc = SignatureFunctions.dsa, sig_params = None, oid = OIDDB.SignatureAlgorithms.inverse("dsa-with-sha512")),
 	SignatureAlgorithm(name = "ecdsa-with-SHA224", hash_fnc = HashFunctions.sha224, sig_fnc = SignatureFunctions.ecdsa, sig_params = None, oid = OIDDB.SignatureAlgorithms.inverse("ecdsa-with-SHA224")),
 	SignatureAlgorithm(name = "ecdsa-with-SHA256", hash_fnc = HashFunctions.sha256, sig_fnc = SignatureFunctions.ecdsa, sig_params = None, oid = OIDDB.SignatureAlgorithms.inverse("ecdsa-with-SHA256")),
 	SignatureAlgorithm(name = "ecdsa-with-SHA384", hash_fnc = HashFunctions.sha384, sig_fnc = SignatureFunctions.ecdsa, sig_params = None, oid = OIDDB.SignatureAlgorithms.inverse("ecdsa-with-SHA384")),
@@ -104,6 +111,7 @@ SignatureAlgorithms = _to_enum("SignatureAlgorithms", [
 PublicKeyAlgorithm = collections.namedtuple("PublicKeyAlgorithm", [ "name", "cryptosystem", "fixed_params", "oid" ])
 PublicKeyAlgorithms = _to_enum("PublicKeyAlgorithms", [
 	PublicKeyAlgorithm(name = "RSA", cryptosystem = Cryptosystems.RSA, fixed_params = None, oid = OIDDB.KeySpecificationAlgorithms.inverse("rsaEncryption")),
+	PublicKeyAlgorithm(name = "DSA", cryptosystem = Cryptosystems.DSA, fixed_params = None, oid = OIDDB.KeySpecificationAlgorithms.inverse("id-dsa")),
 	PublicKeyAlgorithm(name = "ECC", cryptosystem = Cryptosystems.ECC_ECDSA, fixed_params = None, oid = OIDDB.KeySpecificationAlgorithms.inverse("ecPublicKey")),
 	PublicKeyAlgorithm(name = "Ed25519", cryptosystem = Cryptosystems.ECC_EdDSA, fixed_params = { "prehash": False }, oid = OIDDB.KeySpecificationAlgorithms.inverse("id-Ed25519")),
 	PublicKeyAlgorithm(name = "Ed448", cryptosystem = Cryptosystems.ECC_EdDSA, fixed_params = { "prehash": False }, oid = OIDDB.KeySpecificationAlgorithms.inverse("id-Ed448")),

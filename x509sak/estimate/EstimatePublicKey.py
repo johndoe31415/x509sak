@@ -52,6 +52,9 @@ class PublicKeyEstimator(BaseEstimator):
 		if pubkey.pk_alg.value.cryptosystem == Cryptosystems.RSA:
 			result["pretty"] = "RSA with %d bit modulus" % (pubkey.n.bit_length())
 			result.update(self.algorithm("rsa").analyze(pubkey))
+		elif pubkey.pk_alg.value.cryptosystem == Cryptosystems.DSA:
+			result["pretty"] = "DSA with %d bit modulus and %d bit output" % (pubkey.p.bit_length(), pubkey.q.bit_length())
+			result.update(self.algorithm("dsa").analyze(pubkey))
 		elif pubkey.pk_alg.value.cryptosystem == Cryptosystems.ECC_ECDSA:
 			result["pretty"] = "ECC on %s" % (pubkey.curve.name)
 			result.update(self.algorithm("ecc").analyze(pubkey))

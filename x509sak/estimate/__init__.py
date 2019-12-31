@@ -33,5 +33,6 @@ import x509sak.estimate.EstimateECC
 import x509sak.estimate.EstimateHashFunction
 import x509sak.estimate.EstimatePublicKey
 import x509sak.estimate.EstimateRSA
+import x509sak.estimate.EstimateDSA
 import x509sak.estimate.EstimateSigFunction
 import x509sak.estimate.EstimateSig

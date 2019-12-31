@@ -66,6 +66,7 @@ class OIDDB():
 	KeySpecificationAlgorithms = BijectiveDict({
 		OID.from_str("1.2.840.113549.1.1.1"):	"rsaEncryption",
 		OID.from_str("1.2.840.10045.2.1"):		"ecPublicKey",
+		OID.from_str("1.2.840.10040.4.1"):		"id-dsa",
 		OID.from_str("1.3.101.110"):			"id-X25519",
 		OID.from_str("1.3.101.111"):			"id-X448",
 		OID.from_str("1.3.101.112"):			"id-Ed25519",
@@ -84,6 +85,10 @@ class OIDDB():
 		OID.from_str("1.2.840.113549.1.1.13"):	"sha512WithRsaEncryption",
 
 		OID.from_str("1.2.840.10040.4.3"):		"dsa-with-sha1",
+		OID.from_str("2.16.840.1.101.3.4.3.1"):	"dsa-with-sha224",
+		OID.from_str("2.16.840.1.101.3.4.3.2"):	"dsa-with-sha256",
+		OID.from_str("2.16.840.1.101.3.4.3.3"):	"dsa-with-sha384",
+		OID.from_str("2.16.840.1.101.3.4.3.4"):	"dsa-with-sha512",
 
 		OID.from_str("1.2.840.10045.4.1"):		"ecdsa-with-SHA1",
 		OID.from_str("1.2.840.10045.4.3.1"):	"ecdsa-with-SHA224",

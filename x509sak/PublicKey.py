@@ -22,7 +22,7 @@
 import hashlib
 import collections
 import pyasn1.codec.der.decoder
-from pyasn1_modules import rfc2459, rfc2437
+from pyasn1_modules import rfc2459, rfc2437, rfc3279
 from x509sak.OID import OID, OIDDB
 from x509sak.PEMDERObject import PEMDERObject
 from x509sak.Tools import ASN1Tools
@@ -113,8 +113,17 @@ class PublicKey(PEMDERObject):
 				"curve":		curve,
 				"named_curve":	True,
 			})
+		elif self.pk_alg.value.cryptosystem == Cryptosystems.DSA:
+			(alg_params, _) = pyasn1.codec.der.decoder.decode(self.asn1["algorithm"]["parameters"], rfc3279.Dss_Parms())
+			(dsa_pubkey, _) = pyasn1.codec.der.decoder.decode(inner_key, rfc3279.DSAPublicKey())
+			self._key = {
+				"p":		int(alg_params["p"]),
+				"q":		int(alg_params["q"]),
+				"g":		int(alg_params["g"]),
+				"pubkey":	int(dsa_pubkey),
+			}
 		else:
-			raise LazyDeveloperException(NotImplemented, self._pk_alg.cryptosystem)
+			raise LazyDeveloperException(NotImplemented, self._pk_alg)
 
 	@classmethod
 	def create(cls, cryptosystem, parameters):
@@ -126,6 +135,14 @@ class PublicKey(PEMDERObject):
 			inner_key = rfc2437.RSAPublicKey()
 			inner_key["modulus"] = pyasn1.type.univ.Integer(parameters["n"])
 			inner_key["publicExponent"] = pyasn1.type.univ.Integer(parameters["e"])
+			inner_key = pyasn1.codec.der.encoder.encode(inner_key)
+		elif cryptosystem == Cryptosystems.DSA:
+			asn1["algorithm"]["algorithm"] = OIDDB.KeySpecificationAlgorithms.inverse("id-dsa").to_asn1()
+			asn1["algorithm"]["parameters"] = rfc3279.Dss_Parms()
+			asn1["algorithm"]["parameters"]["p"] = parameters["p"]
+			asn1["algorithm"]["parameters"]["q"] = parameters["q"]
+			asn1["algorithm"]["parameters"]["g"] = parameters["g"]
+			inner_key = rfc3279.DSAPublicKey(parameters["pubkey"])
 			inner_key = pyasn1.codec.der.encoder.encode(inner_key)
 		elif cryptosystem == Cryptosystems.ECC_ECDSA:
 			curve = parameters["curve"]
