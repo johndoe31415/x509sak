@@ -127,7 +127,7 @@ class CorpusTester():
 				work_piece = ("work", work_item)
 				work_queue.put(work_piece)
 				self._exclude_hashes.add(work_item.certs_key_sha256)
-				if produced_work_count >= self._args.limit:
+				if (self._args.limit is not None) and (produced_work_count >= self._args.limit):
 					break
 
 		# Then feed workers the termination commands
