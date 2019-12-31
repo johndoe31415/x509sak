@@ -28,7 +28,7 @@ import subprocess
 from x509sak.FriendlyArgumentParser import FriendlyArgumentParser
 
 parser = FriendlyArgumentParser(description = "Examine results of a test corpus run.")
-parser.add_argument("-d", "--dbfile", metavar = "filename", type = str, default = "test_corpus_results.sqlite3", help = "Specifies database file to use. Defaults to %(default)s.")
+parser.add_argument("-d", "--dbfile", metavar = "filename", type = str, default = "test_corpus_results.sqlite3", help = "Specifies database file which stores the scraping results. Defaults to %(default)s.")
 parser.add_argument("-o", "--outdir", metavar = "path", type = str, default = "test_corpus_failures", help = "Specifies output file to write failed certificates to. Defaults to %(default)s.")
 args = parser.parse_args(sys.argv[1:])
 
@@ -41,14 +41,26 @@ cursor = db.cursor()
 (failed_results, ) = cursor.execute("SELECT COUNT(*) FROM test_results WHERE returncode != 0;").fetchone()
 print("Found %d results total, %d which failed." % (total_results, failed_results))
 
-for row in cursor.execute("SELECT domainname, returncode, stdout, stderr, db_filename, der_cert FROM test_results WHERE returncode != 0 ORDER BY id ASC;").fetchall():
-	(domainname, returncode, stdout, stderr, db_filename, der_cert) = row
-	print("%-30s returncode %d" % (domainname, returncode))
-	outfile_pem = args.outdir + "/" + domainname + ".pem"
-	outfile_txt = args.outdir + "/" + domainname + ".txt"
+for row in cursor.execute("SELECT certs_key_sha256, returncode, stdout, stderr, cert_der, ca_cert_der, cert_usage, cert_fqdn FROM test_results WHERE returncode != 0 ORDER BY id ASC;").fetchall():
+	(certs_key_sha256, returncode, stdout, stderr, cert_der, ca_cert_der, cert_usage, cert_fqdn) = row
+	usage_fqdn = "%s/%s" % (cert_fqdn, cert_usage)
+	print("%-60s returncode %d" % (usage_fqdn, returncode))
+	outfile_pem = args.outdir + "/" + certs_key_sha256.hex() + ".pem"
+	outfile_ca_pem = args.outdir + "/" + certs_key_sha256.hex() + "_ca.pem"
+	outfile_txt = args.outdir + "/" + certs_key_sha256.hex() + ".txt"
 	with open(outfile_txt, "w") as f:
+		print("Usage     : %s" % (cert_usage), file = f)
+		print("FQDN      : %s" % (cert_fqdn), file = f)
 		print("Returncode: %d" % (returncode), file = f)
-		print("Database  : %s" % (db_filename), file = f)
+		print("Commandline:", file = f)
+		cmd = [ "./x509sak.py", "examine" ]
+		cmd += [ "-p", cert_usage ]
+		if cert_fqdn is not None:
+			cmd += [ "--server-name=%s" % (cert_fqdn) ]
+		if ca_cert_der is not None:
+			cmd += [ "-r", outfile_ca_pem ]
+		cmd += [ outfile_pem ]
+		print(" ".join(cmd), file = f)
 		print(file = f)
 		print("=" * 120, file = f)
 		print(file = f)
@@ -59,4 +71,6 @@ for row in cursor.execute("SELECT domainname, returncode, stdout, stderr, db_fil
 		print(file = f)
 		print("stderr:", file = f)
 		print(stderr.decode(), file = f)
-	subprocess.check_output([ "openssl", "x509", "-inform", "der", "-out", outfile_pem ], input = der_cert)
+	subprocess.check_output([ "openssl", "x509", "-inform", "der", "-out", outfile_pem ], input = cert_der)
+	if ca_cert_der is not None:
+		subprocess.check_output([ "openssl", "x509", "-inform", "der", "-out", outfile_ca_pem ], input = ca_cert_der)

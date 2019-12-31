@@ -38,8 +38,13 @@ class ActionExamineCert(BaseAction):
 		if self._args.parent_certificate is None:
 			parent_ca_cert = None
 		else:
-			crt = X509Certificate.read_pemfile(self._args.parent_certificate)[0]
-			parent_ca_cert = self._CrtSource(source = self._args.parent_certificate, source_type = "pemcrt", crts = [ crt ])
+			if self._args.in_format == "dercrt":
+				# CA cert in DER form if host certificate is also in DER form
+				crt = X509Certificate.read_derfile(self._args.parent_certificate)
+			else:
+				# CA cert in PEM form for all other cases
+				crt = X509Certificate.read_pemfile(self._args.parent_certificate)[0]
+			parent_ca_cert = self._CrtSource(source = self._args.parent_certificate, source_type = "pemcrt" if (self._args.in_format != "dercrt") else "dercrt", crts = [ crt ])
 		if self._args.in_format in [ "pemcrt", "dercrt", "host" ]:
 			crt_sources = self._load_certificates()
 			analysis = self._analyze_certificates(crt_sources, parent_ca_cert)

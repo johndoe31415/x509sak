@@ -37,7 +37,8 @@ from x509sak.FriendlyArgumentParser import FriendlyArgumentParser
 parser = FriendlyArgumentParser(description = "Test x509sak by running a certificate test corpus against the 'examine' facility.")
 parser.add_argument("-r", "--retest", action = "store_true", help = "Only retest certificates that have failed before.")
 parser.add_argument("-p", "--parallel", metavar = "count", type = int, default = multiprocessing.cpu_count(), help = "How many test instances to run concurrently. Defaults to %(default)d processes.")
-parser.add_argument("-d", "--dbfile", metavar = "filename", type = str, default = "test_corpus_results.sqlite3", help = "Specifies database file to use. Defaults to %(default)s.")
+parser.add_argument("-l", "--limit", metavar = "count", type = int, help = "Finish after this many runs. By default runs until everything is finished.")
+parser.add_argument("-d", "--dbfile", metavar = "filename", type = str, default = "test_corpus_results.sqlite3", help = "Specifies database file to store results in. Defaults to %(default)s.")
 parser.add_argument("corpus_dir", metavar = "corpus_dir", type = str, help = "Root directory of the cloned git repository https://github.com/johndoe31415/x509-cert-testcorpus")
 args = parser.parse_args(sys.argv[1:])
 
@@ -45,15 +46,15 @@ if not os.path.isdir(args.corpus_dir):
 	print("Not a directory: %s" % (args.corpus_dir), file = sys.stderr)
 	sys.exit(1)
 
-if not os.path.isfile(args.corpus_dir + "/CertTOC.py"):
-	print("Not a clone of https://github.com/johndoe31415/x509-cert-testcorpus (CertTOC.py missing): %s" % (args.corpus_dir), file = sys.stderr)
+if not os.path.isfile(args.corpus_dir + "/CertDatabase.py"):
+	print("Not a clone of https://github.com/johndoe31415/x509-cert-testcorpus (CertDatabase.py missing): %s" % (args.corpus_dir), file = sys.stderr)
 	sys.exit(1)
 
 # Include corpus directory in include path so we can load CertDB.py
 sys.path.append(args.corpus_dir)
-from CertTOC import CertTOC
+from CertDatabase import CertDatabase
 
-WorkItem = collections.namedtuple("WorkItem", [ "cert_no", "fetch_timestamp", "cert_der_sha256", "cert_der", "ca_cert_der", "cert_fqdn", "cert_usage" ])
+WorkItem = collections.namedtuple("WorkItem", [ "conn_id", "cert_no", "fetch_timestamp", "certs_key_sha256", "cert_der", "ca_cert_der", "cert_fqdn", "cert_usage" ])
 ResultItem = collections.namedtuple("ResultItem", [ "work_item", "returncode", "stdout", "stderr", "duration" ])
 
 class CorpusTester():
@@ -61,7 +62,7 @@ class CorpusTester():
 		self._args = args
 		self._db = sqlite3.connect(self._args.dbfile)
 		self._cursor = self._db.cursor()
-		self._toc = CertTOC(self._args.corpus_dir + "/certs/toc.sqlite3")
+		self._certdb = CertDatabase(self._args.corpus_dir + "/certs")
 		self._exclude_hashes = None
 		with contextlib.suppress(sqlite3.OperationalError):
 			self._cursor.execute("""
@@ -74,7 +75,7 @@ class CorpusTester():
 				stdout varchar NOT NULL,
 				stderr varchar NOT NULL,
 				duration float NOT NULL,
-				cert_der_sha256 blob NOT NULL,
+				certs_key_sha256 blob NOT NULL UNIQUE,
 				cert_der blob NULL,
 				ca_cert_der blob NULL,
 				cert_fqdn varchar NULL,
@@ -118,18 +119,22 @@ class CorpusTester():
 			else:
 				raise NotImplementedError(command)
 
-	def _feeder(self, work_queue, result_queue):
-		for work_item in self._work_generator():
-			if work_item.cert_der_sha256 not in self._exclude_hashes:
+	def _producer(self, work_queue, result_queue):
+		produced_work_count = 0
+		for (item_count, work_item) in enumerate(self._work_generator()):
+			if work_item.certs_key_sha256 not in self._exclude_hashes:
+				produced_work_count += 1
 				work_piece = ("work", work_item)
 				work_queue.put(work_piece)
-				self._exclude_hashes.add(work_item.cert_der_sha256)
+				self._exclude_hashes.add(work_item.certs_key_sha256)
+				if produced_work_count >= self._args.limit:
+					break
 
 		# Then feed workers the termination commands
 		for i in range(self._args.parallel):
 			work_queue.put(("terminate", None))
 
-	def _eater(self, work_queue, result_queue):
+	def _consumer(self, work_queue, result_queue):
 		tested_count = 0
 		failure_count = 0
 		while True:
@@ -146,18 +151,22 @@ class CorpusTester():
 			cert_der = None if (result.returncode == 0) else result.work_item.cert_der
 			ca_cert_der = None if (result.returncode == 0) else result.work_item.ca_cert_der
 			try:
-				self._cursor.execute("INSERT INTO test_results (returncode, stdout, stderr, duration, fetch_timestamp) VALUES (?, ?, ?, ?, ?);", (result.returncode, result.stdout, result.stderr, result.duration, result.work_item.fetch_timestamp))
-			except sqlite3.IntegrityError:
-				self._cursor.execute("UPDATE test_results SET returncode = ?, stdout = ?, stderr = ?, duration = ? WHERE cert_der_sha256 = ?;", (result.returncode, result.stdout, result.stderr, result.duration, result.work_item.cert_der_sha256))
+				self._cursor.execute("INSERT INTO test_results (conn_id, cert_no, fetch_timestamp, returncode, stdout, stderr, duration, certs_key_sha256, cert_der, ca_cert_der, cert_fqdn, cert_usage) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", (
+					result.work_item.conn_id, result.work_item.cert_no, result.work_item.fetch_timestamp,
+					result.returncode, result.stdout, result.stderr, result.duration,
+					result.work_item.certs_key_sha256, cert_der, ca_cert_der, result.work_item.cert_fqdn, result.work_item.cert_usage
+				))
+			except sqlite3.IntegrityError as e:
+				self._cursor.execute("UPDATE test_results SET returncode = ?, stdout = ?, stderr = ?, duration = ? WHERE certs_key_sha256 = ?;", (result.returncode, result.stdout, result.stderr, result.duration, result.work_item.certs_key_sha256))
 			print("%d / %d (%.1f%%): %s/%s (returncode %d); total failure_count %d" % (tested_count, self._work_amount, tested_count / self._work_amount * 100, result.work_item.cert_fqdn, result.work_item.cert_usage, result.returncode, failure_count))
 		self._db.commit()
 
 	def _work_generator(self):
 		if not self._args.retest:
-			for connection in self._toc.get_all_connections():
+			for connection in self._certdb.get_all_connections(sort_order_asc = False):
 				for (cert_no, cert) in enumerate(connection.certs):
 					if cert_no + 1 < len(connection.certs):
-						next_cert = connections.certs[cert_no + 1]
+						next_cert = connection.certs[cert_no + 1]
 					else:
 						next_cert = None
 					if cert_no == 0:
@@ -166,10 +175,12 @@ class CorpusTester():
 					else:
 						cert_fqdn = None
 						cert_usage = "ca"
-					cert_der_sha256 = hashlib.sha256(cert).digest()
-					yield WorkItem(cert_no = cert_no, fetch_timestamp = connection.fetch_timestamp, cert_der_sha256 = cert_der_sha256, cert_der = cert, ca_cert_der = next_cert, cert_fqdn = cert_fqdn, cert_usage = cert_usage)
+					certs_key_sha256 = hashlib.sha256(cert).digest()
+					if next_cert is not None:
+						certs_key_sha256 += hashlib.sha256(next_cert).digest()
+					yield WorkItem(conn_id = connection.conn_id, cert_no = cert_no, fetch_timestamp = connection.fetch_timestamp, certs_key_sha256 = certs_key_sha256, cert_der = cert, ca_cert_der = next_cert, cert_fqdn = cert_fqdn, cert_usage = cert_usage)
 		else:
-			failed_certs = self._cursor.execute("SELECT db_filename, domainname, fetch_timestamp, cert_der_sha256, der_cert FROM test_results WHERE returncode != 0;").fetchall()
+			failed_certs = self._cursor.execute("SELECT conn_id, cert_no, fetch_timestamp, certs_key_sha256, cert_der, ca_cert_der, cert_fqdn, cert_usage FROM test_results WHERE returncode != 0;").fetchall()
 			for failed_cert in failed_certs:
 				yield WorkItem(*failed_cert)
 
@@ -177,16 +188,21 @@ class CorpusTester():
 	def checked_certificate_count(self):
 		return self._cursor.execute("SELECT COUNT(*) FROM test_results;").fetchone()[0]
 
+	@property
+	def failed_certificate_count(self):
+		return self._cursor.execute("SELECT COUNT(*) FROM test_results WHERE returncode != 0;").fetchone()[0]
+
 	def run(self):
 		# Determine which hashes of those returned from work_generator we discerd
 		if not self._args.retest:
-			self._exclude_hashes = set(row[0] for row in self._cursor.execute("SELECT cert_der_sha256 FROM test_results;").fetchall())
-			self._work_amount = self._toc.certificate_count - len(self._exclude_hashes)
+			self._exclude_hashes = set(row[0] for row in self._cursor.execute("SELECT certs_key_sha256 FROM test_results;").fetchall())
+			self._work_amount = self._certdb.certificate_count - len(self._exclude_hashes)
 		else:
 			self._exclude_hashes = set()
-			self._work_amount = self._get_failed_certificate_count()
-
-		print("Found %d unique certificates in %d connections. %d certificates tested so far, %d remaining." % (self._toc.certificate_count, self._toc.connection_count, self.checked_certificate_count, self._work_amount))
+			self._work_amount = self.failed_certificate_count
+		if self._args.limit < self._work_amount:
+			self._work_amount = self._args.limit
+		print("Found %d unique certificates in %d connections. %d certificates tested so far, %d remaining." % (self._certdb.certificate_count, self._certdb.connection_count, self.checked_certificate_count, self._work_amount))
 
 		# Synchronization with workers using queues
 		work_queue = multiprocessing.Queue(maxsize = 100)
@@ -197,22 +213,22 @@ class CorpusTester():
 		for process in processes:
 			process.start()
 
-		# Start feeder and eater process
-		feeder = multiprocessing.Process(target = self._feeder, args = (work_queue, result_queue))
-		eater = multiprocessing.Process(target = self._eater, args = (work_queue, result_queue))
-		feeder.start()
-		eater.start()
+		# Start producer and consumer process
+		producer = multiprocessing.Process(target = self._producer, args = (work_queue, result_queue))
+		consumer = multiprocessing.Process(target = self._consumer, args = (work_queue, result_queue))
+		producer.start()
+		consumer.start()
 
-		# Wait for feeder to stop
-		feeder.join()
+		# Wait for producer to stop
+		producer.join()
 
 		# Then wait for all workers to finish
 		for process in processes:
 			process.join()
 
-		# Finally, quit the eater process as well
+		# Finally, quit the consumer process as well
 		result_queue.put(None)
-		eater.join()
+		consumer.join()
 
 ct = CorpusTester(args)
 ct.run()
