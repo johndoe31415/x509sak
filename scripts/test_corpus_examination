@@ -200,7 +200,7 @@ class CorpusTester():
 		else:
 			self._exclude_hashes = set()
 			self._work_amount = self.failed_certificate_count
-		if self._args.limit < self._work_amount:
+		if (self._args.limit is not None) and (self._args.limit < self._work_amount):
 			self._work_amount = self._args.limit
 		print("Found %d unique certificates in %d connections. %d certificates tested so far, %d remaining." % (self._certdb.certificate_count, self._certdb.connection_count, self.checked_certificate_count, self._work_amount))
 
