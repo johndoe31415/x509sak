@@ -143,7 +143,7 @@ class RelativeDistinguishedName():
 
 	def dump(self, indent = ""):
 		for rdn in self:
-			print("%s%s" % (indent, self.pretty_str))
+			print("%s%s" % (indent, rdn.pretty_str))
 
 	def __iter__(self):
 		return iter(self._rdn_list)

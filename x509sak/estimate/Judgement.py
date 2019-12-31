@@ -161,6 +161,7 @@ class JudgementCode(enum.Enum):
 	Cert_X509Ext_CertificatePolicies_UserNoticeExplicitTextInvalidStringType = ("X.509 Certificate Policies extension", "invalid explicitText string type")
 	Cert_X509Ext_CertificatePolicies_UserNoticeExplicitTextIA5String = ("X.509 Certificate Policies extension", "explicitText uses IA5String instead of UTF8String")
 	Cert_X509Ext_CertificatePolicies_UserNoticeExplicitTextControlCharacters = ("X.509 Certificate Policies extension", "control characters within explicitText")
+	Cert_X509Ext_CertificatePolicies_UserNoticeExplicitTextAbsent = ("X.509 Certificate Policies extension", "explicitText field absent")
 	Cert_X509Ext_CertificatePolicies_CPSDecodeError = ("X.509 Certificate Policies extension", "error decoding CPS qualifier")
 	Cert_X509Ext_CertificatePolicies_CPSUnusualSchema = ("X.509 Certificate Policies extension", "CPS URI uses unusual schema")
 	SignatureFunction_UncommonPaddingScheme = ("Signature function", "uncommon padding scheme")
@@ -209,6 +210,7 @@ class JudgementCode(enum.Enum):
 	Cert_Unknown_SignatureAlgorithm = ("Certificate signature", "unknown signature algorithm")
 	Cert_Unknown_HashAlgorithm = ("Certificate signature", "unknown hash function")
 	Cert_Unknown_MaskAlgorithm = ("Certificate signature", "unknown mask function")
+	Analysis_Not_Implemented = ("x509sak", "functionality not implemented")
 
 	@property
 	def topic(self):

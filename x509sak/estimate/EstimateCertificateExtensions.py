@@ -21,7 +21,7 @@
 
 import collections
 import pyasn1.type.base
-from x509sak.OID import OID, OIDDB
+from x509sak.OID import OIDDB
 from x509sak.AlgorithmDB import HashFunctions
 from x509sak.X509Extensions import X509ExtendedKeyUsageExtension
 from x509sak.estimate.BaseEstimator import BaseEstimator
@@ -428,7 +428,6 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 
 			# Check if qualifier is used twice. Not technically forbidden, but definitely weird.
 			for policy in policies:
-				qualifier_oids = [ qualifier.oid for qualifier in policy.qualifiers ]
 				seen_oids = { }
 				for (qualifier_no, qualifier) in enumerate(policy.qualifiers, 1):
 					if qualifier.oid in seen_oids:

@@ -467,6 +467,7 @@ class X509CertificatePoliciesExtension(X509Extension):
 		for policy in self._policies:
 			if policy.oid == policy_oid:
 				return policy
+		return None
 
 	def _decode_hook(self):
 		self._policies = [ ]

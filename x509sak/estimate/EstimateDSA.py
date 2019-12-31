@@ -20,13 +20,10 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 import math
-import pyasn1
-from x509sak.ModulusDB import ModulusDB
 from x509sak.NumberTheory import NumberTheory
 from x509sak.estimate.BaseEstimator import BaseEstimator
-from x509sak.estimate import JudgementCode, AnalysisOptions, Verdict, Commonness, Compatibility
-from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, RFCReference, LiteratureReference
-from x509sak.Exceptions import LazyDeveloperException
+from x509sak.estimate import JudgementCode, Commonness, Compatibility
+from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, LiteratureReference
 
 @BaseEstimator.register
 class DSASecurityEstimator(BaseEstimator):

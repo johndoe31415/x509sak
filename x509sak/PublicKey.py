@@ -31,7 +31,6 @@ from x509sak.Exceptions import UnknownAlgorithmException, LazyDeveloperException
 from x509sak.CurveDB import CurveDB
 from x509sak.ECCMath import EllipticCurve
 from x509sak.AlgorithmDB import PublicKeyAlgorithms, Cryptosystems
-from x509sak.ASN1Models import SpecifiedECDomain
 
 class PublicKey(PEMDERObject):
 	_PEM_MARKER = "PUBLIC KEY"

@@ -26,13 +26,13 @@ import json
 import enum
 import pkgutil
 import gzip
+import time
 import textwrap
 import datetime
 import urllib.parse
 import pyasn1.type.univ
 import pyasn1.codec.der.encoder
 import pyasn1.codec.der.decoder
-import time
 from x509sak.Exceptions import UnexpectedFileContentException, InvalidUsageException, InvalidInputException
 
 class PEMDataTools():

@@ -21,8 +21,7 @@
 
 import pyasn1.codec.der.decoder
 from pyasn1_modules import rfc3279
-from x509sak.OID import OID
-from x509sak.AlgorithmDB import SignatureAlgorithms, HashFunctions, SignatureFunctions, Cryptosystems
+from x509sak.AlgorithmDB import SignatureAlgorithms, SignatureFunctions, Cryptosystems
 from x509sak.estimate.BaseEstimator import BaseEstimator
 from x509sak.estimate import JudgementCode, Commonness, Compatibility
 from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, RFCReference
@@ -121,7 +120,7 @@ class SignatureSecurityEstimator(BaseEstimator):
 							judgements += SecurityJudgement(JudgementCode.ECDSA_Signature_S_BitBias, "Hamming weight of ECDSA signature S parameter is %d at bitlength %d, but expected a weight between %d and %d when randomly chosen; this is likely not coincidential." % (hweight_analysis.hweight, hweight_analysis.bitlen, hweight_analysis.rnd_min_hweight, hweight_analysis.rnd_max_hweight), commonness = Commonness.HIGHLY_UNUSUAL)
 			except pyasn1.error.PyAsn1Error:
 				standard = RFCReference(rfcno = 3279, sect = "2.2.3", verb = "MUST", text = "To easily transfer these two values as one signature, they MUST be ASN.1 encoded using the following ASN.1 structure:")
-				judgements += SecurityJudgement(JudgementCode.ECDSA_Signature_Undecodable, "ECDSA signature cannot be successfully decoded.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+				judgements += SecurityJudgement(JudgementCode.ECDSA_Signature_Malformed, "ECDSA signature cannot be successfully decoded.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 		result = {
 			"name":				signature_alg.name,

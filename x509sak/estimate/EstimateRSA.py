@@ -19,7 +19,6 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-import math
 import pyasn1
 from x509sak.ModulusDB import ModulusDB
 from x509sak.NumberTheory import NumberTheory
