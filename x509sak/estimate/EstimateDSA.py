@@ -25,7 +25,7 @@ from x509sak.ModulusDB import ModulusDB
 from x509sak.NumberTheory import NumberTheory
 from x509sak.estimate.BaseEstimator import BaseEstimator
 from x509sak.estimate import JudgementCode, AnalysisOptions, Verdict, Commonness, Compatibility
-from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, RFCReference
+from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, RFCReference, LiteratureReference
 from x509sak.Exceptions import LazyDeveloperException
 
 @BaseEstimator.register
@@ -69,6 +69,13 @@ class DSASecurityEstimator(BaseEstimator):
 		if (pubkey.g <= 1) or (pubkey.g >= pubkey.p):
 			standard = LiteratureReference(quote = "g: a generator of a subgroup of order q in the multiplicative group of GF(p), such that 1 < g < p", sect = "4.1", author = "National Institute of Standards and Technology", title = "FIPS PUB 186-4: Digital Signature Standard (DSS)", year = 2013, month = 7, doi = "10.6028/NIST.FIPS.186-4")
 			judgements += SecurityJudgement(JudgementCode.DSA_Parameter_G_Invalid_Range, "DSA parameter g is not inside the valid range (1 < g < p).", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, bits = 0, standard = standard)
+
+		if (L in self._TYPICAL_L_N_VALUES) and (N in self._TYPICAL_L_N_VALUES[L]):
+			# Typical
+			judgements += SecurityJudgement(JudgementCode.DSA_Parameter_L_N_Common, "DSA parameter values L/N (%d/%d) are common." % (L, N), commonness = Commonness.COMMON)
+		else:
+			# Non-typical
+			judgements += SecurityJudgement(JudgementCode.DSA_Parameter_L_N_Uncommon, "DSA parameter values L/N (%d/%d) are uncommon." % (L, N), commonness = Commonness.UNUSUAL)
 
 		L_strength_bits = NumberTheory.asymtotic_complexity_gnfs_bits(pubkey.p)
 		N_strength_bits = math.floor(N / 2)

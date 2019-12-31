@@ -22,6 +22,7 @@
 import enum
 from x509sak.Tools import JSONTools
 from x509sak.Exceptions import LazyDeveloperException
+from x509sak.KwargsChecker import KwargsChecker
 
 class JudgementCode(enum.Enum):
 	RSA_Parameter_Field_Not_Present = ("RSA pubkey", "parameter field not present")
@@ -50,6 +51,8 @@ class JudgementCode(enum.Enum):
 	DSA_Parameter_Q_No_Divisor_Of_P1 = ("DSA parameters", "q does not divide (p - 1)")
 	DSA_Parameter_G_Invalid_Range = ("DSA parameters", "generator g outside valid range")
 	DSA_Parameter_G_Unverifiable = ("DSA parameters", "generator g is unverifyable")
+	DSA_Parameter_L_N_Uncommon = ("DSA parameters", "parameter values L/N are uncommon")
+	DSA_Parameter_L_N_Common = ("DSA parameters", "parameter values L/N are common")
 	DSA_Security_Level = ("DSA parameters", "security estimation")
 	ECC_Pubkey_CurveOrder = ("ECC pubkey", "curve order")
 	ECC_Pubkey_Not_On_Curve = ("ECC pubkey", "point not on curve")
@@ -504,27 +507,21 @@ class RFCReference(StandardReference):
 			return "RFC%d Sects. %s" % (self.rfcno, " / ".join(self.sect))
 
 class LiteratureReference():
-	def __init__(self, author, title, year = None, month = None, source = None):
-		assert((year is None) or isinstance(year, int))
-		assert((month is None) or (isinstance(month, int) and (1 <= month <= 12)))
-		if isinstance(author, str):
-			author = [ author ]
-		else:
-			author = list(author)
-		self._fields = {
-			"author":		author,
-			"title":		title,
-			"year":			year,
-			"month":		month,
-			"source":		source,
-		}
+	_Arguments = KwargsChecker(required_arguments = set([ "author", "title" ]), optional_arguments = set([ "year", "month", "source", "quote", "doi", "sect" ]), check_functions = {
+		"year":		lambda x: isinstance(x, int),
+		"month":	lambda x: isinstance(x, int) and (1 <= x <= 12),
+	})
+
+	def __init__(self, **kwargs):
+		self._Arguments.check(kwargs, "LiteratureReference")
+		self._fields = kwargs
 
 	@classmethod
 	def from_dict(cls, data):
-		return cls(author = data["author"], title = data["title"], year = data.get("year"), month = data.get("month"), source = data.get("source"))
+		return cls(**data)
 
 	def to_dict(self):
-		return self._fields
+		return dict(self._fields)
 
 	def __str__(self):
 		text = " and ".join(self._fields["author"])

@@ -22,12 +22,13 @@
 from x509sak.Exceptions import InvalidInputException
 
 class KwargsChecker():
-	def __init__(self, required_arguments = None, optional_arguments = None):
+	def __init__(self, required_arguments = None, optional_arguments = None, check_functions = None):
 		assert((required_arguments is None) or isinstance(required_arguments, set))
 		assert((optional_arguments is None) or isinstance(optional_arguments, set))
 		self._required_arguments = required_arguments or set()
 		self._optional_arguments = optional_arguments or set()
 		self._allowed_arguments = self._required_arguments | self._optional_arguments
+		self._check_functions = check_functions
 
 	def check_single(self, arg, hint = None):
 		if arg not in self._allowed_arguments:
