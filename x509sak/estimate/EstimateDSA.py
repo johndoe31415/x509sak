@@ -32,21 +32,55 @@ from x509sak.Exceptions import LazyDeveloperException
 class DSASecurityEstimator(BaseEstimator):
 	_ALG_NAME = "dsa"
 
+	"""DSA Parameters:
+	p: Prime modulus of bitlength L
+	q: Prime divisor of (p - 1) of bitlength N
+	g: Generator of order q in GF(p); 1 < g < p
+	y: pubkey, y = g^x mod p; x is the private key
+	"""
+
+	_TYPICAL_L_N_VALUES = {
+		1024:	(160, ),
+		2048:	(224, 256),
+		3072:	(256, )
+	}
+
 	def analyze(self, pubkey):
 		judgements = SecurityJudgements()
+
+		L = pubkey.p.bit_length()
+		N = pubkey.q.bit_length()
+
+		if not NumberTheory.is_probable_prime(pubkey.p):
+			standard = LiteratureReference(quote = "p: a prime modulus", sect = "4.1", author = "National Institute of Standards and Technology", title = "FIPS PUB 186-4: Digital Signature Standard (DSS)", year = 2013, month = 7, doi = "10.6028/NIST.FIPS.186-4")
+			judgements += SecurityJudgement(JudgementCode.DSA_Parameter_P_Not_Prime, "DSA parameter p is not prime.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, bits = 0, standard = standard)
+
+		if not NumberTheory.is_probable_prime(pubkey.q):
+			standard = LiteratureReference(quote = "q: a prime divisor of (p - 1)", sect = "4.1", author = "National Institute of Standards and Technology", title = "FIPS PUB 186-4: Digital Signature Standard (DSS)", year = 2013, month = 7, doi = "10.6028/NIST.FIPS.186-4")
+			judgements += SecurityJudgement(JudgementCode.DSA_Parameter_Q_Not_Prime, "DSA parameter q is not prime.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, bits = 0, standard = standard)
+
+		if ((pubkey.p - 1) % pubkey.q) != 0:
+			standard = LiteratureReference(quote = "q: a prime divisor of (p - 1)", sect = "4.1", author = "National Institute of Standards and Technology", title = "FIPS PUB 186-4: Digital Signature Standard (DSS)", year = 2013, month = 7, doi = "10.6028/NIST.FIPS.186-4")
+			judgements += SecurityJudgement(JudgementCode.DSA_Parameter_Q_No_Divisor_Of_P1, "DSA parameter q is not a divisor of (p - 1).", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, bits = 0, standard = standard)
+
+		if pow(pubkey.g, pubkey.q, pubkey.p) != 1:
+			judgements += SecurityJudgement(JudgementCode.DSA_Parameter_G_Unverifiable, "DSA parameter g is not verifyable. That means g^q mod p != 1.", commonness = Commonness.HIGHLY_UNUSUAL)
+
+		if (pubkey.g <= 1) or (pubkey.g >= pubkey.p):
+			standard = LiteratureReference(quote = "g: a generator of a subgroup of order q in the multiplicative group of GF(p), such that 1 < g < p", sect = "4.1", author = "National Institute of Standards and Technology", title = "FIPS PUB 186-4: Digital Signature Standard (DSS)", year = 2013, month = 7, doi = "10.6028/NIST.FIPS.186-4")
+			judgements += SecurityJudgement(JudgementCode.DSA_Parameter_G_Invalid_Range, "DSA parameter g is not inside the valid range (1 < g < p).", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, bits = 0, standard = standard)
+
+		L_strength_bits = NumberTheory.asymtotic_complexity_gnfs_bits(pubkey.p)
+		N_strength_bits = math.floor(N / 2)
+		bits_security = min(L_strength_bits, N_strength_bits)
+		judgements += self.algorithm("bits").analyze(JudgementCode.DSA_Security_Level, bits_security)
+
 		result = {
 			"cryptosystem":	"dsa",
 			"specific": {
+				"L":	L,
+				"N":	N,
 			},
-#			"specific": {
-#				"n": {
-#					"bits":		pubkey.n.bit_length(),
-#					"security":	self.analyze_n(pubkey.n),
-#				},
-#				"e": {
-#					"security":	self.analyze_e(pubkey.e),
-#				},
-#			},
 			"security": judgements,
 		}
 

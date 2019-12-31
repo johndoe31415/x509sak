@@ -75,6 +75,7 @@ class ActionDebug(BaseAction):
 			"sha512":	lambda payload: hashlib.sha512(payload).digest(),
 			"hd":		self._hd.dump,
 			"ap":		self._asn1parse,
+			"write_py":	self._write_py,
 		}
 
 		console = DebugConsole(locals = variables)
@@ -85,6 +86,17 @@ class ActionDebug(BaseAction):
 			print()
 		if not self._args.no_interact:
 			console.interact()
+
+	def _write_py(self, data, outfile):
+		with open(outfile, "w") as f:
+			for (name, value) in sorted(data.items()):
+				if isinstance(value, int):
+					if value < 100000:
+						print("%s = %d" % (name, value), file = f)
+					else:
+						print("%s = %#x" % (name, value), file = f)
+				else:
+					print("# %s omitted (type %s)" % (name, value.__type__.__name__), file = f)
 
 	def _decrypt_selfsigned_rsa_signature(self, certificate):
 		plain = pow(int.from_bytes(certificate.signature, byteorder = "big"), certificate.pubkey.e, certificate.pubkey.n)

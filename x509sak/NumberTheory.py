@@ -253,3 +253,13 @@ class NumberTheory():
 		hweight = cls.hamming_weight(value)
 		plausibly_random = rnd_min_hweight <= hweight <= rnd_max_hweight
 		return cls._HammingWeightAnalysis(value = value, bitlen = bitlen, hweight = hweight, rnd_min_hweight = rnd_min_hweight, rnd_max_hweight = rnd_max_hweight, plausibly_random = plausibly_random)
+
+	@classmethod
+	def asymtotic_complexity_gnfs_bits(cls, n):
+		"""Return for a given value n the approximate equivalent strength in
+		bits to factor using GNFS."""
+		log2_n = n.bit_length()
+		log_n = log2_n * math.log(2)
+		bits_security = 2.5596 * (log_n ** (1/3)) * (math.log(log_n) ** (2/3))
+		bits_security = math.floor(bits_security)
+		return bits_security
