@@ -97,6 +97,9 @@ class AnalysisPrinterText(AnalysisPrinter):
 				color = "warn"
 			elif judgement.standard.deviation_type == StandardDeviationType.VIOLATION:
 				color = "error"
+			elif judgement.standard.deviation_type is None:
+				# Just informative
+				color = "end"
 			else:
 				raise NotImplementedError(judgement.standard.deviation_type)
 		if (judgement.verdict in [ Verdict.WEAK, Verdict.BROKEN ]) or (judgement.commonness == Commonness.HIGHLY_UNUSUAL):
@@ -114,6 +117,8 @@ class AnalysisPrinterText(AnalysisPrinter):
 				text += " This goes against the recommendation of %s." % (judgement.standard)
 			elif judgement.standard.deviation_type == StandardDeviationType.VIOLATION:
 				text += " This is in violation of %s." % (judgement.standard)
+			elif judgement.standard.deviation_type is None:
+				text += " This is an informative reference."
 			else:
 				raise NotImplementedError(judgement.standard.deviation_type)
 
@@ -141,6 +146,12 @@ class AnalysisPrinterText(AnalysisPrinter):
 		ts = datetime.datetime.strptime(isotime, "%Y-%m-%dT%H:%M:%SZ")
 		return ts.strftime("%c UTC")
 
+	def _fmt_validity(self, validity):
+		if validity is None:
+			return "error parsing timestamp"
+		else:
+			return self._fmt_time(validity["iso"])
+
 	def _print_analysis(self, analysis):
 		self._printer.heading("Metadata")
 		if analysis["source"]["certs_total"] == 1:
@@ -159,8 +170,8 @@ class AnalysisPrinterText(AnalysisPrinter):
 		self._printer.print()
 
 		self._printer.heading("Validity")
-		self._printer.print("Valid from : %s" % (self._fmt_time(analysis["validity"]["not_before"]["iso"])))
-		self._printer.print("Valid until: %s" % (self._fmt_time(analysis["validity"]["not_after"]["iso"])))
+		self._printer.print("Valid from : %s" % (self._fmt_validity(analysis["validity"]["not_before"])))
+		self._printer.print("Valid until: %s" % (self._fmt_validity(analysis["validity"]["not_after"])))
 		self._printer.print("Lifetime   : %.1f years" % (analysis["validity"]["validity_days"] / 365))
 		self._print_security_judgements(analysis["validity"]["security"], indent = "  ")
 		self._printer.print()

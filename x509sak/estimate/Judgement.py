@@ -442,10 +442,11 @@ class StandardReference():
 
 	@property
 	def deviation_type(self):
-		raise NotImplementedError()
+		raise NotImplementedError(self.__class__.__name__)
 
 	@classmethod
 	def register(cls, decoree):
+		assert(decoree._STD_TYPE is not None)
 		cls._REGISTERED[decoree._STD_TYPE] = decoree
 		return decoree
 
@@ -506,15 +507,23 @@ class RFCReference(StandardReference):
 		else:
 			return "RFC%d Sects. %s" % (self.rfcno, " / ".join(self.sect))
 
-class LiteratureReference():
-	_Arguments = KwargsChecker(required_arguments = set([ "author", "title" ]), optional_arguments = set([ "year", "month", "source", "quote", "doi", "sect" ]), check_functions = {
+@StandardReference.register
+class LiteratureReference(StandardReference):
+	_STD_TYPE = "literature"
+	_Arguments = KwargsChecker(required_arguments = set([ "author", "title" ]), optional_arguments = set([ "type", "year", "month", "source", "quote", "doi", "sect" ]), check_functions = {
 		"year":		lambda x: isinstance(x, int),
 		"month":	lambda x: isinstance(x, int) and (1 <= x <= 12),
 	})
 
 	def __init__(self, **kwargs):
+		StandardReference.__init__(self)
 		self._Arguments.check(kwargs, "LiteratureReference")
 		self._fields = kwargs
+		self._fields["type"] = self._STD_TYPE
+
+	@property
+	def deviation_type(self):
+		return None
 
 	@classmethod
 	def from_dict(cls, data):

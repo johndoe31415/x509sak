@@ -122,11 +122,11 @@ class CmdLineTestsExamine(BaseTest):
 		if not isinstance(expect_absent, (list, tuple)):
 			expect_absent = (expect_absent, )
 
-		def gen_cmdline(fast_rsa, host_check, include_raw, certfile_name, cacertfile_name, outfile_name):
+		def gen_cmdline(fast_rsa, host_check, include_raw, certfile_name, cacertfile_name, outfile_name, outformat = "json"):
 			cmdline = self._x509sak + [ "examine" ]
 			if fast_rsa:
 				cmdline += [ "--fast-rsa" ]
-			cmdline += [ "-f", "json" ]
+			cmdline += [ "-f", outformat ]
 			cmdline += [ "-o", outfile_name ]
 			if cacertfile_name is not None:
 				cmdline += [ "--parent-certificate", cacertfile_name ]
@@ -142,11 +142,15 @@ class CmdLineTestsExamine(BaseTest):
 
 		with ResourceFileLoader(certname) as certfile, tempfile.NamedTemporaryFile(suffix = ".json") as outfile:
 			if parent_certname is None:
-				cmdline = gen_cmdline(fast_rsa, host_check, include_raw, certfile_name = certfile, cacertfile_name = None, outfile_name = outfile.name)
+				cmdline = gen_cmdline(fast_rsa, host_check, include_raw, certfile_name = certfile, cacertfile_name = None, outfile_name = outfile.name, outformat = "ansitext")
+				SubprocessExecutor(cmdline).run()
+				cmdline = gen_cmdline(fast_rsa, host_check, include_raw, certfile_name = certfile, cacertfile_name = None, outfile_name = outfile.name, outformat = "json")
 				SubprocessExecutor(cmdline).run()
 			else:
 				with ResourceFileLoader(parent_certname) as parent_crt:
-					cmdline = gen_cmdline(fast_rsa, host_check, include_raw, certfile_name = certfile, cacertfile_name = parent_crt, outfile_name = outfile.name)
+					cmdline = gen_cmdline(fast_rsa, host_check, include_raw, certfile_name = certfile, cacertfile_name = parent_crt, outfile_name = outfile.name, outformat = "ansitext")
+					SubprocessExecutor(cmdline).run()
+					cmdline = gen_cmdline(fast_rsa, host_check, include_raw, certfile_name = certfile, cacertfile_name = parent_crt, outfile_name = outfile.name, outformat = "json")
 					SubprocessExecutor(cmdline).run()
 
 			# Read all codes from the generated JSON
@@ -752,3 +756,6 @@ class CmdLineTestsExamine(BaseTest):
 
 	def test_dsa_q_does_not_divide_p1(self):
 		self._test_examine_x509test_resultcode("certs/constructed/dsa_q_does_not_divide_p1.pem", expect_present = "DSA_Parameter_Q_No_Divisor_Of_P1")
+
+	def test_dsa_typical_parameters(self):
+		self._test_examine_x509test_resultcode("certs/ok/dsa_sha1.pem", expect_present = "DSA_Parameter_L_N_Common")
