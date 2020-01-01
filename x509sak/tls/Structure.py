@@ -38,6 +38,100 @@ class BaseStructureMember():
 	def unpack(self, databuffer):
 		raise NotImplementedError(self.__class__.__name__)
 
+class StructureMemberFactory():
+	_REGISTERED = [ ]
+
+	def __init__(self):
+		pass
+
+	@classmethod
+	def register(cls, element_class):
+		regex = re.compile(element_class._REGEX)
+		cls._REGISTERED.append((regex, element_class))
+		return element_class
+
+	@classmethod
+	def instantiate(cls, name, typename, **kwargs):
+		for (regex, element_class) in cls._REGISTERED:
+			match = regex.fullmatch(typename)
+			if match:
+				match = match.groupdict()
+				return element_class.from_match(name, match, **kwargs)
+		raise ProgrammerErrorException("No handler for type '%s' found." % (typename))
+
+class StructureMemberFactoryElement(BaseStructureMember):
+	_REGEX = None
+
+	@classmethod
+	def from_match(cls, name, match, **kwargs):
+		raise NotImplementedError(self.__class__.__name__)
+
+	def __repr__(self):
+		cname = self.typename if (self.typename is not None) else self.__class__.__name__
+		return "%s %s" % (cname, self.name)
+
+@StructureMemberFactory.register
+class StructureElementInteger(StructureMemberFactoryElement):
+	_REGEX = r"uint(?P<bit>\d+)"
+
+	def __init__(self, name, length_bytes, enum_class = None, strict_enum = False):
+		StructureMemberFactoryElement.__init__(self, name)
+		self._length_bytes = length_bytes
+		self._enum_class = enum_class
+		self._strict_enum = strict_enum
+		self._minval = 0
+		self._maxval = (1 << (8 * self._length_bytes)) - 1
+
+	@classmethod
+	def from_match(cls, name, match, **kwargs):
+		length_bits = int(match["bit"])
+		assert((length_bits % 8) == 0)
+		length_bytes = length_bits // 8
+		return cls(name = name, length_bytes = length_bytes, **kwargs)
+
+	@property
+	def typename(self):
+		return "uint%d" % (self._length_bytes * 8)
+
+	def unpack(self, databuffer):
+		data = databuffer.get(self._length_bytes)
+		value = int.from_bytes(data, byteorder = "big")
+		if self._enum_class is not None:
+			try:
+				value = self._enum_class(value)
+			except ValueError:
+				if self._strict_enum:
+					raise
+		return value
+
+	def pack(self, value):
+		if self._enum_class is not None:
+			if self._strict_enum:
+				if not isinstance(value, self._enum_class):
+					raise InvalidInputException("%s packing input must be of type %s." % (str(self), self._enum_class))
+			value = int(value)
+		if (value < self._minval) or (value > self._maxval):
+			raise InvalidInputException("%s must be between %d and %d (given value was %d)." % (str(self), self._minval, self._maxval, value))
+		data = int.to_bytes(value, byteorder = "big", length = self._length_bytes)
+		return data
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 class StructureMember(BaseStructureMember):
 	_Handlers = None
 	_HandlerPurpose = collections.namedtuple("Purpose", [ "function", "typename_regex", "support_extra" ])
@@ -222,3 +316,7 @@ class Structure(BaseStructureMember):
 
 	def __str__(self):
 		return "%s<%s>" % (self.name, ", ".join(("%s %s" % (member.name, member.typename) for member in self.members)))
+
+
+def instantiate_member(name, typename, **kwargs):
+	return StructureMemberFactory.instantiate(name, typename, **kwargs)
