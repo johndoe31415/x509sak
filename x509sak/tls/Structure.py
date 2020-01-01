@@ -40,18 +40,21 @@ class BaseStructureMember():
 
 class StructureMember(BaseStructureMember):
 	_Handlers = None
-	_HandlerPurpose = collections.namedtuple("Purpose", [ "function", "typename_regex" ])
+	_HandlerPurpose = collections.namedtuple("Purpose", [ "function", "typename_regex", "support_extra" ])
 
-	def __init__(self, name, typename, enum_class = None, inner = None, inner_array = False):
+	def __init__(self, name, typename, enum_class = None, inner = None, inner_array = None):
 		BaseStructureMember.__init__(self, name = name)
 		if self._Handlers is None:
 			StructureMember._Handlers = self._initialize_handlers()
 		self._typename = typename
 		self._enum_class = enum_class
-		self._inner = inner
-		self._inner_array = inner_array
-		self.pack = self._get_handler("pack", self.typename)
-		self.unpack = self._get_handler("unpack", self.typename)
+		self._extra = {
+			"inner":		inner,
+			"inner_array":	inner_array,
+			"enum_class":	enum_class,
+		}
+		self.pack = self._get_handler("pack", self.typename, self._extra)
+		self.unpack = self._get_handler("unpack", self.typename, self._extra)
 
 	def _initialize_handlers(self):
 		handlers = {
@@ -67,7 +70,7 @@ class StructureMember(BaseStructureMember):
 				typename_regex = anno.typename_regex
 				compiled_typename_regex = re.compile(typename_regex)
 				for function in functions:
-					handlers[function].append((compiled_typename_regex, method))
+					handlers[function].append((compiled_typename_regex, method, anno))
 		return handlers
 
 	@property
@@ -79,27 +82,37 @@ class StructureMember(BaseStructureMember):
 		return self._typename
 
 	@classmethod
-	def _get_handler(cls, function, typename):
-		for (regex, method) in cls._Handlers[function]:
+	def _get_handler(cls, function, typename, extra = None):
+		if extra is None:
+			extra = { }
+		extra = { key: value for (key, value) in extra.items() if (value is not None) }
+		have_extra = set(extra)
+		for (regex, method, purpose) in cls._Handlers[function]:
 			match = regex.fullmatch(typename)
 			if match:
 				match = match.groupdict()
-				return method(typename, match)
+				unsupported_extra = have_extra - set(purpose.support_extra)
+				if len(unsupported_extra) > 0:
+					raise ProgrammerErrorException("%s does not support the given extra argument(s): %s" % (typename, ", ".join(sorted(unsupported_extra))))
+				return method(typename, match, extra)
 		raise ProgrammerErrorException("No %s handler for type '%s' found." % (function, typename))
 
 	@classmethod
-	def _create_unpacker_int(cls, typename, match) -> _HandlerPurpose(function = "unpack", typename_regex = r"uint(?P<bit>\d+)"):
+	def _create_unpacker_int(cls, typename, match, extra) -> _HandlerPurpose(function = "unpack", typename_regex = r"uint(?P<bit>\d+)", support_extra = [ "enum_class" ]):
 		length_bits = int(match["bit"])
 		assert((length_bits % 8) == 0)
 		length = length_bits // 8
 
 		def unpack(databuffer):
 			data = databuffer.get(length)
-			return int.from_bytes(data, byteorder = "big")
+			value = int.from_bytes(data, byteorder = "big")
+			if extra.get("enum_class") is not None:
+				value = extra["enum_class"](value)
+			return value
 		return unpack
 
 	@classmethod
-	def _create_packer_int(cls, typename, match) -> _HandlerPurpose(function = "pack", typename_regex = r"uint(?P<bit>\d+)"):
+	def _create_packer_int(cls, typename, match, extra) -> _HandlerPurpose(function = "pack", typename_regex = r"uint(?P<bit>\d+)", support_extra = [ "enum_class" ]):
 		length_bits = int(match["bit"])
 		assert((length_bits % 8) == 0)
 		length = length_bits // 8
@@ -107,6 +120,8 @@ class StructureMember(BaseStructureMember):
 		maxval = (1 << (length_bits)) - 1
 
 		def pack(value):
+			if extra.get("enum_class") is not None:
+				value = int(value)
 			if (value < minval) or (value > maxval):
 				raise InvalidInputException("%s must be between %d and %d (given value was %d)." % (typename, minval, maxval, value))
 			data = int.to_bytes(value, byteorder = "big", length = length)
@@ -114,7 +129,7 @@ class StructureMember(BaseStructureMember):
 		return pack
 
 	@classmethod
-	def _create_unpacker_opaque(cls, typename, match) -> _HandlerPurpose(function = "unpack", typename_regex = r"opaque(?P<bit>\d+)"):
+	def _create_unpacker_opaque(cls, typename, match, extra) -> _HandlerPurpose(function = "unpack", typename_regex = r"opaque(?P<bit>\d+)", support_extra = [ "inner", "inner_array" ]):
 		length_field_unpack = cls._get_handler("unpack", "uint" + match["bit"])
 		def unpack(databuffer):
 			length = length_field_unpack(databuffer)
@@ -122,14 +137,14 @@ class StructureMember(BaseStructureMember):
 		return unpack
 
 	@classmethod
-	def _create_packer_opaque(cls, typename, match) -> _HandlerPurpose(function = "pack", typename_regex = r"opaque(?P<bit>\d+)"):
+	def _create_packer_opaque(cls, typename, match, extra) -> _HandlerPurpose(function = "pack", typename_regex = r"opaque(?P<bit>\d+)", support_extra = [ "inner", "inner_array" ]):
 		length_field_pack = cls._get_handler("pack", "uint" + match["bit"])
 		def pack(data):
 			return length_field_pack(len(data)) + data
 		return pack
 
 	@classmethod
-	def _create_unpacker_array(cls, typename, match) -> _HandlerPurpose(function = "unpack", typename_regex = r"array\[(?P<length>\d+)(,\s+(?P<padbyte>[0-9a-fA-F]{2}))?\]"):
+	def _create_unpacker_array(cls, typename, match, extra) -> _HandlerPurpose(function = "unpack", typename_regex = r"array\[(?P<length>\d+)(,\s+(?P<padbyte>[0-9a-fA-F]{2}))?\]", support_extra = [ ]):
 		length = int(match["length"])
 
 		def unpack(databuffer):
@@ -137,7 +152,7 @@ class StructureMember(BaseStructureMember):
 		return unpack
 
 	@classmethod
-	def _create_packer_array(cls, typename, match) -> _HandlerPurpose(function = "pack", typename_regex = r"array\[(?P<length>\d+)(,\s+(?P<padbyte>[0-9a-fA-F]{2}))?\]"):
+	def _create_packer_array(cls, typename, match, extra) -> _HandlerPurpose(function = "pack", typename_regex = r"array\[(?P<length>\d+)(,\s+(?P<padbyte>[0-9a-fA-F]{2}))?\]", support_extra = [ ]):
 		length = int(match["length"])
 		padbyte = None if (match["padbyte"] is None) else int(match["padbyte"], 16)
 

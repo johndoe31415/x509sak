@@ -19,10 +19,16 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
+import enum
 from x509sak.tests import BaseTest
 from x509sak.tls.Structure import Structure, StructureMember as SM
 from x509sak.tls.DataBuffer import DataBuffer, NotEnoughDataException
 from x509sak.Exceptions import ProgrammerErrorException, InvalidInputException
+
+class _FooEnum(enum.IntEnum):
+	Foo = 123
+	Bar = 234
+	Moo = 99
 
 class TLSStructTests(BaseTest):
 	_BASE_STRUCT = Structure((
@@ -145,3 +151,20 @@ class TLSStructTests(BaseTest):
 			SM("int2", "uint8"),
 		))
 		self.assertEquals(structure.unpack(DataBuffer(b"\xaafoobar\xbb")), { "data": b"foobar", "int1": 0xaa, "int2": 0xbb })
+
+	def test_integer_enum(self):
+		structure = Structure((
+			SM("a", "uint8", enum_class = _FooEnum),
+			SM("b", "uint16", enum_class = _FooEnum),
+			SM("c", "uint32", enum_class = _FooEnum),
+		))
+
+		values = {
+			"a":	_FooEnum.Foo,
+			"b":	_FooEnum.Moo,
+			"c":	_FooEnum.Bar,
+		}
+		data = structure.pack(values)
+		db = DataBuffer(data)
+		decoded_values = structure.unpack(db)
+		self.assertEqual(values, decoded_values)
