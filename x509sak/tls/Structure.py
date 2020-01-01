@@ -24,34 +24,34 @@ import inspect
 import collections
 from x509sak.Exceptions import ProgrammerErrorException, InvalidInputException
 
-class StructureMember():
-	def __init__(self, name, typename, enum_class = None, inner = None):
+class BaseStructureMember():
+	def __init__(self, name = None):
 		self._name = name
-		self._typename = typename
 
 	@property
 	def name(self):
 		return self._name
 
-	@property
-	def typename(self):
-		return self._typename
+	def pack(self, values):
+		raise NotImplementedError(self.__class__.__name__)
 
-	def __str__(self):
-		return "%s: %s" % (self.name, self.typename)
+	def unpack(self, databuffer):
+		raise NotImplementedError(self.__class__.__name__)
 
-class Structure():
+class StructureMember(BaseStructureMember):
 	_Handlers = None
 	_HandlerPurpose = collections.namedtuple("Purpose", [ "function", "typename_regex" ])
 
-	def __init__(self, members, name = None):
+	def __init__(self, name, typename, enum_class = None, inner = None, inner_array = False):
+		BaseStructureMember.__init__(self, name = name)
 		if self._Handlers is None:
-			Structure._Handlers = self._initialize_handlers()
-		self._members = members
-		self._required_keys = set(member.name for member in members)
-		if len(self._required_keys) != len(members):
-			raise ProgrammerErrorException("Structure definition amgiguous, duplicate member names used.")
-		self._name = name
+			StructureMember._Handlers = self._initialize_handlers()
+		self._typename = typename
+		self._enum_class = enum_class
+		self._inner = inner
+		self._inner_array = inner_array
+		self.pack = self._get_handler("pack", self.typename)
+		self.unpack = self._get_handler("unpack", self.typename)
 
 	def _initialize_handlers(self):
 		handlers = {
@@ -75,8 +75,8 @@ class Structure():
 		return self._name
 
 	@property
-	def members(self):
-		return iter(self._members)
+	def typename(self):
+		return self._typename
 
 	@classmethod
 	def _get_handler(cls, function, typename):
@@ -84,67 +84,98 @@ class Structure():
 			match = regex.fullmatch(typename)
 			if match:
 				match = match.groupdict()
-				return lambda x: method(match, x)
+				return method(typename, match)
 		raise ProgrammerErrorException("No %s handler for type '%s' found." % (function, typename))
 
 	@classmethod
-	def _call_handler(cls, function, typename, value):
-		handler = cls._get_handler(function, typename)
-		return handler(value)
-
-	@classmethod
-	def _unpack_int(cls, typename, databuffer) -> _HandlerPurpose(function = "unpack", typename_regex = r"uint(?P<bit>\d+)"):
-		length_bits = int(typename["bit"])
+	def _create_unpacker_int(cls, typename, match) -> _HandlerPurpose(function = "unpack", typename_regex = r"uint(?P<bit>\d+)"):
+		length_bits = int(match["bit"])
 		assert((length_bits % 8) == 0)
 		length = length_bits // 8
-		data = databuffer.get(length)
-		return int.from_bytes(data, byteorder = "big")
+
+		def unpack(databuffer):
+			data = databuffer.get(length)
+			return int.from_bytes(data, byteorder = "big")
+		return unpack
 
 	@classmethod
-	def _pack_int(cls, typename, value) -> _HandlerPurpose(function = "pack", typename_regex = r"uint(?P<bit>\d+)"):
-		length_bits = int(typename["bit"])
+	def _create_packer_int(cls, typename, match) -> _HandlerPurpose(function = "pack", typename_regex = r"uint(?P<bit>\d+)"):
+		length_bits = int(match["bit"])
 		assert((length_bits % 8) == 0)
 		length = length_bits // 8
 		minval = 0
 		maxval = (1 << (length_bits)) - 1
-		if (value < minval) or (value > maxval):
-			raise InvalidInputException("%s must be between %d and %d (given value was %d)." % (typename, minval, maxval, value))
-		data = int.to_bytes(value, byteorder = "big", length = length)
-		return data
+
+		def pack(value):
+			if (value < minval) or (value > maxval):
+				raise InvalidInputException("%s must be between %d and %d (given value was %d)." % (typename, minval, maxval, value))
+			data = int.to_bytes(value, byteorder = "big", length = length)
+			return data
+		return pack
 
 	@classmethod
-	def _unpack_opaque(cls, typename, databuffer) -> _HandlerPurpose(function = "unpack", typename_regex = r"opaque(?P<bit>\d+)"):
-		length = cls._call_handler("unpack", "uint" + typename["bit"], databuffer)
-		return databuffer.get(length)
+	def _create_unpacker_opaque(cls, typename, match) -> _HandlerPurpose(function = "unpack", typename_regex = r"opaque(?P<bit>\d+)"):
+		length_field_unpack = cls._get_handler("unpack", "uint" + match["bit"])
+		def unpack(databuffer):
+			length = length_field_unpack(databuffer)
+			return databuffer.get(length)
+		return unpack
 
 	@classmethod
-	def _pack_opaque(cls, typename, data) -> _HandlerPurpose(function = "pack", typename_regex = r"opaque(?P<bit>\d+)"):
-		return cls._call_handler("pack", "uint" + typename["bit"], len(data)) + data
+	def _create_packer_opaque(cls, typename, match) -> _HandlerPurpose(function = "pack", typename_regex = r"opaque(?P<bit>\d+)"):
+		length_field_pack = cls._get_handler("pack", "uint" + match["bit"])
+		def pack(data):
+			return length_field_pack(len(data)) + data
+		return pack
 
 	@classmethod
-	def _unpack_array(cls, typename, databuffer) -> _HandlerPurpose(function = "unpack", typename_regex = r"array\[(?P<length>\d+)(,\s+(?P<padbyte>[0-9a-fA-F]{2}))?\]"):
-		length = int(typename["length"])
-		return databuffer.get(length)
+	def _create_unpacker_array(cls, typename, match) -> _HandlerPurpose(function = "unpack", typename_regex = r"array\[(?P<length>\d+)(,\s+(?P<padbyte>[0-9a-fA-F]{2}))?\]"):
+		length = int(match["length"])
+
+		def unpack(databuffer):
+			return databuffer.get(length)
+		return unpack
 
 	@classmethod
-	def _pack_array(cls, typename, data) -> _HandlerPurpose(function = "pack", typename_regex = r"array\[(?P<length>\d+)(,\s+(?P<padbyte>[0-9a-fA-F]{2}))?\]"):
-		length = int(typename["length"])
-		padbyte = None if (typename["padbyte"] is None) else int(typename["padbyte"], 16)
+	def _create_packer_array(cls, typename, match) -> _HandlerPurpose(function = "pack", typename_regex = r"array\[(?P<length>\d+)(,\s+(?P<padbyte>[0-9a-fA-F]{2}))?\]"):
+		length = int(match["length"])
+		padbyte = None if (match["padbyte"] is None) else int(match["padbyte"], 16)
 
-		if padbyte is None:
-			# Size must exactly match up
-			if len(data) == length:
-				return data
+		def pack(data):
+			if padbyte is None:
+				# Size must exactly match up
+				if len(data) == length:
+					return data
+				else:
+					raise InvalidInputException("For packing of array of length %d without padding, %d bytes must be provided. Got %d bytes." % (length, length, len(data)))
 			else:
-				raise InvalidInputException("For packing of array of length %d without padding, %d bytes must be provided. Got %d bytes." % (length, length, len(data)))
-		else:
-			# Can pad
-			if len(data) <= length:
-				pad_len = length - len(data)
-				padding = bytes([ padbyte ]) * pad_len
-				return data + padding
-			else:
-				raise InvalidInputException("For packing of array of length %d with padding, at most %d bytes must be provided. Got %d bytes." % (length, length, len(data)))
+				# Can pad
+				if len(data) <= length:
+					pad_len = length - len(data)
+					padding = bytes([ padbyte ]) * pad_len
+					return data + padding
+				else:
+					raise InvalidInputException("For packing of array of length %d with padding, at most %d bytes must be provided. Got %d bytes." % (length, length, len(data)))
+		return pack
+
+	def __str__(self):
+		return "%s: %s" % (self.name, self.typename)
+
+class Structure(BaseStructureMember):
+	def __init__(self, members, name = None):
+		BaseStructureMember.__init__(self, name = name)
+		self._members = members
+		self._required_keys = set(member.name for member in members)
+		if len(self._required_keys) != len(members):
+			raise ProgrammerErrorException("Structure definition amgiguous, duplicate member names used.")
+
+	@property
+	def members(self):
+		return iter(self._members)
+
+	@property
+	def typename(self):
+		return "Structure"
 
 	def pack(self, values):
 		# First check if all members are present
@@ -156,15 +187,15 @@ class Structure():
 		result_data = bytearray()
 		for member in self.members:
 			value = values[member.name]
-			result_data += self._call_handler("pack", member.typename, value)
+			result_data += member.pack(value)
 		return bytes(result_data)
 
 	def unpack(self, databuffer):
 		result = { }
 		with databuffer.rewind_on_exception():
 			for member in self.members:
-				result[member.name] = self._call_handler("unpack", member.typename, databuffer)
+				result[member.name] = member.unpack(databuffer)
 			return result
 
 	def __str__(self):
-		return "%s<%s>" % (self.name, ", ".join(("%s %s" % (membername, typename) for (membername, typename) in self.members)))
+		return "%s<%s>" % (self.name, ", ".join(("%s %s" % (member.name, member.typename) for member in self.members)))
