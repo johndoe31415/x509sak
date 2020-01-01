@@ -112,3 +112,36 @@ class TLSStructTests(BaseTest):
 			"data": b"foobar",
 			"int2": 0xbb,
 		}), bytes.fromhex("aa") + b"foobar" + bytes.fromhex("bb"))
+
+		with self.assertRaises(InvalidInputException):
+			# No padding defined, must fail
+			structure.pack({
+				"int1": 0xaa,
+				"data": b"foo",
+				"int2": 0xbb,
+			})
+
+		# With padding byte
+		structure = TLSStruct((
+			("int1", "uint8"),
+			("data", "array[6, ab]"),
+			("int2", "uint8"),
+		))
+		self.assertEquals(structure.pack({
+			"int1": 0xaa,
+			"data": b"foobar",
+			"int2": 0xbb,
+		}), bytes.fromhex("aa") + b"foobar" + bytes.fromhex("bb"))
+		self.assertEquals(structure.pack({
+			"int1": 0xaa,
+			"data": b"foo",
+			"int2": 0xbb,
+		}), bytes.fromhex("aa") + b"foo" + bytes.fromhex("ab ab ab bb"))
+
+	def test_array_unpacking(self):
+		structure = TLSStruct((
+			("int1", "uint8"),
+			("data", "array[6, ab]"),
+			("int2", "uint8"),
+		))
+		self.assertEquals(structure.unpack(DataBuffer(b"\xaafoobar\xbb")), { "data": b"foobar", "int1": 0xaa, "int2": 0xbb })

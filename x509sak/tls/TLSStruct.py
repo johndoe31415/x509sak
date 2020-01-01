@@ -107,7 +107,7 @@ class TLSStruct():
 
 	@classmethod
 	def _unpack_array(cls, typename, databuffer) -> _HandlerPurpose(function = "unpack", typename_regex = r"array\[(?P<length>\d+)(,\s+(?P<padbyte>[0-9a-fA-F]{2}))?\]"):
-		length = cls._call_handler("unpack", "uint" + typename["bit"], databuffer)
+		length = int(typename["length"])
 		return databuffer.get(length)
 
 	@classmethod
