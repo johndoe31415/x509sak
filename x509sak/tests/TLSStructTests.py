@@ -73,3 +73,17 @@ class TLSStructTests(BaseTest):
 		with self.assertRaises(NotEnoughDataException):
 			self._BASE_STRUCT.unpack(db)
 		self.assertEquals(db.offset, 1)
+
+#	def test_opaque_packing(self):
+#		structure = TLSStruct((("data", "opaque8"), ))
+#		self.assertEquals(structure.pack({ "data": b"foobar" }), b"\x06foobar")
+
+	def test_opaque_unpacking(self):
+		structure = TLSStruct((("data", "opaque8"), ))
+		self.assertEquals(structure.unpack(DataBuffer(b"\x06foobar")), { "data": b"foobar" })
+
+		structure = TLSStruct((("data", "opaque16"), ))
+		self.assertEquals(structure.unpack(DataBuffer(b"\x00\x09foobar123trail")), { "data": b"foobar123" })
+
+		structure = TLSStruct((("data", "opaque24"), ))
+		self.assertEquals(structure.unpack(DataBuffer(b"\x00\x00\x0cfoobar123321blubb")), { "data": b"foobar123321" })

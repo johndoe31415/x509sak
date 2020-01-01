@@ -39,10 +39,10 @@ class TLSStruct():
 	def _initialize_handlers(self):
 		self._PackHandlers = { }
 		self._UnpackHandlers = { }
-		for (method_name, method) in inspect.getmembers(self, inspect.isfunction):
+		for (method_name, method) in inspect.getmembers(self, inspect.ismethod):
 			signature = inspect.signature(method)
 			anno = signature.return_annotation
-			if anno is not None:
+			if (anno is not None) and (anno != inspect.Signature.empty):
 				functions = (anno.function, ) if isinstance(anno.function, str) else anno.function
 				typenames = (anno.typenames, ) if isinstance(anno.typenames, str) else anno.typenames
 				for function in functions:
@@ -62,14 +62,14 @@ class TLSStruct():
 	def members(self):
 		return iter(self._members.items())
 
-	@staticmethod
-	def _unpack_int(typename, databuffer) -> _HandlerPurpose(function = "unpack", typenames = [ "u8", "u16", "u24" ]):
+	@classmethod
+	def _unpack_int(cls, typename, databuffer) -> _HandlerPurpose(function = "unpack", typenames = [ "u8", "u16", "u24" ]):
 		length = int(typename[1:]) // 8
 		data = databuffer.get(length)
 		return int.from_bytes(data, byteorder = "big")
 
-	@staticmethod
-	def _pack_int(typename, value) -> _HandlerPurpose(function = "pack", typenames = [ "u8", "u16", "u24" ]):
+	@classmethod
+	def _pack_int(cls, typename, value) -> _HandlerPurpose(function = "pack", typenames = [ "u8", "u16", "u24" ]):
 		length_bits = int(typename[1:])
 		length = length_bits // 8
 		minval = 0
@@ -78,6 +78,12 @@ class TLSStruct():
 			raise InvalidInputException("%s must be between %d and %d (given value was %d)." % (typename, minval, maxval, value))
 		data = int.to_bytes(value, byteorder = "big", length = length)
 		return data
+
+	@classmethod
+	def _unpack_opaque(cls, typename, databuffer) -> _HandlerPurpose(function = "unpack", typenames = [ "opaque8", "opaque16", "opaque24" ]):
+		bitlen = typename[6:]
+		length = cls._unpack_int("u" + bitlen, databuffer)
+		return databuffer.get(length)
 
 	def pack(self, values):
 		# First check if all members are present
