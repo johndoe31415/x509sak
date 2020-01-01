@@ -302,9 +302,10 @@ class CipherSuite(enum.IntEnum):
 	TLS_FALLBACK_SCSV = 0x5600
 
 class CompressionMethod(enum.IntEnum):
-	"""SSL version as 16 bit integer (major is high byte, minor is low
-	byte)."""
-	null = 0
+	"""Compression method byte."""
+	Null = 0
+	Deflate = 1
+	LZS = 64
 
 class ExtensionType(enum.IntEnum):
 	"""Extension types for hello packets."""

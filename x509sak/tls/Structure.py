@@ -24,17 +24,33 @@ import inspect
 import collections
 from x509sak.Exceptions import ProgrammerErrorException, InvalidInputException
 
-class TLSStruct():
+class StructureMember():
+	def __init__(self, name, typename, enum_class = None, inner = None):
+		self._name = name
+		self._typename = typename
+
+	@property
+	def name(self):
+		return self._name
+
+	@property
+	def typename(self):
+		return self._typename
+
+	def __str__(self):
+		return "%s: %s" % (self.name, self.typename)
+
+class Structure():
 	_Handlers = None
 	_HandlerPurpose = collections.namedtuple("Purpose", [ "function", "typename_regex" ])
 
 	def __init__(self, members, name = None):
 		if self._Handlers is None:
-			TLSStruct._Handlers = self._initialize_handlers()
-		self._required_keys = set(key for (key, value) in members)
+			Structure._Handlers = self._initialize_handlers()
+		self._members = members
+		self._required_keys = set(member.name for member in members)
 		if len(self._required_keys) != len(members):
 			raise ProgrammerErrorException("Structure definition amgiguous, duplicate member names used.")
-		self._members = collections.OrderedDict(members)
 		self._name = name
 
 	def _initialize_handlers(self):
@@ -60,7 +76,7 @@ class TLSStruct():
 
 	@property
 	def members(self):
-		return iter(self._members.items())
+		return iter(self._members)
 
 	@classmethod
 	def _get_handler(cls, function, typename):
@@ -138,16 +154,16 @@ class TLSStruct():
 			raise ProgrammerErrorException("Missing keys in %s: %s" % (self.__class__.__name__, ", ".join(sorted(missing_keys))))
 
 		result_data = bytearray()
-		for (membername, typename) in self.members:
-			value = values[membername]
-			result_data += self._call_handler("pack", typename, value)
+		for member in self.members:
+			value = values[member.name]
+			result_data += self._call_handler("pack", member.typename, value)
 		return bytes(result_data)
 
 	def unpack(self, databuffer):
 		result = { }
 		with databuffer.rewind_on_exception():
-			for (membername, typename) in self.members:
-				result[membername] = self._call_handler("unpack", typename, databuffer)
+			for member in self.members:
+				result[member.name] = self._call_handler("unpack", member.typename, databuffer)
 			return result
 
 	def __str__(self):
