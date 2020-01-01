@@ -19,40 +19,40 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
+import re
 import inspect
 import collections
 from x509sak.Exceptions import ProgrammerErrorException, InvalidInputException
 
 class TLSStruct():
-	_PackHandlers = None
-	_UnpackHandlers = None
-	_HandlerPurpose = collections.namedtuple("Purpose", [ "function", "typenames" ])
+	_Handlers = None
+	_HandlerPurpose = collections.namedtuple("Purpose", [ "function", "typename_regex" ])
 
 	def __init__(self, members, name = None):
-		if self._PackHandlers is None:
-			self._initialize_handlers()
+		if self._Handlers is None:
+			TLSStruct._Handlers = self._initialize_handlers()
 		self._required_keys = set(key for (key, value) in members)
-		assert(len(self._required_keys) == len(members))
+		if len(self._required_keys) != len(members):
+			raise ProgrammerErrorException("Structure definition amgiguous, duplicate member names used.")
 		self._members = collections.OrderedDict(members)
 		self._name = name
 
 	def _initialize_handlers(self):
-		self._PackHandlers = { }
+		handlers = {
+			"pack": [ ],
+			"unpack": [ ],
+		}
 		self._UnpackHandlers = { }
 		for (method_name, method) in inspect.getmembers(self, inspect.ismethod):
 			signature = inspect.signature(method)
 			anno = signature.return_annotation
 			if (anno is not None) and (anno != inspect.Signature.empty):
 				functions = (anno.function, ) if isinstance(anno.function, str) else anno.function
-				typenames = (anno.typenames, ) if isinstance(anno.typenames, str) else anno.typenames
+				typename_regex = anno.typename_regex
+				compiled_typename_regex = re.compile(typename_regex)
 				for function in functions:
-					for typename in typenames:
-						if function == "pack":
-							self._PackHandlers[typename] = method
-						elif function == "unpack":
-							self._UnpackHandlers[typename] = method
-						else:
-							raise NotImplementedError(function)
+					handlers[function].append((compiled_typename_regex, method))
+		return handlers
 
 	@property
 	def name(self):
@@ -63,14 +63,31 @@ class TLSStruct():
 		return iter(self._members.items())
 
 	@classmethod
-	def _unpack_int(cls, typename, databuffer) -> _HandlerPurpose(function = "unpack", typenames = [ "u8", "u16", "u24" ]):
-		length = int(typename[1:]) // 8
+	def _get_handler(cls, function, typename):
+		for (regex, method) in cls._Handlers[function]:
+			match = regex.fullmatch(typename)
+			if match:
+				match = match.groupdict()
+				return lambda x: method(match, x)
+		raise ProgrammerErrorException("No %s handler for type '%s' found." % (function, typename))
+
+	@classmethod
+	def _call_handler(cls, function, typename, value):
+		handler = cls._get_handler(function, typename)
+		return handler(value)
+
+	@classmethod
+	def _unpack_int(cls, typename, databuffer) -> _HandlerPurpose(function = "unpack", typename_regex = r"uint(?P<bit>\d+)"):
+		length_bits = int(typename["bit"])
+		assert((length_bits % 8) == 0)
+		length = length_bits // 8
 		data = databuffer.get(length)
 		return int.from_bytes(data, byteorder = "big")
 
 	@classmethod
-	def _pack_int(cls, typename, value) -> _HandlerPurpose(function = "pack", typenames = [ "u8", "u16", "u24" ]):
-		length_bits = int(typename[1:])
+	def _pack_int(cls, typename, value) -> _HandlerPurpose(function = "pack", typename_regex = r"uint(?P<bit>\d+)"):
+		length_bits = int(typename["bit"])
+		assert((length_bits % 8) == 0)
 		length = length_bits // 8
 		minval = 0
 		maxval = (1 << (length_bits)) - 1
@@ -80,10 +97,38 @@ class TLSStruct():
 		return data
 
 	@classmethod
-	def _unpack_opaque(cls, typename, databuffer) -> _HandlerPurpose(function = "unpack", typenames = [ "opaque8", "opaque16", "opaque24" ]):
-		bitlen = typename[6:]
-		length = cls._unpack_int("u" + bitlen, databuffer)
+	def _unpack_opaque(cls, typename, databuffer) -> _HandlerPurpose(function = "unpack", typename_regex = r"opaque(?P<bit>\d+)"):
+		length = cls._call_handler("unpack", "uint" + typename["bit"], databuffer)
 		return databuffer.get(length)
+
+	@classmethod
+	def _pack_opaque(cls, typename, data) -> _HandlerPurpose(function = "pack", typename_regex = r"opaque(?P<bit>\d+)"):
+		return cls._call_handler("pack", "uint" + typename["bit"], len(data)) + data
+
+	@classmethod
+	def _unpack_array(cls, typename, databuffer) -> _HandlerPurpose(function = "unpack", typename_regex = r"array\[(?P<length>\d+)(,\s+(?P<padbyte>[0-9a-fA-F]{2}))?\]"):
+		length = cls._call_handler("unpack", "uint" + typename["bit"], databuffer)
+		return databuffer.get(length)
+
+	@classmethod
+	def _pack_array(cls, typename, data) -> _HandlerPurpose(function = "pack", typename_regex = r"array\[(?P<length>\d+)(,\s+(?P<padbyte>[0-9a-fA-F]{2}))?\]"):
+		length = int(typename["length"])
+		padbyte = None if (typename["padbyte"] is None) else int(typename["padbyte"], 16)
+
+		if padbyte is None:
+			# Size must exactly match up
+			if len(data) == length:
+				return data
+			else:
+				raise InvalidInputException("For packing of array of length %d without padding, %d bytes must be provided. Got %d bytes." % (length, length, len(data)))
+		else:
+			# Can pad
+			if len(data) <= length:
+				pad_len = length - len(data)
+				padding = bytes([ padbyte ]) * pad_len
+				return data + padding
+			else:
+				raise InvalidInputException("For packing of array of length %d with padding, at most %d bytes must be provided. Got %d bytes." % (length, length, len(data)))
 
 	def pack(self, values):
 		# First check if all members are present
@@ -95,16 +140,14 @@ class TLSStruct():
 		result_data = bytearray()
 		for (membername, typename) in self.members:
 			value = values[membername]
-			handler = self._PackHandlers[typename]
-			result_data += handler(typename, value)
+			result_data += self._call_handler("pack", typename, value)
 		return bytes(result_data)
 
 	def unpack(self, databuffer):
 		result = { }
 		with databuffer.rewind_on_exception():
 			for (membername, typename) in self.members:
-				handler = self._UnpackHandlers[typename]
-				result[membername] = handler(typename, databuffer)
+				result[membername] = self._call_handler("unpack", typename, databuffer)
 			return result
 
 	def __str__(self):

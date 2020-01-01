@@ -26,9 +26,9 @@ from x509sak.Exceptions import ProgrammerErrorException, InvalidInputException
 
 class TLSStructTests(BaseTest):
 	_BASE_STRUCT = TLSStruct((
-		("first", "u8"),
-		("second", "u16"),
-		("third", "u24"),
+		("first", "uint8"),
+		("second", "uint16"),
+		("third", "uint24"),
 	), name = "TestStructure")
 
 	def test_basic_packing(self):
@@ -52,6 +52,13 @@ class TLSStructTests(BaseTest):
 				"second":	0xabcd,
 				"third":	0x112233,
 			})
+		with self.assertRaises(ProgrammerErrorException):
+			# Duplicate member name
+			structure = TLSStruct((
+				("data", "uint8"),
+				("foo", "uint8"),
+				("data", "uint8"),
+			))
 
 	def test_basic_unpacking(self):
 		self.assertEquals(self._BASE_STRUCT.unpack(DataBuffer.fromhex("aa ab cd 11 22 33")), {
@@ -74,9 +81,15 @@ class TLSStructTests(BaseTest):
 			self._BASE_STRUCT.unpack(db)
 		self.assertEquals(db.offset, 1)
 
-#	def test_opaque_packing(self):
-#		structure = TLSStruct((("data", "opaque8"), ))
-#		self.assertEquals(structure.pack({ "data": b"foobar" }), b"\x06foobar")
+	def test_opaque_packing(self):
+		structure = TLSStruct((("data", "opaque8"), ))
+		self.assertEquals(structure.pack({ "data": b"foobar" }), b"\x06foobar")
+
+		structure = TLSStruct((("data", "opaque16"), ))
+		self.assertEquals(structure.pack({ "data": b"foobar999" }), b"\x00\x09foobar999")
+
+		structure = TLSStruct((("data", "opaque24"), ))
+		self.assertEquals(structure.pack({ "data": b"foobar999123" }), b"\x00\x00\x0cfoobar999123")
 
 	def test_opaque_unpacking(self):
 		structure = TLSStruct((("data", "opaque8"), ))
@@ -87,3 +100,15 @@ class TLSStructTests(BaseTest):
 
 		structure = TLSStruct((("data", "opaque24"), ))
 		self.assertEquals(structure.unpack(DataBuffer(b"\x00\x00\x0cfoobar123321blubb")), { "data": b"foobar123321" })
+
+	def test_array_packing(self):
+		structure = TLSStruct((
+			("int1", "uint8"),
+			("data", "array[6]"),
+			("int2", "uint8"),
+		))
+		self.assertEquals(structure.pack({
+			"int1": 0xaa,
+			"data": b"foobar",
+			"int2": 0xbb,
+		}), bytes.fromhex("aa") + b"foobar" + bytes.fromhex("bb"))
