@@ -180,3 +180,74 @@ class TLSStructTests(BaseTest):
 		db = DataBuffer(data)
 		decoded_values = structure.unpack(db)
 		self.assertEquals(orig_values, decoded_values)
+
+	def _assert_encoding_decoding(self, structure, values, binary_encoding):
+		# Test encoding
+		data = structure.pack(values)
+		self.assertEquals(data, binary_encoding)
+
+		# Test decoding
+		db = DataBuffer(data)
+		decoded_values = structure.unpack(db)
+		self.assertEquals(values, decoded_values)
+
+	def test_nested_structure(self):
+		structure = Structure((
+			IM("a", "opaque24", inner = Structure((
+				IM("b", "uint16"),
+				IM("c", "uint32"),
+			))),
+		))
+		values = {
+			"a": {
+				"b":	0x123,
+				"c":	0x456789,
+			},
+		}
+		binary_encoding = bytes.fromhex("00 00 06 01 23 00 45 67 89")
+		self._assert_encoding_decoding(structure, values, binary_encoding)
+
+	def test_nested_array(self):
+		structure = Structure((
+			IM("a", "opaque24", inner_array = True, inner = Structure((
+				IM("b", "uint16"),
+			))),
+		))
+		values = {
+			"a": [
+				{ "b": 0x123 },
+				{ "b": 0x456 },
+				{ "b": 0x789 },
+				{ "b": 0x987 },
+			],
+		}
+
+		binary_encoding = bytes.fromhex("00 00 08 01 23 04 56 07 89 09 87")
+		self._assert_encoding_decoding(structure, values, binary_encoding)
+
+	def test_complex_nested_array(self):
+		structure = Structure((
+			IM("all", "opaque16", inner = Structure((
+				IM("ciphers", "opaque24", inner_array = True, inner = Structure((
+					IM("cipherbase", "uint8"),
+					IM("cipherid", "uint8"),
+				))),
+				IM("blah", "opaque16", inner_array = True, inner = Structure((
+					IM("foo", "uint8"),
+				))),
+			))),
+		))
+		values = {
+			"all": {
+				"ciphers": [
+					{ "cipherbase": 0xaa, "cipherid": 0xbb },
+					{ "cipherbase": 0x11, "cipherid": 0x22 },
+				],
+				"blah": [
+					{ "foo": 9 },
+				],
+			}
+		}
+
+		binary_encoding = bytes.fromhex("00 0a    00 00 04  aa bb 11 22    00 01 09")
+		self._assert_encoding_decoding(structure, values, binary_encoding)
