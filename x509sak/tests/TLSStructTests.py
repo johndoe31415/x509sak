@@ -21,7 +21,7 @@
 
 import enum
 from x509sak.tests import BaseTest
-from x509sak.tls.Structure import Structure, StructureMember as SM, instantiate_member as IM
+from x509sak.tls.Structure import Structure, instantiate_member as IM
 from x509sak.tls.DataBuffer import DataBuffer, NotEnoughDataException
 from x509sak.Exceptions import ProgrammerErrorException, InvalidInputException
 
@@ -88,29 +88,29 @@ class TLSStructTests(BaseTest):
 		self.assertEquals(db.offset, 1)
 
 	def test_opaque_packing(self):
-		structure = Structure((SM("data", "opaque8"), ))
+		structure = Structure((IM("data", "opaque8"), ))
 		self.assertEquals(structure.pack({ "data": b"foobar" }), b"\x06foobar")
 
-		structure = Structure((SM("data", "opaque16"), ))
+		structure = Structure((IM("data", "opaque16"), ))
 		self.assertEquals(structure.pack({ "data": b"foobar999" }), b"\x00\x09foobar999")
 
-		structure = Structure((SM("data", "opaque24"), ))
+		structure = Structure((IM("data", "opaque24"), ))
 		self.assertEquals(structure.pack({ "data": b"foobar999123" }), b"\x00\x00\x0cfoobar999123")
 
 	def test_opaque_unpacking(self):
-		structure = Structure((SM("data", "opaque8"), ))
+		structure = Structure((IM("data", "opaque8"), ))
 		self.assertEquals(structure.unpack(DataBuffer(b"\x06foobar")), { "data": b"foobar" })
 
-		structure = Structure((SM("data", "opaque16"), ))
+		structure = Structure((IM("data", "opaque16"), ))
 		self.assertEquals(structure.unpack(DataBuffer(b"\x00\x09foobar123trail")), { "data": b"foobar123" })
 
-		structure = Structure((SM("data", "opaque24"), ))
+		structure = Structure((IM("data", "opaque24"), ))
 		self.assertEquals(structure.unpack(DataBuffer(b"\x00\x00\x0cfoobar123321blubb")), { "data": b"foobar123321" })
 
 	def test_array_packing(self):
 		structure = Structure((
 			IM("int1", "uint8"),
-			SM("data", "array[6]"),
+			IM("data", "array[6]"),
 			IM("int2", "uint8"),
 		))
 		self.assertEquals(structure.pack({
@@ -130,7 +130,7 @@ class TLSStructTests(BaseTest):
 		# With padding byte
 		structure = Structure((
 			IM("int1", "uint8"),
-			SM("data", "array[6, ab]"),
+			IM("data", "array[6, ab]"),
 			IM("int2", "uint8"),
 		))
 		self.assertEquals(structure.pack({
@@ -147,7 +147,7 @@ class TLSStructTests(BaseTest):
 	def test_array_unpacking(self):
 		structure = Structure((
 			IM("int1", "uint8"),
-			SM("data", "array[6, ab]"),
+			IM("data", "array[6, ab]"),
 			IM("int2", "uint8"),
 		))
 		self.assertEquals(structure.unpack(DataBuffer(b"\xaafoobar\xbb")), { "data": b"foobar", "int1": 0xaa, "int2": 0xbb })

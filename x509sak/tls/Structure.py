@@ -116,19 +116,65 @@ class StructureElementInteger(StructureMemberFactoryElement):
 		return data
 
 
+@StructureMemberFactory.register
+class StructureElementOpaque(StructureMemberFactoryElement):
+	_REGEX = r"opaque(?P<bit>\d+)"
+
+	def __init__(self, name, length_field, inner = None, inner_array = None):
+		StructureMemberFactoryElement.__init__(self, name)
+		self._length_field = length_field
+		self._inner = inner
+		self._inner_array = inner
+
+	@classmethod
+	def from_match(cls, name, match, **kwargs):
+		length_field = StructureMemberFactory.instantiate(name = "length", typename = "uint" + match["bit"])
+		return cls(name, length_field = length_field, **kwargs)
+
+	def unpack(self, databuffer):
+		length = self._length_field.unpack(databuffer)
+		return databuffer.get(length)
+
+	def pack(self, data):
+		return self._length_field.pack(len(data)) + data
 
 
+@StructureMemberFactory.register
+class StructureElementArray(StructureMemberFactoryElement):
+	_REGEX = r"array\[(?P<length>\d+)(,\s+(?P<padbyte>[0-9a-fA-F]{2}))?\]"
 
+	def __init__(self, name, length, padbyte = None):
+		StructureMemberFactoryElement.__init__(self, name)
+		self._length = length
+		self._padbyte = padbyte
 
+	@classmethod
+	def from_match(cls, name, match, **kwargs):
+		length = int(match["length"])
+		if match["padbyte"] is not None:
+			padbyte = int(match["padbyte"], 16)
+		else:
+			padbyte = None
+		return cls(name, length = length, padbyte = padbyte, **kwargs)
 
+	def unpack(self, databuffer):
+		return databuffer.get(self._length)
 
-
-
-
-
-
-
-
+	def pack(self, data):
+		if self._padbyte is None:
+			# Size must exactly match up
+			if len(data) == self._length:
+				return data
+			else:
+				raise InvalidInputException("For packing of array of length %d without padding, %d bytes must be provided. Got %d bytes." % (self._length, self._length, len(data)))
+		else:
+			# Can pad
+			if len(data) <= self._length:
+				pad_len = self._length - len(data)
+				padding = bytes([ self._padbyte ]) * pad_len
+				return data + padding
+			else:
+				raise InvalidInputException("For packing of array of length %d with padding, at most %d bytes must be provided. Got %d bytes." % (self._length, self._length, len(data)))
 
 
 
