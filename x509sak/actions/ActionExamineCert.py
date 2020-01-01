@@ -145,6 +145,6 @@ class ActionExamineCert(BaseAction):
 			use_ansi = (self._args.out_format == "ansitext")
 			AnalysisPrinterText(output, analyses).print(use_ansi = use_ansi)
 		elif self._args.out_format == "json":
-			JSONTools.write_to_fp(analyses, output)
+			JSONTools.write_to_fp(analyses, output, pretty = self._args.pretty_json)
 		else:
 			raise NotImplementedError(self._args.out_format)

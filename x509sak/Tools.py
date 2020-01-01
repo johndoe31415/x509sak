@@ -218,8 +218,11 @@ class JSONTools():
 		return json.dumps(data, indent = 4, sort_keys = True, cls = cls.Encoder)
 
 	@classmethod
-	def write_to_fp(cls, data, fp):
-		json.dump(data, fp = fp, indent = 4, sort_keys = True, cls = cls.Encoder)
+	def write_to_fp(cls, data, fp, pretty = False):
+		if pretty:
+			json.dump(data, fp = fp, indent = 4, sort_keys = True, cls = cls.Encoder)
+		else:
+			json.dump(data, fp = fp, separators = (',', ':'), cls = cls.Encoder)
 		print(file = fp)
 
 	@classmethod

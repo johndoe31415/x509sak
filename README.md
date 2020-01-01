@@ -697,8 +697,8 @@ usage: ./x509sak.py examinecert [-p {ca,tls-server,tls-client}] [-n fqdn]
                                 [-f {ansitext,text,json}]
                                 [-i {pemcrt,dercrt,json,host}] [-r pemfile]
                                 [--no-automatic-host-check] [--fast-rsa]
-                                [--include-raw-data] [-o filename] [-v]
-                                [--help]
+                                [--include-raw-data] [--pretty-json]
+                                [-o filename] [-v] [--help]
                                 filename/uri [filename/uri ...]
 
 Examine an X.509 certificate
@@ -739,6 +739,7 @@ optional arguments:
                         thorough, but much faster.
   --include-raw-data    Add the raw data such as base64-encoded certificate
                         and signatures into the result as well.
+  --pretty-json         Prettyfy any generated JSON output.
   -o filename, --output filename
                         Specify the output file. Defaults to stdout.
   -v, --verbose         Increase verbosity level. Can be specified multiple

@@ -186,6 +186,7 @@ def genparser(parser):
 	parser.add_argument("--no-automatic-host-check", action = "store_true", help = "By default, when the input format is a given hostname, the server name is assumed as well and the purpose is assumed to be a TLS server. When this option is specified, these automatic checks are omitted.")
 	parser.add_argument("--fast-rsa", action = "store_true", help = "Skip some time-intensive number theoretical tests for RSA moduli in order to speed up checking. Less thorough, but much faster.")
 	parser.add_argument("--include-raw-data", action = "store_true", help = "Add the raw data such as base64-encoded certificate and signatures into the result as well.")
+	parser.add_argument("--pretty-json", action = "store_true", help = "Prettyfy any generated JSON output.")
 	parser.add_argument("-o", "--output", metavar = "filename", help = "Specify the output file. Defaults to stdout.")
 	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
 	parser.add_argument("infiles", metavar = "filename/uri", type = str, nargs = "+", help = "Filename of the input certificate or certificates in PEM format.")
