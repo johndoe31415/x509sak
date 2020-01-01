@@ -157,14 +157,26 @@ class TLSStructTests(BaseTest):
 			SM("a", "uint8", enum_class = _FooEnum),
 			SM("b", "uint16", enum_class = _FooEnum),
 			SM("c", "uint32", enum_class = _FooEnum),
+			SM("d", "uint32", enum_class = _FooEnum, strict_enum = True),
 		))
 
-		values = {
+		orig_values = {
 			"a":	_FooEnum.Foo,
 			"b":	_FooEnum.Moo,
 			"c":	_FooEnum.Bar,
+			"d":	1234,
 		}
-		data = structure.pack(values)
+		with self.assertRaises(InvalidInputException):
+			data = structure.pack(orig_values)
+
+		orig_values["d"] = _FooEnum.Moo
+		data = structure.pack(orig_values)
 		db = DataBuffer(data)
 		decoded_values = structure.unpack(db)
-		self.assertEqual(values, decoded_values)
+		self.assertEquals(orig_values, decoded_values)
+
+		orig_values["b"] = 1
+		data = structure.pack(orig_values)
+		db = DataBuffer(data)
+		decoded_values = structure.unpack(db)
+		self.assertEquals(orig_values, decoded_values)

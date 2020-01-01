@@ -42,7 +42,7 @@ class StructureMember(BaseStructureMember):
 	_Handlers = None
 	_HandlerPurpose = collections.namedtuple("Purpose", [ "function", "typename_regex", "support_extra" ])
 
-	def __init__(self, name, typename, enum_class = None, inner = None, inner_array = None):
+	def __init__(self, name, typename, enum_class = None, inner = None, inner_array = None, strict_enum = None):
 		BaseStructureMember.__init__(self, name = name)
 		if self._Handlers is None:
 			StructureMember._Handlers = self._initialize_handlers()
@@ -52,6 +52,7 @@ class StructureMember(BaseStructureMember):
 			"inner":		inner,
 			"inner_array":	inner_array,
 			"enum_class":	enum_class,
+			"strict_enum":	strict_enum,
 		}
 		self.pack = self._get_handler("pack", self.typename, self._extra)
 		self.unpack = self._get_handler("unpack", self.typename, self._extra)
@@ -98,7 +99,7 @@ class StructureMember(BaseStructureMember):
 		raise ProgrammerErrorException("No %s handler for type '%s' found." % (function, typename))
 
 	@classmethod
-	def _create_unpacker_int(cls, typename, match, extra) -> _HandlerPurpose(function = "unpack", typename_regex = r"uint(?P<bit>\d+)", support_extra = [ "enum_class" ]):
+	def _create_unpacker_int(cls, typename, match, extra) -> _HandlerPurpose(function = "unpack", typename_regex = r"uint(?P<bit>\d+)", support_extra = [ "enum_class", "strict_enum" ]):
 		length_bits = int(match["bit"])
 		assert((length_bits % 8) == 0)
 		length = length_bits // 8
@@ -107,12 +108,16 @@ class StructureMember(BaseStructureMember):
 			data = databuffer.get(length)
 			value = int.from_bytes(data, byteorder = "big")
 			if extra.get("enum_class") is not None:
-				value = extra["enum_class"](value)
+				try:
+					value = extra["enum_class"](value)
+				except ValueError:
+					if extra.get("strict_enum", False):
+						raise
 			return value
 		return unpack
 
 	@classmethod
-	def _create_packer_int(cls, typename, match, extra) -> _HandlerPurpose(function = "pack", typename_regex = r"uint(?P<bit>\d+)", support_extra = [ "enum_class" ]):
+	def _create_packer_int(cls, typename, match, extra) -> _HandlerPurpose(function = "pack", typename_regex = r"uint(?P<bit>\d+)", support_extra = [ "enum_class", "strict_enum" ]):
 		length_bits = int(match["bit"])
 		assert((length_bits % 8) == 0)
 		length = length_bits // 8
@@ -121,6 +126,9 @@ class StructureMember(BaseStructureMember):
 
 		def pack(value):
 			if extra.get("enum_class") is not None:
+				if extra.get("strict_enum", False):
+					if not isinstance(value, extra["enum_class"]):
+						raise InvalidInputException("%s packing input must be of type %s." % (typename, extra["enum_class"]))
 				value = int(value)
 			if (value < minval) or (value > maxval):
 				raise InvalidInputException("%s must be between %d and %d (given value was %d)." % (typename, minval, maxval, value))
