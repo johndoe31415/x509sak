@@ -22,6 +22,20 @@
 class DataBufferException(Exception): pass
 class NotEnoughDataException(DataBufferException): pass
 
+class _RewindObject():
+	def __init__(self, data_buffer):
+		self._data_buffer = data_buffer
+		self._pos = None
+
+	def __enter__(self):
+		assert(self._pos is None)
+		self._pos = self._data_buffer.offset
+
+	def __exit__(self, exception_class, exception, traceback):
+		if exception_class is not None:
+			# Exception was thrown, rewind.
+			self._data_buffer.offset = self._pos
+
 class DataBuffer():
 	def __init__(self, initial_value = None):
 		if initial_value is None:
@@ -30,9 +44,18 @@ class DataBuffer():
 			self._data = bytearray(initial_value)
 		self._offset = 0
 
+	@classmethod
+	def fromhex(cls, hex_str):
+		return cls(bytes.fromhex(hex_str))
+
 	@property
 	def offset(self):
 		return self._offset
+
+	@offset.setter
+	def offset(self, value):
+		assert(0 <= value < self.length)
+		self._offset = value
 
 	@property
 	def length(self):
@@ -41,6 +64,9 @@ class DataBuffer():
 	@property
 	def remaining(self):
 		return self.length - self.offset
+
+	def rewind_on_exception(self):
+		return _RewindObject(self)
 
 	def get(self, length):
 		if length > self.remaining:

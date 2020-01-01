@@ -63,9 +63,9 @@ class TLSStruct():
 		return iter(self._members.items())
 
 	@staticmethod
-	def _unpack_int(typename, stream) -> _HandlerPurpose(function = "unpack", typenames = [ "u8", "u16", "u24" ]):
+	def _unpack_int(typename, databuffer) -> _HandlerPurpose(function = "unpack", typenames = [ "u8", "u16", "u24" ]):
 		length = int(typename[1:]) // 8
-		data = stream.consume(length)
+		data = databuffer.get(length)
 		return int.from_bytes(data, byteorder = "big")
 
 	@staticmethod
@@ -93,8 +93,13 @@ class TLSStruct():
 			result_data += handler(typename, value)
 		return bytes(result_data)
 
-	def unpack(self, stream):
-		pass
+	def unpack(self, databuffer):
+		result = { }
+		with databuffer.rewind_on_exception():
+			for (membername, typename) in self.members:
+				handler = self._UnpackHandlers[typename]
+				result[membername] = handler(typename, databuffer)
+			return result
 
 	def __str__(self):
 		return "%s<%s>" % (self.name, ", ".join(("%s %s" % (membername, typename) for (membername, typename) in self.members)))

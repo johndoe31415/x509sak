@@ -21,37 +21,55 @@
 
 from x509sak.tests import BaseTest
 from x509sak.tls.TLSStruct import TLSStruct
+from x509sak.tls.DataBuffer import DataBuffer, NotEnoughDataException
 from x509sak.Exceptions import ProgrammerErrorException, InvalidInputException
 
 class TLSStructTests(BaseTest):
+	_BASE_STRUCT = TLSStruct((
+		("first", "u8"),
+		("second", "u16"),
+		("third", "u24"),
+	), name = "TestStructure")
+
 	def test_basic_packing(self):
-		structure = TLSStruct((
-			("first", "u8"),
-			("second", "u16"),
-			("third", "u24"),
-		), name = "TestStructure")
-		self.assertEquals(structure.pack({
+		self.assertEquals(self._BASE_STRUCT.pack({
 			"first":	0xaa,
 			"second":	0xabcd,
 			"third":	0x112233,
 		}), bytes.fromhex("aa ab cd 11 22 33"))
 
 	def test_packing_errors(self):
-		structure = TLSStruct((
-			("first", "u8"),
-			("second", "u16"),
-			("third", "u24"),
-		), name = "TestStructure")
 		with self.assertRaises(ProgrammerErrorException):
 			# Missing member
-			structure.pack({
+			self._BASE_STRUCT.pack({
 				"first":	0xaa,
 				"third":	0x112233,
 			})
 		with self.assertRaises(InvalidInputException):
 			# Out of bounds value
-			structure.pack({
+			self._BASE_STRUCT.pack({
 				"first":	256,
 				"second":	0xabcd,
 				"third":	0x112233,
 			})
+
+	def test_basic_unpacking(self):
+		self.assertEquals(self._BASE_STRUCT.unpack(DataBuffer.fromhex("aa ab cd 11 22 33")), {
+			"first":	0xaa,
+			"second":	0xabcd,
+			"third":	0x112233,
+		})
+
+	def test_position_advanced(self):
+		db = DataBuffer.fromhex("aa ab cd 11 22 33")
+		self._BASE_STRUCT.unpack(db)
+		self.assertEquals(db.offset, 6)
+
+	def test_position_unchanged(self):
+		# Either unpacking works and offset is advanced or it remains the same
+		# after unpacking, no halfways things.
+		db = DataBuffer.fromhex("00 aa ab cd 11 22")
+		db.offset = 1
+		with self.assertRaises(NotEnoughDataException):
+			self._BASE_STRUCT.unpack(db)
+		self.assertEquals(db.offset, 1)
