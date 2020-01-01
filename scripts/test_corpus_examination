@@ -32,11 +32,17 @@ import collections
 import tempfile
 import subprocess
 import hashlib
+import enum
 from x509sak.FriendlyArgumentParser import FriendlyArgumentParser
+
+class JobType(enum.IntEnum):
+	StoreJSON = 0
+	JSONConversion = 1
 
 parser = FriendlyArgumentParser(description = "Test x509sak by running a certificate test corpus against the 'examine' facility.")
 parser.add_argument("-r", "--retest", action = "store_true", help = "Only retest certificates that have failed before.")
 parser.add_argument("-p", "--parallel", metavar = "count", type = int, default = multiprocessing.cpu_count(), help = "How many test instances to run concurrently. Defaults to %(default)d processes.")
+parser.add_argument("-m", "--mode", choices = [ "json", "json2text" ], default = "json", help = "Gives the mode in which the examination is run. Stored data will always be JSON encoded. That data can be retrieved and converted to text. Choices are %(choices)s, default is %(default)s.")
 parser.add_argument("-l", "--limit", metavar = "count", type = int, help = "Finish after this many runs. By default runs until everything is finished.")
 parser.add_argument("-d", "--dbfile", metavar = "filename", type = str, default = "test_corpus_results.sqlite3", help = "Specifies database file to store results in. Defaults to %(default)s.")
 parser.add_argument("corpus_dir", metavar = "corpus_dir", type = str, help = "Root directory of the cloned git repository https://github.com/johndoe31415/x509-cert-testcorpus")
@@ -54,8 +60,16 @@ if not os.path.isfile(args.corpus_dir + "/CertDatabase.py"):
 sys.path.append(args.corpus_dir)
 from CertDatabase import CertDatabase
 
-WorkItem = collections.namedtuple("WorkItem", [ "conn_id", "cert_no", "fetch_timestamp", "certs_key_sha256", "cert_der", "ca_cert_der", "cert_fqdn", "cert_usage" ])
+EvalWorkItem = collections.namedtuple("EvalWorkItem", [ "jobtype", "conn_id", "cert_no", "fetch_timestamp", "certs_key_sha256", "cert_der", "ca_cert_der", "cert_fqdn", "cert_usage" ])
+ConvertWorkItem = collections.namedtuple("ConvertWorkItem", [ "jobtype", "result_id", "json_input", "output_format" ])
 ResultItem = collections.namedtuple("ResultItem", [ "work_item", "returncode", "stdout", "stderr", "duration" ])
+
+def chunked_fetchall(cursor, chunk_size = 1000):
+	while True:
+		results = cursor.fetchmany(chunk_size)
+		if len(results) == 0:
+			break
+		yield from results
 
 class CorpusTester():
 	def __init__(self, args):
@@ -83,7 +97,24 @@ class CorpusTester():
 			);
 			""")
 
-	def _worker_do_work(self, work_item):
+	def _worker_do_json_conversion_work(self, work_item):
+		with tempfile.NamedTemporaryFile(prefix = "exam_", suffix = ".json") as json_f:
+			json_f.write(work_item.json_input)
+			json_f.flush()
+
+			cmdline = [ "./x509sak.py", "examinecert" ]
+			cmdline += [ "-f", work_item.output_format, "-i", "json" ]
+			cmdline += [ json_f.name ]
+
+			t0 = time.time()
+			process_result = subprocess.run(cmdline, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+			t1 = time.time()
+
+		result_item = ResultItem(work_item = work_item, stdout = process_result.stdout, stderr = process_result.stderr, duration = t1 - t0, returncode = process_result.returncode)
+		return result_item
+
+
+	def _worker_do_storejson_work(self, work_item):
 		# First, write certificate to a temporary filename
 		with tempfile.NamedTemporaryFile(prefix = "cert_", suffix = ".der") as cert_f, tempfile.NamedTemporaryFile(prefix = "cert_ca_", suffix = ".der") as ca_f:
 			cert_f.write(work_item.cert_der)
@@ -108,31 +139,31 @@ class CorpusTester():
 			result_item = ResultItem(work_item = work_item, stdout = process_result.stdout, stderr = process_result.stderr, duration = t1 - t0, returncode = process_result.returncode)
 		return result_item
 
+	def _worker_do_work(self, work_item):
+		if work_item.jobtype == JobType.StoreJSON:
+			return self._worker_do_storejson_work(work_item)
+		elif work_item.jobtype == JobType.JSONConversion:
+			return self._worker_do_json_conversion_work(work_item)
+		else:
+			raise NotImplementedError(work_item.jobtype)
+
 	def _worker(self, work_queue, result_queue):
 		while True:
-			(command, work_item) = work_queue.get()
-			if command == "terminate":
+			work_item = work_queue.get()
+			if work_item is None:
 				break
-			elif command == "work":
-				result_item = self._worker_do_work(work_item)
-				result_queue.put(result_item)
-			else:
-				raise NotImplementedError(command)
+			result_item = self._worker_do_work(work_item)
+			result_queue.put(result_item)
 
 	def _producer(self, work_queue, result_queue):
-		produced_work_count = 0
-		for (item_count, work_item) in enumerate(self._work_generator()):
-			if work_item.certs_key_sha256 not in self._exclude_hashes:
-				produced_work_count += 1
-				work_piece = ("work", work_item)
-				work_queue.put(work_piece)
-				self._exclude_hashes.add(work_item.certs_key_sha256)
-				if (self._args.limit is not None) and (produced_work_count >= self._args.limit):
-					break
+		for (item_count, work_item) in enumerate(self._work_generator(), 1):
+			work_queue.put(work_item)
+			if (self._args.limit is not None) and (item_count >= self._args.limit):
+				break
 
 		# Then feed workers the termination commands
 		for i in range(self._args.parallel):
-			work_queue.put(("terminate", None))
+			work_queue.put(None)
 
 	@staticmethod
 	def _fmt_time(secs):
@@ -156,53 +187,75 @@ class CorpusTester():
 				# No more results coming
 				break
 			tested_count += 1
-			if (tested_count % 500) == 0:
-				self._db.commit()
-
 			if result.returncode != 0:
 				failure_count += 1
-			cert_der = None if (result.returncode == 0) else result.work_item.cert_der
-			ca_cert_der = None if (result.returncode == 0) else result.work_item.ca_cert_der
-			try:
-				self._cursor.execute("INSERT INTO test_results (conn_id, cert_no, fetch_timestamp, returncode, stdout, stderr, duration, certs_key_sha256, cert_der, ca_cert_der, cert_fqdn, cert_usage) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", (
-					result.work_item.conn_id, result.work_item.cert_no, result.work_item.fetch_timestamp,
-					result.returncode, result.stdout, result.stderr, result.duration,
-					result.work_item.certs_key_sha256, cert_der, ca_cert_der, result.work_item.cert_fqdn, result.work_item.cert_usage
-				))
-			except sqlite3.IntegrityError as e:
-				self._cursor.execute("UPDATE test_results SET returncode = ?, stdout = ?, stderr = ?, duration = ? WHERE certs_key_sha256 = ?;", (result.returncode, result.stdout, result.stderr, result.duration, result.work_item.certs_key_sha256))
+
+			if result.work_item.jobtype == JobType.StoreJSON:
+				if (tested_count % 500) == 0:
+					self._db.commit()
+				cert_der = None if (result.returncode == 0) else result.work_item.cert_der
+				ca_cert_der = None if (result.returncode == 0) else result.work_item.ca_cert_der
+				try:
+					self._cursor.execute("INSERT INTO test_results (conn_id, cert_no, fetch_timestamp, returncode, stdout, stderr, duration, certs_key_sha256, cert_der, ca_cert_der, cert_fqdn, cert_usage) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", (
+						result.work_item.conn_id, result.work_item.cert_no, result.work_item.fetch_timestamp,
+						result.returncode, result.stdout, result.stderr, result.duration,
+						result.work_item.certs_key_sha256, cert_der, ca_cert_der, result.work_item.cert_fqdn, result.work_item.cert_usage
+					))
+				except sqlite3.IntegrityError as e:
+					self._cursor.execute("UPDATE test_results SET returncode = ?, stdout = ?, stderr = ?, duration = ? WHERE certs_key_sha256 = ?;", (result.returncode, result.stdout, result.stderr, result.duration, result.work_item.certs_key_sha256))
+				last_job_str = "%s/%s" % (result.work_item.cert_fqdn, result.work_item.cert_usage)
+			else:
+				if result.returncode != 0:
+					with open("failed_json.txt", "a") as f:
+						print("%d" % (result.work_item.result_id), file = f)
+				last_job_str = "resultid %d" % (result.work_item.result_id)
 			tdiff = time.time() - start_time
 			certs_per_sec = tested_count / tdiff
 			time_remaining = (self._work_amount - tested_count)  / certs_per_sec
-			print("%s %.1f certs/sec (ETA %s): %d / %d (%.1f%%): %s/%s (returncode %d); total failure_count %d" % (self._fmt_time(tdiff), certs_per_sec, self._fmt_time(time_remaining), tested_count, self._work_amount, tested_count / self._work_amount * 100, result.work_item.cert_fqdn, result.work_item.cert_usage, result.returncode, failure_count))
+			print("%s %.1f certs/sec (ETA %s): %d / %d (%.1f%%): %s (returncode %d); total failure_count %d" % (self._fmt_time(tdiff), certs_per_sec, self._fmt_time(time_remaining), tested_count, self._work_amount, tested_count / self._work_amount * 100, last_job_str, result.returncode, failure_count))
 		self._db.commit()
 
 	def _work_generator(self):
-		if not self._args.retest:
-			for connection in self._certdb.get_all_connections(sort_order_asc = False):
-				for (cert_no, cert) in enumerate(connection.certs):
-					if cert_no + 1 < len(connection.certs):
-						next_cert = connection.certs[cert_no + 1]
-					else:
-						next_cert = None
-					if cert_no == 0:
-						cert_fqdn = connection.servername
-						cert_usage = "tls-server"
-					else:
-						cert_fqdn = None
-						cert_usage = "ca"
-					certs_key_sha256 = hashlib.sha256(cert).digest()
-					if next_cert is not None:
-						certs_key_sha256 += hashlib.sha256(next_cert).digest()
-					yield WorkItem(conn_id = connection.conn_id, cert_no = cert_no, fetch_timestamp = connection.fetch_timestamp, certs_key_sha256 = certs_key_sha256, cert_der = cert, ca_cert_der = next_cert, cert_fqdn = cert_fqdn, cert_usage = cert_usage)
+		if self._args.mode == "json":
+			if not self._args.retest:
+				for connection in self._certdb.get_all_connections(sort_order_asc = False):
+					for (cert_no, cert) in enumerate(connection.certs):
+						if cert_no + 1 < len(connection.certs):
+							next_cert = connection.certs[cert_no + 1]
+						else:
+							next_cert = None
+						if cert_no == 0:
+							cert_fqdn = connection.servername
+							cert_usage = "tls-server"
+						else:
+							cert_fqdn = None
+							cert_usage = "ca"
+						certs_key_sha256 = hashlib.sha256(cert).digest()
+						if next_cert is not None:
+							certs_key_sha256 += hashlib.sha256(next_cert).digest()
+
+						if certs_key_sha256 not in self._exclude_hashes:
+							self._exclude_hashes.add(certs_key_sha256)
+							yield EvalWorkItem(jobtype = JobType.StoreJSON, conn_id = connection.conn_id, cert_no = cert_no, fetch_timestamp = connection.fetch_timestamp, certs_key_sha256 = certs_key_sha256, cert_der = cert, ca_cert_der = next_cert, cert_fqdn = cert_fqdn, cert_usage = cert_usage)
+			else:
+				self._cursor.execute("SELECT conn_id, cert_no, fetch_timestamp, certs_key_sha256, cert_der, ca_cert_der, cert_fqdn, cert_usage FROM test_results WHERE returncode != 0;")
+				for failed_cert in chunked_fetchall(self._cursor):
+					params = [ JobType.StoreJSON ] + list(failed_cert)
+					yield EvalWorkItem(*params)
+		elif self._args.mode == "json2text":
+			self._cursor.execute("SELECT id, stdout FROM test_results WHERE returncode = 0;")
+			for (result_id, stdout) in chunked_fetchall(self._cursor):
+				yield ConvertWorkItem(jobtype = JobType.JSONConversion, result_id = result_id, json_input = stdout, output_format = "json")
 		else:
-			failed_certs = self._cursor.execute("SELECT conn_id, cert_no, fetch_timestamp, certs_key_sha256, cert_der, ca_cert_der, cert_fqdn, cert_usage FROM test_results WHERE returncode != 0;").fetchall()
-			for failed_cert in failed_certs:
-				yield WorkItem(*failed_cert)
+			raise NotImplementedError(self._args.mode)
 
 	@property
 	def checked_certificate_count(self):
 		return self._cursor.execute("SELECT COUNT(*) FROM test_results;").fetchone()[0]
+
+	@property
+	def succeeded_certificate_count(self):
+		return self._cursor.execute("SELECT COUNT(*) FROM test_results WHERE returncode = 0;").fetchone()[0]
 
 	@property
 	def failed_certificate_count(self):
@@ -210,15 +263,21 @@ class CorpusTester():
 
 	def run(self):
 		# Determine which hashes of those returned from work_generator we discerd
-		if not self._args.retest:
-			self._exclude_hashes = set(row[0] for row in self._cursor.execute("SELECT certs_key_sha256 FROM test_results;").fetchall())
-			self._work_amount = self._certdb.certificate_count - len(self._exclude_hashes)
-		else:
+		if self._args.mode == "json":
+			if not self._args.retest:
+				self._exclude_hashes = set(row[0] for row in chunked_fetchall(self._cursor.execute("SELECT certs_key_sha256 FROM test_results;")))
+				self._work_amount = self._certdb.certificate_count - len(self._exclude_hashes)
+			else:
+				self._exclude_hashes = set()
+				self._work_amount = self.failed_certificate_count
+		elif self._args.mode == "json2text":
 			self._exclude_hashes = set()
-			self._work_amount = self.failed_certificate_count
+			self._work_amount = self.succeeded_certificate_count
+		else:
+			raise NotImplementedError(self._args.mode)
 		if (self._args.limit is not None) and (self._args.limit < self._work_amount):
 			self._work_amount = self._args.limit
-		print("Found %d unique certificates in %d connections. %d certificates tested so far, %d remaining." % (self._certdb.certificate_count, self._certdb.connection_count, self.checked_certificate_count, self._work_amount))
+		print("Found %d unique certificates in %d connections. %d certificates tested so far (%d successful, %d failures), %d remaining." % (self._certdb.certificate_count, self._certdb.connection_count, self.checked_certificate_count, self.succeeded_certificate_count, self.failed_certificate_count, self._work_amount))
 
 		# Synchronization with workers using queues
 		work_queue = multiprocessing.Queue(maxsize = 100)
