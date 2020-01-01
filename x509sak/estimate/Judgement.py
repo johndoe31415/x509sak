@@ -207,6 +207,7 @@ class JudgementCode(enum.Enum):
 	DN_Contains_DuplicateRDNs = ("Distinguished name", "duplicate RDNs present")
 	DN_Contains_No_CN = ("Distinguished name", "no CN present")
 	DN_Contains_Multiple_CN = ("Distinguished name", "multiple CN fields present")
+	DN_Contains_Duplicate_Set = ("Distinguished name", "duplicate in set present")
 	Cert_Unknown_SignatureAlgorithm = ("Certificate signature", "unknown signature algorithm")
 	Cert_Unknown_HashAlgorithm = ("Certificate signature", "unknown hash function")
 	Cert_Unknown_MaskAlgorithm = ("Certificate signature", "unknown mask function")
