@@ -19,27 +19,27 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-from x509sak.tls.Enums import TLSVersionRecordLayer, ContentType, CipherSuite, CompressionMethod
-from x509sak.tls.Structure import Structure, StructureMember as SM
+from x509sak.tls.Enums import TLSVersionRecordLayer, TLSVersionHandshake, ContentType, CipherSuite, CompressionMethod
+from x509sak.tls.Structure import Structure, instantiate_member as IM
 
 RecordLayerPkt = Structure((
-	SM("content_type",			"uint8", enum_class = ContentType),
-	SM("record_layer_version",	"uint16", enum_class = TLSVersionRecordLayer),
-	SM("payload",				"opaque16"),
+	IM("content_type",			"uint8", enum_class = ContentType),
+	IM("record_layer_version",	"uint16", enum_class = TLSVersionRecordLayer),
+	IM("payload",				"opaque16"),
 ))
 
 ClientHelloPkt = Structure((
-	SM("handshake_type",				"fixed[01]"),
-	SM("payload",						"opaque24", inner = Structure((
-		SM("handshake_protocol_version",	"uint16", enum_class = TLSVersionHandshake),
-		SM("random",						"array[16]"),
-		SM("session_id",					"opaque8"),
-		SM("cipher_suites",					"opaque24", inner_array = True, inner = Structure((
-			SM("cipher_suite",					"uint16", enum_class = CipherSuite),
+	IM("handshake_type",				"fixed[01]"),
+	IM("payload",						"opaque24", inner = Structure((
+		IM("handshake_protocol_version",	"uint16", enum_class = TLSVersionHandshake),
+		IM("random",						"array[16]"),
+		IM("session_id",					"opaque8"),
+		IM("cipher_suites",					"opaque24", inner_array = True, inner = Structure((
+			IM("cipher_suite",					"uint16", enum_class = CipherSuite),
 		))),
-		SM("compression_methods",			"opaque24", inner_array = True, inner = Structure((
-			SM("compression_method"				"uint8", enum_class = CompressionMethod),
+		IM("compression_methods",			"opaque24", inner_array = True, inner = Structure((
+			IM("compression_method",			"uint8", enum_class = CompressionMethod),
 		))),
-		SM("extensions",					"opaque16"),
+		IM("extensions",					"opaque16"),
 	))),
 ))

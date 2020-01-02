@@ -63,6 +63,10 @@ class StructureMemberFactory():
 class StructureMemberFactoryElement(BaseStructureMember):
 	_REGEX = None
 
+	@property
+	def implicit_value(self):
+		return False
+
 	@classmethod
 	def from_match(cls, name, match, **kwargs):
 		raise NotImplementedError(self.__class__.__name__)
@@ -70,6 +74,37 @@ class StructureMemberFactoryElement(BaseStructureMember):
 	def __repr__(self):
 		cname = self.typename if (self.typename is not None) else self.__class__.__name__
 		return "%s %s" % (cname, self.name)
+
+
+@StructureMemberFactory.register
+class StructureElementFixed(StructureMemberFactoryElement):
+	_REGEX = r"fixed\[(?P<hexdata>[0-9a-fA-F\s]+)\]"
+
+	def __init__(self, name, fixed_data):
+		StructureMemberFactoryElement.__init__(self, name)
+		self._fixed_data = fixed_data
+
+	@classmethod
+	def from_match(cls, name, match, **kwargs):
+		fixed_data = bytes.fromhex(match["hexdata"])
+		return cls(name = name, fixed_data = fixed_data, **kwargs)
+
+	@property
+	def implicit_value(self):
+		return True
+
+	@property
+	def typename(self):
+		return "fixed[%s]" % (self._fixed_data.hex())
+
+	def unpack(self, databuffer):
+		data = databuffer.get(len(self._fixed_data))
+		if data != self._fixed_data:
+			raise InvalidInputException("%s unpacking expected %s but got %s." % (str(self), self._fixed_data.hex(), data.hex()))
+		return data
+
+	def pack(self):
+		return self._fixed_data
 
 @StructureMemberFactory.register
 class StructureElementInteger(StructureMemberFactoryElement):
@@ -210,8 +245,9 @@ class Structure(BaseStructureMember):
 	def __init__(self, members, name = None):
 		BaseStructureMember.__init__(self, name = name)
 		self._members = members
-		self._required_keys = set(member.name for member in members)
-		if len(self._required_keys) != len(members):
+		self._required_keys = set(member.name for member in members if (not member.implicit_value))
+		explicit_member_count = sum(1 for member in members if (not member.implicit_value))
+		if len(self._required_keys) != explicit_member_count:
 			raise ProgrammerErrorException("Structure definition amgiguous, duplicate member names used.")
 
 	@property
@@ -233,8 +269,12 @@ class Structure(BaseStructureMember):
 
 		result_data = bytearray()
 		for member in self.members:
-			value = values[member.name]
-			result_data += member.pack(value)
+			if not member.implicit_value:
+				value = values[member.name]
+				result_data += member.pack(value)
+			else:
+				# Data is implicit
+				result_data += member.pack()
 		return bytes(result_data)
 
 	def unpack(self, databuffer):

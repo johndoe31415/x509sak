@@ -34,12 +34,12 @@ class TLSVersionHandshake(enum.IntEnum):
 	ProtocolTLSv1_1 = 0x0302
 	ProtocolTLSv1_2 = 0x0303
 
-class TLSVersionHandshake(enum.Enum):
+class TLSVersion(enum.Enum):
 	"""Combination of both to achieve a speicific version."""
-	ProtocolTLSv1_0 = (TLSVersionRecordLayer.ProtocolTLSv1_0, TLSVersionHandshake.ProtocolTLSv_1_0)
-	ProtocolTLSv1_1 = (TLSVersionRecordLayer.ProtocolTLSv1_0, TLSVersionHandshake.ProtocolTLSv_1_1)
-	ProtocolTLSv1_2 = (TLSVersionRecordLayer.ProtocolTLSv1_0, TLSVersionHandshake.ProtocolTLSv_1_2)
-	ProtocolTLSv1_3 = (TLSVersionRecordLayer.ProtocolTLSv1_0, TLSVersionHandshake.ProtocolTLSv_1_2)
+	ProtocolTLSv1_0 = (TLSVersionRecordLayer.ProtocolTLSv1_0, TLSVersionHandshake.ProtocolTLSv1_0)
+	ProtocolTLSv1_1 = (TLSVersionRecordLayer.ProtocolTLSv1_0, TLSVersionHandshake.ProtocolTLSv1_1)
+	ProtocolTLSv1_2 = (TLSVersionRecordLayer.ProtocolTLSv1_0, TLSVersionHandshake.ProtocolTLSv1_2)
+	ProtocolTLSv1_3 = (TLSVersionRecordLayer.ProtocolTLSv1_0, TLSVersionHandshake.ProtocolTLSv1_2)
 
 class ContentType(enum.IntEnum):
 	"""ContentType as Sect. 6.2.1. of RFC5246"""
@@ -47,7 +47,6 @@ class ContentType(enum.IntEnum):
 	Alert = 21
 	Handshake = 22
 	ApplicationData = 23
-
 
 class HandshakeType(enum.IntEnum):
 	"""HandshakeType as Sect. 7.4. of RFC5246"""

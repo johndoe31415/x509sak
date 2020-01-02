@@ -30,7 +30,7 @@ class _FooEnum(enum.IntEnum):
 	Bar = 234
 	Moo = 99
 
-class TLSStructTests(BaseTest):
+class StructureTests(BaseTest):
 	_BASE_STRUCT = Structure((
 		IM("first", "uint8"),
 		IM("second", "uint16"),
