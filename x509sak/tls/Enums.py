@@ -388,6 +388,8 @@ class SupportedGroups(enum.IntEnum):
 	secp521r1 = 25
 	arbitrary_explicit_prime_curves = 0xFF01
 	arbitrary_explicit_char2_curves = 0xFF02
+	X25519 = 0x1d
+	X448 = 0x1e
 
 class ECPointFormats(enum.IntEnum):
 	# RFC 4492 5.1.2

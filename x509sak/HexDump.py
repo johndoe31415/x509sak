@@ -72,3 +72,7 @@ class HexDump():
 
 	def dump(self, data, fp = None):
 		print(self.as_str(data), file = fp)
+
+	def diff(self, data_left, data_right):
+		for (left, right) in zip(self.as_lines(data_left), self.as_lines(data_right)):
+			print("%s   %s" % (left, right))
