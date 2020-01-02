@@ -21,7 +21,7 @@
 
 import enum
 from x509sak.tests import BaseTest
-from x509sak.tls.Structure import Structure, instantiate_member as IM
+from x509sak.tls.Structure import Structure, instantiate_member as IM, IncompleteUnpackingException
 from x509sak.tls.DataBuffer import DataBuffer, NotEnoughDataException
 from x509sak.Exceptions import ProgrammerErrorException, InvalidInputException
 
@@ -261,3 +261,13 @@ class StructureTests(BaseTest):
 		}
 		binary_encoding = bytes.fromhex("00 07    46 6f 6f 62 c3 a4 72")
 		self._assert_encoding_decoding(structure, values, binary_encoding)
+
+	def test_trailing_data_error(self):
+		structure = Structure((
+			IM("inner_data", "opaque8", inner = Structure([
+				IM("value", "uint16"),
+			])),
+		))
+		binary_encoding = bytes.fromhex("04 11 11 22 22")
+		with self.assertRaises(IncompleteUnpackingException):
+			structure.unpack(DataBuffer(binary_encoding))

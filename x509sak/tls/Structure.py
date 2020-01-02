@@ -25,6 +25,9 @@ import collections
 from x509sak.tls.DataBuffer import DataBuffer
 from x509sak.Exceptions import ProgrammerErrorException, InvalidInputException
 
+class DeserializationException(Exception): pass
+class IncompleteUnpackingException(DeserializationException): pass
+
 class BaseStructureMember():
 	def __init__(self, name = None):
 		self._name = name
@@ -202,6 +205,8 @@ class StructureElementOpaque(StructureMemberFactoryElement):
 				while db.remaining > 0:
 					result_array.append(self._inner.unpack(db))
 				data = result_array
+			if db.remaining > 0:
+				raise IncompleteUnpackingException("%s unpacking still has %d bytes of trailing, non-consumed data left." % (self.typename, db.remaining))
 		return data
 
 	def pack(self, data = None):
