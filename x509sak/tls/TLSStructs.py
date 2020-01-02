@@ -19,7 +19,7 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-from x509sak.tls.Enums import TLSVersionRecordLayer, TLSVersionHandshake, ContentType, CipherSuite, CompressionMethod
+from x509sak.tls.Enums import TLSVersionRecordLayer, TLSVersionHandshake, ContentType, HandshakeType, CipherSuite, CompressionMethod, ExtensionType, ServerNameType
 from x509sak.tls.Structure import Structure, instantiate_member as IM
 
 RecordLayerPkt = Structure((
@@ -28,18 +28,33 @@ RecordLayerPkt = Structure((
 	IM("payload",				"opaque16"),
 ))
 
-ClientHelloPkt = Structure((
-	IM("handshake_type",				"fixed[01]"),
-	IM("payload",						"opaque24", inner = Structure((
+TLSExtensionFlag = Structure((
+	IM("extension_id",					"uint16", enum_class = ExtensionType),
+	IM("content",						"opaque16", fixed_value = bytes()),
+))
+
+TLSExtensionServerNameIndication = Structure([
+	IM("extension_id",					"uint16", enum_class = ExtensionType, fixed_value = ExtensionType.server_name),
+	IM("content",						"opaque16", inner = Structure([
+		IM("server_name_list",				"opaque16", inner = Structure([
+			IM("server_name_type",				"uint8", enum_class = ServerNameType, fixed_value = ServerNameType.Hostname),
+			IM("server_name",					"opaque16", string_encoding = "ascii"),
+		])),
+	])),
+])
+
+ClientHelloPkt = Structure([
+	IM("handshake_type",				"uint8", enum_class = HandshakeType, fixed_value = HandshakeType.ClientHello),
+	IM("payload",						"opaque24", inner = Structure([
 		IM("handshake_protocol_version",	"uint16", enum_class = TLSVersionHandshake),
 		IM("random",						"array[16]"),
 		IM("session_id",					"opaque8"),
-		IM("cipher_suites",					"opaque24", inner_array = True, inner = Structure((
+		IM("cipher_suites",					"opaque24", inner_array = True, inner = Structure([
 			IM("cipher_suite",					"uint16", enum_class = CipherSuite),
-		))),
-		IM("compression_methods",			"opaque24", inner_array = True, inner = Structure((
+		])),
+		IM("compression_methods",			"opaque24", inner_array = True, inner = Structure([
 			IM("compression_method",			"uint8", enum_class = CompressionMethod),
-		))),
+		])),
 		IM("extensions",					"opaque16"),
-	))),
-))
+	])),
+])

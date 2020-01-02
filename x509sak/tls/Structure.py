@@ -63,18 +63,21 @@ class StructureMemberFactory():
 class StructureMemberFactoryElement(BaseStructureMember):
 	_REGEX = None
 
-	@property
-	def implicit_value(self):
-		return False
-
 	@classmethod
 	def from_match(cls, name, match, **kwargs):
 		raise NotImplementedError(self.__class__.__name__)
 
+	@property
+	def typename(self):
+		return None
+
+	@property
+	def implicit_value(self):
+		return False
+
 	def __repr__(self):
 		cname = self.typename if (self.typename is not None) else self.__class__.__name__
 		return "%s %s" % (cname, self.name)
-
 
 @StructureMemberFactory.register
 class StructureElementFixed(StructureMemberFactoryElement):
@@ -90,12 +93,12 @@ class StructureElementFixed(StructureMemberFactoryElement):
 		return cls(name = name, fixed_data = fixed_data, **kwargs)
 
 	@property
-	def implicit_value(self):
-		return True
-
-	@property
 	def typename(self):
 		return "fixed[%s]" % (self._fixed_data.hex())
+
+	@property
+	def implicit_value(self):
+		return True
 
 	def unpack(self, databuffer):
 		data = databuffer.get(len(self._fixed_data))
@@ -110,11 +113,12 @@ class StructureElementFixed(StructureMemberFactoryElement):
 class StructureElementInteger(StructureMemberFactoryElement):
 	_REGEX = r"uint(?P<bit>\d+)"
 
-	def __init__(self, name, length_bytes, enum_class = None, strict_enum = False):
+	def __init__(self, name, length_bytes, enum_class = None, strict_enum = False, fixed_value = None):
 		StructureMemberFactoryElement.__init__(self, name)
 		self._length_bytes = length_bytes
 		self._enum_class = enum_class
 		self._strict_enum = strict_enum
+		self._fixed_value = fixed_value
 		self._minval = 0
 		self._maxval = (1 << (8 * self._length_bytes)) - 1
 
@@ -129,6 +133,10 @@ class StructureElementInteger(StructureMemberFactoryElement):
 	def typename(self):
 		return "uint%d" % (self._length_bytes * 8)
 
+	@property
+	def implicit_value(self):
+		return self._fixed_value is not None
+
 	def unpack(self, databuffer):
 		data = databuffer.get(self._length_bytes)
 		value = int.from_bytes(data, byteorder = "big")
@@ -140,7 +148,9 @@ class StructureElementInteger(StructureMemberFactoryElement):
 					raise
 		return value
 
-	def pack(self, value):
+	def pack(self, value = None):
+		if (value is None) and (self._fixed_value is not None):
+			value = self._fixed_value
 		if self._enum_class is not None:
 			if self._strict_enum:
 				if not isinstance(value, self._enum_class):
@@ -151,28 +161,32 @@ class StructureElementInteger(StructureMemberFactoryElement):
 		data = int.to_bytes(value, byteorder = "big", length = self._length_bytes)
 		return data
 
-
 @StructureMemberFactory.register
 class StructureElementOpaque(StructureMemberFactoryElement):
 	_REGEX = r"opaque(?P<bit>\d+)"
 
-	def __init__(self, name, length_field, inner = None, inner_array = None, string_encoding = None):
+	def __init__(self, name, length_field, inner = None, inner_array = None, string_encoding = None, fixed_value = None):
 		StructureMemberFactoryElement.__init__(self, name)
 		self._length_field = length_field
 		self._inner = inner
 		self._inner_array = inner_array
 		self._string_encoding = string_encoding
+		self._fixed_value = fixed_value
 		if (self._string_encoding is not None) and (self._inner is not None):
 			raise ProgrammerErrorException("Opaque object can either encode strings or have an inner object, but not both.")
-
-	@property
-	def typename(self):
-		return "opaque<%s>" % (self._length_field)
 
 	@classmethod
 	def from_match(cls, name, match, **kwargs):
 		length_field = StructureMemberFactory.instantiate(name = "length", typename = "uint" + match["bit"])
 		return cls(name, length_field = length_field, **kwargs)
+
+	@property
+	def typename(self):
+		return "opaque<%s>" % (self._length_field)
+
+	@property
+	def implicit_value(self):
+		return self._fixed_value is not None
 
 	def unpack(self, databuffer):
 		length = self._length_field.unpack(databuffer)
@@ -190,7 +204,9 @@ class StructureElementOpaque(StructureMemberFactoryElement):
 				data = result_array
 		return data
 
-	def pack(self, data):
+	def pack(self, data = None):
+		if (data is None) and (self._fixed_value is not None):
+			data = self._fixed_value
 		if (self._string_encoding is not None):
 			data = data.encode(self._string_encoding)
 		elif self._inner is not None:
@@ -203,7 +219,6 @@ class StructureElementOpaque(StructureMemberFactoryElement):
 				data = packed_data
 		return self._length_field.pack(len(data)) + data
 
-
 @StructureMemberFactory.register
 class StructureElementArray(StructureMemberFactoryElement):
 	_REGEX = r"array\[(?P<length>\d+)(,\s+(?P<padbyte>[0-9a-fA-F]{2}))?\]"
@@ -213,13 +228,6 @@ class StructureElementArray(StructureMemberFactoryElement):
 		self._length = length
 		self._padbyte = padbyte
 
-	@property
-	def typename(self):
-		if self._padbyte is None:
-			return "array[%d]" % (self._length)
-		else:
-			return "array[%d, %02x]" % (self._length, self._padbyte)
-
 	@classmethod
 	def from_match(cls, name, match, **kwargs):
 		length = int(match["length"])
@@ -228,6 +236,13 @@ class StructureElementArray(StructureMemberFactoryElement):
 		else:
 			padbyte = None
 		return cls(name, length = length, padbyte = padbyte, **kwargs)
+
+	@property
+	def typename(self):
+		if self._padbyte is None:
+			return "array[%d]" % (self._length)
+		else:
+			return "array[%d, %02x]" % (self._length, self._padbyte)
 
 	def unpack(self, databuffer):
 		return databuffer.get(self._length)
@@ -258,12 +273,12 @@ class Structure(BaseStructureMember):
 			raise ProgrammerErrorException("Structure definition amgiguous, duplicate member names used.")
 
 	@property
-	def members(self):
-		return iter(self._members)
-
-	@property
 	def typename(self):
 		return "Structure"
+
+	@property
+	def members(self):
+		return iter(self._members)
 
 	def pack(self, values):
 		assert(isinstance(values, dict))

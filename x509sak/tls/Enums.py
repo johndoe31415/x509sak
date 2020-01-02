@@ -394,3 +394,7 @@ class ECPointFormats(enum.IntEnum):
 	uncompressed = 0
 	ansiX962_compressed_prime = 1
 	ansiX962_compressed_char2 = 2
+
+class ServerNameType(enum.IntEnum):
+	"""Server name indication TLS extension server type."""
+	Hostname = 0
