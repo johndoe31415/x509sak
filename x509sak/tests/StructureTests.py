@@ -21,7 +21,7 @@
 
 import enum
 from x509sak.tests import BaseTest
-from x509sak.tls.Structure import Structure, instantiate_member as IM, IncompleteUnpackingException
+from x509sak.tls.Structure import Structure, instantiate_member as IM, IncompleteUnpackingException, UnexpectedFixedValueException
 from x509sak.tls.DataBuffer import DataBuffer, NotEnoughDataException
 from x509sak.Exceptions import ProgrammerErrorException, InvalidInputException
 
@@ -271,3 +271,25 @@ class StructureTests(BaseTest):
 		binary_encoding = bytes.fromhex("04 11 11 22 22")
 		with self.assertRaises(IncompleteUnpackingException):
 			structure.unpack(DataBuffer(binary_encoding))
+
+	def test_expect_fixed_value_error_int(self):
+		structure = Structure((
+			IM("inner_data", "uint16", fixed_value = 0x1234),
+		))
+		binary_encoding = DataBuffer(bytes.fromhex("12 34"))
+		structure.unpack(binary_encoding)
+
+		binary_encoding = DataBuffer(bytes.fromhex("12 35"))
+		with self.assertRaises(UnexpectedFixedValueException):
+			structure.unpack(binary_encoding)
+
+	def test_expect_fixed_value_error_fixed(self):
+		structure = Structure((
+			IM("inner_data", "fixed[12 34]"),
+		))
+		binary_encoding = DataBuffer(bytes.fromhex("12 34"))
+		structure.unpack(binary_encoding)
+
+		binary_encoding = DataBuffer(bytes.fromhex("12 35"))
+		with self.assertRaises(UnexpectedFixedValueException):
+			structure.unpack(binary_encoding)

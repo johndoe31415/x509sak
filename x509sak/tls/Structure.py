@@ -27,6 +27,7 @@ from x509sak.Exceptions import ProgrammerErrorException, InvalidInputException
 
 class DeserializationException(Exception): pass
 class IncompleteUnpackingException(DeserializationException): pass
+class UnexpectedFixedValueException(DeserializationException): pass
 
 class BaseStructureMember():
 	def __init__(self, name = None):
@@ -106,7 +107,7 @@ class StructureElementFixed(StructureMemberFactoryElement):
 	def unpack(self, databuffer):
 		data = databuffer.get(len(self._fixed_data))
 		if data != self._fixed_data:
-			raise InvalidInputException("%s unpacking expected %s but got %s." % (str(self), self._fixed_data.hex(), data.hex()))
+			raise UnexpectedFixedValueException("%s unpacking expected %s but got %s." % (str(self), self._fixed_data.hex(), data.hex()))
 		return data
 
 	def pack(self):
@@ -149,6 +150,8 @@ class StructureElementInteger(StructureMemberFactoryElement):
 			except ValueError:
 				if self._strict_enum:
 					raise
+		if self._fixed_value and (value != self._fixed_value):
+			raise UnexpectedFixedValueException("Deserialization requires fixed value 0x%x but encountered 0x%x." % (self._fixed_value, value))
 		return value
 
 	def pack(self, value = None):
