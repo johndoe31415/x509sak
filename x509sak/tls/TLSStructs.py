@@ -20,12 +20,17 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 from x509sak.tls.Enums import TLSVersionRecordLayer, TLSVersionHandshake, ContentType, HandshakeType, CipherSuite, CompressionMethod, ExtensionType, ServerNameType, ECPointFormats, SupportedGroups
-from x509sak.tls.Structure import Structure, instantiate_member as IM
+from x509sak.tls.Structure import Structure, VariableType, instantiate_member as IM
 
 RecordLayerPkt = Structure((
 	IM("content_type",			"uint8", enum_class = ContentType),
 	IM("record_layer_version",	"uint16", enum_class = TLSVersionRecordLayer),
 	IM("payload",				"opaque16"),
+))
+
+TLSExtension = Structure((
+	IM("extension_id",					"uint16", enum_class = ExtensionType),
+	IM("content",						"opaque16"),
 ))
 
 TLSExtensionFlag = Structure((
@@ -75,5 +80,10 @@ ClientHelloPkt = Structure([
 			IM("compression_method",			"uint8", enum_class = CompressionMethod),
 		])),
 		IM("extensions",					"opaque16"),
+#		IM("extensions",					"opaque16", inner_array = True, inner = VariableType([
+#			TLSExtensionSupportedGroups,
+#			TLSExtensionECPointFormats,
+#			TLSExtension,
+#		])),
 	])),
 ])

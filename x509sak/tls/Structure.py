@@ -303,11 +303,24 @@ class Structure(BaseStructureMember):
 		result = { }
 		with databuffer.rewind_on_exception():
 			for member in self.members:
-				result[member.name] = member.unpack(databuffer)
+				value = member.unpack(databuffer)
+				if not member.implicit_value:
+					result[member.name] = value
 			return result
 
 	def __str__(self):
 		return "%s<%s>" % (self.name, ", ".join(("%s %s" % (member.name, member.typename) for member in self.members)))
+
+class VariableType(BaseStructureMember):
+	def __init__(self, possible_inner_classes, name = None):
+		BaseStructureMember.__init__(self, name = name)
+		self._possible_inner_classes = possible_inner_classes
+
+	def pack(self, values):
+		pass
+
+	def unpack(self, databuffer):
+		pass
 
 def instantiate_member(name, typename, **kwargs):
 	return StructureMemberFactory.instantiate(name, typename, **kwargs)
