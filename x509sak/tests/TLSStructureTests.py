@@ -46,4 +46,4 @@ class TLSStructureTests(BaseTest):
 #		""".replace("\n", ""))
 		encoded = ClientHelloPkt.pack(values)
 		decoded = ClientHelloPkt.unpack(DataBuffer(encoded))
-		print(decoded)
+#		print(decoded)

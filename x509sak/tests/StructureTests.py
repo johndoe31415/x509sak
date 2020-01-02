@@ -251,3 +251,13 @@ class StructureTests(BaseTest):
 
 		binary_encoding = bytes.fromhex("00 0a    00 00 04  aa bb 11 22    00 01 09")
 		self._assert_encoding_decoding(structure, values, binary_encoding)
+
+	def test_string(self):
+		structure = Structure((
+			IM("text", "opaque16", string_encoding = "utf-8"),
+		))
+		values = {
+			"text":	"Foobär",
+		}
+		binary_encoding = bytes.fromhex("00 07    46 6f 6f 62 c3 a4 72")
+		self._assert_encoding_decoding(structure, values, binary_encoding)

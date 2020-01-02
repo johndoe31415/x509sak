@@ -156,11 +156,14 @@ class StructureElementInteger(StructureMemberFactoryElement):
 class StructureElementOpaque(StructureMemberFactoryElement):
 	_REGEX = r"opaque(?P<bit>\d+)"
 
-	def __init__(self, name, length_field, inner = None, inner_array = None):
+	def __init__(self, name, length_field, inner = None, inner_array = None, string_encoding = None):
 		StructureMemberFactoryElement.__init__(self, name)
 		self._length_field = length_field
 		self._inner = inner
 		self._inner_array = inner_array
+		self._string_encoding = string_encoding
+		if (self._string_encoding is not None) and (self._inner is not None):
+			raise ProgrammerErrorException("Opaque object can either encode strings or have an inner object, but not both.")
 
 	@property
 	def typename(self):
@@ -174,7 +177,9 @@ class StructureElementOpaque(StructureMemberFactoryElement):
 	def unpack(self, databuffer):
 		length = self._length_field.unpack(databuffer)
 		data = databuffer.get(length)
-		if self._inner is not None:
+		if (self._string_encoding is not None):
+			data = data.decode(self._string_encoding)
+		elif self._inner is not None:
 			db = DataBuffer(data)
 			if not self._inner_array:
 				data = self._inner.unpack(db)
@@ -186,7 +191,9 @@ class StructureElementOpaque(StructureMemberFactoryElement):
 		return data
 
 	def pack(self, data):
-		if self._inner is not None:
+		if (self._string_encoding is not None):
+			data = data.encode(self._string_encoding)
+		elif self._inner is not None:
 			if not self._inner_array:
 				data = self._inner.pack(data)
 			else:
