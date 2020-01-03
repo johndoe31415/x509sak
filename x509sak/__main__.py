@@ -38,6 +38,7 @@ from x509sak.actions.ActionForgeCert import ActionForgeCert
 from x509sak.actions.ActionScrape import ActionScrape
 from x509sak.actions.ActionHashPart import ActionHashPart
 from x509sak.actions.ActionTLSClient import ActionTLSClient
+from x509sak.actions.ActionTLSParse import ActionTLSParse
 from x509sak.actions.ActionDebug import ActionDebug
 from x509sak.CmdLineArgs import KeyValue
 from x509sak.KeySpecification import KeySpecification
@@ -237,6 +238,13 @@ def genparser(parser):
 	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
 	parser.add_argument("servername", metavar = "filename", type = str, help = "Server name to connect to.")
 mc.register("tlsclient", "Act as a TLS client", genparser, action = ActionTLSClient, visible = False)
+
+def genparser(parser):
+	parser.add_argument("-s", "--side", choices = [ "client", "server" ], default = "client", help = "Which side the messages are from, can be one of %(choices)s. Defaults to %(default)s.")
+	parser.add_argument("-e", "--encoding", choices = [ "bin", "hex" ], default = "bin", help = "Encoding of the given file. Can be one of %(choices)s, defaults to %(default)s.")
+	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
+	parser.add_argument("filename", metavar = "filename", type = str, help = "Binary file that contains the data stream.")
+mc.register("tlsparse", "Parse previously sniffed TLS messages and dump them", genparser, action = ActionTLSParse, visible = False)
 
 def genparser(parser):
 	parser.add_argument("--der", action = "store_true", help = "Read in certificate in DER format instead of PEM.")

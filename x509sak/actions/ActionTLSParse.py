@@ -19,36 +19,47 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
+import pprint
 from x509sak.BaseAction import BaseAction
 from x509sak.tls.Enums import TLSVersion
 from x509sak.tls.MessageHelper import ClientHelloHelper
 from x509sak.tls.TLSStructs import ClientHelloPkt, ServerHelloPkt, CertificatePkt
-from x509sak.tls.TLSConnection import TLSClientConnection
+from x509sak.tls.TLSMessageDecoder import TLSMessageDecoder
 from x509sak.X509Certificate import X509Certificate
+from x509sak.HexDump import HexDump
 
-class ActionTLSClient(BaseAction):
+class ActionTLSParse(BaseAction):
 	def __init__(self, cmdname, args):
 		BaseAction.__init__(self, cmdname, args)
 
-		tls_version = TLSVersion.ProtocolTLSv1_2
-		self._conn = TLSClientConnection.tcp_connect(tls_version = tls_version, servername = args.servername, port = args.port)
-		self._conn.decoder.add_hook("handshake", self._recv_handshake)
-		self._conn.decoder.add_hook("record_layer", self._recv_record_layer)
+		if args.encoding == "hex":
+			with open(args.filename) as f:
+				data = bytes.fromhex(f.read().replace("\n", ""))
+		elif args.encoding == "bin":
+			with open(args.filename, "rb") as f:
+				data = f.read()
+		else:
+			raise NotImplementedError(args.encoding)
 
-		chh = ClientHelloHelper()
-		client_hello = chh.create(server_name = args.servername)
-		frame = ClientHelloPkt.pack(client_hello)
-		self._conn.send_handshake(frame)
+		if self._args.verbose >= 1:
+			hd = HexDump()
+			hd.dump(data)
 
-		self._conn.receive()
+		self._pp = pprint.PrettyPrinter(width = 180)
+		decoder = TLSMessageDecoder(side = args.side)
+		decoder.add_hook("alert", self._msg_alert)
+		decoder.add_hook("handshake", self._msg_handshake)
+		decoder.put(data)
 
-	def _recv_record_layer(self, hooktype, msg_id, data):
-		print("<- %3d %s %s (%d bytes)" % (msg_id, data["content_type"].name, data["record_layer_version"], len(data["payload"])))
+	def _msg_alert(self, hooktype, msg):
+		print("Alert:", msg)
 
-	def _recv_handshake(self, hooktype, msg_id, msg_type, data):
-		print("<= %3d %s" % (msg_id, msg_type.name))
+	def _msg_handshake(self, hooktype, msg_id, msg_type, data):
+		print("%s:" % (msg_type.name))
+		self._pp.pprint(data)
 		if msg_type == CertificatePkt:
-			print("    %d certificates received:" % (len(data["payload"]["certificates"])))
+			print("%d certificates received:" % (len(data["payload"]["certificates"])))
 			for der_data in data["payload"]["certificates"]:
 				cert = X509Certificate(bytes(der_data))
-				print("        %s" % (cert))
+				print(cert)
+		print()

@@ -25,6 +25,8 @@ class TLSVersionRecordLayer(enum.IntEnum):
 	"""TLS version as 16 bit integer (major is high byte, minor is low
 	byte) as it is used on the record layer."""
 	ProtocolTLSv1_0 = 0x0301
+	ProtocolTLSv1_1 = 0x0302
+	ProtocolTLSv1_2 = 0x0303
 
 class TLSVersionHandshake(enum.IntEnum):
 	"""TLS version as 16 bit integer (major is high byte, minor is low

@@ -117,6 +117,11 @@ CertificatePkt = Structure(name = "Certificate", members = [
 	])),
 ])
 
+ClientHandshakeMessage = VariableType(name = "ClientHandshakeMessage", possible_inner_classes = [
+	ClientHelloPkt,
+	CertificatePkt,
+])
+
 ServerHandshakeMessage = VariableType(name = "ServerHandshakeMessage", possible_inner_classes = [
 	ServerHelloPkt,
 	CertificatePkt,

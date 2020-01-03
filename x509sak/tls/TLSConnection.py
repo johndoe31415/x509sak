@@ -25,6 +25,7 @@ from x509sak.tls.Enums import TLSVersion, ContentType
 from x509sak.tls.TLSStructs import RecordLayerPkt, AlertPkt, ServerHandshakeMessage
 from x509sak.tls.Structure import DeserializationException
 from x509sak.tls.DataBuffer import DataBuffer, DataBufferException
+from x509sak.tls.TLSMessageDecoder import TLSMessageDecoder
 
 class TLSConnectionInterruptedException(Exception): pass
 
@@ -42,25 +43,18 @@ class TLSConnectionTransport():
 		self._sock.shutdown(socket.SHUT_RDWR)
 		self._sock.close()
 
-class TLSConnection():
-	def __init__(self, tls_version, transport):
+class TLSClientConnection():
+	def __init__(self, transport, tls_version):
 		assert(isinstance(tls_version, TLSVersion))
-		self._tls_version = tls_version
 		self._transport = transport
-		self._hooks = {
-			"recv_handshake": [ ],
-			"recv_record_layer": [ ],
-			"recv_alert": [ ],
-			"recv_encrypted_alert": [ ],
-		}
+		self._tls_version = tls_version
+		self._decoder = TLSMessageDecoder(side = "server")
+		self._decoder.add_hook("alert", self._msg_alert)
+		self._running = True
 
-	def add_hook(self, hooktype, callback):
-		self._hooks[hooktype].append(callback)
-		return self
-
-	def _hook(self, hooktype, data):
-		for hook in self._hooks[hooktype]:
-			hook(data)
+	@property
+	def decoder(self):
+		return self._decoder
 
 	def send(self, content_type, message):
 		assert(isinstance(content_type, ContentType))
@@ -76,36 +70,22 @@ class TLSConnection():
 	def send_handshake(self, message):
 		return self.send(ContentType.Handshake, message)
 
-	def _recv_record_layer(self, packet):
-		self._hook("recv_record_layer", packet)
-		if packet["content_type"] == ContentType.Alert:
-			if len(packet["payload"]) == 2:
-				alert = AlertPkt.unpack(DataBuffer(packet["payload"]))
-				self._hook("recv_alert", alert)
-			else:
-				# Encrypted alert
-				self._hook("recv_encrypted_alert", packet["payload"])
-		elif packet["content_type"] == ContentType.Handshake:
-			msg = ServerHandshakeMessage.unpack(DataBuffer(packet["payload"]))
-			self._hook("recv_handshake", msg)
+	def _msg_alert(self, alert):
+		print("Alert: %s" % (alert))
+		self._cancel()
 
+	def _cancel(self):
+		self._running = False
 
-	def wait(self):
-		msgbuf = DataBuffer()
-		while True:
+	def receive(self):
+		self._running = True
+		while self._running:
 			data = self._transport.recv(1024)
 			if len(data) != 0:
-				msgbuf += data
-
-				try:
-					while True:
-						deserialized = RecordLayerPkt.unpack(msgbuf)
-						self._recv_record_layer(deserialized)
-				except (DataBufferException, DeserializationException):
-					# No more packets
-					pass
+				self._decoder.put(data)
 			else:
 				time.sleep(0.1)
+		self._transport.close()
 
 	@classmethod
 	def tcp_connect(cls, tls_version, servername, port = 443, timeout = 10.0):
