@@ -20,7 +20,7 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 import collections
-from x509sak.tls.Enums import TLSVersion, ContentType
+from x509sak.tls.Enums import ContentType
 from x509sak.tls.TLSStructs import RecordLayerPkt, AlertPkt, ServerHandshakeMessage, ClientHandshakeMessage
 from x509sak.tls.Structure import DeserializationException
 from x509sak.tls.DataBuffer import DataBuffer, DataBufferException
@@ -64,7 +64,7 @@ class TLSMessageDecoder():
 				self._execute_hook("alert", self._TLSAlertMessage(encrypted = False, data = alert_packet))
 			else:
 				# Encrypted alert
-				self._execute_hook("alert", self._TLSAlertMessage(encrypted = True, data = packet["payload"]))
+				self._execute_hook("alert", self._TLSAlertMessage(encrypted = True, data = record_layer_packet["payload"]))
 
 		elif record_layer_packet["content_type"] == ContentType.Handshake:
 			if self._side == "server":

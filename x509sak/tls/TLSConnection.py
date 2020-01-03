@@ -22,9 +22,7 @@
 import socket
 import time
 from x509sak.tls.Enums import TLSVersion, ContentType
-from x509sak.tls.TLSStructs import RecordLayerPkt, AlertPkt, ServerHandshakeMessage
-from x509sak.tls.Structure import DeserializationException
-from x509sak.tls.DataBuffer import DataBuffer, DataBufferException
+from x509sak.tls.TLSStructs import RecordLayerPkt
 from x509sak.tls.TLSMessageDecoder import TLSMessageDecoder
 
 class TLSConnectionInterruptedException(Exception): pass

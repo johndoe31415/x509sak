@@ -21,9 +21,7 @@
 
 import pprint
 from x509sak.BaseAction import BaseAction
-from x509sak.tls.Enums import TLSVersion
-from x509sak.tls.MessageHelper import ClientHelloHelper
-from x509sak.tls.TLSStructs import ClientHelloPkt, ServerHelloPkt, CertificatePkt
+from x509sak.tls.TLSStructs import CertificatePkt
 from x509sak.tls.TLSMessageDecoder import TLSMessageDecoder
 from x509sak.X509Certificate import X509Certificate
 from x509sak.HexDump import HexDump

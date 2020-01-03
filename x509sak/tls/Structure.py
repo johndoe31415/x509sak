@@ -20,8 +20,6 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 import re
-import inspect
-import collections
 from x509sak.tls.DataBuffer import DataBuffer, DataBufferException
 from x509sak.Exceptions import ProgrammerErrorException, InvalidInputException
 

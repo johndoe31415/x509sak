@@ -20,7 +20,7 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 from x509sak.tests import BaseTest
-from x509sak.tls.Enums import TLSVersion, CipherSuite, CompressionMethod, ECPointFormats, SupportedGroups, ExtensionType, ContentType, HandshakeType
+from x509sak.tls.Enums import TLSVersion, CipherSuite, CompressionMethod, ECPointFormats, SupportedGroups, ExtensionType, ContentType
 from x509sak.tls.TLSStructs import ClientHelloPkt, TLSExtensionFlag, TLSExtensionServerNameIndication, TLSExtensionECPointFormats, TLSExtensionSupportedGroups, RecordLayerPkt
 from x509sak.tls.DataBuffer import DataBuffer
 from x509sak.tls.MessageHelper import ClientHelloHelper
@@ -84,7 +84,7 @@ class TLSStructureTestClientHello(BaseTest):
 			"payload":					serialized_client_hello,
 		}
 		serialized_record_layer_packet = RecordLayerPkt.pack(record_layer_packet)
-		self.assertEquals(reference_packet, serialized_record_layer_packet)
+		self.assertEqual(reference_packet, serialized_record_layer_packet)
 
 		deserialized_record_layer = RecordLayerPkt.unpack(DataBuffer(reference_packet))
 		self.assertEqual(record_layer_packet, deserialized_record_layer)

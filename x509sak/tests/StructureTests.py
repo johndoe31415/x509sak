@@ -38,7 +38,7 @@ class StructureTests(BaseTest):
 	), name = "TestStructure")
 
 	def test_basic_packing(self):
-		self.assertEquals(self._BASE_STRUCT.pack({
+		self.assertEqual(self._BASE_STRUCT.pack({
 			"first":	0xaa,
 			"second":	0xabcd,
 			"third":	0x112233,
@@ -60,14 +60,14 @@ class StructureTests(BaseTest):
 			})
 		with self.assertRaises(ProgrammerErrorException):
 			# Duplicate member name
-			structure = Structure((
+			Structure((
 				IM("data", "uint8"),
 				IM("foo", "uint8"),
 				IM("data", "uint8"),
 			))
 
 	def test_basic_unpacking(self):
-		self.assertEquals(self._BASE_STRUCT.unpack(DataBuffer.fromhex("aa ab cd 11 22 33")), {
+		self.assertEqual(self._BASE_STRUCT.unpack(DataBuffer.fromhex("aa ab cd 11 22 33")), {
 			"first":	0xaa,
 			"second":	0xabcd,
 			"third":	0x112233,
@@ -76,7 +76,7 @@ class StructureTests(BaseTest):
 	def test_position_advanced(self):
 		db = DataBuffer.fromhex("aa ab cd 11 22 33")
 		self._BASE_STRUCT.unpack(db)
-		self.assertEquals(db.offset, 6)
+		self.assertEqual(db.offset, 6)
 
 	def test_position_unchanged(self):
 		# Either unpacking works and offset is advanced or it remains the same
@@ -85,27 +85,27 @@ class StructureTests(BaseTest):
 		db.offset = 1
 		with self.assertRaises(NotEnoughDataException):
 			self._BASE_STRUCT.unpack(db)
-		self.assertEquals(db.offset, 1)
+		self.assertEqual(db.offset, 1)
 
 	def test_opaque_packing(self):
 		structure = Structure((IM("data", "opaque8"), ))
-		self.assertEquals(structure.pack({ "data": b"foobar" }), b"\x06foobar")
+		self.assertEqual(structure.pack({ "data": b"foobar" }), b"\x06foobar")
 
 		structure = Structure((IM("data", "opaque16"), ))
-		self.assertEquals(structure.pack({ "data": b"foobar999" }), b"\x00\x09foobar999")
+		self.assertEqual(structure.pack({ "data": b"foobar999" }), b"\x00\x09foobar999")
 
 		structure = Structure((IM("data", "opaque24"), ))
-		self.assertEquals(structure.pack({ "data": b"foobar999123" }), b"\x00\x00\x0cfoobar999123")
+		self.assertEqual(structure.pack({ "data": b"foobar999123" }), b"\x00\x00\x0cfoobar999123")
 
 	def test_opaque_unpacking(self):
 		structure = Structure((IM("data", "opaque8"), ))
-		self.assertEquals(structure.unpack(DataBuffer(b"\x06foobar")), { "data": b"foobar" })
+		self.assertEqual(structure.unpack(DataBuffer(b"\x06foobar")), { "data": b"foobar" })
 
 		structure = Structure((IM("data", "opaque16"), ))
-		self.assertEquals(structure.unpack(DataBuffer(b"\x00\x09foobar123trail")), { "data": b"foobar123" })
+		self.assertEqual(structure.unpack(DataBuffer(b"\x00\x09foobar123trail")), { "data": b"foobar123" })
 
 		structure = Structure((IM("data", "opaque24"), ))
-		self.assertEquals(structure.unpack(DataBuffer(b"\x00\x00\x0cfoobar123321blubb")), { "data": b"foobar123321" })
+		self.assertEqual(structure.unpack(DataBuffer(b"\x00\x00\x0cfoobar123321blubb")), { "data": b"foobar123321" })
 
 	def test_array_packing(self):
 		structure = Structure((
@@ -113,7 +113,7 @@ class StructureTests(BaseTest):
 			IM("data", "array[6]"),
 			IM("int2", "uint8"),
 		))
-		self.assertEquals(structure.pack({
+		self.assertEqual(structure.pack({
 			"int1": 0xaa,
 			"data": b"foobar",
 			"int2": 0xbb,
@@ -133,12 +133,12 @@ class StructureTests(BaseTest):
 			IM("data", "array[6, ab]"),
 			IM("int2", "uint8"),
 		))
-		self.assertEquals(structure.pack({
+		self.assertEqual(structure.pack({
 			"int1": 0xaa,
 			"data": b"foobar",
 			"int2": 0xbb,
 		}), bytes.fromhex("aa") + b"foobar" + bytes.fromhex("bb"))
-		self.assertEquals(structure.pack({
+		self.assertEqual(structure.pack({
 			"int1": 0xaa,
 			"data": b"foo",
 			"int2": 0xbb,
@@ -150,7 +150,7 @@ class StructureTests(BaseTest):
 			IM("data", "array[6, ab]"),
 			IM("int2", "uint8"),
 		))
-		self.assertEquals(structure.unpack(DataBuffer(b"\xaafoobar\xbb")), { "data": b"foobar", "int1": 0xaa, "int2": 0xbb })
+		self.assertEqual(structure.unpack(DataBuffer(b"\xaafoobar\xbb")), { "data": b"foobar", "int1": 0xaa, "int2": 0xbb })
 
 	def test_integer_enum(self):
 		structure = Structure((
@@ -173,23 +173,23 @@ class StructureTests(BaseTest):
 		data = structure.pack(orig_values)
 		db = DataBuffer(data)
 		decoded_values = structure.unpack(db)
-		self.assertEquals(orig_values, decoded_values)
+		self.assertEqual(orig_values, decoded_values)
 
 		orig_values["b"] = 1
 		data = structure.pack(orig_values)
 		db = DataBuffer(data)
 		decoded_values = structure.unpack(db)
-		self.assertEquals(orig_values, decoded_values)
+		self.assertEqual(orig_values, decoded_values)
 
 	def _assert_encoding_decoding(self, structure, values, binary_encoding):
 		# Test encoding
 		data = structure.pack(values)
-		self.assertEquals(data, binary_encoding)
+		self.assertEqual(data, binary_encoding)
 
 		# Test decoding
 		db = DataBuffer(data)
 		decoded_values = structure.unpack(db)
-		self.assertEquals(values, decoded_values)
+		self.assertEqual(values, decoded_values)
 
 	def test_nested_structure(self):
 		structure = Structure((

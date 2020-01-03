@@ -22,7 +22,7 @@
 from x509sak.BaseAction import BaseAction
 from x509sak.tls.Enums import TLSVersion
 from x509sak.tls.MessageHelper import ClientHelloHelper
-from x509sak.tls.TLSStructs import ClientHelloPkt, ServerHelloPkt, CertificatePkt
+from x509sak.tls.TLSStructs import ClientHelloPkt, CertificatePkt
 from x509sak.tls.TLSConnection import TLSClientConnection
 from x509sak.X509Certificate import X509Certificate
 

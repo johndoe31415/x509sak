@@ -21,7 +21,7 @@
 
 import os
 from x509sak.tls.Enums import TLSVersion, CipherSuite, CompressionMethod, ECPointFormats, SupportedGroups, ExtensionType
-from x509sak.tls.TLSStructs import TLSExtensionECPointFormats, TLSExtensionSupportedGroups, TLSExtensionFlag
+from x509sak.tls.TLSStructs import TLSExtensionECPointFormats, TLSExtensionSupportedGroups, TLSExtensionFlag, TLSExtensionServerNameIndication
 from x509sak.tls.CipherSuiteDirectory import CipherSuiteDirectory
 
 class ClientHelloHelper():
@@ -106,7 +106,7 @@ class ClientHelloHelper():
 				"session_id":					bytes(),
 				"cipher_suites":				self._create_cipher_suite_list(),
 				"compression_methods":			self._create_compression_methods(),
-				"extensions":					self._create_tls_extensions(),
+				"extensions":					self._create_tls_extensions(server_name = server_name),
 			}
 		}
 		return client_hello

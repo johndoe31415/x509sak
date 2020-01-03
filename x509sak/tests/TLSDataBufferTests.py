@@ -27,14 +27,14 @@ class TLSDataBufferTests(BaseTest):
 		db = DataBuffer()
 		db += bytes.fromhex("11 22 33")
 		db.append(bytes.fromhex("44 55"))
-		self.assertEquals(db.get(1), bytes.fromhex("11"))
-		self.assertEquals(db.get(3), bytes.fromhex("22 33 44"))
+		self.assertEqual(db.get(1), bytes.fromhex("11"))
+		self.assertEqual(db.get(3), bytes.fromhex("22 33 44"))
 		with self.assertRaises(DataBufferException):
 			db.get(3)
-		self.assertEquals(db.get(1), bytes.fromhex("55"))
+		self.assertEqual(db.get(1), bytes.fromhex("55"))
 		with self.assertRaises(DataBufferException):
 			db.get(1)
 
 	def test_inited(self):
 		db = DataBuffer(b"ABC")
-		self.assertEquals(db.get(3), bytes.fromhex("41 42 43"))
+		self.assertEqual(db.get(3), bytes.fromhex("41 42 43"))
