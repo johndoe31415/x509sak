@@ -92,7 +92,7 @@ class ClientHelloHelper():
 					"groups": self._create_supported_groups_list(),
 				},
 			}),
-			(TLSExtensionFlag, { "extension_id": ExtensionType.SessionTicketTLS }),
+			(TLSExtensionFlag, { "extension_id": ExtensionType.session_ticket }),
 			(TLSExtensionFlag, { "extension_id": ExtensionType.encrypt_then_mac }),
 			(TLSExtensionFlag, { "extension_id": ExtensionType.extended_master_secret }),
 		]

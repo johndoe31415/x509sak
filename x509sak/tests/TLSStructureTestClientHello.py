@@ -70,7 +70,7 @@ class TLSStructureTestClientHello(BaseTest):
 							],
 						},
 					}),
-					(TLSExtensionFlag, { "extension_id": ExtensionType.SessionTicketTLS }),
+					(TLSExtensionFlag, { "extension_id": ExtensionType.session_ticket }),
 					(TLSExtensionFlag, { "extension_id": ExtensionType.encrypt_then_mac }),
 					(TLSExtensionFlag, { "extension_id": ExtensionType.extended_master_secret }),
 				]

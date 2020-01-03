@@ -47,12 +47,19 @@ class ContentType(enum.IntEnum):
 	Alert = 21
 	Handshake = 22
 	ApplicationData = 23
+	Heartbeat = 24
+	TLS12_CID = 25						#  Temporary, expires 2020-07-02
 
 class HandshakeType(enum.IntEnum):
 	"""HandshakeType as Sect. 7.4. of RFC5246"""
 	HelloRequest = 0
 	ClientHello = 1
 	ServerHello = 2
+	HelloVerifyRequest = 3
+	NewSessionTicket = 4
+	EndOfEarlyData = 5
+	HelloRetryRequest = 6
+	EncryptedExtensions = 8
 	Certificate = 11
 	ServerKeyExchange = 12
 	CertificateRequest = 13
@@ -60,6 +67,12 @@ class HandshakeType(enum.IntEnum):
 	CertificateVerify = 15
 	ClientKeyExchange = 16
 	Finished = 20
+	CertificateURL = 21
+	CertificateStatus = 22
+	SupplementalData = 23
+	KeyUpdate = 24
+	CompressedCertificate = 25
+	MessageHash = 254
 
 class ChangeCipherSpecType(enum.IntEnum):
 	"""ChangeCipherSpec as Sect. 7.1. of RFC5246"""
@@ -97,6 +110,13 @@ class TLSAlertDescription(enum.IntEnum):
 	UserCanceled = 90
 	NoRenegotiation = 100
 	UnsupportedExtension = 110
+	CertificateUnobtainable = 111
+	UnrecognizedName = 112
+	BadCertificateStatusResponse = 113
+	BadCertificateHashValue = 114
+	UnknownPSKIdentity = 115
+	CertificateRequired = 116
+	NoApplicationProtocol = 120
 
 class CipherSuite(enum.IntEnum):
 	"""Cipher Suites as defined in various RFCs."""
@@ -316,48 +336,78 @@ class CompressionMethod(enum.IntEnum):
 	LZS = 64
 
 class ExtensionType(enum.IntEnum):
-	"""Extension types for hello packets."""
-	server_name = 0			# [RFC6066]
-	max_fragment_length = 1 	# [RFC6066]
-	client_certificate_url = 2 	# [RFC6066]
-	trusted_ca_keys = 3 	# [RFC6066]
-	truncated_hmac = 4	# [RFC6066]
-	status_request = 5 	# [RFC6066]
-	user_mapping = 6 	# [RFC4681]
-	client_authz = 7 	# [RFC5878]
-	server_authz = 8 	# [RFC5878]
-	cert_type = 9 	# [RFC6091]
-	supported_groups = 10 # (renamed from "elliptic_curves") 	[RFC4492][RFC-ietf-tls-negotiated-ff-dhe-10]
-	ec_point_formats = 11 	# [RFC4492]
-	srp = 12 	# [RFC5054]
-	signature_algorithms = 13 	# [RFC5246]
-	use_srtp = 14 	# [RFC5764]
-	heartbeat = 15 	# [RFC6520]
-	application_layer_protocol_negotiation = 16 	# [RFC7301]
-	status_request_v2 = 17 	# [RFC6961]
-	signed_certificate_timestamp = 18 	# [RFC6962]
-	client_certificate_type = 19 	# [RFC7250]
-	server_certificate_type = 20 	# [RFC7250]
-	padding = 21 # (TEMPORARY - registered 2014-03-12, expires 2016-03-12) 	[draft-ietf-tls-padding]
-	encrypt_then_mac = 22 	# [RFC7366]
-	extended_master_secret = 23 # (TEMPORARY - registered 2014-09-26, expires 2015-09-26) 	[draft-ietf-tls-session-hash]
-	SessionTicketTLS = 35 	# [RFC4507]
-	renegotiation_info = 65281 	# [RFC5746]
+	"""TLS extension types for hello packets."""
+	server_name = 0									# [RFC6066]
+	max_fragment_length = 1							# [RFC6066]
+	client_certificate_url = 2						# [RFC6066]
+	trusted_ca_keys = 3								# [RFC6066]
+	truncated_hmac = 4								# [RFC6066]
+	status_request = 5							 	# [RFC6066]
+	user_mapping = 6								# [RFC4681]
+	client_authz = 7								# [RFC5878]
+	server_authz = 8								# [RFC5878]
+	cert_type = 9									# [RFC6091]
+	supported_groups = 10							# [RFC8422][RFC7919] (previously "elliptic_curves")
+	ec_point_formats = 11							# [RFC4492]
+	srp = 12										# [RFC5054]
+	signature_algorithms = 13					 	# [RFC5246]
+	use_srtp = 14									# [RFC5764]
+	heartbeat = 15									# [RFC6520]
+	application_layer_protocol_negotiation = 16		# [RFC7301]
+	status_request_v2 = 17							# [RFC6961]
+	signed_certificate_timestamp = 18				# [RFC6962]
+	client_certificate_type = 19					# [RFC7250]
+	server_certificate_type = 20					# [RFC7250]
+	padding = 21									# [RFC7685]
+	encrypt_then_mac = 22							# [RFC7366]
+	extended_master_secret = 23						# [RFC7627]
+	token_binding = 24								# [RFC8472]
+	cached_info = 25								# [RFC7924]
+	tls_lts = 26									# [draft-gutmann-tls-lts]
+	compress_certificate = 27						# [RFC-ietf-tls-certificate-compression-09]
+	record_size_limit = 28							# [RFC8449]
+	pwd_protect = 29								# [RFC8492]
+	pwd_clear = 30									# [RFC8492]
+	password_salt = 31								# [RFC8492]
+	ticket_pinning = 32								# [RFC8672]
+	tls_cert_with_extern_psk = 34					# [RFC-ietf-tls-tls13-cert-with-extern-psk-07]
+	session_ticket = 35								# [RFC5077][RFC8447] (previously "SessionTicket TLS")
+	pre_shared_key = 41								# [RFC8446]
+	early_data = 42									# [RFC8446]
+	supported_versions = 43							# [RFC8446]
+	cookie = 44										# [RFC8446]
+	psk_key_exchange_modes = 45						# [RFC8446]
+	certificate_authorities = 47					# [RFC8446]
+	oid_filters = 48								# [RFC8446]
+	post_handshake_auth = 49						# [RFC8446]
+	signature_algorithms_cert = 50					# [RFC8446]
+	key_share = 51									# [RFC8446]
+	transparency_info = 52							# [draft-ietf-trans-rfc6962-bis]
+	connection_id = 53								# Temporary, expires 2020-07-02
+	external_id_hash = 55							# [RFC-ietf-mmusic-sdp-uks-07]
+	external_session_id = 56						# [RFC-ietf-mmusic-sdp-uks-07]
+	renegotiation_info = 65281						# [RFC5746]
 
 class HashAlgorithm(enum.IntEnum):
 	# RFC 5246 7.4.1.4.1
+	none = 0
 	md5 = 1
 	sha1 = 2
 	sha224 = 3
 	sha256 = 4
 	sha384 = 5
 	sha512 = 6
+	Intrinsic = 8
 
 class SignatureAlgorithm(enum.IntEnum):
 	# RFC 5246 7.4.1.4.1
 	RSA = 1
 	DSA = 2
 	ECDSA = 3
+	ED25519 = 7
+	ED448 = 8
+	GOSTr34102012_256 = 64
+	GOSTr34102012_512 = 65
 
 class KeyExchangeAlgorithm(enum.IntEnum):
 	# RFC 5246 7.4.3
@@ -409,3 +459,9 @@ class ECPointFormats(enum.IntEnum):
 class ServerNameType(enum.IntEnum):
 	"""Server name indication TLS extension server type."""
 	Hostname = 0
+
+class CertificateCompressionMethod(enum.IntEnum):
+	# draft-ietf-tls-certificate-compression-09
+	zlib = 1
+	brotli = 2
+	zstd = 3
