@@ -41,7 +41,7 @@ TLSExtensionFlag = Structure((
 TLSExtensionServerNameIndication = Structure([
 	IM("extension_id",					"uint16", enum_class = ExtensionType, fixed_value = ExtensionType.server_name),
 	IM("content",						"opaque16", inner = Structure([
-		IM("server_name_list",				"opaque16", inner_array = True, inner = Structure([
+		IM("server_name_list",				"opaque16", contains_array = True, inner = Structure([
 			IM("server_name_type",				"uint8", enum_class = ServerNameType, fixed_value = ServerNameType.Hostname),
 			IM("server_name",					"opaque16", string_encoding = "ascii"),
 		])),
@@ -52,18 +52,18 @@ TLSExtensionServerNameIndication.create = lambda hostname: { "content": { "serve
 TLSExtensionECPointFormats = Structure([
 	IM("extension_id",					"uint16", enum_class = ExtensionType, fixed_value = ExtensionType.ec_point_formats),
 	IM("content",						"opaque16", inner = Structure([
-		IM("point_formats",					"opaque8", inner_array = True, inner = Structure([
+		IM("point_formats",					"opaque8", contains_array = True, inner =
 			IM("point_format",					"uint8", enum_class = ECPointFormats),
-		])),
+		),
 	])),
 ])
 
 TLSExtensionSupportedGroups = Structure([
 	IM("extension_id",					"uint16", enum_class = ExtensionType, fixed_value = ExtensionType.supported_groups),
 	IM("content",						"opaque16", inner = Structure([
-		IM("groups",						"opaque16", inner_array = True, inner = Structure([
+		IM("groups",						"opaque16", contains_array = True, inner =
 			IM("group",							"uint16", enum_class = SupportedGroups),
-		])),
+		),
 	])),
 ])
 
@@ -73,14 +73,14 @@ ClientHelloPkt = Structure([
 		IM("handshake_protocol_version",	"uint16", enum_class = TLSVersionHandshake),
 		IM("random",						"array[32]"),
 		IM("session_id",					"opaque8"),
-		IM("cipher_suites",					"opaque16", inner_array = True, inner = Structure([
+		IM("cipher_suites",					"opaque16", contains_array = True, inner =
 			IM("cipher_suite",					"uint16", enum_class = CipherSuite),
-		])),
-		IM("compression_methods",			"opaque8", inner_array = True, inner = Structure([
+		),
+		IM("compression_methods",			"opaque8", contains_array = True, inner =
 			IM("compression_method",			"uint8", enum_class = CompressionMethod),
-		])),
+		),
 		IM("extensions",					"opaque16"),
-#		IM("extensions",					"opaque16", inner_array = True, inner = VariableType([
+#		IM("extensions",					"opaque16", contains_array = True, inner = VariableType([
 #			TLSExtensionSupportedGroups,
 #			TLSExtensionECPointFormats,
 #			TLSExtension,

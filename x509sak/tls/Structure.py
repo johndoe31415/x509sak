@@ -25,7 +25,13 @@ import collections
 from x509sak.tls.DataBuffer import DataBuffer
 from x509sak.Exceptions import ProgrammerErrorException, InvalidInputException
 
-class DeserializationException(Exception): pass
+class StructureException(Exception): pass
+
+class SerializationException(StructureException): pass
+class DeserializationException(StructureException): pass
+
+class InvalidInputTypeException(SerializationException): pass
+
 class IncompleteUnpackingException(DeserializationException): pass
 class UnexpectedFixedValueException(DeserializationException): pass
 
@@ -157,6 +163,8 @@ class StructureElementInteger(StructureMemberFactoryElement):
 	def pack(self, value = None):
 		if (value is None) and (self._fixed_value is not None):
 			value = self._fixed_value
+		if not isinstance(value, int):
+			raise InvalidInputTypeException("%s requires int to be supplied for packing, got %s: %s" % (self.typename, type(value).__name__, str(value)))
 		if self._enum_class is not None:
 			if self._strict_enum:
 				if not isinstance(value, self._enum_class):
@@ -171,11 +179,11 @@ class StructureElementInteger(StructureMemberFactoryElement):
 class StructureElementOpaque(StructureMemberFactoryElement):
 	_REGEX = r"opaque(?P<bit>\d+)"
 
-	def __init__(self, name, length_field, inner = None, inner_array = None, string_encoding = None, fixed_value = None):
+	def __init__(self, name, length_field, inner = None, contains_array = None, string_encoding = None, fixed_value = None):
 		StructureMemberFactoryElement.__init__(self, name)
 		self._length_field = length_field
 		self._inner = inner
-		self._inner_array = inner_array
+		self._contains_array = contains_array
 		self._string_encoding = string_encoding
 		self._fixed_value = fixed_value
 		if (self._string_encoding is not None) and (self._inner is not None):
@@ -201,7 +209,7 @@ class StructureElementOpaque(StructureMemberFactoryElement):
 			data = data.decode(self._string_encoding)
 		elif self._inner is not None:
 			db = DataBuffer(data)
-			if not self._inner_array:
+			if not self._contains_array:
 				data = self._inner.unpack(db)
 			else:
 				result_array = [ ]
@@ -215,16 +223,21 @@ class StructureElementOpaque(StructureMemberFactoryElement):
 	def pack(self, data = None):
 		if (data is None) and (self._fixed_value is not None):
 			data = self._fixed_value
+
+
 		if (self._string_encoding is not None):
 			data = data.encode(self._string_encoding)
 		elif self._inner is not None:
-			if not self._inner_array:
+			if not self._contains_array:
 				data = self._inner.pack(data)
 			else:
 				packed_data = bytearray()
 				for element in data:
 					packed_data += self._inner.pack(element)
 				data = packed_data
+
+		if not isinstance(data, (bytes, bytearray)):
+			raise InvalidInputTypeException("%s requires bytes/bytearray to be supplied for packing, got %s: %s" % (self.typename, type(data).__name__, str(data)))
 		return self._length_field.pack(len(data)) + data
 
 @StructureMemberFactory.register
@@ -289,7 +302,8 @@ class Structure(BaseStructureMember):
 		return iter(self._members)
 
 	def pack(self, values):
-		assert(isinstance(values, dict))
+		if not isinstance(values, dict):
+			raise InvalidInputTypeException("%s requires a dict to be supplied for packing, got %s: %s" % (self.typename, type(values).__name__, str(values)))
 
 		# First check if all members are present
 		present_keys = set(values.keys())

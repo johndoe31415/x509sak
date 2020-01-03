@@ -38,20 +38,20 @@ class TLSStructureTestClientHello(BaseTest):
 			(TLSExtensionECPointFormats, {
 				"content": {
 					"point_formats": [
-						{ "point_format": ECPointFormats.uncompressed },
-						{ "point_format": ECPointFormats.ansiX962_compressed_prime },
-						{ "point_format": ECPointFormats.ansiX962_compressed_char2 },
+						ECPointFormats.uncompressed,
+						ECPointFormats.ansiX962_compressed_prime,
+						ECPointFormats.ansiX962_compressed_char2,
 					],
 				},
 			}),
 			(TLSExtensionSupportedGroups, {
 				"content": {
 					"groups": [
-						{ "group": SupportedGroups.X25519 },
-						{ "group": SupportedGroups.secp256r1 },
-						{ "group": SupportedGroups.X448 },
-						{ "group": SupportedGroups.secp521r1 },
-						{ "group": SupportedGroups.secp384r1 },
+						SupportedGroups.X25519,
+						SupportedGroups.secp256r1,
+						SupportedGroups.X448,
+						SupportedGroups.secp521r1,
+						SupportedGroups.secp384r1,
 					],
 				},
 			}),
@@ -67,14 +67,14 @@ class TLSStructureTestClientHello(BaseTest):
 				"random":						bytes.fromhex("ba616e70c10cd842eacbf26cca4bfc7e736ce718b18f90becff766fb7cff045e"),
 				"session_id":					bytes.fromhex(""),
 				"cipher_suites": [
-					{ "cipher_suite": CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA },
-					{ "cipher_suite": CipherSuite.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA },
-					{ "cipher_suite": CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA },
-					{ "cipher_suite": CipherSuite.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA },
-					{ "cipher_suite": CipherSuite.TLS_EMPTY_RENEGOTIATION_INFO_SCSV },
+					CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,
+					CipherSuite.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
+					CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,
+					CipherSuite.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,
+					CipherSuite.TLS_EMPTY_RENEGOTIATION_INFO_SCSV,
 				],
 				"compression_methods": [
-					{ "compression_method": CompressionMethod.Null },
+					CompressionMethod.Null,
 				],
 				"extensions": serialized_extensions,
 			},

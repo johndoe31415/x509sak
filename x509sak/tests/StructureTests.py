@@ -209,7 +209,7 @@ class StructureTests(BaseTest):
 
 	def test_nested_array(self):
 		structure = Structure((
-			IM("a", "opaque24", inner_array = True, inner = Structure((
+			IM("a", "opaque24", contains_array = True, inner = Structure((
 				IM("b", "uint16"),
 			))),
 		))
@@ -228,11 +228,11 @@ class StructureTests(BaseTest):
 	def test_complex_nested_array(self):
 		structure = Structure((
 			IM("all", "opaque16", inner = Structure((
-				IM("ciphers", "opaque24", inner_array = True, inner = Structure((
+				IM("ciphers", "opaque24", contains_array = True, inner = Structure((
 					IM("cipherbase", "uint8"),
 					IM("cipherid", "uint8"),
 				))),
-				IM("blah", "opaque16", inner_array = True, inner = Structure((
+				IM("blah", "opaque16", contains_array = True, inner = Structure((
 					IM("foo", "uint8"),
 				))),
 			))),
