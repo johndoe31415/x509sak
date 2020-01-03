@@ -36,7 +36,7 @@ class TLSStructureTestClientHello(BaseTest):
 		client_hello = {
 			"payload": {
 				"handshake_protocol_version":	tls_version_handshake,
-				"random":						bytes.fromhex("ba616e70c10cd842eacbf26cca4bfc7e736ce718b18f90becff766fb7cff045e"),
+				"client_random":				bytes.fromhex("ba616e70c10cd842eacbf26cca4bfc7e736ce718b18f90becff766fb7cff045e"),
 				"session_id":					bytes.fromhex(""),
 				"cipher_suites": [
 					CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,

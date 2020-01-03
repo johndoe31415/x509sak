@@ -22,8 +22,9 @@
 from x509sak.BaseAction import BaseAction
 from x509sak.tls.Enums import TLSVersion
 from x509sak.tls.MessageHelper import ClientHelloHelper
-from x509sak.tls.TLSStructs import ClientHelloPkt
+from x509sak.tls.TLSStructs import ClientHelloPkt, ServerHelloPkt, CertificatePkt
 from x509sak.tls.TLSConnection import TLSConnection
+from x509sak.X509Certificate import X509Certificate
 
 class ActionTLSClient(BaseAction):
 	def __init__(self, cmdname, args):
@@ -31,11 +32,21 @@ class ActionTLSClient(BaseAction):
 
 		tls_version = TLSVersion.ProtocolTLSv1_2
 		connection = TLSConnection.tcp_connect(tls_version = tls_version, servername = args.servername, port = args.port)
+		connection.add_hook("recv_handshake", self._recv_handshake)
 
 		chh = ClientHelloHelper()
-		print(chh.cipher_suite_directory.dump())
 		client_hello = chh.create(server_name = args.servername)
 		frame = ClientHelloPkt.pack(client_hello)
 		connection.send_handshake(frame)
 
 		print(connection.wait())
+
+	def _recv_handshake(self, msg):
+		(msg_type, data) = msg
+		if msg_type == ServerHelloPkt:
+			print(data)
+		elif msg_type == CertificatePkt:
+			print("%d certificates received:" % (len(data["payload"]["certificates"])))
+			for der_data in data["payload"]["certificates"]:
+				cert = X509Certificate(bytes(der_data))
+				print(cert)

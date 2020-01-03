@@ -22,10 +22,9 @@
 import socket
 import time
 from x509sak.tls.Enums import TLSVersion, ContentType
-from x509sak.tls.TLSStructs import RecordLayerPkt, AlertPkt
+from x509sak.tls.TLSStructs import RecordLayerPkt, AlertPkt, ServerHandshakeMessage
 from x509sak.tls.Structure import DeserializationException
 from x509sak.tls.DataBuffer import DataBuffer, DataBufferException
-from x509sak.HexDump import HexDump
 
 class TLSConnectionInterruptedException(Exception): pass
 
@@ -34,7 +33,6 @@ class TLSConnectionTransport():
 		self._sock = sock
 
 	def send(self, data):
-		HexDump().dump(data)
 		return self._sock.send(data)
 
 	def recv(self, data):
@@ -49,9 +47,20 @@ class TLSConnection():
 		assert(isinstance(tls_version, TLSVersion))
 		self._tls_version = tls_version
 		self._transport = transport
+		self._hooks = {
+			"recv_handshake": [ ],
+			"recv_record_layer": [ ],
+			"recv_alert": [ ],
+			"recv_encrypted_alert": [ ],
+		}
+
+	def add_hook(self, hooktype, callback):
+		self._hooks[hooktype].append(callback)
+		return self
 
 	def _hook(self, hooktype, data):
-		print(hooktype, data)
+		for hook in self._hooks[hooktype]:
+			hook(data)
 
 	def send(self, content_type, message):
 		assert(isinstance(content_type, ContentType))
@@ -76,6 +85,9 @@ class TLSConnection():
 			else:
 				# Encrypted alert
 				self._hook("recv_encrypted_alert", packet["payload"])
+		elif packet["content_type"] == ContentType.Handshake:
+			msg = ServerHandshakeMessage.unpack(DataBuffer(packet["payload"]))
+			self._hook("recv_handshake", msg)
 
 
 	def wait(self):

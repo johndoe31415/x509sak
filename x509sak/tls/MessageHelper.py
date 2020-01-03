@@ -102,7 +102,7 @@ class ClientHelloHelper():
 		client_hello = {
 			"payload": {
 				"handshake_protocol_version":	self._tls_version.value[1],
-				"random":						os.urandom(32),
+				"client_random":				os.urandom(32),
 				"session_id":					bytes(),
 				"cipher_suites":				self._create_cipher_suite_list(),
 				"compression_methods":			self._create_compression_methods(),

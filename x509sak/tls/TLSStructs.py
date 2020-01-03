@@ -67,6 +67,14 @@ TLSExtensionSupportedGroups = Structure(name = "TLSExtensionSupportedGroups", me
 	])),
 ])
 
+AnyExtension = VariableType(name = "AnyExtension", possible_inner_classes = [
+	TLSExtensionServerNameIndication,
+	TLSExtensionECPointFormats,
+	TLSExtensionSupportedGroups,
+	TLSExtensionFlag,
+	TLSExtension,
+])
+
 AlertPkt = Structure(name = "AlertPkt", members = [
 	IM("alert_level",		"uint8", enum_class = TLSAlertLevel),
 	IM("alert_description",	"uint8", enum_class = TLSAlertDescription),
@@ -76,7 +84,7 @@ ClientHelloPkt = Structure(name = "ClientHelloPkt", members = [
 	IM("handshake_type",				"uint8", enum_class = HandshakeType, fixed_value = HandshakeType.ClientHello),
 	IM("payload",						"opaque24", inner = Structure([
 		IM("handshake_protocol_version",	"uint16", enum_class = TLSVersionHandshake),
-		IM("random",						"array[32]"),
+		IM("client_random",					"array[32]"),
 		IM("session_id",					"opaque8"),
 		IM("cipher_suites",					"opaque16", contains_array = True, inner =
 			IM("cipher_suite",					"uint16", enum_class = CipherSuite),
@@ -84,12 +92,32 @@ ClientHelloPkt = Structure(name = "ClientHelloPkt", members = [
 		IM("compression_methods",			"opaque8", contains_array = True, inner =
 			IM("compression_method",			"uint8", enum_class = CompressionMethod),
 		),
-		IM("extensions",					"opaque16", contains_array = True, inner = VariableType([
-			TLSExtensionServerNameIndication,
-			TLSExtensionECPointFormats,
-			TLSExtensionSupportedGroups,
-			TLSExtensionFlag,
-			TLSExtension,
-		])),
+		IM("extensions",					"opaque16", contains_array = True, inner = AnyExtension),
 	])),
+])
+
+ServerHelloPkt = Structure(name = "ServerHelloPkt", members = [
+	IM("handshake_type",				"uint8", enum_class = HandshakeType, fixed_value = HandshakeType.ServerHello),
+	IM("payload",						"opaque24", inner = Structure([
+		IM("handshake_protocol_version",	"uint16", enum_class = TLSVersionHandshake),
+		IM("server_random",					"array[32]"),
+		IM("session_id",					"opaque8"),
+		IM("cipher_suite",					"uint16", enum_class = CipherSuite),
+		IM("compression_method",			"uint8", enum_class = CompressionMethod),
+		IM("extensions",					"opaque16", contains_array = True, inner = AnyExtension),
+	])),
+])
+
+CertificatePkt = Structure(name = "Certificate", members = [
+	IM("handshake_type",				"uint8", enum_class = HandshakeType, fixed_value = HandshakeType.Certificate),
+	IM("payload",						"opaque24", inner = Structure([
+		IM("certificates",					"opaque24", contains_array = True, inner =
+			IM("certificate", "opaque24"),
+		),
+	])),
+])
+
+ServerHandshakeMessage = VariableType(name = "ServerHandshakeMessage", possible_inner_classes = [
+	ServerHelloPkt,
+	CertificatePkt,
 ])
