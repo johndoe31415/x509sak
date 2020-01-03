@@ -29,6 +29,7 @@ import gzip
 import time
 import textwrap
 import datetime
+import pprint
 import urllib.parse
 import pyasn1.type.univ
 import pyasn1.codec.der.encoder
@@ -382,3 +383,8 @@ class FileLockTools():
 				# Other process holds lock
 				time.sleep(retry)
 		return FileLockTools._FileLockObject(lock_name)
+
+class DebugTools():
+	@classmethod
+	def pprint(cls, data):
+		pprint.PrettyPrinter().pprint(data)

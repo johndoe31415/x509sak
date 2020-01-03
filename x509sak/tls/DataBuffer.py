@@ -19,6 +19,8 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
+from x509sak.HexDump import HexDump
+
 class DataBufferException(Exception): pass
 class NotEnoughDataException(DataBufferException): pass
 
@@ -54,7 +56,7 @@ class DataBuffer():
 
 	@offset.setter
 	def offset(self, value):
-		assert(0 <= value < self.length)
+		assert(0 <= value <= self.length)
 		self._offset = value
 
 	@property
@@ -78,6 +80,10 @@ class DataBuffer():
 	def append(self, data):
 		self += data
 
+	def hexdump(self):
+		print("%s" % (self))
+		HexDump().dump(self._data)
+
 	def __iadd__(self, other):
 		self._data += other
 		return self
@@ -86,4 +92,4 @@ class DataBuffer():
 		return iter(self._data)
 
 	def __str__(self):
-		return "DataBuffer<%d bytes, offset %d>" % (self.length, self.offset)
+		return "DataBuffer<%d (0x%x) bytes, offset %d (0x%x), remaining %d (0x%x)>" % (self.length, self.length, self.offset, self.offset, self.remaining, self.remaining)

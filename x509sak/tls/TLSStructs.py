@@ -22,23 +22,23 @@
 from x509sak.tls.Enums import TLSVersionRecordLayer, TLSVersionHandshake, ContentType, HandshakeType, CipherSuite, CompressionMethod, ExtensionType, ServerNameType, ECPointFormats, SupportedGroups
 from x509sak.tls.Structure import Structure, VariableType, instantiate_member as IM
 
-RecordLayerPkt = Structure((
+RecordLayerPkt = Structure(name = "RecordLayerPkt", members = [
 	IM("content_type",			"uint8", enum_class = ContentType),
 	IM("record_layer_version",	"uint16", enum_class = TLSVersionRecordLayer),
 	IM("payload",				"opaque16"),
-))
+])
 
-TLSExtension = Structure((
+TLSExtension = Structure(name = "TLSExtension", members = [
 	IM("extension_id",					"uint16", enum_class = ExtensionType),
 	IM("content",						"opaque16"),
-))
+])
 
-TLSExtensionFlag = Structure((
+TLSExtensionFlag = Structure(name = "TLSExtensionFlag", members = [
 	IM("extension_id",					"uint16", enum_class = ExtensionType),
 	IM("content",						"opaque16", fixed_value = bytes()),
-))
+])
 
-TLSExtensionServerNameIndication = Structure([
+TLSExtensionServerNameIndication = Structure(name = "TLSExtensionServerNameIndication", members = [
 	IM("extension_id",					"uint16", enum_class = ExtensionType, fixed_value = ExtensionType.server_name),
 	IM("content",						"opaque16", inner = Structure([
 		IM("server_name_list",				"opaque16", contains_array = True, inner = Structure([
@@ -49,7 +49,7 @@ TLSExtensionServerNameIndication = Structure([
 ])
 TLSExtensionServerNameIndication.create = lambda hostname: { "content": { "server_name_list": [ { "server_name": hostname } ] } }
 
-TLSExtensionECPointFormats = Structure([
+TLSExtensionECPointFormats = Structure(name = "TLSExtensionECPointFormats", members = [
 	IM("extension_id",					"uint16", enum_class = ExtensionType, fixed_value = ExtensionType.ec_point_formats),
 	IM("content",						"opaque16", inner = Structure([
 		IM("point_formats",					"opaque8", contains_array = True, inner =
@@ -58,7 +58,7 @@ TLSExtensionECPointFormats = Structure([
 	])),
 ])
 
-TLSExtensionSupportedGroups = Structure([
+TLSExtensionSupportedGroups = Structure(name = "TLSExtensionSupportedGroups", members = [
 	IM("extension_id",					"uint16", enum_class = ExtensionType, fixed_value = ExtensionType.supported_groups),
 	IM("content",						"opaque16", inner = Structure([
 		IM("groups",						"opaque16", contains_array = True, inner =
@@ -67,7 +67,7 @@ TLSExtensionSupportedGroups = Structure([
 	])),
 ])
 
-ClientHelloPkt = Structure([
+ClientHelloPkt = Structure(name = "ClientHelloPkt", members = [
 	IM("handshake_type",				"uint8", enum_class = HandshakeType, fixed_value = HandshakeType.ClientHello),
 	IM("payload",						"opaque24", inner = Structure([
 		IM("handshake_protocol_version",	"uint16", enum_class = TLSVersionHandshake),
@@ -79,11 +79,12 @@ ClientHelloPkt = Structure([
 		IM("compression_methods",			"opaque8", contains_array = True, inner =
 			IM("compression_method",			"uint8", enum_class = CompressionMethod),
 		),
-		IM("extensions",					"opaque16"),
-#		IM("extensions",					"opaque16", contains_array = True, inner = VariableType([
-#			TLSExtensionSupportedGroups,
-#			TLSExtensionECPointFormats,
-#			TLSExtension,
-#		])),
+		IM("extensions",					"opaque16", contains_array = True, inner = VariableType([
+			TLSExtensionServerNameIndication,
+			TLSExtensionECPointFormats,
+			TLSExtensionSupportedGroups,
+			TLSExtensionFlag,
+			TLSExtension,
+		])),
 	])),
 ])

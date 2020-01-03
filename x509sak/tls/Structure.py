@@ -22,7 +22,7 @@
 import re
 import inspect
 import collections
-from x509sak.tls.DataBuffer import DataBuffer
+from x509sak.tls.DataBuffer import DataBuffer, DataBufferException
 from x509sak.Exceptions import ProgrammerErrorException, InvalidInputException
 
 class StructureException(Exception): pass
@@ -31,9 +31,12 @@ class SerializationException(StructureException): pass
 class DeserializationException(StructureException): pass
 
 class InvalidInputTypeException(SerializationException): pass
+class NoPossibleSerializationException(SerializationException): pass
 
+class InfiniteUnpackingException(DeserializationException): pass
 class IncompleteUnpackingException(DeserializationException): pass
 class UnexpectedFixedValueException(DeserializationException): pass
+class NoPossibleDeserializationException(DeserializationException): pass
 
 class BaseStructureMember():
 	def __init__(self, name = None):
@@ -214,7 +217,10 @@ class StructureElementOpaque(StructureMemberFactoryElement):
 			else:
 				result_array = [ ]
 				while db.remaining > 0:
+					pre_unpack = db.remaining
 					result_array.append(self._inner.unpack(db))
+					if pre_unpack == db.remaining:
+						raise InfiniteUnpackingException("Inner unpacking of %s consumed no data, still %d bytes remaining. Breaking infinite loop." % (str(self._inner), db.remaining))
 				data = result_array
 			if db.remaining > 0:
 				raise IncompleteUnpackingException("%s unpacking still has %d bytes of trailing, non-consumed data left." % (self.typename, db.remaining))
@@ -223,7 +229,6 @@ class StructureElementOpaque(StructureMemberFactoryElement):
 	def pack(self, data = None):
 		if (data is None) and (self._fixed_value is not None):
 			data = self._fixed_value
-
 
 		if (self._string_encoding is not None):
 			data = data.encode(self._string_encoding)
@@ -330,6 +335,12 @@ class Structure(BaseStructureMember):
 					result[member.name] = value
 			return result
 
+	def __repr__(self):
+		if self.name is None:
+			return "%s" % (self.typename)
+		else:
+			return "%s(%s)" % (self.typename, self.name)
+
 	def __str__(self):
 		return "%s<%s>" % (self.name, ", ".join(("%s %s" % (member.name, member.typename) for member in self.members)))
 
@@ -338,11 +349,26 @@ class VariableType(BaseStructureMember):
 		BaseStructureMember.__init__(self, name = name)
 		self._possible_inner_classes = possible_inner_classes
 
-	def pack(self, values):
-		pass
+	@property
+	def typename(self):
+		return "Variable"
+
+	def pack(self, type_value_tuple):
+		if not isinstance(type_value_tuple, tuple):
+			raise InvalidInputTypeException("%s requires a tuple to be supplied for packing, got %s: %s" % (self.typename, type(type_value_tuple).__name__, str(type_value_tuple)))
+		if len(type_value_tuple) != 2:
+			raise InvalidInputTypeException("%s requires a 2-tuple to be supplied for packing, got %d-tuple: %s" % (self.typename, len(type_value_tuple), str(type_value_tuple)))
+		(inner_class, values) = type_value_tuple
+		return inner_class.pack(values)
 
 	def unpack(self, databuffer):
-		pass
+		for possible_inner_class in self._possible_inner_classes:
+			try:
+				unpacking = possible_inner_class.unpack(databuffer)
+			except (DeserializationException, DataBufferException):
+				continue
+			return (possible_inner_class, unpacking)
+		raise NoPossibleDeserializationException("Attempts to deserialize all possible %d inner classes were unsuccessful." % (len(self._possible_inner_classes)))
 
 def instantiate_member(name, typename, **kwargs):
 	return StructureMemberFactory.instantiate(name, typename, **kwargs)

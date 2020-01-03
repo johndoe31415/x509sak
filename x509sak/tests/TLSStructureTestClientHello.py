@@ -24,6 +24,7 @@ from x509sak.tls.Enums import TLSVersion, CipherSuite, CompressionMethod, ECPoin
 from x509sak.tls.TLSStructs import ClientHelloPkt, TLSExtensionFlag, TLSExtensionServerNameIndication, TLSExtensionECPointFormats, TLSExtensionSupportedGroups, RecordLayerPkt
 from x509sak.tls.DataBuffer import DataBuffer
 from x509sak.HexDump import HexDump
+from x509sak.Tools import DebugTools
 
 class TLSStructureTestClientHello(BaseTest):
 	def test_client_hello(self):
@@ -33,34 +34,6 @@ class TLSStructureTestClientHello(BaseTest):
 		reference_packet = bytes.fromhex("1603010076010000720301ba616e70c10cd842eacbf26cca4bfc7e736ce718b18f90becff766fb7cff045e00000ac00ac014c009c01300ff0100003f0000001700150000126a6f68616e6e65732d62617565722e636f6d000b000403000102000a000c000a001d0017001e00190018002300000016000000170000")
 
 		(tls_version_recordlayer, tls_version_handshake) = TLSVersion.ProtocolTLSv1_0.value
-		tls_extensions = [
-			(TLSExtensionServerNameIndication, TLSExtensionServerNameIndication.create("johannes-bauer.com")),
-			(TLSExtensionECPointFormats, {
-				"content": {
-					"point_formats": [
-						ECPointFormats.uncompressed,
-						ECPointFormats.ansiX962_compressed_prime,
-						ECPointFormats.ansiX962_compressed_char2,
-					],
-				},
-			}),
-			(TLSExtensionSupportedGroups, {
-				"content": {
-					"groups": [
-						SupportedGroups.X25519,
-						SupportedGroups.secp256r1,
-						SupportedGroups.X448,
-						SupportedGroups.secp521r1,
-						SupportedGroups.secp384r1,
-					],
-				},
-			}),
-			(TLSExtensionFlag, { "extension_id": ExtensionType.SessionTicketTLS }),
-			(TLSExtensionFlag, { "extension_id": ExtensionType.encrypt_then_mac }),
-			(TLSExtensionFlag, { "extension_id": ExtensionType.extended_master_secret }),
-		]
-		serialized_extensions = bytes().join(extension_class.pack(extension_data) for (extension_class, extension_data) in tls_extensions)
-
 		client_hello = {
 			"payload": {
 				"handshake_protocol_version":	tls_version_handshake,
@@ -76,7 +49,32 @@ class TLSStructureTestClientHello(BaseTest):
 				"compression_methods": [
 					CompressionMethod.Null,
 				],
-				"extensions": serialized_extensions,
+				"extensions": [
+					(TLSExtensionServerNameIndication, TLSExtensionServerNameIndication.create("johannes-bauer.com")),
+					(TLSExtensionECPointFormats, {
+						"content": {
+							"point_formats": [
+								ECPointFormats.uncompressed,
+								ECPointFormats.ansiX962_compressed_prime,
+								ECPointFormats.ansiX962_compressed_char2,
+							],
+						},
+					}),
+					(TLSExtensionSupportedGroups, {
+						"content": {
+							"groups": [
+								SupportedGroups.X25519,
+								SupportedGroups.secp256r1,
+								SupportedGroups.X448,
+								SupportedGroups.secp521r1,
+								SupportedGroups.secp384r1,
+							],
+						},
+					}),
+					(TLSExtensionFlag, { "extension_id": ExtensionType.SessionTicketTLS }),
+					(TLSExtensionFlag, { "extension_id": ExtensionType.encrypt_then_mac }),
+					(TLSExtensionFlag, { "extension_id": ExtensionType.extended_master_secret }),
+				]
 			},
 		}
 		serialized_client_hello = ClientHelloPkt.pack(client_hello)
@@ -94,8 +92,3 @@ class TLSStructureTestClientHello(BaseTest):
 
 		deserialized_client_hello = ClientHelloPkt.unpack(DataBuffer(record_layer_packet["payload"]))
 		self.assertEqual(deserialized_client_hello, client_hello)
-
-		extension_db = DataBuffer(client_hello["payload"]["extensions"])
-		for (extension_class, expected_extension) in tls_extensions:
-			deserialized_extension = extension_class.unpack(extension_db)
-			self.assertEqual(deserialized_extension, expected_extension)
