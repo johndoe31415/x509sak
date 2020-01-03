@@ -23,8 +23,7 @@ from x509sak.tests import BaseTest
 from x509sak.tls.Enums import TLSVersion, CipherSuite, CompressionMethod, ECPointFormats, SupportedGroups, ExtensionType, ContentType, HandshakeType
 from x509sak.tls.TLSStructs import ClientHelloPkt, TLSExtensionFlag, TLSExtensionServerNameIndication, TLSExtensionECPointFormats, TLSExtensionSupportedGroups, RecordLayerPkt
 from x509sak.tls.DataBuffer import DataBuffer
-from x509sak.HexDump import HexDump
-from x509sak.Tools import DebugTools
+from x509sak.tls.MessageHelper import ClientHelloHelper
 
 class TLSStructureTestClientHello(BaseTest):
 	def test_client_hello(self):
@@ -92,3 +91,11 @@ class TLSStructureTestClientHello(BaseTest):
 
 		deserialized_client_hello = ClientHelloPkt.unpack(DataBuffer(record_layer_packet["payload"]))
 		self.assertEqual(deserialized_client_hello, client_hello)
+
+	def test_client_hello_helper(self):
+		chh = ClientHelloHelper(allow_tls_compression = True)
+
+		client_hello = chh.create("foobar.com")
+		serialized = ClientHelloPkt.pack(client_hello)
+		deserialized = ClientHelloPkt.unpack(DataBuffer(serialized))
+		self.assertEqual(client_hello, deserialized)
