@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2019-2019 Johannes Bauer
+#	Copyright (C) 2019-2020 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -19,7 +19,7 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-from x509sak.tls.Enums import TLSVersionRecordLayer, TLSVersionHandshake, ContentType, HandshakeType, CipherSuite, CompressionMethod, ExtensionType, ServerNameType, ECPointFormats, SupportedGroups
+from x509sak.tls.Enums import TLSVersionRecordLayer, TLSVersionHandshake, ContentType, HandshakeType, CipherSuite, CompressionMethod, ExtensionType, ServerNameType, ECPointFormats, SupportedGroups, TLSAlertLevel, TLSAlertDescription
 from x509sak.tls.Structure import Structure, VariableType, instantiate_member as IM
 
 RecordLayerPkt = Structure(name = "RecordLayerPkt", members = [
@@ -65,6 +65,11 @@ TLSExtensionSupportedGroups = Structure(name = "TLSExtensionSupportedGroups", me
 			IM("group",							"uint16", enum_class = SupportedGroups),
 		),
 	])),
+])
+
+AlertPkt = Structure(name = "AlertPkt", members = [
+	IM("alert_level",		"uint8", enum_class = TLSAlertLevel),
+	IM("alert_description",	"uint8", enum_class = TLSAlertDescription),
 ])
 
 ClientHelloPkt = Structure(name = "ClientHelloPkt", members = [

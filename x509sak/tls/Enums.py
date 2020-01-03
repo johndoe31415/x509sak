@@ -65,12 +65,12 @@ class ChangeCipherSpecType(enum.IntEnum):
 	"""ChangeCipherSpec as Sect. 7.1. of RFC5246"""
 	ChangeCipherSpec = 1
 
-class AlertLevel(enum.IntEnum):
+class TLSAlertLevel(enum.IntEnum):
 	"""AlertLevel as Sect. 7.2. of RFC5246"""
 	Warn = 1
 	Fatal = 2
 
-class AlertDescription(enum.IntEnum):
+class TLSAlertDescription(enum.IntEnum):
 	"""AlertDescription as Sect. 7.2. of RFC5246"""
 	CloseNotify = 0
 	UnexpectedMessage = 10

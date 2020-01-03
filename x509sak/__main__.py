@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2018 Johannes Bauer
+#	Copyright (C) 2018-2020 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -37,6 +37,7 @@ from x509sak.actions.ActionExamineCert import ActionExamineCert
 from x509sak.actions.ActionForgeCert import ActionForgeCert
 from x509sak.actions.ActionScrape import ActionScrape
 from x509sak.actions.ActionHashPart import ActionHashPart
+from x509sak.actions.ActionTLSClient import ActionTLSClient
 from x509sak.actions.ActionDebug import ActionDebug
 from x509sak.CmdLineArgs import KeyValue
 from x509sak.KeySpecification import KeySpecification
@@ -230,6 +231,12 @@ def genparser(parser):
 	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
 	parser.add_argument("filename", metavar = "filename", type = str, help = "File that should be hashed.")
 mc.register("hashpart", "Hash all substrings of a file and search for a particular hash value", genparser, action = ActionHashPart)
+
+def genparser(parser):
+	parser.add_argument("-p", "--port", metavar = "port", default = 443, help = "Port to connect to. Defaults to %(default)d.")
+	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
+	parser.add_argument("servername", metavar = "filename", type = str, help = "Server name to connect to.")
+mc.register("tlsclient", "Act as a TLS client", genparser, action = ActionTLSClient, visible = False)
 
 def genparser(parser):
 	parser.add_argument("--der", action = "store_true", help = "Read in certificate in DER format instead of PEM.")
