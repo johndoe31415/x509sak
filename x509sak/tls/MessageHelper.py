@@ -29,21 +29,26 @@ class ClientHelloHelper():
 		self._tls_version = tls_version
 		self._include_secure_renegotiation_scsv = include_secure_renegotiation_scsv
 		self._cipher_suite_directory = cipher_suite_directory
+		if self._cipher_suite_directory is None:
+			self._cipher_suite_directory = self._create_cipher_suite_directory()
+		self._cipher_suite_directory = self._cipher_suite_directory.filter(lambda cs: not cs.is_pseudo_suite)
 		self._allow_tls_compression = allow_tls_compression
 
-	def _create_cipher_suite_list(self):
-		if self._cipher_suite_directory is not None:
-			csd = self._cipher_suite_directory
-		else:
-			csd = CipherSuiteDirectory()
-			csd = csd.filter_cipher(lambda cipher: cipher.cipher in [ "AES", "DES", "Camellia", "RC4" ])
-			csd = csd.filter_cipher(lambda cipher: cipher.keylen >= 128)
-			csd = csd.filter_kex(lambda kex: not kex.export)
-			csd = csd.filter_prf(lambda prf: prf.hashlen >= 160)
-			csd = csd.filter_sig_algorithm(lambda sig_algorithm: sig_algorithm.identifier in [ "ECDSA", "RSA" ])
+	@property
+	def cipher_suite_directory(self):
+		return self._cipher_suite_directory
 
-		csd = csd.filter(lambda cs: not cs.is_pseudo_suite)
-		cipher_suites = [ cs.csid for cs in csd ]
+	def _create_cipher_suite_directory(self):
+		csd = CipherSuiteDirectory()
+		csd = csd.filter_cipher(lambda cipher: cipher.cipher in [ "AES", "ChaCha20", "DES", "Camellia", "RC4" ])
+		csd = csd.filter_cipher(lambda cipher: cipher.keylen >= 128)
+		csd = csd.filter_kex(lambda kex: not kex.export)
+		csd = csd.filter_prf(lambda prf: prf.hashlen >= 160)
+		csd = csd.filter_sig_algorithm(lambda sig_algorithm: sig_algorithm.identifier in [ "ECDSA", "RSA" ])
+		return csd
+
+	def _create_cipher_suite_list(self):
+		cipher_suites = [ cs.csid for cs in self._cipher_suite_directory ]
 		if self._include_secure_renegotiation_scsv:
 			cipher_suites.append(CipherSuite.TLS_EMPTY_RENEGOTIATION_INFO_SCSV)
 		return cipher_suites
@@ -90,7 +95,6 @@ class ClientHelloHelper():
 			(TLSExtensionFlag, { "extension_id": ExtensionType.SessionTicketTLS }),
 			(TLSExtensionFlag, { "extension_id": ExtensionType.encrypt_then_mac }),
 			(TLSExtensionFlag, { "extension_id": ExtensionType.extended_master_secret }),
-			(TLSExtensionFlag, { "extension_id": ExtensionType.renegotiation_info }),
 		]
 		return tls_extensions
 

@@ -82,6 +82,7 @@ class VerboseCipherSuite():
 			_CSElements.Cipher(identifier = "RC4_128", cipher = "RC4", keylen = 128, opmode = "STRM", aead = False),
 			_CSElements.Cipher(identifier = "RC4_40", cipher = "RC4", keylen = 40, opmode = "STRM", aead = False),
 			_CSElements.Cipher(identifier = "SEED_CBC", cipher = "SEED", keylen = 128, opmode = "CBC", aead = False),
+			_CSElements.Cipher(identifier = "CHACHA20_POLY1305", cipher = "ChaCha20", keylen = 256, opmode = "STRM", aead = True),
 		]),
 		"prf": _dict_by_identifier([
 			_CSElements.PRF(identifier = "RMD", hashlen = 160),
@@ -105,7 +106,6 @@ class VerboseCipherSuite():
 		self._prf = None
 
 		self._pfs = False
-		self._auth_vector_len = None
 
 		if not self._pseudo_suite:
 			regex = self._cipher_suite_regex

@@ -33,6 +33,7 @@ class ActionTLSClient(BaseAction):
 		connection = TLSConnection.tcp_connect(tls_version = tls_version, servername = args.servername, port = args.port)
 
 		chh = ClientHelloHelper()
+		print(chh.cipher_suite_directory.dump())
 		client_hello = chh.create(server_name = args.servername)
 		frame = ClientHelloPkt.pack(client_hello)
 		connection.send_handshake(frame)
