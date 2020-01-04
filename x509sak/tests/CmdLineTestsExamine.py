@@ -856,5 +856,29 @@ class CmdLineTestsExamine(BaseTest):
 	def test_basic_constraints_present_noncritical(self):
 		self._test_examine_x509test_resultcode("certs/constructed/bc_present_noncritical.pem", expect_present = "Cert_X509Ext_BasicConstraints_PresentButNotCritical")
 
+	def test_issuer_altname_missing(self):
+		self._test_examine_x509test_resultcode("certs/constructed/issuer_altname_missing.pem", expect_present = "Cert_X509Ext_IssuerAltName_Missing")
+
+	def test_issuer_altname_not_missing(self):
+		self._test_examine_x509test_resultcode("certs/constructed/issuer_altname_not_missing.pem", expect_absent = "Cert_X509Ext_IssuerAltName_Missing")
+
+	def test_issuer_altname_empty(self):
+		self._test_examine_x509test_resultcode("certs/constructed/issuer_altname_empty.pem", expect_present = "Cert_X509Ext_IssuerAltName_Empty")
+
+	def test_issuer_altname_emptyvalue(self):
+		self._test_examine_x509test_resultcode("certs/constructed/issuer_altname_emptyvalue.pem", expect_present = "Cert_X509Ext_IssuerAltName_EmptyValue")
+
+	def test_issuer_altname_bad_domain(self):
+		self._test_examine_x509test_resultcode("certs/constructed/issuer_altname_bad_domain.pem", expect_present = "Cert_X509Ext_IssuerAltName_BadDomain")
+
+	def test_issuer_altname_bad_uri(self):
+		self._test_examine_x509test_resultcode("certs/constructed/issuer_altname_bad_uri.pem", expect_present = "Cert_X509Ext_IssuerAltName_BadURI")
+
+#	def test_issuer_altname_uncommon_uri_scheme(self):
+#		self._test_examine_x509test_resultcode("certs/constructed/issuer_altname_uncommon_uri_scheme.pem", expect_present = "Cert_X509Ext_IssuerAltName_UncommonURIScheme")
+
+	def test_issuer_altname_bad_ip(self):
+		self._test_examine_x509test_resultcode("certs/constructed/issuer_altname_bad_ip.pem", expect_present = "Cert_X509Ext_IssuerAltName_BadIP")
+
 	def test_issuer_altname_bad_email(self):
 		self._test_examine_x509test_resultcode("certs/constructed/issuer_altname_bad_email.pem", expect_present = "Cert_X509Ext_IssuerAltName_BadEmail")

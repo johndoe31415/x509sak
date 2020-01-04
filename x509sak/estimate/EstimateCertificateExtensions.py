@@ -367,6 +367,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 			"bad_ip":				self._NameError(code = JudgementCode.Cert_X509Ext_IssuerAltName_BadIP, standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "For IP version 4, as specified in [RFC791], the octet string MUST contain exactly four octets. For IP version 6, as specified in [RFC2460], the octet string MUST contain exactly sixteen octets.")),
 			"bad_email":			self._NameError(code = JudgementCode.Cert_X509Ext_IssuerAltName_BadEmail, standard = RFCReference(rfcno = 822, sect = "6.1", verb = "MUST", text = "addr-spec = local-part \"@\" domain")),
 			"bad_uri":				self._NameError(code = JudgementCode.Cert_X509Ext_IssuerAltName_BadURI, standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "The name MUST NOT be a relative URI, and it MUST follow the URI syntax and encoding rules specified in [RFC3986]. The name MUST include both a scheme (e.g., \"http\" or \"ftp\") and a scheme-specific-part. URIs that include an authority ([RFC3986], Section 3.2) MUST include a fully qualified domain name or IP address as the host.")),
+			"uncommon_uri_scheme":	self._NameError(code = JudgementCode.Cert_X509Ext_IssuerAltName_UncommonURIScheme, standard = None),
 		})
 
 	def _judge_issuer_alternative_name(self, certificate):
@@ -382,9 +383,8 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 				standard = RFCReference(rfcno = 5280, sect = "4.2.1.7", verb = "SHOULD", text = "Where present, conforming CAs SHOULD mark this extension as non-critical.")
 				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_IssuerAltName_Critical, "Issuer Alternative Name X.509 extension should not be critical.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 		else:
-			if certificate.subject.empty:
-				standard = RFCReference(rfcno = 5280, sect = [ "4.2.1.7", "4.2.1.6" ], verb = "MUST", text = "If the subject field contains an empty sequence, then the issuing CA MUST include a subjectAltName extension that is marked as critical.")
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_IssuerAltName_Missing, "Issuer Alternative Name X.509 missing although subject is empty.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+			if certificate.issuer.empty:
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_IssuerAltName_Missing, "Issuer Alternative Name X.509 missing although issuer in header is empty.", commonness = Commonness.HIGHLY_UNUSUAL)
 
 		return judgements
 
