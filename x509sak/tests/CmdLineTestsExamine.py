@@ -567,16 +567,16 @@ class CmdLineTestsExamine(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/rsa_parameter_missing.pem", "RSA_Parameter_Field_Not_Present")
 
 	def test_include_raw_data_rsa(self):
-		self._test_examine_x509test_resultcode("certs/ok/rsa_512.pem", expect_present = [ "HashFunction_Derated", "RSA_Modulus_Length", "HashFunction_Length" ], include_raw = True)
+		self._test_examine_x509test_resultcode("certs/ok/rsa_512.pem", expect_present = [ "SignatureFunction_Common", "HashFunction_Derated", "RSA_Modulus_Length", "HashFunction_Length" ], include_raw = True)
 
 	def test_include_raw_data_ecc_fp(self):
-		self._test_examine_x509test_resultcode("certs/ok/ecc_secp256r1.pem", include_raw = True)
+		self._test_examine_x509test_resultcode("certs/ok/ecc_secp256r1.pem", expect_present = "SignatureFunction_Common", include_raw = True)
 
 	def test_include_raw_data_ecc_f2m(self):
 		self._test_examine_x509test_resultcode("certs/ok/ecc_sect283r1.pem", include_raw = True)
 
 	def test_include_raw_data_ecc_twedwards(self):
-		self._test_examine_x509test_resultcode("certs/ok/pubkey_sig_ed25519.pem", include_raw = True)
+		self._test_examine_x509test_resultcode("certs/ok/pubkey_sig_ed25519.pem", expect_present = "SignatureFunction_UncommonCryptosystem", include_raw = True)
 
 	def test_explicit_prime(self):
 		self._test_examine_x509test_resultcode("certs/ok/ecc_explicit_param_prime.pem", expect_present = [ "ECC_UnusedCurveName", "ECC_ExplicitCurveEncoding" ], expect_absent = "ECC_UnknownExplicitCurve")
@@ -705,6 +705,9 @@ class CmdLineTestsExamine(BaseTest):
 
 	def test_unknown_sigfnc(self):
 		self._test_examine_x509test_resultcode("certs/constructed/unknown_sigfnc.pem", expect_present = "Cert_Unknown_SignatureAlgorithm")
+
+	def test_rsa_pss_ok(self):
+		self._test_examine_x509test_resultcode("certs/ok/rsapss_defaults.pem", expect_present = "SignatureFunction_UncommonPaddingScheme")
 
 	def test_rsa_pss_unknown_hashfnc1(self):
 		self._test_examine_x509test_resultcode("certs/constructed/unknown_hashfnc1.pem", expect_present = "Cert_Unknown_HashAlgorithm")
