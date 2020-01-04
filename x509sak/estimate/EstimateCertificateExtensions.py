@@ -52,6 +52,32 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		"invalid_type":					GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_SubjectAltName_UncommonIdentifier),
 	})
 
+	_ISSUER_ALTERNATIVE_NAME_VALIDATOR = GeneralNameValidator(error_prefix_str = "X.509 Issuer Alternative Name Extension", permissible_types = [ "directoryName" ], errors = {
+		"empty_value":					GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_IssuerAltName_EmptyValue),
+		"email":						GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_IssuerAltName_BadEmail, standard = RFCReference(rfcno = 822, sect = "6.1", verb = "MUST", text = "addr-spec = local-part \"@\" domain")),
+		"ip":							GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_IssuerAltName_BadIP, standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "For IP version 4, as specified in [RFC791], the octet string MUST contain exactly four octets. For IP version 6, as specified in [RFC2460], the octet string MUST contain exactly sixteen octets.")),
+		"ip_private":					GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_IssuerAltName_BadIP_Private),
+		"uri":							GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_IssuerAltName_BadURI, standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "The name MUST NOT be a relative URI, and it MUST follow the URI syntax and encoding rules specified in [RFC3986]. The name MUST include both a scheme (e.g., \"http\" or \"ftp\") and a scheme-specific-part. URIs that include an authority ([RFC3986], Section 3.2) MUST include a fully qualified domain name or IP address as the host.")),
+		"uri_invalid_scheme":			GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_IssuerAltName_UncommonURIScheme),
+		"dnsname":						GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_IssuerAltName_BadDNSName, standard = RFCReference(rfcno = 1034, sect = "3.5", verb = "MUST", text = "The following syntax will result in fewer problems with many applications that use domain names (e.g., mail, TELNET).")),
+		"dnsname_space":				GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_IssuerAltName_BadDNSName_Space, standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "In addition, while the string \" \" is a legal domain name, subjectAltName extensions with a dNSName of \" \" MUST NOT be used.")),
+		"dnsname_single_label":			GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_IssuerAltName_BadDNSName_SingleLabel),
+		"invalid_type":					GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_IssuerAltName_UncommonIdentifier),
+	})
+
+	_AUTHORITY_KEY_IDENTIFIER_CANAME_VALIDATOR = GeneralNameValidator(error_prefix_str = "X.509 Authority Key Identifier Extension (CA name)", permissible_types = [ "directoryName" ], errors = {
+		"empty_value":					GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_CAName_EmptyValue),
+		"email":						GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_CAName_BadEmail, standard = RFCReference(rfcno = 822, sect = "6.1", verb = "MUST", text = "addr-spec = local-part \"@\" domain")),
+		"ip":							GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_CAName_BadIP, standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "For IP version 4, as specified in [RFC791], the octet string MUST contain exactly four octets. For IP version 6, as specified in [RFC2460], the octet string MUST contain exactly sixteen octets.")),
+		"ip_private":					GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_CAName_BadIP_Private),
+		"uri":							GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_CAName_BadURI, standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "The name MUST NOT be a relative URI, and it MUST follow the URI syntax and encoding rules specified in [RFC3986]. The name MUST include both a scheme (e.g., \"http\" or \"ftp\") and a scheme-specific-part. URIs that include an authority ([RFC3986], Section 3.2) MUST include a fully qualified domain name or IP address as the host.")),
+		"uri_invalid_scheme":			GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_CAName_UncommonURIScheme),
+		"dnsname":						GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_CAName_BadDNSName, standard = RFCReference(rfcno = 1034, sect = "3.5", verb = "MUST", text = "The following syntax will result in fewer problems with many applications that use domain names (e.g., mail, TELNET).")),
+		"dnsname_space":				GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_CAName_BadDNSName_Space, standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "In addition, while the string \" \" is a legal domain name, subjectAltName extensions with a dNSName of \" \" MUST NOT be used.")),
+		"dnsname_single_label":			GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_CAName_BadDNSName_SingleLabel),
+		"invalid_type":					GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_CAName_UncommonIdentifier),
+	})
+
 	def _analyze_extension(self, extension):
 		result = {
 			"name":			extension.name,
@@ -160,15 +186,6 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 				judgement = SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectKeyIdentifier_Arbitrary, "SubjectKeyIdentifier key ID (%s) does not match any tested cryptographic hash function (%s) over the contained public key." % (ski.keyid.hex(), ", ".join(hashfnc.value.pretty_name for hashfnc in tried_hashfncs)), commonness = Commonness.HIGHLY_UNUSUAL)
 		return judgement
 
-	def _judge_single_authority_key_identifier_ca_name(self, entity_name):
-		return self._judge_single_general_name(entity_name, allow_dnsname_wildcard_matches = True, extension_str = "Authority Key Identifier X.509 extension", name_errors = {
-			"empty":				self._NameError(code = JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_CAName_EmptyValue, standard = RFCReference(rfcno = 5280, sect = [ "4.2.1.1", "4.2.1.6" ], verb = "MUST", text = "GeneralName ::= CHOICE {")),
-			"bad_domain":			self._NameError(code = JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_CAName_BadDNSName, standard = RFCReference(rfcno = 1034, sect = "3.5", verb = "MUST", text = "The following syntax will result in fewer problems with many applications that use domain names (e.g., mail, TELNET).")),
-			"bad_ip":				self._NameError(code = JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_CAName_BadIP, standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "For IP version 4, as specified in [RFC791], the octet string MUST contain exactly four octets. For IP version 6, as specified in [RFC2460], the octet string MUST contain exactly sixteen octets.")),
-			"bad_email":			self._NameError(code = JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_CAName_BadEmail, standard = RFCReference(rfcno = 822, sect = "6.1", verb = "MUST", text = "addr-spec = local-part \"@\" domain")),
-			"bad_uri":				self._NameError(code = JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_CAName_BadURI, standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "The name MUST NOT be a relative URI, and it MUST follow the URI syntax and encoding rules specified in [RFC3986]. The name MUST include both a scheme (e.g., \"http\" or \"ftp\") and a scheme-specific-part. URIs that include an authority ([RFC3986], Section 3.2) MUST include a fully qualified domain name or IP address as the host.")),
-		})
-
 	def _judge_authority_key_identifier(self, certificate, root_cert = None):
 		judgements = SecurityJudgements()
 		aki = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("AuthorityKeyIdentifier"))
@@ -200,8 +217,8 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 				if len(aki.ca_names) == 0:
 					standard = RFCReference(rfcno = 5280, sect = [ "4.2.1.1", "4.2.1.6" ], verb = "MUST", text = "GeneralNames ::= SEQUENCE SIZE (1..MAX) OF GeneralName")
 					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_CAName_Empty, "AuthorityKeyIdentifier X.509 extension contains CA names field of length zero.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
-				for entity_name in aki.ca_names:
-					judgements += self._judge_single_authority_key_identifier_ca_name(entity_name)
+				for general_name in aki.ca_names:
+					judgements += self._AUTHORITY_KEY_IDENTIFIER_CANAME_VALIDATOR.validate(general_name)
 
 			if (aki.ca_names is None) and (aki.serial is not None):
 				standard = RFCReference(rfcno = 5280, sect = "A.2", verb = "MUST", text = "authorityCertIssuer and authorityCertSerialNumber MUST both be present or both be absent")
@@ -289,53 +306,6 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 
 		return judgements
 
-	def _judge_single_general_name(self, entity_name, allow_dnsname_wildcard_matches, extension_str, name_errors):
-		if entity_name.str_value == "":
-			return SecurityJudgement(name_errors["empty"].code, "%s of type %s has empty value." % (extension_str, entity_name.name), compatibility = Compatibility.STANDARDS_DEVIATION, standard = name_errors["empty"].standard)
-
-		if entity_name.name == "dNSName":
-			if entity_name.str_value == " ":
-				return SecurityJudgement(name_errors["bad_domain_space"].code, "%s of type %s got invalid domain name \"%s\"." % (extension_str, entity_name.name, entity_name.str_value), compatibility = Compatibility.STANDARDS_DEVIATION, standard = name_errors["bad_domain_space"].standard)
-
-			if allow_dnsname_wildcard_matches:
-				(result, label) = ValidationTools.validate_domainname_template(entity_name.str_value)
-				if result != ValidationTools.DomainnameTemplateValidationResult.Valid:
-					if result == ValidationTools.DomainnameTemplateValidationResult.InvalidCharacter:
-						return SecurityJudgement(name_errors["bad_domain"].code, "%s of type %s got invalid domain name \"%s\", error at label \"%s\"." % (extension_str, entity_name.name, entity_name.str_value, label), compatibility = Compatibility.STANDARDS_DEVIATION, standard = name_errors["bad_domain"].standard)
-					elif result == ValidationTools.DomainnameTemplateValidationResult.FullWildcardNotLeftmost:
-						return SecurityJudgement(name_errors["bad_wc_notleftmost"].code, "%s of type %s got invalid domain name \"%s\". Full wildcard appears not as leftmost element." % (extension_str, entity_name.name, entity_name.str_value), compatibility = Compatibility.STANDARDS_DEVIATION, standard = name_errors["bad_wc_notleftmost"].standard)
-					elif result == ValidationTools.DomainnameTemplateValidationResult.MoreThanOneWildcard:
-						return SecurityJudgement(name_errors["bad_wc_morethanone"].code, "%s of type %s got invalid domain name \"%s\". More than one wildcard label present." % (extension_str, entity_name.name, entity_name.str_value), compatibility = Compatibility.STANDARDS_DEVIATION, standard = name_errors["bad_wc_morethanone"].standard)
-					elif result == ValidationTools.DomainnameTemplateValidationResult.WildcardInInternationalDomain:
-						return SecurityJudgement(name_errors["bad_wc_international"].code, "%s of type %s got invalid domain name \"%s\". Wildcard in international domain label \"%s\"." % (extension_str, entity_name.name, entity_name.str_value, label), compatibility = Compatibility.STANDARDS_DEVIATION, standard = name_errors["bad_wc_international"].standard)
-					else:
-						raise NotImplementedError(result)
-
-				if "*" in entity_name.str_value:
-					# Wildcard match
-					labels = entity_name.str_value.split(".")
-					if len(labels) <= 2:
-						return SecurityJudgement(name_errors["bad_wc_broad"].code, "%s of type %s and wildcard value \"%s\" has very broad domain match." % (extension_str, entity_name.name, entity_name.str_value), commonness = Commonness.HIGHLY_UNUSUAL)
-
-			validation_name = entity_name.str_value
-			if allow_dnsname_wildcard_matches:
-				validation_name = validation_name.replace("*", "a")
-			result = ValidationTools.validate_domainname(validation_name)
-			if not result:
-				return SecurityJudgement(name_errors["bad_domain"].code, "%s of type %s got invalid domain name \"%s\" (wildcard matches %s)." % (extension_str, entity_name.name, entity_name.str_value, "permitted" if allow_dnsname_wildcard_matches else "forbidden"), compatibility = Compatibility.STANDARDS_DEVIATION, standard = name_errors["bad_domain"].standard)
-
-		elif entity_name.name == "iPAddress":
-			if len(entity_name.asn1_value) not in [ 4, 16 ]:
-				return SecurityJudgement(name_errors["bad_ip"].code, "%s of type ipAddress expects either 4 or 16 bytes of data for IPv4/IPv6, but saw %d bytes." % (extension_str, len(entity_name.str_value)), compatibility = Compatibility.STANDARDS_DEVIATION, standard = name_errors["bad_ip"].standard)
-		elif entity_name.name == "rfc822Name":
-			if not ValidationTools.validate_email_address(entity_name.str_value):
-				return SecurityJudgement(name_errors["bad_email"].code, "%s of type %s got invalid email address \"%s\"." % (extension_str, entity_name.name, entity_name.str_value), compatibility = Compatibility.STANDARDS_DEVIATION, standard = name_errors["bad_email"].standard)
-		elif entity_name.name == "uniformResourceIdentifier":
-			if not ValidationTools.validate_uri(str(entity_name.str_value)):
-				return SecurityJudgement(name_errors["bad_uri"].code, "%s of type %s got invalid URI \"%s\"." % (extension_str, entity_name.name, str(entity_name.str_value)), compatibility = Compatibility.STANDARDS_DEVIATION, standard = name_errors["bad_uri"].standard)
-
-		return None
-
 	def _judge_subject_alternative_name(self, certificate):
 		judgements = SecurityJudgements()
 		san = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("SubjectAlternativeName"))
@@ -364,16 +334,6 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 
 		return judgements
 
-	def _judge_single_issuer_alternative_name(self, entity_name):
-		return self._judge_single_general_name(entity_name, allow_dnsname_wildcard_matches = False, extension_str = "Issuer Alternative X.509 extension", name_errors = {
-			"empty":				self._NameError(code = JudgementCode.Cert_X509Ext_IssuerAltName_EmptyValue, standard = RFCReference(rfcno = 5280, sect = [ "4.2.1.1", "4.2.1.6" ], verb = "MUST", text = "GeneralName ::= CHOICE {")),
-			"bad_domain":			self._NameError(code = JudgementCode.Cert_X509Ext_IssuerAltName_BadDNSName, standard = RFCReference(rfcno = 1034, sect = "3.5", verb = "MUST", text = "The following syntax will result in fewer problems with many applications that use domain names (e.g., mail, TELNET).")),
-			"bad_ip":				self._NameError(code = JudgementCode.Cert_X509Ext_IssuerAltName_BadIP, standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "For IP version 4, as specified in [RFC791], the octet string MUST contain exactly four octets. For IP version 6, as specified in [RFC2460], the octet string MUST contain exactly sixteen octets.")),
-			"bad_email":			self._NameError(code = JudgementCode.Cert_X509Ext_IssuerAltName_BadEmail, standard = RFCReference(rfcno = 822, sect = "6.1", verb = "MUST", text = "addr-spec = local-part \"@\" domain")),
-			"bad_uri":				self._NameError(code = JudgementCode.Cert_X509Ext_IssuerAltName_BadURI, standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "The name MUST NOT be a relative URI, and it MUST follow the URI syntax and encoding rules specified in [RFC3986]. The name MUST include both a scheme (e.g., \"http\" or \"ftp\") and a scheme-specific-part. URIs that include an authority ([RFC3986], Section 3.2) MUST include a fully qualified domain name or IP address as the host.")),
-			"uncommon_uri_scheme":	self._NameError(code = JudgementCode.Cert_X509Ext_IssuerAltName_UncommonURIScheme, standard = None),
-		})
-
 	def _judge_issuer_alternative_name(self, certificate):
 		judgements = SecurityJudgements()
 		ian = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("IssuerAlternativeName"))
@@ -381,8 +341,8 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 			if ian.name_count == 0:
 				standard = RFCReference(rfcno = 5280, sect = [ "4.2.1.7", "4.2.1.6" ], verb = "MUST", text = "If the subjectAltName extension is present, the sequence MUST contain at least one entry.")
 				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_IssuerAltName_Empty, "Issuer Alternative Name X.509 extension with no contained names.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
-			for entity_name in ian:
-				judgements += self._judge_single_issuer_alternative_name(entity_name)
+			for general_name in ian:
+				judgements += self._ISSUER_ALTERNATIVE_NAME_VALIDATOR.validate(general_name)
 			if ian.critical:
 				standard = RFCReference(rfcno = 5280, sect = "4.2.1.7", verb = "SHOULD", text = "Where present, conforming CAs SHOULD mark this extension as non-critical.")
 				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_IssuerAltName_Critical, "Issuer Alternative Name X.509 extension should not be critical.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
