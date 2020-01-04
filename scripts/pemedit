@@ -198,7 +198,23 @@ class ASN1Editor():
 				pem_data = self._pem_encode(filetype, der_data)
 				f.write(pem_data)
 
+	def _create_file(self, filename):
+		if os.path.exists(filename) or (not self._args.create):
+			return
+		print("Creating new %s file %s" % ("DER" if self._args.edit_der else "PEM", filename))
+		if self._args.edit_der:
+			with open(filename, "wb") as f:
+				# Empty sequence
+				f.write(bytes.fromhex("30 00"))
+		else:
+			with open(filename, "w") as f:
+				print("-----BEGIN CERTIFICATE-----", file = f)
+				print("MAA=", file = f)
+				print("-----END CERTIFICATE-----", file = f)
+
 	def _process_file(self, filename):
+		self._create_file(filename)
+
 		with open(filename, "rb") as f:
 			content = f.read()
 
@@ -238,6 +254,7 @@ class ASN1Editor():
 
 
 parser = FriendlyArgumentParser(description = "Edit a PEM file in its raw representation.")
+parser.add_argument("-c", "--create", action = "store_true", help = "Create a empty file if it does not exist.")
 parser.add_argument("-d", "--edit-der", action = "store_true", help = "Edit the DER representation instead of PEM.")
 parser.add_argument("--dump-oids", action = "store_true", help = "Dump known OIDs so they can be added to the 'oid_replacements' dictionary.")
 parser.add_argument("--no-edit", action = "store_true", help = "Do not actually edit files, just decode and re-encode. Mainly for debugging purposes.")
