@@ -188,7 +188,7 @@ class CmdLineTestsExamine(BaseTest):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-duplicate-extension2.pem", "Cert_X509Ext_Duplicate")
 
 	def test_examine_x509test_xf_ext_altname_blank_domain(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-blank-domain.pem", "Cert_X509Ext_SubjectAltName_BadDomain_Space")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-blank-domain.pem", "Cert_X509Ext_SubjectAltName_BadDNSName_Space")
 
 	def test_examine_x509test_xf_ext_altname_critical_subject(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-critical-subject.pem", "Cert_X509Ext_SubjectAltName_Critical")
@@ -203,7 +203,7 @@ class CmdLineTestsExamine(BaseTest):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-empty2.pem", "Cert_X509Ext_SubjectAltName_EmptyValue")
 
 	def test_examine_x509test_xf_ext_altname_invalid_domain(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-invalid-domain.pem", "Cert_X509Ext_SubjectAltName_BadDomain")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-invalid-domain.pem", "Cert_X509Ext_SubjectAltName_BadDNSName")
 
 	def test_examine_x509test_xf_ext_altname_invalid_email(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-invalid-email.pem", "Cert_X509Ext_SubjectAltName_BadEmail")
@@ -624,10 +624,10 @@ class CmdLineTestsExamine(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/san_international_label_wrong.pem", expect_present = "Cert_X509Ext_SubjectAltName_BadWildcardDomain_InternationalLabel")
 
 	def test_san_bad_domain(self):
-		self._test_examine_x509test_resultcode("certs/constructed/san_bad_domain.pem", expect_present = "Cert_X509Ext_SubjectAltName_BadDomain")
+		self._test_examine_x509test_resultcode("certs/constructed/san_bad_domain.pem", expect_present = "Cert_X509Ext_SubjectAltName_BadDNSName")
 
 	def test_san_bad_domain_space(self):
-		self._test_examine_x509test_resultcode("certs/constructed/san_bad_domain_space.pem", expect_present = "Cert_X509Ext_SubjectAltName_BadDomain_Space")
+		self._test_examine_x509test_resultcode("certs/constructed/san_bad_domain_space.pem", expect_present = "Cert_X509Ext_SubjectAltName_BadDNSName_Space")
 
 	def test_san_missing(self):
 		self._test_examine_x509test_resultcode("certs/constructed/san_missing.pem", expect_present = "Cert_No_SAN_Present")
@@ -830,7 +830,7 @@ class CmdLineTestsExamine(BaseTest):
 		self._test_examine_x509test_resultcode("certs/ok/short.pem", parent_certname = "certs/constructed/ski_missing.pem", expect_present = "Cert_X509Ext_AuthorityKeyIdentifier_CA_NoSKI")
 
 	def test_aki_caname_bad_domain(self):
-		self._test_examine_x509test_resultcode("certs/constructed/aki_caname_bad_domain.pem", expect_present = "Cert_X509Ext_AuthorityKeyIdentifier_CAName_BadDomain")
+		self._test_examine_x509test_resultcode("certs/constructed/aki_caname_bad_domain.pem", expect_present = "Cert_X509Ext_AuthorityKeyIdentifier_CAName_BadDNSName")
 
 	def test_aki_caname_bad_email(self):
 		self._test_examine_x509test_resultcode("certs/constructed/aki_caname_bad_email.pem", expect_present = "Cert_X509Ext_AuthorityKeyIdentifier_CAName_BadEmail")
@@ -869,7 +869,7 @@ class CmdLineTestsExamine(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/issuer_altname_emptyvalue.pem", expect_present = "Cert_X509Ext_IssuerAltName_EmptyValue")
 
 	def test_issuer_altname_bad_domain(self):
-		self._test_examine_x509test_resultcode("certs/constructed/issuer_altname_bad_domain.pem", expect_present = "Cert_X509Ext_IssuerAltName_BadDomain")
+		self._test_examine_x509test_resultcode("certs/constructed/issuer_altname_bad_domain.pem", expect_present = "Cert_X509Ext_IssuerAltName_BadDNSName")
 
 	def test_issuer_altname_bad_uri(self):
 		self._test_examine_x509test_resultcode("certs/constructed/issuer_altname_bad_uri.pem", expect_present = "Cert_X509Ext_IssuerAltName_BadURI")

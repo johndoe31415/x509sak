@@ -83,12 +83,15 @@ class GeneralNameValidator():
 				if len(labels) <= 2:
 					self._raise_error("dnsname_bad_wc_broad", "has wildcard value \"%s\", which is an extremely broad domain match." % (self._gn.str_value), commonness = Commonness.HIGHLY_UNUSUAL)
 
+		if not "." in self._gn.str_value:
+			self._raise_error("dnsname_bad_single_label", "contains only single label \"%s\", which is highly unusual." % (self._gn.str_value), commonness = Commonness.HIGHLY_UNUSUAL)
+
 		validation_name = self._gn.str_value
-		if allow_dnsname_wildcard_matches:
+		if self._allow_dnsname_wildcard_matches:
 			validation_name = validation_name.replace("*", "a")
 		result = ValidationTools.validate_domainname(validation_name)
 		if not result:
-			self._raise_error("dnsname_bad", "has invalid domain name \"%s\" (wildcard matches %s)." % (self._gn.str_value, "permitted" if allow_dnsname_wildcard_matches else "forbidden"))
+			self._raise_error("dnsname_bad", "has invalid domain name \"%s\" (wildcard matches %s)." % (self._gn.str_value, "permitted" if self._allow_dnsname_wildcard_matches else "forbidden"))
 
 	def _handle_iPAddress(self):
 		if len(self._gn.asn1_value) not in [ 4, 16 ]:
