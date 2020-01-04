@@ -47,6 +47,8 @@ class JudgementCode(enum.Enum):
 	RSA_PSS_Salt_Length = ("RSA/PSS Salt", "length of salt")
 	RSA_PSS_Unknown_Trailer_Field = ("RSA/PSS Salt", "trailer field unknown")
 	RSA_PSS_Multiple_Hash_Functions = ("RSA/PSS Salt", "multiple hash functions used")
+	DSA_Parameter_P_BitBias = ("DSA parameters", "p has bit bias")
+	DSA_Parameter_Q_BitBias = ("DSA parameters", "q has bit bias")
 	DSA_Parameter_P_Not_Prime = ("DSA parameters", "p is not prime")
 	DSA_Parameter_Q_Not_Prime = ("DSA parameters", "q is not prime")
 	DSA_Parameter_Q_No_Divisor_Of_P1 = ("DSA parameters", "q does not divide (p - 1)")

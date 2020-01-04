@@ -36,7 +36,6 @@ else:
 	bits = args.invalue
 print("Producing biased prime with %d bits." % (bits))
 
-
 if args.mode == "0heavy":
 	start_value = (1 << (bits - 1)) + 1
 	end_value = (1 << bits) + 1

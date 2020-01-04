@@ -67,6 +67,14 @@ class DSASecurityEstimator(BaseEstimator):
 			standard = LiteratureReference(quote = "g: a generator of a subgroup of order q in the multiplicative group of GF(p), such that 1 < g < p", sect = "4.1", author = "National Institute of Standards and Technology", title = "FIPS PUB 186-4: Digital Signature Standard (DSS)", year = 2013, month = 7, doi = "10.6028/NIST.FIPS.186-4")
 			judgements += SecurityJudgement(JudgementCode.DSA_Parameter_G_Invalid_Range, "DSA parameter g is not inside the valid range (1 < g < p).", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, bits = 0, standard = standard)
 
+		hweight_analysis = NumberTheory.hamming_weight_analysis(pubkey.p)
+		if not hweight_analysis.plausibly_random:
+			judgements += SecurityJudgement(JudgementCode.DSA_Parameter_P_BitBias, "Hamming weight of DSA prime p is %d at bitlength %d, but expected a weight between %d and %d when randomly chosen; this is likely not coincidential." % (hweight_analysis.hweight, hweight_analysis.bitlen, hweight_analysis.rnd_min_hweight, hweight_analysis.rnd_max_hweight), commonness = Commonness.HIGHLY_UNUSUAL)
+
+		hweight_analysis = NumberTheory.hamming_weight_analysis(pubkey.q)
+		if not hweight_analysis.plausibly_random:
+			judgements += SecurityJudgement(JudgementCode.DSA_Parameter_Q_BitBias, "Hamming weight of DSA prime q is %d at bitlength %d, but expected a weight between %d and %d when randomly chosen; this is likely not coincidential." % (hweight_analysis.hweight, hweight_analysis.bitlen, hweight_analysis.rnd_min_hweight, hweight_analysis.rnd_max_hweight), commonness = Commonness.HIGHLY_UNUSUAL)
+
 		if (L in self._TYPICAL_L_N_VALUES) and (N in self._TYPICAL_L_N_VALUES[L]):
 			# Typical
 			judgements += SecurityJudgement(JudgementCode.DSA_Parameter_L_N_Common, "DSA parameter values L/N (%d/%d) are common." % (L, N), commonness = Commonness.COMMON)

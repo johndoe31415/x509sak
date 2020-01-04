@@ -766,6 +766,12 @@ class CmdLineTestsExamine(BaseTest):
 	def test_dsa_q_not_prime(self):
 		self._test_examine_x509test_resultcode("certs/constructed/dsa_q_not_prime.pem", expect_present = "DSA_Parameter_Q_Not_Prime")
 
+	def test_dsa_p_bitbias(self):
+		self._test_examine_x509test_resultcode("certs/constructed/dsa_p_bitbias.pem", expect_present = "DSA_Parameter_P_BitBias", expect_absent = "DSA_Parameter_Q_BitBias")
+
+	def test_dsa_q_bitbias(self):
+		self._test_examine_x509test_resultcode("certs/constructed/dsa_q_bitbias.pem", expect_present = "DSA_Parameter_Q_BitBias", expect_absent = "DSA_Parameter_P_BitBias")
+
 	def test_dsa_q_does_not_divide_p1(self):
 		self._test_examine_x509test_resultcode("certs/constructed/dsa_q_does_not_divide_p1.pem", expect_present = "DSA_Parameter_Q_No_Divisor_Of_P1")
 
