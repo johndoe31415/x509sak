@@ -902,14 +902,26 @@ class CmdLineTestsExamine(BaseTest):
 	def test_issuer_altname_bad_domain(self):
 		self._test_examine_x509test_resultcode("certs/constructed/issuer_altname_bad_domain.pem", expect_present = "Cert_X509Ext_IssuerAltName_BadDNSName")
 
+	def test_issuer_altname_bad_domain_space(self):
+		self._test_examine_x509test_resultcode("certs/constructed/issuer_altname_bad_domain_space.pem", expect_present = "Cert_X509Ext_IssuerAltName_BadDNSName_Space")
+
+	def test_issuer_altname_bad_domain_single_label(self):
+		self._test_examine_x509test_resultcode("certs/constructed/issuer_altname_bad_domain_single_label.pem", expect_present = "Cert_X509Ext_IssuerAltName_BadDNSName_SingleLabel")
+
 	def test_issuer_altname_bad_uri(self):
 		self._test_examine_x509test_resultcode("certs/constructed/issuer_altname_bad_uri.pem", expect_present = "Cert_X509Ext_IssuerAltName_BadURI")
 
-#	def test_issuer_altname_uncommon_uri_scheme(self):
-#		self._test_examine_x509test_resultcode("certs/constructed/issuer_altname_uncommon_uri_scheme.pem", expect_present = "Cert_X509Ext_IssuerAltName_UncommonURIScheme")
+	def test_issuer_altname_uncommon_uri_scheme(self):
+		self._test_examine_x509test_resultcode("certs/constructed/issuer_altname_uncommon_uri_scheme.pem", expect_present = "Cert_X509Ext_IssuerAltName_UncommonURIScheme")
 
 	def test_issuer_altname_bad_ip(self):
 		self._test_examine_x509test_resultcode("certs/constructed/issuer_altname_bad_ip.pem", expect_present = "Cert_X509Ext_IssuerAltName_BadIP")
+
+	def test_issuer_altname_bad_ip_private(self):
+		self._test_examine_x509test_resultcode("certs/constructed/issuer_altname_bad_ip_private.pem", expect_present = "Cert_X509Ext_IssuerAltName_BadIP_Private")
+
+	def test_issuer_altname_uncommon_identifier(self):
+		self._test_examine_x509test_resultcode("certs/constructed/issuer_altname_good_ip.pem", expect_present = "Cert_X509Ext_IssuerAltName_UncommonIdentifier")
 
 	def test_issuer_altname_bad_email(self):
 		self._test_examine_x509test_resultcode("certs/constructed/issuer_altname_bad_email.pem", expect_present = "Cert_X509Ext_IssuerAltName_BadEmail")
