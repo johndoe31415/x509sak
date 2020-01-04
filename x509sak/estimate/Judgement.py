@@ -39,6 +39,7 @@ class JudgementCode(enum.Enum):
 	RSA_Modulus_FactorizationKnown = ("RSA Modulus", "factorization of n is public")
 	RSA_Modulus_BitBias = ("RSA Modulus", "n has bit bias")
 	RSA_Modulus_Length = ("RSA Modulus", "length of n")
+	RSA_PSS_Parameters_Malformed = ("RSA/PSS Encoding", "malformed parameters")
 	RSA_PSS_Parameters_TrailingData = ("RSA/PSS Encoding", "trailing garbage data")
 	RSA_PSS_Invalid_Salt_Length = ("RSA/PSS Salt", "length of salt invalid")
 	RSA_PSS_No_Salt_Used = ("RSA/PSS Salt", "no salt applied")

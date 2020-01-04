@@ -34,7 +34,11 @@ class SignatureSecurityEstimator(BaseEstimator):
 
 	def _analyze_rsa_pss_signature_params(self, signature_alg_params):
 		judgements = SecurityJudgements()
-		rsapss = RSAPSSParameters.decode(signature_alg_params)
+		try:
+			rsapss = RSAPSSParameters.decode(signature_alg_params)
+		except pyasn1.error.PyAsn1Error:
+			judgements += SecurityJudgement(JudgementCode.RSA_PSS_Parameters_Malformed, "RSA/PSS parameter are malformed, unable to decode them.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, bits = 0)
+			return (None, judgements)
 
 		if len(rsapss.asn1_tail) > 0:
 			judgements += SecurityJudgement(JudgementCode.RSA_PSS_Parameters_TrailingData, "RSA/PSS parameter encoding has %d bytes of trailing data." % (len(rsapss.asn1_tail)), commonness = Commonness.HIGHLY_UNUSUAL)

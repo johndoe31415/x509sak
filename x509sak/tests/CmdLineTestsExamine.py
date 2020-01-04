@@ -724,6 +724,9 @@ class CmdLineTestsExamine(BaseTest):
 	def test_rsa_pss_malformed3(self):
 		self._test_examine_x509test_resultcode("certs/constructed/rsapss_malformed3.pem", expect_present = "RSA_PSS_Unknown_Trailer_Field")
 
+	def test_rsa_pss_malformed4(self):
+		self._test_examine_x509test_resultcode("certs/constructed/rsapss_malformed4.pem", expect_present = "RSA_PSS_Parameters_Malformed")
+
 	def test_rsa_pss_salt0(self):
 		self._test_examine_x509test_resultcode("certs/constructed/rsapss_salt0.pem", expect_present = "RSA_PSS_No_Salt_Used")
 
