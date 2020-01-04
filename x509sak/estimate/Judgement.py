@@ -56,6 +56,8 @@ class JudgementCode(enum.Enum):
 	DSA_Parameter_G_Invalid_Range = ("DSA parameters", "generator g outside valid range")
 	DSA_Parameter_L_N_Uncommon = ("DSA parameters", "parameter values L/N are uncommon")
 	DSA_Parameter_L_N_Common = ("DSA parameters", "parameter values L/N are common")
+	DSA_Signature_R_BitBias = ("DSA signature", "R value has bit bias")
+	DSA_Signature_S_BitBias = ("DSA signature", "S value has bit bias")
 	DSA_Security_Level = ("DSA parameters", "security estimation")
 	ECC_Pubkey_CurveOrder = ("ECC pubkey", "curve order")
 	ECC_Pubkey_Not_On_Curve = ("ECC pubkey", "point not on curve")
