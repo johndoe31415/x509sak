@@ -1,0 +1,57 @@
+#!/usr/bin/python3
+#	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
+#	Copyright (C) 2020-2020 Johannes Bauer
+#
+#	This file is part of x509sak.
+#
+#	x509sak is free software; you can redistribute it and/or modify
+#	it under the terms of the GNU General Public License as published by
+#	the Free Software Foundation; this program is ONLY licensed under
+#	version 3 of the License, later versions are explicitly excluded.
+#
+#	x509sak is distributed in the hope that it will be useful,
+#	but WITHOUT ANY WARRANTY; without even the implied warranty of
+#	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#	GNU General Public License for more details.
+#
+#	You should have received a copy of the GNU General Public License
+#	along with x509sak; if not, write to the Free Software
+#	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+#	Johannes Bauer <JohannesBauer@gmx.de>
+
+import sys
+from x509sak.NumberTheory import NumberTheory
+from x509sak.FriendlyArgumentParser import FriendlyArgumentParser, baseint
+
+parser = FriendlyArgumentParser(description = "Generate primes with bit bias.")
+parser.add_argument("-m", "--mode", choices = [ "1heavy", "0heavy" ], default = "0heavy", help = "Type of bias to produce (zero or one-heavy). Choices are %(choices)s, default is %(default)s.")
+parser.add_argument("-o", "--original-value", action = "store_true", help = "Input value is the original number, determine amount of bits from it and reproduce a number of same length.")
+parser.add_argument("invalue", metavar = "value", type = baseint, help = "Either bit length of number to produce or a value of which the length is to be emulated.")
+args = parser.parse_args(sys.argv[1:])
+
+if args.original_value:
+	bits = args.invalue.bit_length()
+else:
+	bits = args.invalue
+print("Producing biased prime with %d bits." % (bits))
+
+
+if args.mode == "0heavy":
+	start_value = (1 << (bits - 1)) + 1
+	end_value = (1 << bits) + 1
+	increment = 2
+else:
+	start_value = (1 << bits) - 1
+	end_value = (1 << (bits - 1)) - 1
+	increment = -2
+
+p = start_value
+for p in range(start_value, end_value, increment):
+	if NumberTheory.is_probable_prime(p):
+		print("Found %d bit prime:" % (p.bit_length()))
+		print("    Decimal %d" % (p))
+		print("    Hex     %x" % (p))
+		break
+else:
+	print("No prime found.")
