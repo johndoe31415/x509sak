@@ -61,7 +61,7 @@ class DSASecurityEstimator(BaseEstimator):
 			judgements += SecurityJudgement(JudgementCode.DSA_Parameter_Q_No_Divisor_Of_P1, "DSA parameter q is not a divisor of (p - 1).", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, bits = 0, standard = standard)
 
 		if pow(pubkey.g, pubkey.q, pubkey.p) != 1:
-			judgements += SecurityJudgement(JudgementCode.DSA_Parameter_G_Unverifiable, "DSA parameter g is not verifyable. That means g^q mod p != 1.", commonness = Commonness.HIGHLY_UNUSUAL)
+			judgements += SecurityJudgement(JudgementCode.DSA_Parameter_G_Invalid, "DSA parameter g is not valid. In particular, g^q mod p != 1.", commonness = Commonness.HIGHLY_UNUSUAL, bits = 0)
 
 		if (pubkey.g <= 1) or (pubkey.g >= pubkey.p):
 			standard = LiteratureReference(quote = "g: a generator of a subgroup of order q in the multiplicative group of GF(p), such that 1 < g < p", sect = "4.1", author = "National Institute of Standards and Technology", title = "FIPS PUB 186-4: Digital Signature Standard (DSS)", year = 2013, month = 7, doi = "10.6028/NIST.FIPS.186-4")
