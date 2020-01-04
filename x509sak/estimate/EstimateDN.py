@@ -23,7 +23,7 @@ import pyasn1.type.char
 from x509sak.OID import OIDDB
 from x509sak.estimate.BaseEstimator import BaseEstimator
 from x509sak.estimate import JudgementCode, Compatibility
-from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, Commonness, RFCReference
+from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, Commonness, RFCReference, LiteratureReference
 
 @BaseEstimator.register
 class DistinguishedNameSecurityEstimator(BaseEstimator):
@@ -112,7 +112,8 @@ class DistinguishedNameSecurityEstimator(BaseEstimator):
 		rdn_oids = [ rdn_item.oid for rdn_item in rdn ]
 		rdn_oids_set = set(rdn_oids)
 		if len(rdn_oids) != len(rdn_oids_set):
-			judgements += SecurityJudgement(JudgementCode.DN_Contains_Duplicate_OID_In_Multivalued_RDN, "Multivalued relative distinguished name contains same OID more than once in: %s" % (rdn.pretty_str), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
+			standard = LiteratureReference(author = "ITU-T", title = "Recommendation X.501: Information technology - Open Systems Interconnection – The Directory: Models", sect = "9.3", month = 8, year = 2005, quote = "The set that forms an RDN contains exactly one AttributeTypeAndDistinguishedValue for each attribute which contains distinguished values in the entry; that is, a given attribute type cannot appear twice in the same RDN.")
+			judgements += SecurityJudgement(JudgementCode.DN_Contains_Duplicate_OID_In_Multivalued_RDN, "Multivalued relative distinguished name contains same OID more than once in: %s" % (rdn.pretty_str), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 		for rdn_item in rdn:
 			judgements += self._analyze_rdn_item(rdn_item)
