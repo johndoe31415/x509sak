@@ -68,6 +68,7 @@ class ASN1Editor():
 		"2.5.29.14": [ "subjectKeyIdentifier" ],
 		"2.5.29.15": [ "keyUsage" ],
 		"2.5.29.17": [ "subjectAltName" ],
+		"2.5.29.18": [ "issuerAltName" ],
 		"2.5.29.19": [ "basicConstraints" ],
 		"2.5.29.31": [ "cRLDistributionPoints" ],
 		"2.5.29.32": [ "certificatePolicies" ],

@@ -855,3 +855,6 @@ class CmdLineTestsExamine(BaseTest):
 
 	def test_basic_constraints_present_noncritical(self):
 		self._test_examine_x509test_resultcode("certs/constructed/bc_present_noncritical.pem", expect_present = "Cert_X509Ext_BasicConstraints_PresentButNotCritical")
+
+	def test_issuer_altname_bad_email(self):
+		self._test_examine_x509test_resultcode("certs/constructed/issuer_altname_bad_email.pem", expect_present = "Cert_X509Ext_IssuerAltName_BadEmail")
