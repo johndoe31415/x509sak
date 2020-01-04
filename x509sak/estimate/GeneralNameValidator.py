@@ -20,6 +20,7 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 import collections
+import urllib.parse
 import pyasn1.type.char
 from x509sak.OID import OIDDB
 from x509sak.estimate.BaseEstimator import BaseEstimator
@@ -27,8 +28,18 @@ from x509sak.estimate import JudgementCode, Compatibility
 from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, Commonness, RFCReference, LiteratureReference
 from x509sak.ASN1Wrapper import ASN1GeneralNameWrapper
 from x509sak.Tools import ValidationTools
+from x509sak.Exceptions import InvalidInternalDataException
 
 class GeneralNameValidator():
+	_VALID_ERROR_TYPES = set([
+		"dnsname", "dnsname_space", "dnsname_wc_notleftmost", "dnsname_wc_morethanone", "dnsname_wc_international", "dnsname_wc_broad", "dnsname_single_label",
+		"ip", "ip_private",
+		"email",
+		"uri", "uri_invalid_scheme",
+		"empty",
+		"invalid_type",
+		"unknown_subtype",
+	])
 	class Error():
 		def __init__(self, code = None, standard = None):
 			self._code = code
@@ -42,20 +53,25 @@ class GeneralNameValidator():
 		def standard(self):
 			return self._standard
 
-	def __init__(self, general_name, allow_dnsname_wildcard_matches = None, expected_types = None, error_prefix_str = None, errors = None):
+	def __init__(self, general_name, allow_dnsname_wildcard_matches = None, expected_types = None, error_prefix_str = None, errors = None, permissible_types = None, permissible_uri_schemes = None):
 		self._gn = ASN1GeneralNameWrapper.from_asn1(general_name)
 		self._allow_dnsname_wildcard_matches = allow_dnsname_wildcard_matches
 		self._expected_types = expected_types
 		self._expected_types = set(expected_types) if (expected_types is not None) else set()
 		self._error_prefix_str = error_prefix_str if (error_prefix_str is not None) else "GeneralName"
 		self._errors = errors if (errors is not None) else { }
+		self._permissible_types = permissible_types
+		self._permissible_uri_schemes = permissible_uri_schemes
 		self._validation = None
+		if len(set(self._errors) - self._VALID_ERROR_TYPES) > 0:
+			raise InvalidInternalDataException("Unsupported error type(s) passed for handling: %s" % (", ".join(sorted(set(self._errors) - self._VALID_ERROR_TYPES))))
 
-	def _raise_error(self, error_name, error_text, **kwargs):
-		error = self._errors.get(error_name)
+	def _raise_error(self, error_type, error_text, **kwargs):
+		assert(error_type in self._VALID_ERROR_TYPES)
+		error = self._errors.get(error_type)
 		error_text = "%s of type %s %s" % (self._error_prefix_str, self._gn.name, error_text)
 		if error is None:
-			self._validation += SecurityJudgement(JudgementCode.Analysis_Not_Implemented, error_text + " (%s)" % (error_name), **kwargs)
+			self._validation += SecurityJudgement(JudgementCode.Analysis_Not_Implemented, error_text + " (%s)" % (error_type), **kwargs)
 		else:
 			self._validation += SecurityJudgement(error.code, error_text, standard = error.standard, **kwargs)
 
@@ -122,16 +138,24 @@ class GeneralNameValidator():
 	def _handle_uniformResourceIdentifier(self):
 		if not ValidationTools.validate_uri(str(self._gn.str_value)):
 			self._raise_error("uri", "contains invalid URI \"%s\"." % (str(self._gn.str_value)))
+		if self._permissible_uri_schemes is not None:
+			split_url = urllib.parse.urlsplit(self._gn.str_value)
+			if split_url.scheme not in self._permissible_uri_schemes:
+				self._raise_error("uri_invalid_scheme", "contains invalid URI scheme \"%s\" (permitted schemes are only %s)." % (str(self._gn.str_value), ", ".join(sorted(self._permissible_uri_schemes))))
 
 	def _do_validate(self):
-		if self._gn.str_value == "":
-			return self._raise_error("empty", "has empty value.", commonness = Commonness.HIGHLY_UNUSUAL)
+		if self._gn.str_value.strip("\t \r\n") == "":
+			self._raise_error("empty", "has empty value or contains only of whitespace.", commonness = Commonness.HIGHLY_UNUSUAL)
+
+		if self._permissible_types is not None:
+			if self._gn.name not in self._permissible_types:
+				self._raise_error("invalid_type", "has type that is not common or permitted in this context (allowed are %s)." % (", ".join(sorted(self._permissible_types))), commonness = Commonness.HIGHLY_UNUSUAL)
 
 		gn_subtype_handler = getattr(self, "_handle_%s" % (str(self._gn.name)), None)
 		if gn_subtype_handler is not None:
 			return gn_subtype_handler()
 		else:
-			self._raise_error("unknown-subtype", "has no handler in %s." % (self.__class__.__name__))
+			self._raise_error("unknown_subtype", "has no handler in %s." % (self.__class__.__name__))
 
 		return judgements
 
