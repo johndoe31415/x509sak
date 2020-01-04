@@ -783,3 +783,15 @@ class CmdLineTestsExamine(BaseTest):
 
 	def test_dsa_g_invalid_range4(self):
 		self._test_examine_x509test_resultcode("certs/constructed/dsa_g_invalid_range4.pem", expect_present = "DSA_Parameter_G_Invalid_Range")
+
+	def test_ski_missing(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ski_missing.pem", expect_present = "Cert_X509Ext_SubjectKeyIdentifier_Missing")
+
+	def test_ski_arbitrary(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ski_arbitrary.pem", expect_present = "Cert_X509Ext_SubjectKeyIdentifier_Arbitrary")
+
+	def test_ski_sha1(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ski_sha1.pem", expect_present = "Cert_X509Ext_SubjectKeyIdentifier_SHA1")
+
+	def test_ski_sha256(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ski_sha256.pem", expect_present = "Cert_X509Ext_SubjectKeyIdentifier_OtherHash")
