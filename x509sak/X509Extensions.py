@@ -240,6 +240,10 @@ class X509AuthorityKeyIdentifierExtension(X509Extension):
 		return cls.construct_from_asn1(asn1, critical = False)
 
 	@property
+	def malformed(self):
+		return self._malformed
+
+	@property
 	def keyid(self):
 		return self._keyid
 
@@ -263,18 +267,25 @@ class X509AuthorityKeyIdentifierExtension(X509Extension):
 		return ", ".join(values)
 
 	def _decode_hook(self):
-		if self.asn1.getComponentByName("keyIdentifier", None, instantiate = False) is not None:
-			self._keyid = bytes(self.asn1["keyIdentifier"])
+		self._malformed = self._asn1 is None
+
+		if not self._malformed:
+			if self.asn1.getComponentByName("keyIdentifier", None, instantiate = False) is not None:
+				self._keyid = bytes(self.asn1["keyIdentifier"])
+			else:
+				self._keyid = None
+			if self.asn1.getComponentByName("authorityCertIssuer", None, instantiate = False) is not None:
+				self._ca_names = [ ASN1NameWrapper.from_asn1_general_name(generalname) for generalname in self.asn1["authorityCertIssuer"] ]
+			else:
+				self._ca_names = None
+			if self.asn1.getComponentByName("authorityCertSerialNumber", None, instantiate = False) is not None:
+				self._serial = int(self.asn1["authorityCertSerialNumber"])
+			else:
+				self._serial = None
 		else:
-			self._keyid = None
-		if self.asn1.getComponentByName("authorityCertIssuer", None, instantiate = False) is not None:
-			self._ca_names = [ ASN1NameWrapper.from_asn1_general_name(generalname) for generalname in self.asn1["authorityCertIssuer"] ]
-		else:
-			self._ca_names = None
-		if self.asn1.getComponentByName("authorityCertSerialNumber", None, instantiate = False) is not None:
-			self._serial = int(self.asn1["authorityCertSerialNumber"])
-		else:
-			self._serial = None
+				self._keyid = None
+				self._ca_names = None
+				self._serial = None
 X509ExtensionRegistry.set_handler_class(X509AuthorityKeyIdentifierExtension)
 
 

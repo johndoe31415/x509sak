@@ -172,8 +172,14 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 			elif len(aki.keyid) > 32:
 				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_KeyIDLong, "AuthorityKeyIdentifier X.509 extension contains long key ID (%d bytes)." % (len(aki.keyid)), commonness = Commonness.HIGHLY_UNUSUAL)
 
+			if aki.malformed:
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_Malformed, "AuthorityKeyIdentifier X.509 extension is malformed, cannot decode it.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION)
+
+			if (aki.keyid is None) and (aki.ca_names is None) and (aki.serial is None):
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_Empty, "AuthorityKeyIdentifier X.509 extension contains neither Key ID nor CA names nor a serial number.", commonness = Commonness.HIGHLY_UNUSUAL)
+
 			if aki.ca_names is not None:
-				if aki.ca_names == 0:
+				if len(aki.ca_names) == 0:
 					standard = RFCReference(rfcno = 5280, sect = [ "4.2.1.1", "4.2.1.6" ], verb = "MUST", text = "GeneralNames ::= SEQUENCE SIZE (1..MAX) OF GeneralName")
 					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_CAName_Empty, "AuthorityKeyIdentifier X.509 extension contains CA names field of length zero.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 				for entity_name in aki.ca_names:

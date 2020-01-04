@@ -799,8 +799,36 @@ class CmdLineTestsExamine(BaseTest):
 	def test_aki_missing(self):
 		self._test_examine_x509test_resultcode("certs/constructed/aki_missing.pem", expect_present = "Cert_X509Ext_AuthorityKeyIdentifier_Missing")
 
+	def test_aki_malformed(self):
+		self._test_examine_x509test_resultcode("certs/constructed/aki_malformed.pem", expect_present = "Cert_X509Ext_AuthorityKeyIdentifier_Malformed")
+
+	def test_aki_empty(self):
+		self._test_examine_x509test_resultcode("certs/constructed/aki_empty.pem", expect_present = "Cert_X509Ext_AuthorityKeyIdentifier_Empty")
+
 	def test_aki_keyid_empty(self):
 		self._test_examine_x509test_resultcode("certs/constructed/aki_keyid_empty.pem", expect_present = "Cert_X509Ext_AuthorityKeyIdentifier_KeyIDEmpty")
 
 	def test_aki_keyid_long(self):
 		self._test_examine_x509test_resultcode("certs/constructed/aki_keyid_long.pem", expect_present = "Cert_X509Ext_AuthorityKeyIdentifier_KeyIDLong")
+
+	def test_aki_name_without_serial(self):
+		self._test_examine_x509test_resultcode("certs/constructed/aki_name_without_serial.pem", expect_present = "Cert_X509Ext_AuthorityKeyIdentifier_NameWithoutSerial")
+
+	def test_aki_ca_has_no_ski(self):
+		self._test_examine_x509test_resultcode("certs/ok/short.pem", parent_certname = "certs/constructed/ski_missing.pem", expect_present = "Cert_X509Ext_AuthorityKeyIdentifier_CA_NoSKI")
+
+	def test_aki_caname_bad_domain(self):
+		self._test_examine_x509test_resultcode("certs/constructed/aki_caname_bad_domain.pem", expect_present = "Cert_X509Ext_AuthorityKeyIdentifier_CAName_BadDomain")
+
+	def test_aki_caname_bad_email(self):
+		self._test_examine_x509test_resultcode("certs/constructed/aki_caname_bad_email.pem", expect_present = "Cert_X509Ext_AuthorityKeyIdentifier_CAName_BadEmail")
+
+	def test_aki_caname_bad_uri(self):
+		self._test_examine_x509test_resultcode("certs/constructed/aki_caname_bad_uri.pem", expect_present = "Cert_X509Ext_AuthorityKeyIdentifier_CAName_BadURI")
+
+	def test_aki_caname_empty(self):
+		self._test_examine_x509test_resultcode("certs/constructed/aki_caname_empty.pem", expect_present = "Cert_X509Ext_AuthorityKeyIdentifier_CAName_Empty")
+
+	def test_aki_caname_emptyvalue(self):
+		self._test_examine_x509test_resultcode("certs/constructed/aki_caname_emptyvalue.pem", expect_present = "Cert_X509Ext_AuthorityKeyIdentifier_CAName_EmptyValue")
+

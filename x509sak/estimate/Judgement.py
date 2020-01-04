@@ -89,6 +89,8 @@ class JudgementCode(enum.Enum):
 	Cert_X509Ext_BasicConstraints_Missing = ("X.509 Basic Constraints extension", "BC extension missing")
 	Cert_X509Ext_BasicConstraints_PresentButNotCritical = ("X.509 BasicConstraints extension", "BC extension present but not marked critical")
 	Cert_X509Ext_BasicConstraints_PresentAndCritical = ("X.509 BasicConstraints extension", "BC extension present and marked critical")
+	Cert_X509Ext_AuthorityKeyIdentifier_Malformed = ("X.509 AuthorityKeyIdentifier extension", "AKI extension malformed")
+	Cert_X509Ext_AuthorityKeyIdentifier_Empty = ("X.509 AuthorityKeyIdentifier extension", "no key ID, CA name or serial given")
 	Cert_X509Ext_AuthorityKeyIdentifier_Missing = ("X.509 AuthorityKeyIdentifier extension", "AKI extension missing")
 	Cert_X509Ext_AuthorityKeyIdentifier_Critical = ("X.509 AuthorityKeyIdentifier extension", "AKI extension marked as critical")
 	Cert_X509Ext_AuthorityKeyIdentifier_CAName_Empty = ("X.509 AuthorityKeyIdentifier CA name", "no names given")
