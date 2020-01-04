@@ -579,7 +579,7 @@ class CmdLineTestsExamine(BaseTest):
 		self._test_examine_x509test_resultcode("certs/ok/pubkey_sig_ed25519.pem", include_raw = True)
 
 	def test_explicit_prime(self):
-		self._test_examine_x509test_resultcode("certs/ok/ecc_explicit_param_prime.pem", "ECC_ExplicitCurveEncoding", expect_absent = "ECC_UnknownExplicitCurve")
+		self._test_examine_x509test_resultcode("certs/ok/ecc_explicit_param_prime.pem", expect_present = [ "ECC_UnusedCurveName", "ECC_ExplicitCurveEncoding" ], expect_absent = "ECC_UnknownExplicitCurve")
 
 	def test_explicit_twofield_ppbasis(self):
 		self._test_examine_x509test_resultcode("certs/ok/ecc_explicit_param_twofield_ppbasis.pem", "ECC_ExplicitCurveEncoding", expect_absent = [ "ECC_InvalidPolynomialPower", "ECC_DuplicatePolynomialPower", "ECC_UnknownExplicitCurve" ])
@@ -597,7 +597,7 @@ class CmdLineTestsExamine(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/ecc_explicit_param_twofield_duplicate_power.pem", "ECC_DuplicatePolynomialPower")
 
 	def test_explicit_unknown(self):
-		self._test_examine_x509test_resultcode("certs/ok/ecc_explicit_param_prime_custom_domain.pem", expect_present = [ "ECC_ExplicitCurveEncoding", "ECC_UnknownExplicitCurve" ])
+		self._test_examine_x509test_resultcode("certs/ok/ecc_explicit_param_prime_custom_domain.pem", expect_present = [ "ECC_ExplicitCurveEncoding", "ECC_UnknownExplicitCurve" ], expect_absent = "ECC_UnusedCurveName")
 
 	def test_san_broad_match1(self):
 		self._test_examine_x509test_resultcode("certs/constructed/san_broad_match1.pem", expect_present = "Cert_X509Ext_SubjectAltName_BadWildcardDomain_BroadMatch")
