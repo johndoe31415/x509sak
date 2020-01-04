@@ -36,7 +36,7 @@ class GeneralNameValidator():
 		"ip", "ip_private",
 		"email",
 		"uri", "uri_invalid_scheme",
-		"empty",
+		"empty_value",
 		"invalid_type",
 		"unknown_subtype",
 	])
@@ -53,10 +53,8 @@ class GeneralNameValidator():
 		def standard(self):
 			return self._standard
 
-	def __init__(self, allow_dnsname_wildcard_matches = None, expected_types = None, error_prefix_str = None, errors = None, permissible_types = None, permissible_uri_schemes = None):
+	def __init__(self, error_prefix_str = None, permissible_types = None, permissible_uri_schemes = None, allow_dnsname_wildcard_matches = None, errors = None):
 		self._allow_dnsname_wildcard_matches = allow_dnsname_wildcard_matches
-		self._expected_types = expected_types
-		self._expected_types = set(expected_types) if (expected_types is not None) else set()
 		self._error_prefix_str = error_prefix_str if (error_prefix_str is not None) else "GeneralName"
 		self._errors = errors if (errors is not None) else { }
 		self._permissible_types = permissible_types
@@ -144,7 +142,7 @@ class GeneralNameValidator():
 
 	def _do_validate(self):
 		if self._gn.str_value.strip("\t \r\n") == "":
-			self._report_error("empty", "has empty value or contains only of whitespace.", commonness = Commonness.HIGHLY_UNUSUAL)
+			self._report_error("empty_value", "has empty value or contains only of whitespace.", commonness = Commonness.HIGHLY_UNUSUAL)
 
 		if self._permissible_types is not None:
 			if self._gn.name not in self._permissible_types:

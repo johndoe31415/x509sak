@@ -34,7 +34,7 @@ class GeneralNameValidatorTests(BaseTest):
 	def _validate(self, name, inner, permissible_types = None, permissible_uri_schemes = None, assert_length = None, assert_present = None):
 		gn = self._create_general_name(name, inner)
 		errors = {
-			"empty":						GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_SubjectAltName_Empty),
+			"empty_value":					GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_SubjectAltName_EmptyValue),
 			"email":						GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_SubjectAltName_BadEmail),
 			"ip":							GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_SubjectAltName_BadIP),
 			"ip_private":					GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_SubjectAltName_BadIP_Private),
@@ -47,7 +47,7 @@ class GeneralNameValidatorTests(BaseTest):
 			"dnsname_wc_morethanone":		GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_SubjectAltName_BadWildcardDomain_MoreThanOneWildcard),
 			"dnsname_wc_international":		GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_SubjectAltName_BadWildcardDomain_InternationalLabel),
 			"dnsname_wc_broad":				GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_SubjectAltName_BadWildcardDomain_BroadMatch),
-			"invalid_type":					GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_CAName_UncommonIdentifier),
+			"invalid_type":					GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_SubjectAltName_UncommonIdentifier),
 		}
 		result = GeneralNameValidator(errors = errors, permissible_types = permissible_types, permissible_uri_schemes = permissible_uri_schemes).validate_asn1(gn)
 		if assert_length is not None:
@@ -124,4 +124,4 @@ class GeneralNameValidatorTests(BaseTest):
 		self._validate("uniformResourceIdentifier", "ldap://google.com/foo.crt", permissible_uri_schemes = [ "http", "https" ], assert_present = JudgementCode.Cert_X509Ext_SubjectAltName_UncommonURIScheme)
 
 	def test_uncommon_identifier(self):
-		self._validate("dNSName", "google.com", permissible_types = [ "rfc822Name" ], assert_present = JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_CAName_UncommonIdentifier)
+		self._validate("dNSName", "google.com", permissible_types = [ "rfc822Name" ], assert_present = JudgementCode.Cert_X509Ext_SubjectAltName_UncommonIdentifier)
