@@ -664,14 +664,17 @@ class CmdLineTestsExamine(BaseTest):
 	def test_dn_multiple_cns(self):
 		self._test_examine_x509test_resultcode("certs/constructed/dn_multiple_cn.pem", expect_present = "DN_Contains_Multiple_CN")
 
+#	def test_dn_duplicate_set(self):
+#		self._test_examine_x509test_resultcode("certs/constructed/dn_duplicate_set.pem", expect_present = "DN_Contains_Duplicate_Set")
+
+	def test_cn_match_fqdn_but_multivalue_rdn(self):
+		self._test_examine_x509test_resultcode("certs/constructed/dn_cn_hostname_multivalue_rdn.pem", expect_present = "Cert_CN_Match_MultiValue_RDN", expect_absent = "DN_Contains_No_CN", host_check = "multivalue.com")
+
 	def test_cn_match_fqdn(self):
 		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", expect_present = "Cert_CN_Match", expect_absent = "Cert_No_SAN_Present", host_check = "johannes-bauer.com")
 
 	def test_cn_no_match_fqdn(self):
 		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", expect_present = [ "Cert_CN_NoMatch", "Cert_Name_Verification_Failed" ], host_check = "pupannes-bauer.com")
-
-	def test_cn_match_fqdn_but_multivalue_rdn(self):
-		self._test_examine_x509test_resultcode("certs/constructed/dn_cn_hostname_multivalue_rdn.pem", expect_present = "Cert_CN_Match_MultiValue_RDN", expect_absent = "DN_Contains_No_CN", host_check = "multivalue.com")
 
 	def test_check_no_ca_when_expecting_ca(self):
 		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", expect_present = "Cert_Unexpectedly_No_CA_Cert", purpose = "ca")
@@ -759,3 +762,15 @@ class CmdLineTestsExamine(BaseTest):
 
 	def test_dsa_typical_parameters(self):
 		self._test_examine_x509test_resultcode("certs/ok/dsa_sha1.pem", expect_present = "DSA_Parameter_L_N_Common")
+
+	def test_dsa_g_invalid_range1(self):
+		self._test_examine_x509test_resultcode("certs/constructed/dsa_g_invalid_range1.pem", expect_present = "DSA_Parameter_G_Invalid_Range")
+
+	def test_dsa_g_invalid_range2(self):
+		self._test_examine_x509test_resultcode("certs/constructed/dsa_g_invalid_range2.pem", expect_present = "DSA_Parameter_G_Invalid_Range")
+
+	def test_dsa_g_invalid_range3(self):
+		self._test_examine_x509test_resultcode("certs/constructed/dsa_g_invalid_range3.pem", expect_present = "DSA_Parameter_G_Invalid_Range")
+
+	def test_dsa_g_invalid_range4(self):
+		self._test_examine_x509test_resultcode("certs/constructed/dsa_g_invalid_range4.pem", expect_present = "DSA_Parameter_G_Invalid_Range")
