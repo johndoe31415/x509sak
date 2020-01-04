@@ -832,3 +832,14 @@ class CmdLineTestsExamine(BaseTest):
 	def test_aki_caname_emptyvalue(self):
 		self._test_examine_x509test_resultcode("certs/constructed/aki_caname_emptyvalue.pem", expect_present = "Cert_X509Ext_AuthorityKeyIdentifier_CAName_EmptyValue")
 
+	def test_ext_unknown_noncritical(self):
+		self._test_examine_x509test_resultcode("certs/constructed/unknown_ext_noncritical.pem", expect_present = "Cert_X509Ext_Unknown_NonCritical")
+
+	def test_basic_constraints_missing(self):
+		self._test_examine_x509test_resultcode("certs/constructed/bc_missing.pem", expect_present = "Cert_X509Ext_BasicConstraints_Missing")
+
+	def test_basic_constraints_present_critical(self):
+		self._test_examine_x509test_resultcode("certs/constructed/bc_present_critical.pem", expect_present = "Cert_X509Ext_BasicConstraints_PresentAndCritical")
+
+	def test_basic_constraints_present_noncritical(self):
+		self._test_examine_x509test_resultcode("certs/constructed/bc_present_noncritical.pem", expect_present = "Cert_X509Ext_BasicConstraints_PresentButNotCritical")
