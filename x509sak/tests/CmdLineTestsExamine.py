@@ -795,3 +795,12 @@ class CmdLineTestsExamine(BaseTest):
 
 	def test_ski_sha256(self):
 		self._test_examine_x509test_resultcode("certs/constructed/ski_sha256.pem", expect_present = "Cert_X509Ext_SubjectKeyIdentifier_OtherHash")
+
+	def test_aki_missing(self):
+		self._test_examine_x509test_resultcode("certs/constructed/aki_missing.pem", expect_present = "Cert_X509Ext_AuthorityKeyIdentifier_Missing")
+
+	def test_aki_keyid_empty(self):
+		self._test_examine_x509test_resultcode("certs/constructed/aki_keyid_empty.pem", expect_present = "Cert_X509Ext_AuthorityKeyIdentifier_KeyIDEmpty")
+
+	def test_aki_keyid_long(self):
+		self._test_examine_x509test_resultcode("certs/constructed/aki_keyid_long.pem", expect_present = "Cert_X509Ext_AuthorityKeyIdentifier_KeyIDLong")

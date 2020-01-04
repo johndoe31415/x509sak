@@ -169,7 +169,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_NoKeyIDPresent, "AuthorityKeyIdentifier X.509 extension contains no key ID.", commonness = Commonness.UNUSUAL)
 			elif len(aki.keyid) == 0:
 				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_KeyIDEmpty, "AuthorityKeyIdentifier X.509 extension contains empty key ID.", commonness = Commonness.HIGHLY_UNUSUAL)
-			elif len(aki.keyid) > 64:
+			elif len(aki.keyid) > 32:
 				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_KeyIDLong, "AuthorityKeyIdentifier X.509 extension contains long key ID (%d bytes)." % (len(aki.keyid)), commonness = Commonness.HIGHLY_UNUSUAL)
 
 			if aki.ca_names is not None:
