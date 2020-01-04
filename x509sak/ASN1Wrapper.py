@@ -23,7 +23,7 @@ import pyasn1.codec.der.encoder
 from pyasn1_modules import rfc5280
 from x509sak.DistinguishedName import DistinguishedName
 
-class ASN1NameWrapper():
+class ASN1GeneralNameWrapper():
 	def __init__(self, name, asn1_value):
 		assert(isinstance(name, str))
 		self._name = name
@@ -57,7 +57,7 @@ class ASN1NameWrapper():
 		return result
 
 	@classmethod
-	def from_asn1_general_name(cls, general_name):
+	def from_asn1(cls, general_name):
 		for name in rfc5280.GeneralName.componentType:
 			value = general_name.getComponentByName(name, None, instantiate = False)
 			if value is not None:

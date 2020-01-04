@@ -28,7 +28,7 @@ from pyasn1.type import tag
 from pyasn1_modules import rfc2459, rfc5280
 from x509sak.OID import OID, OIDDB
 from x509sak import ASN1Models
-from x509sak.ASN1Wrapper import ASN1NameWrapper
+from x509sak.ASN1Wrapper import ASN1GeneralNameWrapper
 
 class X509Extensions():
 	def __init__(self, extensions):
@@ -275,7 +275,7 @@ class X509AuthorityKeyIdentifierExtension(X509Extension):
 			else:
 				self._keyid = None
 			if self.asn1.getComponentByName("authorityCertIssuer", None, instantiate = False) is not None:
-				self._ca_names = [ ASN1NameWrapper.from_asn1_general_name(generalname) for generalname in self.asn1["authorityCertIssuer"] ]
+				self._ca_names = [ ASN1GeneralNameWrapper.from_asn1(generalname) for generalname in self.asn1["authorityCertIssuer"] ]
 			else:
 				self._ca_names = None
 			if self.asn1.getComponentByName("authorityCertSerialNumber", None, instantiate = False) is not None:
@@ -345,7 +345,7 @@ class X509SubjectAlternativeNameExtension(X509Extension):
 		if self.asn1 is None:
 			return
 		for altname in self.asn1:
-			self._known_names.append(ASN1NameWrapper.from_asn1_general_name(altname))
+			self._known_names.append(ASN1GeneralNameWrapper.from_asn1(altname))
 
 	@property
 	def name_count(self):

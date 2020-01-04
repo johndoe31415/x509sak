@@ -25,7 +25,7 @@ from x509sak.OID import OIDDB
 from x509sak.estimate.BaseEstimator import BaseEstimator
 from x509sak.estimate import JudgementCode, Compatibility
 from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, Commonness, RFCReference, LiteratureReference
-from x509sak.ASN1Wrapper import ASN1NameWrapper
+from x509sak.ASN1Wrapper import ASN1GeneralNameWrapper
 from x509sak.Tools import ValidationTools
 
 class GeneralNameValidator():
@@ -43,7 +43,7 @@ class GeneralNameValidator():
 			return self._standard
 
 	def __init__(self, general_name, allow_dnsname_wildcard_matches = None, expected_types = None, error_prefix_str = None, errors = None):
-		self._gn = ASN1NameWrapper.from_asn1_general_name(general_name)
+		self._gn = ASN1GeneralNameWrapper.from_asn1(general_name)
 		self._allow_dnsname_wildcard_matches = allow_dnsname_wildcard_matches
 		self._expected_types = expected_types
 		self._expected_types = set(expected_types) if (expected_types is not None) else set()
