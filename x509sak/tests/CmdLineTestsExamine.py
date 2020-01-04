@@ -764,7 +764,10 @@ class CmdLineTestsExamine(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/dsa_q_does_not_divide_p1.pem", expect_present = "DSA_Parameter_Q_No_Divisor_Of_P1")
 
 	def test_dsa_typical_parameters(self):
-		self._test_examine_x509test_resultcode("certs/ok/dsa_sha1.pem", expect_present = "DSA_Parameter_L_N_Common")
+		self._test_examine_x509test_resultcode("certs/ok/dsa_sha1.pem", expect_present = "DSA_Parameter_L_N_Common", expect_absent = "DSA_Parameter_L_N_Uncommon")
+
+	def test_dsa_atypical_parameters(self):
+		self._test_examine_x509test_resultcode("certs/ok/dsa_512_160_sha256.pem", expect_present = "DSA_Parameter_L_N_Uncommon", expect_absent = "DSA_Parameter_L_N_Common")
 
 	def test_dsa_g_invalid_range1(self):
 		self._test_examine_x509test_resultcode("certs/constructed/dsa_g_invalid_range1.pem", expect_present = "DSA_Parameter_G_Invalid_Range")
