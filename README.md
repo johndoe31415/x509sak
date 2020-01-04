@@ -30,6 +30,8 @@ Options vary from command to command. To receive further info, type
     revokecrt          Revoke a specific certificate
     createcrl          Generate a certificate revocation list (CRL)
     genbrokenrsa       Generate broken RSA keys for use in penetration testing
+    genbrokendsa       Generate broken DSA parameters for use in penetration
+                       testing
     dumpkey            Dump a key in text form
     examinecert        Examine an X.509 certificate
     forgecert          Forge an X.509 certificate
@@ -655,6 +657,42 @@ optional arguments:
   --help                Show this help page.
 ```
 [//]: # (End of cmd-genbrokenrsa -- auto-generated, do not edit!)
+
+## genbrokendsa
+Similar to the previous command, this can be used to create DSA domain
+parameters that are insecure and/or undesirable (e.g., because the generator is
+not verifiable).
+
+[//]: # (Begin of cmd-genbrokendsa -- auto-generated, do not edit!)
+```
+usage: ./x509sak.py genbrokendsa [-d path] [--generator file] [-o file] [-f]
+                                 [-v] [--help]
+                                 L_bits N_bits
+
+Generate broken DSA parameters for use in penetration testing
+
+positional arguments:
+  L_bits                Bitlength of the modulus p, also known as L.
+  N_bits                Bitlength of q, also known as N.
+
+optional arguments:
+  -d path, --prime-db path
+                        Prime database directory. Defaults to . and searches
+                        for files called primes_{bitlen}.txt in this
+                        directory.
+  --generator file      When prime database is exhausted, will call the prime
+                        generator program as a subprocess to generate new
+                        primes. Otherwise, and the default behavior, is to
+                        fail.
+  -o file, --outfile file
+                        Output filename. Defaults to broken_dsa.key.
+  -f, --force           Overwrite output file if it already exists instead of
+                        bailing out.
+  -v, --verbose         Increase verbosity level. Can be specified multiple
+                        times.
+  --help                Show this help page.
+```
+[//]: # (End of cmd-genbrokendsa -- auto-generated, do not edit!)
 
 ## dumpkey
 The dumpkey facility can be used to dump the public/private key parameters of a

@@ -55,6 +55,8 @@ class PublicKey(PEMDERObject):
 	def keyspec(self):
 		if self.pk_alg.value.cryptosystem == Cryptosystems.RSA:
 			return KeySpecification(cryptosystem = self.pk_alg.value.cryptosystem, parameters = { "bitlen": self.n.bit_length() })
+		elif self.pk_alg.value.cryptosystem == Cryptosystems.DSA:
+			return KeySpecification(cryptosystem = self.pk_alg.value.cryptosystem, parameters = { "L": self.p.bit_length(), "N": self.q.bit_length()})
 		elif self.pk_alg.value.cryptosystem in [ Cryptosystems.ECC_ECDSA, Cryptosystems.ECC_EdDSA ]:
 			return KeySpecification(cryptosystem = self.pk_alg.value.cryptosystem, parameters = { "curvename": self.curve.name })
 		else:

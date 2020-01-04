@@ -263,3 +263,14 @@ class NumberTheory():
 		bits_security = 2.5596 * (log_n ** (1/3)) * (math.log(log_n) ** (2/3))
 		bits_security = math.floor(bits_security)
 		return bits_security
+
+	@classmethod
+	def randint_bits(cls, bits, two_msb_set = False):
+		"""Generate a random integer with bit length 'bits'. Optionally set
+		both MSBs."""
+		minval = (1 << (bits - 1))
+		maxval = (1 << bits) - 1
+		value = random.randint(minval, maxval)
+		if two_msb_set:
+			value |= 1 << (bits - 2)
+		return value

@@ -31,6 +31,7 @@ from x509sak.actions.ActionCreateCSR import ActionCreateCSR
 from x509sak.actions.ActionSignCSR import ActionSignCSR
 from x509sak.actions.ActionRevokeCRT import ActionRevokeCRT
 from x509sak.actions.ActionCreateCRL import ActionCreateCRL
+from x509sak.actions.ActionGenerateBrokenDSA import ActionGenerateBrokenDSA
 from x509sak.actions.ActionGenerateBrokenRSA import ActionGenerateBrokenRSA
 from x509sak.actions.ActionDumpKey import ActionDumpKey
 from x509sak.actions.ActionExamineCert import ActionExamineCert
@@ -171,6 +172,16 @@ def genparser(parser):
 	parser.add_argument("-f", "--force", action = "store_true", help = "Overwrite output file if it already exists instead of bailing out.")
 	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
 mc.register("genbrokenrsa", "Generate broken RSA keys for use in penetration testing", genparser, action = ActionGenerateBrokenRSA)
+
+def genparser(parser):
+	parser.add_argument("-d", "--prime-db", metavar = "path", type = str, default = ".", help = "Prime database directory. Defaults to %(default)s and searches for files called primes_{bitlen}.txt in this directory.")
+	parser.add_argument("--generator", metavar = "file", help = "When prime database is exhausted, will call the prime generator program as a subprocess to generate new primes. Otherwise, and the default behavior, is to fail.")
+	parser.add_argument("-o", "--outfile", metavar = "file", type = str, default = "broken_dsa.key", help = "Output filename. Defaults to %(default)s.")
+	parser.add_argument("-f", "--force", action = "store_true", help = "Overwrite output file if it already exists instead of bailing out.")
+	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
+	parser.add_argument("L_bits", metavar = "L_bits", type = int, help = "Bitlength of the modulus p, also known as L.")
+	parser.add_argument("N_bits", metavar = "N_bits", type = int, help = "Bitlength of q, also known as N.")
+mc.register("genbrokendsa", "Generate broken DSA parameters for use in penetration testing", genparser, action = ActionGenerateBrokenDSA)
 
 def genparser(parser):
 	parser.add_argument("-t", "--key-type", choices = [ "rsa", "ecc", "eddsa" ], default = "rsa", help = "Type of private key to import. Can be one of %(choices)s, defaults to %(default)s. Disregarded for public keys and determined automatically.")
