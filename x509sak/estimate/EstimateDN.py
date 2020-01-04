@@ -99,6 +99,25 @@ class DistinguishedNameSecurityEstimator(BaseEstimator):
 
 		return judgements
 
+	def _analyze_rdn(self, rdn):
+		judgements = SecurityJudgements()
+		if rdn.component_cnt > 1:
+			judgements += SecurityJudgement(JudgementCode.DN_Contains_MultiValues, "Distinguished name contains a multivalue RDN: %s" % (rdn.pretty_str), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
+
+		rdn_data = [ (rdn_item.oid, rdn_item.derdata) for rdn_item in rdn ]
+		rdn_data_set = set(rdn_data)
+		if len(rdn_data) != len(rdn_data_set):
+			judgements += SecurityJudgement(JudgementCode.DN_Contains_Duplicate_Set, "Relative distinguished name contains identical value more than once in SET: %s" % (rdn.pretty_str), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
+
+		rdn_oids = [ rdn_item.oid for rdn_item in rdn ]
+		rdn_oids_set = set(rdn_oids)
+		if len(rdn_oids) != len(rdn_oids_set):
+			judgements += SecurityJudgement(JudgementCode.DN_Contains_Duplicate_OID_In_Multivalued_RDN, "Multivalued relative distinguished name contains same OID more than once in: %s" % (rdn.pretty_str), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
+
+		for rdn_item in rdn:
+			judgements += self._analyze_rdn_item(rdn_item)
+		return judgements
+
 	def analyze(self, dn):
 		judgements = SecurityJudgements()
 
@@ -110,11 +129,7 @@ class DistinguishedNameSecurityEstimator(BaseEstimator):
 
 		seen_oid_keys = set()
 		for rdn in dn:
-			if rdn.component_cnt > 1:
-				judgements += SecurityJudgement(JudgementCode.DN_Contains_MultiValues, "Distinguished name contains a multivalue RDN: %s" % (rdn.pretty_str), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
-
-			for rdn_item in rdn:
-				judgements += self._analyze_rdn_item(rdn_item)
+			judgements += self._analyze_rdn(rdn)
 
 			oidkey = rdn.oidkey
 			if oidkey in seen_oid_keys:

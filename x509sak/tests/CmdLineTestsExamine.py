@@ -664,8 +664,11 @@ class CmdLineTestsExamine(BaseTest):
 	def test_dn_multiple_cns(self):
 		self._test_examine_x509test_resultcode("certs/constructed/dn_multiple_cn.pem", expect_present = "DN_Contains_Multiple_CN")
 
-#	def test_dn_duplicate_set(self):
-#		self._test_examine_x509test_resultcode("certs/constructed/dn_duplicate_set.pem", expect_present = "DN_Contains_Duplicate_Set")
+	def test_dn_duplicate_set(self):
+		self._test_examine_x509test_resultcode("certs/constructed/dn_duplicate_set.pem", expect_present = [ "DN_Contains_Duplicate_Set", "DN_Contains_Duplicate_OID_In_Multivalued_RDN" ])
+
+	def test_dn_duplicate_oid_in_mvrdn(self):
+		self._test_examine_x509test_resultcode("certs/constructed/dn_duplicate_oid_in_mvrdn.pem", expect_present = "DN_Contains_Duplicate_OID_In_Multivalued_RDN", expect_absent = "DN_Contains_Duplicate_Set")
 
 	def test_cn_match_fqdn_but_multivalue_rdn(self):
 		self._test_examine_x509test_resultcode("certs/constructed/dn_cn_hostname_multivalue_rdn.pem", expect_present = "Cert_CN_Match_MultiValue_RDN", expect_absent = "DN_Contains_No_CN", host_check = "multivalue.com")
