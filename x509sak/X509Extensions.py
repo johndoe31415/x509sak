@@ -283,9 +283,9 @@ class X509AuthorityKeyIdentifierExtension(X509Extension):
 			else:
 				self._serial = None
 		else:
-				self._keyid = None
-				self._ca_names = None
-				self._serial = None
+			self._keyid = None
+			self._ca_names = None
+			self._serial = None
 X509ExtensionRegistry.set_handler_class(X509AuthorityKeyIdentifierExtension)
 
 

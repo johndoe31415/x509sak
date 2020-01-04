@@ -24,9 +24,8 @@ import random
 from x509sak.BaseAction import BaseAction
 from x509sak.PrimeDB import PrimeDB
 from x509sak.NumberTheory import NumberTheory
-from x509sak.PublicKey import PublicKey
-from x509sak.AlgorithmDB import Cryptosystems
 from x509sak.DSAParameters import DSAParameters
+from x509sak.Exceptions import UnfulfilledPrerequisitesException
 
 class ActionGenerateBrokenDSA(BaseAction):
 	def __init__(self, cmdname, args):

@@ -19,13 +19,9 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-import collections
 import urllib.parse
-import pyasn1.type.char
-from x509sak.OID import OIDDB
-from x509sak.estimate.BaseEstimator import BaseEstimator
-from x509sak.estimate import JudgementCode, Compatibility
-from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, Commonness, RFCReference, LiteratureReference
+from x509sak.estimate import JudgementCode
+from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, Commonness
 from x509sak.ASN1Wrapper import ASN1GeneralNameWrapper
 from x509sak.Tools import ValidationTools
 from x509sak.Exceptions import InvalidInternalDataException

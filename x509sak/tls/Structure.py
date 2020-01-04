@@ -76,7 +76,7 @@ class StructureMemberFactoryElement(BaseStructureMember):
 
 	@classmethod
 	def from_match(cls, name, match, **kwargs):
-		raise NotImplementedError(self.__class__.__name__)
+		raise NotImplementedError(cls.__name__)
 
 	@property
 	def typename(self):
