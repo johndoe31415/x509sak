@@ -49,7 +49,7 @@ class GeneralNameValidatorTests(BaseTest):
 			"dnsname_wc_broad":				GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_SubjectAltName_BadWildcardDomain_BroadMatch),
 			"invalid_type":					GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_CAName_UncommonIdentifier),
 		}
-		result = GeneralNameValidator(gn, errors = errors, permissible_types = permissible_types, permissible_uri_schemes = permissible_uri_schemes).validate()
+		result = GeneralNameValidator(errors = errors, permissible_types = permissible_types, permissible_uri_schemes = permissible_uri_schemes).validate_asn1(gn)
 		if assert_length is not None:
 			self.assertEqual(len(result), assert_length)
 		if assert_present is not None:

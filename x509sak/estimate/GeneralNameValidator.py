@@ -53,8 +53,7 @@ class GeneralNameValidator():
 		def standard(self):
 			return self._standard
 
-	def __init__(self, general_name, allow_dnsname_wildcard_matches = None, expected_types = None, error_prefix_str = None, errors = None, permissible_types = None, permissible_uri_schemes = None):
-		self._gn = ASN1GeneralNameWrapper.from_asn1(general_name)
+	def __init__(self, allow_dnsname_wildcard_matches = None, expected_types = None, error_prefix_str = None, errors = None, permissible_types = None, permissible_uri_schemes = None):
 		self._allow_dnsname_wildcard_matches = allow_dnsname_wildcard_matches
 		self._expected_types = expected_types
 		self._expected_types = set(expected_types) if (expected_types is not None) else set()
@@ -66,7 +65,7 @@ class GeneralNameValidator():
 		if len(set(self._errors) - self._VALID_ERROR_TYPES) > 0:
 			raise InvalidInternalDataException("Unsupported error type(s) passed for handling: %s" % (", ".join(sorted(set(self._errors) - self._VALID_ERROR_TYPES))))
 
-	def _raise_error(self, error_type, error_text, **kwargs):
+	def _report_error(self, error_type, error_text, **kwargs):
 		assert(error_type in self._VALID_ERROR_TYPES)
 		error = self._errors.get(error_type)
 		error_text = "%s of type %s %s" % (self._error_prefix_str, self._gn.name, error_text)
@@ -77,19 +76,19 @@ class GeneralNameValidator():
 
 	def _handle_dNSName(self):
 		if self._gn.str_value == " ":
-			return self._raise_error("dnsname_space", "got invalid DNS name \" \" (space character).")
+			return self._report_error("dnsname_space", "got invalid DNS name \" \" (space character).")
 
 		if self._allow_dnsname_wildcard_matches:
 			(result, label) = ValidationTools.validate_domainname_template(self._gn.str_value)
 			if result != ValidationTools.DomainnameTemplateValidationResult.Valid:
 				if result == ValidationTools.DomainnameTemplateValidationResult.InvalidCharacter:
-					return self._raise_error("dnsname", "has invalid domain name \"%s\", error at label \"%s\"." % (self._gn.str_value, label))
+					return self._report_error("dnsname", "has invalid domain name \"%s\", error at label \"%s\"." % (self._gn.str_value, label))
 				elif result == ValidationTools.DomainnameTemplateValidationResult.FullWildcardNotLeftmost:
-					return self._raise_error("dnsname_wc_notleftmost", "has invalid domain name \"%s\". Full-label wildcard appears not as leftmost element." % (self._gn.str_value))
+					return self._report_error("dnsname_wc_notleftmost", "has invalid domain name \"%s\". Full-label wildcard appears not as leftmost element." % (self._gn.str_value))
 				elif result == ValidationTools.DomainnameTemplateValidationResult.MoreThanOneWildcard:
-					return self._raise_error("dnsname_wc_morethanone", "has invalid domain name \"%s\". More than one wildcard label present." % (self._gn.str_value))
+					return self._report_error("dnsname_wc_morethanone", "has invalid domain name \"%s\". More than one wildcard label present." % (self._gn.str_value))
 				elif result == ValidationTools.DomainnameTemplateValidationResult.WildcardInInternationalDomain:
-					return self._raise_error("dnsname_wc_international", "has invalid domain name \"%s\". Wildcard in international domain label \"%s\"." % (self._gn.str_value, label))
+					return self._report_error("dnsname_wc_international", "has invalid domain name \"%s\". Wildcard in international domain label \"%s\"." % (self._gn.str_value, label))
 				else:
 					raise NotImplementedError(result)
 
@@ -97,21 +96,21 @@ class GeneralNameValidator():
 				# Wildcard match
 				labels = self._gn.str_value.split(".")
 				if len(labels) <= 2:
-					self._raise_error("dnsname_wc_broad", "has wildcard value \"%s\", which is an extremely broad domain match." % (self._gn.str_value), commonness = Commonness.HIGHLY_UNUSUAL)
+					self._report_error("dnsname_wc_broad", "has wildcard value \"%s\", which is an extremely broad domain match." % (self._gn.str_value), commonness = Commonness.HIGHLY_UNUSUAL)
 
 		if not "." in self._gn.str_value:
-			self._raise_error("dnsname_single_label", "contains only single label \"%s\", which is highly unusual." % (self._gn.str_value), commonness = Commonness.HIGHLY_UNUSUAL)
+			self._report_error("dnsname_single_label", "contains only single label \"%s\", which is highly unusual." % (self._gn.str_value), commonness = Commonness.HIGHLY_UNUSUAL)
 
 		validation_name = self._gn.str_value
 		if self._allow_dnsname_wildcard_matches:
 			validation_name = validation_name.replace("*", "a")
 		result = ValidationTools.validate_domainname(validation_name)
 		if not result:
-			self._raise_error("dnsname", "has invalid domain name \"%s\" (wildcard matches %s)." % (self._gn.str_value, "permitted" if self._allow_dnsname_wildcard_matches else "forbidden"))
+			self._report_error("dnsname", "has invalid domain name \"%s\" (wildcard matches %s)." % (self._gn.str_value, "permitted" if self._allow_dnsname_wildcard_matches else "forbidden"))
 
 	def _handle_iPAddress(self):
 		if len(self._gn.asn1_value) not in [ 4, 16 ]:
-			self._raise_error("ip", "expects either 4 or 16 bytes of data for IPv4/IPv6, but saw %d bytes." % (len(self._gn.str_value)))
+			self._report_error("ip", "expects either 4 or 16 bytes of data for IPv4/IPv6, but saw %d bytes." % (len(self._gn.str_value)))
 		else:
 			if len(self._gn.asn1_value) == 4:
 				# IPv4
@@ -128,40 +127,41 @@ class GeneralNameValidator():
 				)
 				for (network, netmask, network_class) in private_networks:
 					if (ip_value & netmask) == network:
-						self._raise_error("ip_private", "has network address %s in a %s subnet." % (self._gn.str_value, network_class))
+						self._report_error("ip_private", "has network address %s in a %s subnet." % (self._gn.str_value, network_class))
 						break
 
 	def _handle_rfc822Name(self):
 		if not ValidationTools.validate_email_address(self._gn.str_value):
-			self._raise_error("email", "contains invalid email address \"%s\"." % (self._gn.str_value))
+			self._report_error("email", "contains invalid email address \"%s\"." % (self._gn.str_value))
 
 	def _handle_uniformResourceIdentifier(self):
 		if not ValidationTools.validate_uri(str(self._gn.str_value)):
-			self._raise_error("uri", "contains invalid URI \"%s\"." % (str(self._gn.str_value)))
+			self._report_error("uri", "contains invalid URI \"%s\"." % (str(self._gn.str_value)))
 		if self._permissible_uri_schemes is not None:
 			split_url = urllib.parse.urlsplit(self._gn.str_value)
 			if split_url.scheme not in self._permissible_uri_schemes:
-				self._raise_error("uri_invalid_scheme", "contains invalid URI scheme \"%s\" (permitted schemes are only %s)." % (str(self._gn.str_value), ", ".join(sorted(self._permissible_uri_schemes))))
+				self._report_error("uri_invalid_scheme", "contains invalid URI scheme \"%s\" (permitted schemes are only %s)." % (str(self._gn.str_value), ", ".join(sorted(self._permissible_uri_schemes))))
 
 	def _do_validate(self):
 		if self._gn.str_value.strip("\t \r\n") == "":
-			self._raise_error("empty", "has empty value or contains only of whitespace.", commonness = Commonness.HIGHLY_UNUSUAL)
+			self._report_error("empty", "has empty value or contains only of whitespace.", commonness = Commonness.HIGHLY_UNUSUAL)
 
 		if self._permissible_types is not None:
 			if self._gn.name not in self._permissible_types:
-				self._raise_error("invalid_type", "has type that is not common or permitted in this context (allowed are %s)." % (", ".join(sorted(self._permissible_types))), commonness = Commonness.HIGHLY_UNUSUAL)
+				self._report_error("invalid_type", "has type that is not common or permitted in this context (allowed are %s)." % (", ".join(sorted(self._permissible_types))), commonness = Commonness.HIGHLY_UNUSUAL)
 
 		gn_subtype_handler = getattr(self, "_handle_%s" % (str(self._gn.name)), None)
 		if gn_subtype_handler is not None:
 			return gn_subtype_handler()
 		else:
-			self._raise_error("unknown_subtype", "has no handler in %s." % (self.__class__.__name__))
+			self._report_error("unknown_subtype", "has no handler in %s." % (self.__class__.__name__))
 
-		return judgements
-
-	def validate(self):
-		if self._validation is None:
-			self._validation = SecurityJudgements()
-			self._validation += self._do_validate()
+	def validate(self, general_name):
+		self._gn = general_name
+		self._validation = SecurityJudgements()
+		self._do_validate()
 		return self._validation
 
+	def validate_asn1(self, general_name_asn1):
+		general_name = ASN1GeneralNameWrapper.from_asn1(general_name_asn1)
+		return self.validate(general_name)
