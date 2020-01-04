@@ -126,6 +126,29 @@ class SignatureSecurityEstimator(BaseEstimator):
 				standard = RFCReference(rfcno = 3279, sect = "2.2.3", verb = "MUST", text = "To easily transfer these two values as one signature, they MUST be ASN.1 encoded using the following ASN.1 structure:")
 				judgements += SecurityJudgement(JudgementCode.ECDSA_Signature_Malformed, "ECDSA signature cannot be successfully decoded.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
+		elif signature_alg.value.sig_fnc == SignatureFunctions.dsa:
+			# Decode DSA signature
+			try:
+				(asn1, tail) = pyasn1.codec.der.decoder.decode(signature, asn1Spec = rfc3279.Dss_Sig_Value())
+				if len(tail) > 0:
+					judgements += SecurityJudgement(JudgementCode.DSA_Signature_TrailingData, "DSA signature encoding has %d bytes of trailing data." % (len(tail)), commonness = Commonness.HIGHLY_UNUSUAL)
+
+				if root_cert is not None:
+					if root_cert.pubkey.pk_alg.value.cryptosystem == Cryptosystems.DSA:
+						field_width = root_cert.pubkey.q.bit_length()
+
+						hweight_analysis = NumberTheory.hamming_weight_analysis(int(asn1["r"]), min_bit_length = field_width)
+						print(hweight_analysis)
+						if not hweight_analysis.plausibly_random:
+							judgements += SecurityJudgement(JudgementCode.DSA_Signature_R_BitBias, "Hamming weight of DSA signature R parameter is %d at bitlength %d, but expected a weight between %d and %d when randomly chosen; this is likely not coincidential." % (hweight_analysis.hweight, hweight_analysis.bitlen, hweight_analysis.rnd_min_hweight, hweight_analysis.rnd_max_hweight), commonness = Commonness.HIGHLY_UNUSUAL)
+
+						hweight_analysis = NumberTheory.hamming_weight_analysis(int(asn1["s"]), min_bit_length = field_width)
+						if not hweight_analysis.plausibly_random:
+							judgements += SecurityJudgement(JudgementCode.DSA_Signature_S_BitBias, "Hamming weight of DSA signature S parameter is %d at bitlength %d, but expected a weight between %d and %d when randomly chosen; this is likely not coincidential." % (hweight_analysis.hweight, hweight_analysis.bitlen, hweight_analysis.rnd_min_hweight, hweight_analysis.rnd_max_hweight), commonness = Commonness.HIGHLY_UNUSUAL)
+			except pyasn1.error.PyAsn1Error:
+				standard = RFCReference(rfcno = 3279, sect = "2.2.2", verb = "SHALL", text = "To easily transfer these two values as one signature, they SHALL be ASN.1 encoded using the following ASN.1 structure:")
+				judgements += SecurityJudgement(JudgementCode.DSA_Signature_Malformed, "DSA signature cannot be successfully decoded.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+
 		result = {
 			"name":				signature_alg.name,
 			"sig_fnc":			self.algorithm("sig_fnc").analyze(signature_alg.value.sig_fnc),

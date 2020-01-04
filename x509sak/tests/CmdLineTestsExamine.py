@@ -516,6 +516,9 @@ class CmdLineTestsExamine(BaseTest):
 		# when the curve is known, which is encoded in the CA's public key.
 		self._test_examine_x509test_resultcode("certs/constructed/ecdsa_sig_s_bitbias.pem", "ECDSA_Signature_S_BitBias", parent_certname = "certs/ok/johannes-bauer.com.pem")
 
+	def test_constructed_ecdsa_sig_malformed(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ecdsa_sig_malformed.pem", "ECDSA_Signature_Malformed", parent_certname = "certs/constructed/ecdsa_sig_malformed.pem")
+
 	def test_constructed_pubkey_bitbias_x_low_hweight(self):
 		self._test_examine_x509test_resultcode("certs/constructed/ecc_pubkey_x_bitbias1.pem", "ECC_Pubkey_X_BitBias", expect_absent = "ECC_Pubkey_Y_BitBias")
 
@@ -689,7 +692,7 @@ class CmdLineTestsExamine(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/dn_cn_hostname_multivalue_rdn.pem", expect_present = "Cert_CN_Match_MultiValue_RDN", expect_absent = "DN_Contains_No_CN", host_check = "multivalue.com")
 
 	def test_cn_match_fqdn(self):
-		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", expect_present = "Cert_CN_Match", expect_absent = "Cert_No_SAN_Present", host_check = "johannes-bauer.com")
+		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", expect_present = "Cert_CN_Match", expect_absent = "Cert_X509Ext_SubjectAltName_Missing", host_check = "johannes-bauer.com")
 
 	def test_cn_no_match_fqdn(self):
 		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", expect_present = [ "Cert_CN_NoMatch", "Cert_Name_Verification_Failed" ], host_check = "pupannes-bauer.com")
@@ -787,8 +790,21 @@ class CmdLineTestsExamine(BaseTest):
 	def test_dsa_q_bitbias(self):
 		self._test_examine_x509test_resultcode("certs/constructed/dsa_q_bitbias.pem", expect_present = "DSA_Parameter_Q_BitBias", expect_absent = "DSA_Parameter_P_BitBias")
 
+	def test_dsa_r_bitbias(self):
+		# Need the CA for this test, since the signature can only be checked
+		# when the curve is known, which is encoded in the CA's public key.
+		self._test_examine_x509test_resultcode("certs/constructed/dsa_r_bitbias.pem", expect_present = "DSA_Signature_R_BitBias", parent_certname = "certs/constructed/dsa_base.pem")
+
+	def test_dsa_s_bitbias(self):
+		# Need the CA for this test, since the signature can only be checked
+		# when the curve is known, which is encoded in the CA's public key.
+		self._test_examine_x509test_resultcode("certs/constructed/dsa_s_bitbias.pem", expect_present = "DSA_Signature_S_BitBias", parent_certname = "certs/constructed/dsa_base.pem")
+
 	def test_dsa_q_does_not_divide_p1(self):
 		self._test_examine_x509test_resultcode("certs/constructed/dsa_q_does_not_divide_p1.pem", expect_present = "DSA_Parameter_Q_No_Divisor_Of_P1")
+
+	def test_dsa_sig_malformed(self):
+		self._test_examine_x509test_resultcode("certs/constructed/dsa_sig_malformed.pem", expect_present = "DSA_Signature_Malformed")
 
 	def test_dsa_typical_parameters(self):
 		self._test_examine_x509test_resultcode("certs/ok/dsa_sha1.pem", expect_present = [ "DSA_Parameter_L_N_Common", "DSA_Security_Level" ], expect_absent = "DSA_Parameter_L_N_Uncommon")
@@ -897,3 +913,6 @@ class CmdLineTestsExamine(BaseTest):
 
 	def test_issuer_altname_bad_email(self):
 		self._test_examine_x509test_resultcode("certs/constructed/issuer_altname_bad_email.pem", expect_present = "Cert_X509Ext_IssuerAltName_BadEmail")
+
+	def test_extension_malformed(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ext_malformed.pem", expect_present = "Cert_X509Ext_Malformed")

@@ -58,6 +58,7 @@ class JudgementCode(enum.Enum):
 	DSA_Parameter_L_N_Common = ("DSA parameters", "parameter values L/N are common")
 	DSA_Signature_R_BitBias = ("DSA signature", "R value has bit bias")
 	DSA_Signature_S_BitBias = ("DSA signature", "S value has bit bias")
+	DSA_Signature_Malformed = ("DSA signature", "signature is malformed")
 	DSA_Security_Level = ("DSA parameters", "security estimation")
 	ECC_Pubkey_CurveOrder = ("ECC pubkey", "curve order")
 	ECC_Pubkey_Not_On_Curve = ("ECC pubkey", "point not on curve")
@@ -124,7 +125,6 @@ class JudgementCode(enum.Enum):
 	Cert_X509Ext_NameConstraints_PresentButNotCA = ("X.509 NameConstraints extension", "NameConstraints extension in non-CA certificate")
 	Cert_X509Ext_NotAllowed = ("X.509 extensions", "no extensions permissible")
 	Cert_X509Ext_Malformed = ("X.509 extensions", "invalid extension encoding")
-	Cert_X509Ext_Invalid_DER = ("X.509 extensions", "invalid DER used in extension")
 	Cert_X509Ext_KeyUsage_Missing = ("X.509 KeyUsage extension", "missing extension")
 	Cert_X509Ext_KeyUsage_Empty = ("X.509 KeyUsage extension", "empty sequence")
 	Cert_X509Ext_KeyUsage_TooLong = ("X.509 KeyUsage extension", "too many items")
@@ -489,7 +489,7 @@ class RFCReference(StandardReference):
 	_STD_TYPE = "RFC"
 
 	def __init__(self, rfcno, sect, verb, text):
-		assert(verb in [ "SHOULD", "MUST", "RECOMMEND", "MAY" ])
+		assert(verb in [ "SHOULD", "MUST", "RECOMMEND", "MAY", "SHALL" ])
 		StandardReference.__init__(self)
 		self._rfcno = rfcno
 		self._sect = sect
@@ -503,6 +503,7 @@ class RFCReference(StandardReference):
 			"RECOMMEND":	StandardDeviationType.RECOMMENDATION,
 			"MAY":			StandardDeviationType.RECOMMENDATION,
 			"MUST":			StandardDeviationType.VIOLATION,
+			"SHALL":		StandardDeviationType.VIOLATION,
 		}[self.verb]
 
 	@property
