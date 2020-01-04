@@ -146,7 +146,7 @@ class GeneralNameValidator():
 
 		gn_subtype_handler = getattr(self, "_handle_%s" % (str(self._gn.name)), None)
 		if gn_subtype_handler is not None:
-			return gn_subtype_handler()
+			gn_subtype_handler()
 		else:
 			self._report_error("unknown_subtype", "has no handler in %s." % (self.__class__.__name__))
 

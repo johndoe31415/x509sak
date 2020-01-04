@@ -199,7 +199,6 @@ class JudgementCode(enum.Enum):
 	Cert_CN_NoMatch = ("Certificate identity", "CN does not match expected name")
 	Cert_SAN_Match = ("Certificate identity", "SAN matches expected name")
 	Cert_SAN_NoMatch = ("Certificate identity", "SAN does not match expected name")
-	Cert_No_SAN_Present = ("Certificate identity", "SAN extension not present")
 	Cert_Name_Verification_Failed = ("Certificate identity", "name verification failed")
 	Cert_Unexpectedly_CA_Cert = ("Certificate purpose", "certificate is CA cert, but should not be")
 	Cert_Unexpectedly_No_CA_Cert = ("Certificate purpose", "certificate is no CA cert, but should be")

@@ -34,7 +34,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 	_ALG_NAME = "crt_exts"
 	_NameError = collections.namedtuple("NameError", [ "code", "standard" ])
 
-	_SUBJECT_ALTERNATIVE_NAME_VALIDATOR = GeneralNameValidator(error_prefix_str = "X.509 Subject Alternative Name Extension", permissible_types = [ "iPAddress", "dNSName" ], allow_dnsname_wildcard_matches = True, errors = {
+	_SUBJECT_ALTERNATIVE_NAME_VALIDATOR = GeneralNameValidator(error_prefix_str = "X.509 Subject Alternative Name Extension", permissible_types = [ "iPAddress", "dNSName" ], allow_dnsname_wildcard_matches = True, permissible_uri_schemes = [ "http", "https"], errors = {
 		"empty_value":					GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_SubjectAltName_EmptyValue),
 		"email":						GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_SubjectAltName_BadEmail, standard = RFCReference(rfcno = 822, sect = "6.1", verb = "MUST", text = "addr-spec = local-part \"@\" domain")),
 		"ip":							GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_SubjectAltName_BadIP, standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "For IP version 4, as specified in [RFC791], the octet string MUST contain exactly four octets. For IP version 6, as specified in [RFC2460], the octet string MUST contain exactly sixteen octets.")),
@@ -51,7 +51,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		"invalid_type":					GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_SubjectAltName_UncommonIdentifier),
 	})
 
-	_ISSUER_ALTERNATIVE_NAME_VALIDATOR = GeneralNameValidator(error_prefix_str = "X.509 Issuer Alternative Name Extension", permissible_types = [ "directoryName" ], errors = {
+	_ISSUER_ALTERNATIVE_NAME_VALIDATOR = GeneralNameValidator(error_prefix_str = "X.509 Issuer Alternative Name Extension", permissible_types = [ "directoryName" ], permissible_uri_schemes = [ "http", "https"], errors = {
 		"empty_value":					GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_IssuerAltName_EmptyValue),
 		"email":						GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_IssuerAltName_BadEmail, standard = RFCReference(rfcno = 822, sect = "6.1", verb = "MUST", text = "addr-spec = local-part \"@\" domain")),
 		"ip":							GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_IssuerAltName_BadIP, standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "For IP version 4, as specified in [RFC791], the octet string MUST contain exactly four octets. For IP version 6, as specified in [RFC2460], the octet string MUST contain exactly sixteen octets.")),
@@ -64,7 +64,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		"invalid_type":					GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_IssuerAltName_UncommonIdentifier),
 	})
 
-	_AUTHORITY_KEY_IDENTIFIER_CANAME_VALIDATOR = GeneralNameValidator(error_prefix_str = "X.509 Authority Key Identifier Extension (CA name)", permissible_types = [ "directoryName" ], errors = {
+	_AUTHORITY_KEY_IDENTIFIER_CANAME_VALIDATOR = GeneralNameValidator(error_prefix_str = "X.509 Authority Key Identifier Extension (CA name)", permissible_types = [ "directoryName" ], permissible_uri_schemes = [ "http", "https"], errors = {
 		"empty_value":					GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_CAName_EmptyValue),
 		"email":						GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_CAName_BadEmail, standard = RFCReference(rfcno = 822, sect = "6.1", verb = "MUST", text = "addr-spec = local-part \"@\" domain")),
 		"ip":							GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_CAName_BadIP, standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "For IP version 4, as specified in [RFC791], the octet string MUST contain exactly four octets. For IP version 6, as specified in [RFC2460], the octet string MUST contain exactly sixteen octets.")),
@@ -325,7 +325,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 				standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "Further, if the only subject identity included in the certificate is an alternative name form (e.g., an electronic mail address), then the subject distinguished name MUST be empty (an empty sequence), and the subjectAltName extension MUST be present.")
 				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_EmailOnly, "Subject Alternative Name X.509 extension only contains email addresses even though subject is non-empty.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 		else:
-			judgements += SecurityJudgement(JudgementCode.Cert_No_SAN_Present, "No Subject Alternative Name X.509 extension present in the certificate.", commonness = Commonness.UNUSUAL)
+			judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_Missing, "No Subject Alternative Name X.509 extension present in the certificate.", commonness = Commonness.UNUSUAL)
 
 			if certificate.subject.empty:
 				standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "If the subject field contains an empty sequence, then the issuing CA MUST include a subjectAltName extension that is marked as critical.")

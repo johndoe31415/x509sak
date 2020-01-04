@@ -611,6 +611,9 @@ class CmdLineTestsExamine(BaseTest):
 	def test_san_bad_ip(self):
 		self._test_examine_x509test_resultcode("certs/constructed/san_bad_ip.pem", expect_present = "Cert_X509Ext_SubjectAltName_BadIP")
 
+	def test_san_bad_ip_private(self):
+		self._test_examine_x509test_resultcode("certs/constructed/san_bad_ip_private.pem", expect_present = "Cert_X509Ext_SubjectAltName_BadIP_Private")
+
 	def test_san_wildcard_not_leftmost(self):
 		self._test_examine_x509test_resultcode("certs/constructed/san_wildcard_not_leftmost.pem", expect_present = "Cert_X509Ext_SubjectAltName_BadWildcardDomain_NotLeftmost")
 
@@ -629,8 +632,20 @@ class CmdLineTestsExamine(BaseTest):
 	def test_san_bad_domain_space(self):
 		self._test_examine_x509test_resultcode("certs/constructed/san_bad_domain_space.pem", expect_present = "Cert_X509Ext_SubjectAltName_BadDNSName_Space")
 
+	def test_san_bad_domain_single_label(self):
+		self._test_examine_x509test_resultcode("certs/constructed/san_bad_domain_single_label.pem", expect_present = "Cert_X509Ext_SubjectAltName_BadDNSName_SingleLabel")
+
 	def test_san_missing(self):
-		self._test_examine_x509test_resultcode("certs/constructed/san_missing.pem", expect_present = "Cert_No_SAN_Present")
+		self._test_examine_x509test_resultcode("certs/constructed/san_missing.pem", expect_present = "Cert_X509Ext_SubjectAltName_Missing")
+
+	def test_san_bad_uri(self):
+		self._test_examine_x509test_resultcode("certs/constructed/san_bad_uri.pem", expect_present = "Cert_X509Ext_SubjectAltName_BadURI")
+
+	def test_san_bad_uri_uncommon_scheme(self):
+		self._test_examine_x509test_resultcode("certs/constructed/san_bad_uri_uncommon_scheme.pem", expect_present = "Cert_X509Ext_SubjectAltName_UncommonURIScheme")
+
+	def test_san_uncommon_identifier(self):
+		self._test_examine_x509test_resultcode("certs/constructed/san_good_uri.pem", expect_present = "Cert_X509Ext_SubjectAltName_UncommonIdentifier")
 
 	def test_dn_all_ok(self):
 		self._test_examine_x509test_resultcode("certs/constructed/dn_all_okay.pem", expect_absent = [ "DN_Contains_Long_RDN" ])
