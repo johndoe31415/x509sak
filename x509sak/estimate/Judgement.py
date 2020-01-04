@@ -366,8 +366,12 @@ class SecurityJudgement():
 		}
 		return { key: value for (key, value) in result.items() if value is not None }
 
+	def dump(self, indent = 0):
+		indent_str = ("    " * indent)
+		print("%s%s" % (indent_str, str(self)))
+
 	def __str__(self):
-		return "SecurityJudgement<%s>" % (self.text)
+		return "SecurityJudgement<%s / %s>" % (self.code, self.text)
 
 class SecurityJudgements():
 	def __init__(self):
@@ -434,6 +438,12 @@ class SecurityJudgements():
 			"components":		[ judgement.to_dict() for judgement in self._judgements ],
 		}
 		return { key: value for (key, value) in result.items() if value is not None }
+
+	def dump(self, indent = 0):
+		indent_str = ("    " * indent)
+		print("%sSecurityJudgements" % (indent_str))
+		for judgement in self._judgements:
+			judgement.dump(indent + 1)
 
 	def __len__(self):
 		return len(self._judgements)

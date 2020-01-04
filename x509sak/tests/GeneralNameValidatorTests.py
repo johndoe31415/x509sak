@@ -1,0 +1,63 @@
+#	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
+#	Copyright (C) 2018-2018 Johannes Bauer
+#
+#	This file is part of x509sak.
+#
+#	x509sak is free software; you can redistribute it and/or modify
+#	it under the terms of the GNU General Public License as published by
+#	the Free Software Foundation; this program is ONLY licensed under
+#	version 3 of the License, later versions are explicitly excluded.
+#
+#	x509sak is distributed in the hope that it will be useful,
+#	but WITHOUT ANY WARRANTY; without even the implied warranty of
+#	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#	GNU General Public License for more details.
+#
+#	You should have received a copy of the GNU General Public License
+#	along with x509sak; if not, write to the Free Software
+#	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+#	Johannes Bauer <JohannesBauer@gmx.de>
+
+from pyasn1_modules import rfc5280
+from pyasn1.type.univ import OctetString
+from x509sak.tests.BaseTest import BaseTest
+from x509sak.estimate.GeneralNameValidator import GeneralNameValidator
+from x509sak.estimate.Judgement import JudgementCode
+
+class GeneralNameValidatorTests(BaseTest):
+	def _create_general_name(self, name, inner):
+		gn = rfc5280.GeneralName()
+		gn[name] = gn.getComponentByName(name).clone(inner)
+		return gn
+
+	def _validate(self, name, inner, assert_length = None, assert_present = None):
+		gn = self._create_general_name(name, inner)
+		errors = {
+			"email_bad":			GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_SubjectAltName_BadEmail),
+			"ip_bad":				GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_SubjectAltName_BadIP),
+			"uri_bad":				GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_SubjectAltName_BadURI),
+			"uri_invalid_scheme":	GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_SubjectAltName_UncommonURIScheme),
+		}
+		result = GeneralNameValidator(gn, errors = errors).validate()
+		if assert_length is not None:
+			self.assertEqual(len(result), assert_length)
+		if assert_present is not None:
+			code_set = set(judgement.code for judgement in result)
+			self.assertIn(assert_present, code_set)
+		return result
+
+	def test_email_ok(self):
+		 self._validate("rfc822Name", "foo@bar.com", assert_length = 0)
+
+	def test_email_bad(self):
+		self._validate("rfc822Name", "foo @bar.com", assert_present = JudgementCode.Cert_X509Ext_SubjectAltName_BadEmail)
+
+	def test_ipv4_ok(self):
+		 self._validate("iPAddress", OctetString(bytes.fromhex("aa bb cc dd"), assert_length = 0))
+
+	def test_ipv6_ok(self):
+		 self._validate("iPAddress", OctetString(bytes(16), assert_length = 0))
+
+	def test_ip_bad(self):
+		 self._validate("iPAddress", OctetString(bytes(2), assert_present = JudgementCode.Cert_X509Ext_SubjectAltName_BadIP))
