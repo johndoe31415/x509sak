@@ -567,7 +567,7 @@ class CmdLineTestsExamine(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/rsa_parameter_missing.pem", "RSA_Parameter_Field_Not_Present")
 
 	def test_include_raw_data_rsa(self):
-		self._test_examine_x509test_resultcode("certs/ok/rsa_512.pem", expect_present = "HashFunction_Derated", include_raw = True)
+		self._test_examine_x509test_resultcode("certs/ok/rsa_512.pem", expect_present = [ "HashFunction_Derated", "RSA_Modulus_Length", "HashFunction_Length" ], include_raw = True)
 
 	def test_include_raw_data_ecc_fp(self):
 		self._test_examine_x509test_resultcode("certs/ok/ecc_secp256r1.pem", include_raw = True)
@@ -767,7 +767,7 @@ class CmdLineTestsExamine(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/dsa_q_does_not_divide_p1.pem", expect_present = "DSA_Parameter_Q_No_Divisor_Of_P1")
 
 	def test_dsa_typical_parameters(self):
-		self._test_examine_x509test_resultcode("certs/ok/dsa_sha1.pem", expect_present = "DSA_Parameter_L_N_Common", expect_absent = "DSA_Parameter_L_N_Uncommon")
+		self._test_examine_x509test_resultcode("certs/ok/dsa_sha1.pem", expect_present = [ "DSA_Parameter_L_N_Common", "DSA_Security_Level" ], expect_absent = "DSA_Parameter_L_N_Uncommon")
 
 	def test_dsa_atypical_parameters(self):
 		self._test_examine_x509test_resultcode("certs/ok/dsa_512_160_sha256.pem", expect_present = "DSA_Parameter_L_N_Uncommon", expect_absent = "DSA_Parameter_L_N_Common")
