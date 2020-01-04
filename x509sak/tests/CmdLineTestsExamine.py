@@ -875,6 +875,21 @@ class CmdLineTestsExamine(BaseTest):
 	def test_aki_caname_emptyvalue(self):
 		self._test_examine_x509test_resultcode("certs/constructed/aki_caname_emptyvalue.pem", expect_present = "Cert_X509Ext_AuthorityKeyIdentifier_CAName_EmptyValue")
 
+	def test_aki_caname_bad_ip_private(self):
+		self._test_examine_x509test_resultcode("certs/constructed/aki_caname_bad_ip_private.pem", expect_present = "Cert_X509Ext_AuthorityKeyIdentifier_CAName_BadIP_Private")
+
+	def test_aki_caname_bad_domain_space(self):
+		self._test_examine_x509test_resultcode("certs/constructed/aki_caname_bad_domain_space.pem", expect_present = "Cert_X509Ext_AuthorityKeyIdentifier_CAName_BadDNSName_Space")
+
+	def test_aki_caname_bad_domain_single_label(self):
+		self._test_examine_x509test_resultcode("certs/constructed/aki_caname_bad_domain_single_label.pem", expect_present = "Cert_X509Ext_AuthorityKeyIdentifier_CAName_BadDNSName_SingleLabel")
+
+	def test_aki_caname_uncommon_identifier(self):
+		self._test_examine_x509test_resultcode("certs/constructed/aki_caname_good_ip.pem", expect_present = "Cert_X509Ext_AuthorityKeyIdentifier_CAName_UncommonIdentifier")
+
+	def test_aki_caname_uncommon_uri_scheme(self):
+		self._test_examine_x509test_resultcode("certs/constructed/aki_caname_uncommon_uri_scheme.pem", expect_present = "Cert_X509Ext_AuthorityKeyIdentifier_CAName_UncommonURIScheme")
+
 	def test_ext_unknown_noncritical(self):
 		self._test_examine_x509test_resultcode("certs/constructed/unknown_ext_noncritical.pem", expect_present = "Cert_X509Ext_Unknown_NonCritical")
 
