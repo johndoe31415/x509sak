@@ -238,7 +238,9 @@ class ASN1Editor():
 		# Now actually edit the file
 		if not self._args.no_edit:
 			modified_der_data = self._edit(ascii_der)
-			if modified_der_data == original_der_data:
+			if modified_der_data is None:
+				print("%s: not writing file, cannot compile (syntax error)" % (filename))
+			elif modified_der_data == original_der_data:
 				print("%s: no changes" % (filename))
 			else:
 				self._write_file(filename, filetype, modified_der_data)
