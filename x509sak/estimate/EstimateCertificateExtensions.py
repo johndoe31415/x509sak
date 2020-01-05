@@ -422,7 +422,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 						# User notice field is present
 						if qualifier.decoded_qualifier is None:
 							standard = RFCReference(rfcno = 5280, sect = "4.2.1.4", verb = "MUST", text = "UserNotice ::= SEQUENCE {")
-							judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificatePolicies_UserNoticeDecodeError, "Could not decode user notice qualifier in X.509 Certificate Policies extension of policy %s." % (policy.oid), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard, commonness = Commonness.HIGHLY_UNUSUAL)
+							judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificatePolicies_UserNoticeMalformed, "Could not decode user notice qualifier in X.509 Certificate Policies extension of policy %s." % (policy.oid), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard, commonness = Commonness.HIGHLY_UNUSUAL)
 						else:
 							if qualifier.decoded_qualifier.constraint_violation:
 								standard = RFCReference(rfcno = 5280, sect = "4.2.1.4", verb = "MUST", text = "While the explicitText has a maximum size of 200 characters, some non-conforming CAs exceed this limit. Therefore, certificate users SHOULD gracefully handle explicitText with more than 200 characters.")
@@ -463,11 +463,16 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 						# CPS field is present
 						if qualifier.decoded_qualifier is None:
 							standard = RFCReference(rfcno = 5280, sect = "4.2.1.4", verb = "MUST", text = "CPSuri ::= IA5String")
-							judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificatePolicies_CPSDecodeError, "Could not decode CPS qualifier in X.509 Certificate Policies extension of policy %s." % (policy.oid), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard, commonness = Commonness.HIGHLY_UNUSUAL)
+							judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificatePolicies_CPSMalformed, "Could not decode CPS qualifier in X.509 Certificate Policies extension of policy %s." % (policy.oid), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard, commonness = Commonness.HIGHLY_UNUSUAL)
 						else:
-							uri = str(qualifier.decoded_qualifier.asn1)
+							if qualifier.decoded_qualifier.constraint_violation:
+								standard = RFCReference(rfcno = 5280, sect = "4.2.1.4", verb = "MUST", text = "CPSuri ::= IA5String")
+								judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificatePolicies_CPSConstraintViolation, "CPS qualifier in X.509 Certificate Policies extension violates IA5String constraint, actual type is %s." % (type(qualifier.decoded_qualifier.asn1.getComponent()).__name__), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard, commonness = Commonness.HIGHLY_UNUSUAL)
+								uri = str(qualifier.decoded_qualifier.asn1.getComponent())
+							else:
+								uri = str(qualifier.decoded_qualifier.asn1)
 							if (not uri.startswith("http://")) and (not uri.startswith("https://")):
-								judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificatePolicies_CPSUnusualSchema, "CPS URI of policy %s does not follow http/https schema: %s" % (policy.oid, uri), compatibility = Compatibility.LIMITED_SUPPORT, commonness = Commonness.UNUSUAL)
+								judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificatePolicies_CPSUnusualURIScheme, "CPS URI of policy %s does not follow http/https scheme: %s" % (policy.oid, uri), compatibility = Compatibility.LIMITED_SUPPORT, commonness = Commonness.UNUSUAL)
 		return judgements
 
 	def analyze(self, certificate, root_cert = None):

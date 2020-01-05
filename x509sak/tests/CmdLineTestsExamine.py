@@ -997,3 +997,12 @@ class CmdLineTestsExamine(BaseTest):
 
 	def test_certpol_duplicate_qualifier_oid(self):
 		self._test_examine_x509test_resultcode("certs/constructed/certpol_duplicate_qualifier_oid.pem", expect_present = "Cert_X509Ext_CertificatePolicies_DuplicateQualifierOID")
+
+	def test_certpol_cps_malformed(self):
+		self._test_examine_x509test_resultcode("certs/constructed/certpol_cps_malformed.pem", expect_present = "Cert_X509Ext_CertificatePolicies_CPSMalformed")
+
+	def test_certpol_cps_constraint_violation(self):
+		self._test_examine_x509test_resultcode("certs/constructed/certpol_cps_constraint_violation.pem", expect_present = "Cert_X509Ext_CertificatePolicies_CPSConstraintViolation")
+
+	def test_certpol_cps_unusual_uri_scheme(self):
+		self._test_examine_x509test_resultcode("certs/constructed/certpol_cps_unusual_uri_scheme.pem", expect_present = "Cert_X509Ext_CertificatePolicies_CPSUnusualURIScheme")

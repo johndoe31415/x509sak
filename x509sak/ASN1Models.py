@@ -289,3 +289,5 @@ class RelaxedUserNotice(univ.Sequence):
 		namedtype.OptionalNamedType("noticeRef", RelaxedNoticeReference()),
 		namedtype.OptionalNamedType("explicitText", RelaxedDisplayText()),
 	)
+
+class RelaxedCPSuri(RelaxedDisplayText): pass
