@@ -943,3 +943,15 @@ class CmdLineTestsExamine(BaseTest):
 
 	def test_extension_malformed(self):
 		self._test_examine_x509test_resultcode("certs/constructed/ext_malformed.pem", expect_present = "Cert_X509Ext_Malformed")
+
+	def test_certificate_lifetime_noca_conservative(self):
+		self._test_examine_x509test_resultcode("certs/constructed/lifetime_noca_conservative.pem", expect_present = "Cert_Validity_Length_Conservative")
+
+	def test_certificate_lifetime_noca_long(self):
+		self._test_examine_x509test_resultcode("certs/constructed/lifetime_noca_long.pem", expect_present = "Cert_Validity_Length_Long")
+
+	def test_certificate_lifetime_noca_verylong(self):
+		self._test_examine_x509test_resultcode("certs/constructed/lifetime_noca_verylong.pem", expect_present = "Cert_Validity_Length_VeryLong")
+
+	def test_certificate_lifetime_noca_exceptionallylong(self):
+		self._test_examine_x509test_resultcode("certs/constructed/lifetime_noca_exceptionallylong.pem", expect_present = "Cert_Validity_Length_ExceptionallyLong")
