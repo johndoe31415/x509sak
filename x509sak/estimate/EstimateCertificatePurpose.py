@@ -89,33 +89,33 @@ class PurposeEstimator(BaseEstimator):
 			present_flags = ku_ext.flags
 			missing_must_haves = must_have - present_flags
 			if len(missing_must_haves) > 0:
-				judgements += SecurityJudgement(JudgementCode.Cert_KU_MissingKeyUsage, "Certificate with purpose %s should have at least KeyUsage %s, but %s is missing." % (purpose.name, ", ".join(sorted(must_have)), ", ".join(sorted(missing_must_haves))), commonness = Commonness.HIGHLY_UNUSUAL)
+				judgements += SecurityJudgement(JudgementCode.Cert_Purpose_KU_MissingKeyUsage, "Certificate with purpose %s should have at least KeyUsage %s, but %s is missing." % (purpose.name, ", ".join(sorted(must_have)), ", ".join(sorted(missing_must_haves))), commonness = Commonness.HIGHLY_UNUSUAL)
 
 			excess_flags = present_flags - must_have - may_have - may_not_have
 			if len(excess_flags) > 0:
-				judgements += SecurityJudgement(JudgementCode.Cert_KU_UnusualKeyUsage, "For certificate with purpose %s it is uncommon to have KeyUsage %s." % (purpose.name, ", ".join(sorted(excess_flags))), commonness = Commonness.UNUSUAL)
+				judgements += SecurityJudgement(JudgementCode.Cert_Purpose_KU_UnusualKeyUsage, "For certificate with purpose %s it is uncommon to have KeyUsage %s." % (purpose.name, ", ".join(sorted(excess_flags))), commonness = Commonness.UNUSUAL)
 
 			present_may_not_haves = present_flags & may_not_have
 			if len(present_may_not_haves) > 0:
-				judgements += SecurityJudgement(JudgementCode.Cert_KU_ExcessKeyUsage, "Certificate with purpose %s must not have any KeyUsage %s. This certificate has %s." % (purpose.name, ", ".join(sorted(may_not_have)), ", ".join(sorted(present_may_not_haves))), commonness = Commonness.HIGHLY_UNUSUAL)
+				judgements += SecurityJudgement(JudgementCode.Cert_Purpose_KU_ExcessKeyUsage, "Certificate with purpose %s must not have any KeyUsage %s. This certificate has %s." % (purpose.name, ", ".join(sorted(may_not_have)), ", ".join(sorted(present_may_not_haves))), commonness = Commonness.HIGHLY_UNUSUAL)
 
 
 		if eku_ext is not None:
 			if (purpose == AnalysisOptions.CertificatePurpose.TLSClientCertificate) and (not eku_ext.client_auth):
-				judgements += SecurityJudgement(JudgementCode.Cert_EKU_NoClientAuth, "Certificate is supposed to be a client certificate and has an Extended Key Usage extension, but no clientAuth flag set within that extension.", commonness = Commonness.UNUSUAL)
+				judgements += SecurityJudgement(JudgementCode.Cert_Purpose_EKU_NoClientAuth, "Certificate is supposed to be a client certificate and has an Extended Key Usage extension, but no clientAuth flag set within that extension.", commonness = Commonness.UNUSUAL)
 
 			if (purpose == AnalysisOptions.CertificatePurpose.TLSServerCertificate) and (not eku_ext.server_auth):
-				judgements += SecurityJudgement(JudgementCode.Cert_EKU_NoServerAuth, "Certificate is supposed to be a server certificate and has an Extended Key Usage extension, but no serverAuth flag set within that extension.", commonness = Commonness.UNUSUAL)
+				judgements += SecurityJudgement(JudgementCode.Cert_Purpose_EKU_NoServerAuth, "Certificate is supposed to be a server certificate and has an Extended Key Usage extension, but no serverAuth flag set within that extension.", commonness = Commonness.UNUSUAL)
 
 		if ns_ext is not None:
 			if (purpose == AnalysisOptions.CertificatePurpose.TLSClientCertificate) and (not ns_ext.ssl_client):
-				judgements += SecurityJudgement(JudgementCode.Cert_NSCT_NoSSLClient, "Certificate is supposed to be a client certificate and has an Netscape Certificate Type extension, but no sslClient flag set within that extension.", commonness = Commonness.UNUSUAL)
+				judgements += SecurityJudgement(JudgementCode.Cert_Purpose_NSCT_NoSSLClient, "Certificate is supposed to be a client certificate and has an Netscape Certificate Type extension, but no sslClient flag set within that extension.", commonness = Commonness.UNUSUAL)
 
 			if (purpose == AnalysisOptions.CertificatePurpose.TLSServerCertificate) and (not ns_ext.ssl_server):
-				judgements += SecurityJudgement(JudgementCode.Cert_NSCT_NoSSLServer, "Certificate is supposed to be a server certificate and has an Netscape Certificate Type extension, but no sslServer flag set within that extension.", commonness = Commonness.UNUSUAL)
+				judgements += SecurityJudgement(JudgementCode.Cert_Purpose_NSCT_NoSSLServer, "Certificate is supposed to be a server certificate and has an Netscape Certificate Type extension, but no sslServer flag set within that extension.", commonness = Commonness.UNUSUAL)
 
 			if (purpose == AnalysisOptions.CertificatePurpose.CACertificate) and not any(flag in ns_ext.flags for flag in [ "sslCA", "emailCA", "objCA" ]):
-				judgements += SecurityJudgement(JudgementCode.Cert_NSCT_NoCA, "Certificate is supposed to be a CA certificate and has an Netscape Certificate Type extension, but neither sslCA/emailCA/objCA flag set within that extension.", commonness = Commonness.UNUSUAL)
+				judgements += SecurityJudgement(JudgementCode.Cert_Purpose_NSCT_NoCA, "Certificate is supposed to be a CA certificate and has an Netscape Certificate Type extension, but neither sslCA/emailCA/objCA flag set within that extension.", commonness = Commonness.UNUSUAL)
 
 		if purpose == AnalysisOptions.CertificatePurpose.CACertificate:
 			if not certificate.is_ca_certificate:
