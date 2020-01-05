@@ -54,7 +54,10 @@ class ResultCollector():
 			return None
 
 		print(filename, file = sys.stderr)
-		output = subprocess.check_output([ "./x509sak.py", "examine", "-f", "json", filename ], stderr = subprocess.DEVNULL)
+		try:
+			output = subprocess.check_output([ "./x509sak.py", "examine", "-f", "json", filename ], stderr = subprocess.DEVNULL)
+		except subprocess.CalledProcessError:
+			return None
 		json_data = json.loads(output)
 
 		encountered_codes = set()
