@@ -514,7 +514,7 @@ class X509CertificatePoliciesExtension(X509Extension):
 		elif oid == OIDDB.X509ExtensionCertificatePolicyQualifierOIDs.inverse("id-qt-unotice"):
 			try:
 				decoded_qualifier = cls._DecodedQualifier(*pyasn1.codec.der.decoder.decode(qualifier_data, asn1Spec = rfc5280.UserNotice()), constraint_violation = False)
-			except pyasn1.type.error.ValueConstraintError:
+			except pyasn1.type.error.PyAsn1Error:
 				with contextlib.suppress(pyasn1.error.PyAsn1Error):
 					decoded_qualifier = cls._DecodedQualifier(*pyasn1.codec.der.decoder.decode(qualifier_data, asn1Spec = ASN1Models.RelaxedUserNotice()), constraint_violation = True)
 		return decoded_qualifier

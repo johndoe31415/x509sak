@@ -1021,3 +1021,12 @@ class CmdLineTestsExamine(BaseTest):
 
 	def test_certpol_unotice_longexplicittext(self):
 		self._test_examine_x509test_resultcode("certs/constructed/certpol_unotice_longexplicittext.pem", expect_present = "Cert_X509Ext_CertificatePolicies_UserNoticeConstraintViolation")
+
+	def test_certpol_unotice_withnoticeref(self):
+		self._test_examine_x509test_resultcode("certs/constructed/certpol_unotice_withnoticeref.pem", expect_present = "Cert_X509Ext_CertificatePolicies_UserNoticeRefPresent")
+
+	def test_certpol_unotice_malformed(self):
+		self._test_examine_x509test_resultcode("certs/constructed/certpol_unotice_malformed.pem", expect_present = "Cert_X509Ext_CertificatePolicies_UserNoticeMalformed")
+
+	def test_certpol_unknown_qualifier_oid(self):
+		self._test_examine_x509test_resultcode("certs/constructed/certpol_unknown_qualifier_oid.pem", expect_present = "Cert_X509Ext_CertificatePolicies_UnknownQualifierOID")

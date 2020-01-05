@@ -476,6 +476,10 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 								uri = str(qualifier.decoded_qualifier.asn1)
 							if (not uri.startswith("http://")) and (not uri.startswith("https://")):
 								judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificatePolicies_CPSUnusualURIScheme, "CPS URI of policy %s does not follow http/https scheme: %s" % (policy.oid, uri), compatibility = Compatibility.LIMITED_SUPPORT, commonness = Commonness.UNUSUAL)
+					else:
+						standard = RFCReference(rfcno = 5280, sect = "4.2.1.4", verb = "MUST", text = "PolicyQualifierId ::= OBJECT IDENTIFIER ( id-qt-cps | id-qt-unotice )")
+						judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificatePolicies_UnknownQualifierOID, "X.509 Certificate policy with OID %s has unknown qualifier (OID %s)." % (policy.oid, qualifier.oid), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+
 		return judgements
 
 	def analyze(self, certificate, root_cert = None):
