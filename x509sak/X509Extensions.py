@@ -311,9 +311,9 @@ class X509ExtendedKeyUsageExtension(X509Extension):
 
 	def _decode_hook(self):
 		if self.asn1 is not None:
-			self._oids = set(OID.from_str(str(oid)) for oid in self.asn1)
+			self._oids = [ OID.from_str(str(oid)) for oid in self.asn1 ]
 		else:
-			self._oids = set()
+			self._oids = [ ]
 
 	@property
 	def key_usage_oids(self):

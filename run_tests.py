@@ -34,6 +34,7 @@ import shutil
 import io
 import tempfile
 import x509sak.tests
+import contextlib
 from x509sak.SubprocessExecutor import SubprocessExecutor
 from x509sak.FriendlyArgumentParser import FriendlyArgumentParser
 
@@ -254,6 +255,8 @@ class SelectiveTestRunner(object):
 		else:
 			# Otherwise just run everything
 			self._add_all_included_tests()
+			with contextlib.suppress(FileNotFoundError):
+				os.unlink(".examinecert_stats.json")
 		try:
 			os.unlink(self._failed_tests_file)
 		except FileNotFoundError:

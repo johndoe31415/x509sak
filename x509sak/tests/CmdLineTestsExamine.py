@@ -494,6 +494,11 @@ class CmdLineTestsExamine(BaseTest):
 	def test_constructed_pubkey_ecc_G(self):
 		self._test_examine_x509test_resultcode("certs/constructed/pubkey_ecc_G.pem", "ECC_Pubkey_Is_G")
 
+	def test_constructed_pubkey_ecc_curveorder(self):
+		self._test_examine_x509test_resultcode("certs/ok/ecc_secp256r1.pem", expect_present = "ECC_Pubkey_CurveOrder")
+		self._test_examine_x509test_resultcode("certs/ok/ecc_sect283k1.pem", expect_present = "ECC_Pubkey_CurveOrder")
+		self._test_examine_x509test_resultcode("certs/ok/rsa_512.pem", expect_absent = "ECC_Pubkey_CurveOrder")
+
 	def test_constructed_pubkey_ecc_fp_non_koblitz(self):
 		self._test_examine_x509test_resultcode("certs/ok/ecc_secp256r1.pem", expect_absent = "ECC_PrimeFieldKoblitz")
 
@@ -972,7 +977,7 @@ class CmdLineTestsExamine(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/ku-xmas.pem", expect_present = [ "Cert_Purpose_KU_ExcessKeyUsage", "Cert_Purpose_KU_UnusualKeyUsage" ], purpose = "tls-server")
 
 	def test_key_usage_missing(self):
-		self._test_examine_x509test_resultcode("certs/constructed/ku-missing.pem", expect_present = "Cert_Purpose_KU_MissingKeyUsage", purpose = "tls-server")
+		self._test_examine_x509test_resultcode("certs/constructed/ku-missing.pem", expect_present = "Cert_Purpose_KU_MissingKeyUsage", purpose = "ca")
 
 	def test_key_usage_leadingzero(self):
 		self._test_examine_x509test_resultcode("certs/constructed/ku-leadingzero.pem", expect_present = "Cert_X509Ext_KeyUsage_LeadingZeros")
@@ -980,7 +985,7 @@ class CmdLineTestsExamine(BaseTest):
 	def test_key_usage_malformed(self):
 		self._test_examine_x509test_resultcode("certs/constructed/ku-malformed.pem", expect_present = "Cert_X509Ext_KeyUsage_Malformed")
 
-	def test_key_usage_missing(self):
+	def test_key_usage_extension_missing(self):
 		self._test_examine_x509test_resultcode("certs/ok/short.pem", expect_present = "Cert_X509Ext_KeyUsage_Missing")
 
 	def test_certpol_polcount_1(self):
@@ -1030,3 +1035,47 @@ class CmdLineTestsExamine(BaseTest):
 
 	def test_certpol_unknown_qualifier_oid(self):
 		self._test_examine_x509test_resultcode("certs/constructed/certpol_unknown_qualifier_oid.pem", expect_present = "Cert_X509Ext_CertificatePolicies_UnknownQualifierOID")
+
+	def test_duplicate_extension_present(self):
+		self._test_examine_x509test_resultcode("certs/constructed/duplicate_extension.pem", expect_absent = "Cert_X509Ext_All_Unique")
+
+	def test_no_duplicate_extension_present(self):
+		self._test_examine_x509test_resultcode("certs/ok/short.pem", expect_present = "Cert_X509Ext_All_Unique")
+
+	def test_eku_no_client(self):
+		self._test_examine_x509test_resultcode("certs/constructed/eku_server.pem", expect_present = "Cert_Purpose_EKU_NoClientAuth", purpose = "tls-client")
+
+	def test_eku_is_client(self):
+		self._test_examine_x509test_resultcode("certs/constructed/eku_client.pem", expect_absent = "Cert_Purpose_EKU_NoClientAuth", purpose = "tls-client")
+
+	def test_eku_no_server(self):
+		self._test_examine_x509test_resultcode("certs/constructed/eku_client.pem", expect_present = "Cert_Purpose_EKU_NoServerAuth", purpose = "tls-server")
+
+	def test_eku_is_server(self):
+		self._test_examine_x509test_resultcode("certs/constructed/eku_server.pem", expect_absent = "Cert_Purpose_EKU_NoServerAuth", purpose = "tls-server")
+
+	def test_eku_duplicate(self):
+		self._test_examine_x509test_resultcode("certs/constructed/eku_duplicate.pem", expect_present = "Cert_X509Ext_ExtKeyUsage_Duplicate")
+
+	def test_nsct_no_client(self):
+		self._test_examine_x509test_resultcode("certs/constructed/nsct_server.pem", expect_present = "Cert_Purpose_NSCT_NoSSLClient", purpose = "tls-client")
+		self._test_examine_x509test_resultcode("certs/constructed/nsct_ssl_ca.pem", expect_present = "Cert_Purpose_NSCT_NoSSLClient", purpose = "tls-client")
+
+	def test_nsct_is_client(self):
+		self._test_examine_x509test_resultcode("certs/constructed/nsct_client.pem", expect_absent = "Cert_Purpose_NSCT_NoSSLClient", purpose = "tls-client")
+
+	def test_nsct_no_server(self):
+		self._test_examine_x509test_resultcode("certs/constructed/nsct_client.pem", expect_present = "Cert_Purpose_NSCT_NoSSLServer", purpose = "tls-server")
+		self._test_examine_x509test_resultcode("certs/constructed/nsct_ssl_ca.pem", expect_present = "Cert_Purpose_NSCT_NoSSLServer", purpose = "tls-server")
+
+	def test_nsct_is_server(self):
+		self._test_examine_x509test_resultcode("certs/constructed/nsct_server.pem", expect_absent = "Cert_Purpose_NSCT_NoSSLServer", purpose = "tls-server")
+
+	def test_nsct_no_ca(self):
+		self._test_examine_x509test_resultcode("certs/constructed/nsct_client.pem", expect_present = "Cert_Purpose_NSCT_NoCA", purpose = "ca")
+		self._test_examine_x509test_resultcode("certs/constructed/nsct_server.pem", expect_present = "Cert_Purpose_NSCT_NoCA", purpose = "ca")
+
+	def test_nsct_is_ca(self):
+		self._test_examine_x509test_resultcode("certs/constructed/nsct_ssl_ca.pem", expect_absent = "Cert_Purpose_NSCT_NoCA", purpose = "ca")
+		self._test_examine_x509test_resultcode("certs/constructed/nsct_smime_ca.pem", expect_absent = "Cert_Purpose_NSCT_NoCA", purpose = "ca")
+		self._test_examine_x509test_resultcode("certs/constructed/nsct_objsign_ca.pem", expect_absent = "Cert_Purpose_NSCT_NoCA", purpose = "ca")
