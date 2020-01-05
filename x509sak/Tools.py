@@ -145,6 +145,23 @@ class ASN1Tools():
 		return pyasn1.type.univ.BitString(bitstring)
 
 	@classmethod
+	def bitstring_is_empty(cls, bitstr):
+		return (len(bitstr) == 0) or (set(bitstr) == set([ 0 ]))
+
+	@classmethod
+	def bitstring_has_trailing_zeros(cls, bitstr):
+		return (len(bitstr) > 0) and (bitstr[len(bitstr) - 1] == 0)
+
+	@classmethod
+	def bitstring_highbit(cls, bitstr):
+		if len(bitstr) == 0:
+			return None
+		for bit in range(len(bitstr) - 1, -1, -1):
+			if bitstr[bit] == 1:
+				return bit
+		return None
+
+	@classmethod
 	def redecode(cls, asn1, asn1_spec):
 		encoded_asn1 = pyasn1.codec.der.encoder.encode(asn1)
 		return pyasn1.codec.der.decoder.decode(encoded_asn1, asn1Spec = asn1_spec)

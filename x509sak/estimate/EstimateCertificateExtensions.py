@@ -257,12 +257,9 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		ku_ext = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("KeyUsage"))
 		if ku_ext is not None:
 			if not ku_ext.malformed:
-				highest_bit_value = ku_ext.highest_set_bit_value
-				highest_allowed_bit_value = ku_ext.highest_permissible_bit_value
-
-				if ku_ext.leading_zero_count > 0:
+				if ku_ext.has_trailing_zero:
 					# TODO: Possible standards violation?
-					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_KeyUsage_LeadingZeros, "KeyUsage extension present, but contains %d leading zeros." % (ku_ext.leading_zero_count), commonness = Commonness.HIGHLY_UNUSUAL)
+					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_KeyUsage_TrailingZeros, "KeyUsage extension present, but contains trailing zero.", commonness = Commonness.HIGHLY_UNUSUAL)
 
 				if ku_ext.all_bits_zero:
 					standard = RFCReference(rfcno = 5280, sect = "4.2.1.3", verb = "MUST", text = "When the keyUsage extension appears in a certificate, at least one of the bits MUST be set to 1.")
@@ -270,7 +267,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 
 				if ku_ext.unknown_flags_set:
 					standard = RFCReference(rfcno = 5280, sect = "4.2.1.3", verb = "MUST", text = "decipherOnly (8) }")
-					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_KeyUsage_TooLong, "KeyUsage extension present, but contains too many bits (highest bit value %d, but %d expected as maximum)." % (highest_bit_value, highest_allowed_bit_value), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_KeyUsage_TooLong, "KeyUsage extension present, but contains too many bits (highest bit value %d, but %d expected as maximum)." % (ku_ext.highest_set_bit_value, ku_ext.highest_permissible_bit_value), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 				if not ku_ext.critical:
 					if certificate.is_ca_certificate:

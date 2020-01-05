@@ -29,6 +29,7 @@ from pyasn1_modules import rfc2459, rfc5280
 from x509sak.OID import OID, OIDDB
 from x509sak import ASN1Models
 from x509sak.ASN1Wrapper import ASN1GeneralNameWrapper
+from x509sak.Tools import ASN1Tools
 
 class X509Extensions():
 	def __init__(self, extensions):
@@ -381,43 +382,24 @@ class X509KeyUsageExtension(X509Extension):
 		return self.asn1 is None
 
 	@property
-	def flag_count(self):
-		if self.asn1 is None:
-			return 0
-		else:
-			return len(self.asn1)
+	def has_trailing_zero(self):
+		return ASN1Tools.bitstring_has_trailing_zeros(self._asn1) if (self._asn1 is not None) else None
 
 	@property
-	def leading_zero_count(self):
-		if self.asn1 is None:
-			return None
-		leading_zero = 0
-		for bit in self.asn1:
-			if bit == 1:
-				break
-			leading_zero += 1
-		return leading_zero
+	def highest_set_bit_value(self):
+		return ASN1Tools.bitstring_highbit(self._asn1) if (self._asn1 is not None) else None
 
 	@property
 	def highest_permissible_bit_value(self):
 		return max(self._ASN1_MODEL.namedValues.values())
 
 	@property
-	def highest_set_bit_value(self):
-		if self.asn1 is None:
-			return None
-		else:
-			return self.flag_count - self.leading_zero_count
-
 	def all_bits_zero(self):
-		if self.asn1 is None:
-			return None
-		else:
-			return self.leading_zero_count == self.flag_count
+		return ASN1Tools.bitstring_is_empty(self._asn1) if (self._asn1 is not None) else None
 
 	@property
 	def unknown_flags_set(self):
-		return self.flag_count > len(self._ASN1_MODEL.namedValues)
+		return (self.highest_set_bit_value or 0) > len(self._ASN1_MODEL.namedValues)
 
 	def _decode_hook(self):
 		if self._asn1 is None:

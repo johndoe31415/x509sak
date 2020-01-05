@@ -129,7 +129,7 @@ class JudgementCode(enum.Enum):
 	Cert_X509Ext_KeyUsage_Empty = ("X.509 KeyUsage extension", "empty sequence")
 	Cert_X509Ext_KeyUsage_TooLong = ("X.509 KeyUsage extension", "too many items")
 	Cert_X509Ext_KeyUsage_Malformed = ("X.509 KeyUsage extension", "invalid extension encoding")
-	Cert_X509Ext_KeyUsage_LeadingZeros = ("X.509 KeyUsage extension", "flag bitstring contains leading zeros")
+	Cert_X509Ext_KeyUsage_TrailingZeros = ("X.509 KeyUsage extension", "flag bitstring contains trailing zeros")
 	Cert_X509Ext_KeyUsage_NonCritical = ("X.509 KeyUsage extension", "extension marked non-critical")
 	Cert_X509Ext_KeyUsage_SignCertNoCA = ("X.509 KeyUsage extension", "keyCertSign flag present but not CA certificate")
 	Cert_X509Ext_KeyUsage_SignCertNoBasicConstraints = ("X.509 KeyUsage extension", "keyCertSign flag present but no BasicConstraints extension")
