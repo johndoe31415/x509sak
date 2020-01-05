@@ -67,6 +67,9 @@ class CrtValiditySecurityEstimator(BaseEstimator):
 			else:
 				margins = [ 12.5 * 365.25, 25 * 365.25, 30 * 365.25 ]
 
+			# Add some error margin
+			margins = [ margin + 14 for margin in margins ]
+
 			crt_type = "CA" if is_ca else "non-CA"
 			if validity_days < margins[0]:
 				judgements += SecurityJudgement(JudgementCode.Cert_Validity_Length_Conservative, "Lifetime is conservative for %s certificate." % (crt_type), commonness = Commonness.COMMON, verdict = Verdict.BEST_IN_CLASS)

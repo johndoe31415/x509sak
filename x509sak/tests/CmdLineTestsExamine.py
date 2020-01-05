@@ -955,3 +955,15 @@ class CmdLineTestsExamine(BaseTest):
 
 	def test_certificate_lifetime_noca_exceptionallylong(self):
 		self._test_examine_x509test_resultcode("certs/constructed/lifetime_noca_exceptionallylong.pem", expect_present = "Cert_Validity_Length_ExceptionallyLong")
+
+	def test_certificate_lifetime_ca_conservative(self):
+		self._test_examine_x509test_resultcode("certs/constructed/lifetime_ca_conservative.pem", expect_present = "Cert_Validity_Length_Conservative")
+
+	def test_certificate_lifetime_ca_long(self):
+		self._test_examine_x509test_resultcode("certs/constructed/lifetime_ca_long.pem", expect_present = "Cert_Validity_Length_Long")
+
+	def test_certificate_lifetime_ca_verylong(self):
+		self._test_examine_x509test_resultcode("certs/constructed/lifetime_ca_verylong.pem", expect_present = "Cert_Validity_Length_VeryLong")
+
+	def test_certificate_lifetime_ca_exceptionallylong(self):
+		self._test_examine_x509test_resultcode("certs/constructed/lifetime_ca_exceptionallylong.pem", expect_present = "Cert_Validity_Length_ExceptionallyLong")
