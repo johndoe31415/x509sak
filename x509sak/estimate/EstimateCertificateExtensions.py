@@ -482,6 +482,20 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 
 		return judgements
 
+	def _judge_netscape_certificate_type(self, certificate):
+		judgements = SecurityJudgements()
+		ns_ext = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("NetscapeCertificateType"))
+		if ns_ext is not None:
+			if ns_ext.asn1 is None:
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_NetscapeCertType_Malformed, "Cannot parse the Netscape Certificate Types X.509 extension, it is malformed.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION)
+			else:
+				bitlist = list(ns_ext.asn1)
+				if (len(bitlist) == 0) or (set(bitlist) == set([ 0 ])):
+					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_NetscapeCertType_Empty, "Netscape Certificate Types X.509 extension contains no set bits.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION)
+				elif (len(bitlist) >= 5) and (bitlist[4] == 1):
+					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_NetscapeCertType_UnusedBitSet, "Netscape Certificate Types X.509 extension has an invalid/unused bit set.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION)
+		return judgements
+
 	def analyze(self, certificate, root_cert = None):
 		individual = [ ]
 		for extension in certificate.extensions:
@@ -503,6 +517,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		judgements += self._judge_issuer_alternative_name(certificate)
 		judgements += self._judge_authority_information_access(certificate)
 		judgements += self._judge_certificate_policy(certificate)
+		judgements += self._judge_netscape_certificate_type(certificate)
 
 		return {
 			"individual":	individual,

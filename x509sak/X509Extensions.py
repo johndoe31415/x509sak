@@ -454,6 +454,8 @@ class X509NetscapeCertificateTypeExtension(X509Extension):
 
 	def _decode_hook(self):
 		self._flags = set()
+		if self._asn1 is None:
+			return
 		for (name, bit) in self._ASN1_MODEL.namedValues.items():
 			if (len(self._asn1) > bit) and self._asn1[bit]:
 				self._flags.add(name)

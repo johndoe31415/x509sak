@@ -114,8 +114,14 @@ class PurposeEstimator(BaseEstimator):
 			if (purpose == AnalysisOptions.CertificatePurpose.TLSServerCertificate) and (not ns_ext.ssl_server):
 				judgements += SecurityJudgement(JudgementCode.Cert_Purpose_NSCT_NoSSLServer, "Certificate is supposed to be a server certificate and has an Netscape Certificate Type extension, but no sslServer flag set within that extension.", commonness = Commonness.UNUSUAL)
 
-			if (purpose == AnalysisOptions.CertificatePurpose.CACertificate) and not any(flag in ns_ext.flags for flag in [ "sslCA", "emailCA", "objCA" ]):
-				judgements += SecurityJudgement(JudgementCode.Cert_Purpose_NSCT_NoCA, "Certificate is supposed to be a CA certificate and has an Netscape Certificate Type extension, but neither sslCA/emailCA/objCA flag set within that extension.", commonness = Commonness.UNUSUAL)
+			if (purpose == AnalysisOptions.CertificatePurpose.CACertificate):
+				if not any(flag in ns_ext.flags for flag in [ "sslCA", "emailCA", "objCA" ]):
+					# No CA bit is set
+					judgements += SecurityJudgement(JudgementCode.Cert_Purpose_NSCT_NoCA, "Certificate is supposed to be a CA certificate and has an Netscape Certificate Type extension, but neither sslCA/emailCA/objCA flag set within that extension.", commonness = Commonness.UNUSUAL)
+				else:
+					# At least it's some type of CA. But is it a SSL CA?
+					if "sslCA" not in ns_ext.flags:
+						judgements += SecurityJudgement(JudgementCode.Cert_Purpose_NSCT_NonSSLCA, "Certificate is supposed to be a CA certificate and has an Netscape Certificate Type extension, but it is not marked as an SSL CA. It can only be used for S/MIME or object signing.", commonness = Commonness.UNUSUAL)
 
 		if purpose == AnalysisOptions.CertificatePurpose.CACertificate:
 			if not certificate.is_ca_certificate:

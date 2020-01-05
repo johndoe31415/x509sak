@@ -1079,3 +1079,17 @@ class CmdLineTestsExamine(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/nsct_ssl_ca.pem", expect_absent = "Cert_Purpose_NSCT_NoCA", purpose = "ca")
 		self._test_examine_x509test_resultcode("certs/constructed/nsct_smime_ca.pem", expect_absent = "Cert_Purpose_NSCT_NoCA", purpose = "ca")
 		self._test_examine_x509test_resultcode("certs/constructed/nsct_objsign_ca.pem", expect_absent = "Cert_Purpose_NSCT_NoCA", purpose = "ca")
+
+	def test_nsct_ssl_ca(self):
+		self._test_examine_x509test_resultcode("certs/constructed/nsct_ssl_ca.pem", expect_absent = [ "Cert_Purpose_NSCT_NonSSLCA", "Cert_Purpose_NSCT_NoCA"], purpose = "ca")
+		self._test_examine_x509test_resultcode("certs/constructed/nsct_smime_ca.pem", expect_present = "Cert_Purpose_NSCT_NonSSLCA", expect_absent = "Cert_Purpose_NSCT_NoCA", purpose = "ca")
+		self._test_examine_x509test_resultcode("certs/constructed/nsct_objsign_ca.pem", expect_present = "Cert_Purpose_NSCT_NonSSLCA", expect_absent = "Cert_Purpose_NSCT_NoCA", purpose = "ca")
+
+	def test_nsct_unused(self):
+		self._test_examine_x509test_resultcode("certs/constructed/nsct_unused.pem", expect_present = "Cert_X509Ext_NetscapeCertType_UnusedBitSet")
+
+	def test_nsct_malformed(self):
+		self._test_examine_x509test_resultcode("certs/constructed/nsct_malformed.pem", expect_present = "Cert_X509Ext_NetscapeCertType_Malformed")
+
+	def test_nsct_empty(self):
+		self._test_examine_x509test_resultcode("certs/constructed/nsct_empty.pem", expect_present = "Cert_X509Ext_NetscapeCertType_Empty")
