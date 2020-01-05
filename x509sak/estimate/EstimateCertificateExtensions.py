@@ -428,6 +428,9 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 								standard = RFCReference(rfcno = 5280, sect = "4.2.1.4", verb = "MUST", text = "While the explicitText has a maximum size of 200 characters, some non-conforming CAs exceed this limit. Therefore, certificate users SHOULD gracefully handle explicitText with more than 200 characters.")
 								judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificatePolicies_UserNoticeConstraintViolation, "User notice qualifier of policy %s contains a qualifier which breaks the ASN.1 length constraint of 200 characters." % (policy.oid), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
+							if len(qualifier.decoded_qualifier.asn1) == 0:
+								judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificatePolicies_UserNoticeEmpty, "User notice qualifier of policy %s contains empty sequence, no noticeRef or explicitText are present." % (policy.oid), commonness = Commonness.UNUSUAL)
+
 							# Check if noticeRef is present
 							# TODO: Is this correct? See https://github.com/etingof/pyasn1/issues/189
 							notice_ref = qualifier.decoded_qualifier.asn1.getComponentByName("noticeRef", instantiate = False)

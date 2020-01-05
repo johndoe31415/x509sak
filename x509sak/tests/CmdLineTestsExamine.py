@@ -1006,3 +1006,18 @@ class CmdLineTestsExamine(BaseTest):
 
 	def test_certpol_cps_unusual_uri_scheme(self):
 		self._test_examine_x509test_resultcode("certs/constructed/certpol_cps_unusual_uri_scheme.pem", expect_present = "Cert_X509Ext_CertificatePolicies_CPSUnusualURIScheme")
+
+	def test_certpol_unotice_empty(self):
+		self._test_examine_x509test_resultcode("certs/constructed/certpol_unotice_empty.pem", expect_present = "Cert_X509Ext_CertificatePolicies_UserNoticeEmpty")
+
+	def test_certpol_unotice_withexplicittext(self):
+		self._test_examine_x509test_resultcode("certs/constructed/certpol_unotice_withexplicittext.pem", expect_present = "Cert_X509Ext_CertificatePolicies_UserNoticeExplicitTextIA5String")
+
+	def test_certpol_unotice_withexplicittextutf8(self):
+		self._test_examine_x509test_resultcode("certs/constructed/certpol_unotice_withexplicittext_utf8.pem", expect_absent = "Cert_X509Ext_CertificatePolicies_UserNoticeExplicitTextIA5String")
+
+	def test_certpol_unotice_noexplicittext(self):
+		self._test_examine_x509test_resultcode("certs/constructed/certpol_unotice_noexplicittext.pem", expect_present = "Cert_X509Ext_CertificatePolicies_UserNoticeExplicitTextAbsent")
+
+	def test_certpol_unotice_longexplicittext(self):
+		self._test_examine_x509test_resultcode("certs/constructed/certpol_unotice_longexplicittext.pem", expect_present = "Cert_X509Ext_CertificatePolicies_UserNoticeConstraintViolation")
