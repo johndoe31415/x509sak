@@ -87,7 +87,6 @@ class PurposeEstimator(BaseEstimator):
 				raise NotImplementedError(purpose)
 
 			present_flags = ku_ext.flags
-
 			missing_must_haves = must_have - present_flags
 			if len(missing_must_haves) > 0:
 				judgements += SecurityJudgement(JudgementCode.Cert_KU_MissingKeyUsage, "Certificate with purpose %s should have at least KeyUsage %s, but %s is missing." % (purpose.name, ", ".join(sorted(must_have)), ", ".join(sorted(missing_must_haves))), commonness = Commonness.HIGHLY_UNUSUAL)

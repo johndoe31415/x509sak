@@ -967,3 +967,18 @@ class CmdLineTestsExamine(BaseTest):
 
 	def test_certificate_lifetime_ca_exceptionallylong(self):
 		self._test_examine_x509test_resultcode("certs/constructed/lifetime_ca_exceptionallylong.pem", expect_present = "Cert_Validity_Length_ExceptionallyLong")
+
+	def test_key_usage_excessive(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ku-xmas.pem", expect_present = [ "Cert_KU_ExcessKeyUsage", "Cert_KU_UnusualKeyUsage" ], purpose = "tls-server")
+
+	def test_key_usage_missing(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ku-missing.pem", expect_present = "Cert_KU_MissingKeyUsage", purpose = "tls-server")
+
+	def test_key_usage_leadingzero(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ku-leadingzero.pem", expect_present = "Cert_X509Ext_KeyUsage_LeadingZeros")
+
+	def test_key_usage_malformed(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ku-malformed.pem", expect_present = "Cert_X509Ext_KeyUsage_Malformed")
+
+	def test_key_usage_missing(self):
+		self._test_examine_x509test_resultcode("certs/ok/short.pem", expect_present = "Cert_X509Ext_KeyUsage_Missing")
