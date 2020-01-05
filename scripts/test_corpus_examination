@@ -127,7 +127,7 @@ class CorpusTester():
 			if work_item.cert_usage is not None:
 				cmdline += [ "-p", work_item.cert_usage ]
 			if work_item.cert_fqdn is not None:
-				cmdline += [ "--servername=%s" % (work_item.cert_fqdn) ]
+				cmdline += [ "--server-name=%s" % (work_item.cert_fqdn) ]
 			if work_item.ca_cert_der is not None:
 				cmdline += [ "-r", ca_f.name ]
 			cmdline += [ "--in-format", "dercrt", "--out-format", "json", cert_f.name ]
