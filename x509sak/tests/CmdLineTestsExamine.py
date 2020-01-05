@@ -982,3 +982,9 @@ class CmdLineTestsExamine(BaseTest):
 
 	def test_key_usage_missing(self):
 		self._test_examine_x509test_resultcode("certs/ok/short.pem", expect_present = "Cert_X509Ext_KeyUsage_Missing")
+
+	def test_certpol_polcount_1(self):
+		self._test_examine_x509test_resultcode("certs/constructed/certpol_polcount_1.pem", expect_absent = "Cert_X509Ext_CertificatePolicies_MoreThanOnePolicy")
+
+	def test_certpol_polcount_2(self):
+		self._test_examine_x509test_resultcode("certs/constructed/certpol_polcount_2.pem", expect_present = "Cert_X509Ext_CertificatePolicies_MoreThanOnePolicy")
