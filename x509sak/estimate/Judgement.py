@@ -177,6 +177,7 @@ class JudgementCode(enum.Enum):
 	Cert_X509Ext_CertificatePolicies_MoreThanOnePolicy = ("X.509 Certificate Policies extension", "more than one policy present")
 	Cert_X509Ext_CertificatePolicies_DuplicateQualifierOID = ("X.509 Certificate Policies extension", "duplicate qualifier OID present")
 	Cert_X509Ext_CertificatePolicies_AnyPolicyUnknownQualifier = ("X.509 Certificate Policies extension", "unknown qualifier OID used in anyPolicy")
+	Cert_X509Ext_CertificatePolicies_UnknownQualifierOID = ("X.509 Certificate Policies extension", "unknown qualifier OID")
 	Cert_X509Ext_CertificatePolicies_UserNoticeEmpty = ("X.509 Certificate Policies extension", "user notice contains no data")
 	Cert_X509Ext_CertificatePolicies_UserNoticeConstraintViolation = ("X.509 Certificate Policies extension", "constraint violation in user notice")
 	Cert_X509Ext_CertificatePolicies_UserNoticeRefPresent = ("X.509 Certificate Policies extension", "noticeRef field set in user notice")
