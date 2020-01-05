@@ -988,3 +988,12 @@ class CmdLineTestsExamine(BaseTest):
 
 	def test_certpol_polcount_2(self):
 		self._test_examine_x509test_resultcode("certs/constructed/certpol_polcount_2.pem", expect_present = "Cert_X509Ext_CertificatePolicies_MoreThanOnePolicy")
+
+	def test_certpol_deprecated_oid(self):
+		self._test_examine_x509test_resultcode("certs/constructed/certpol_deprecated_oid.pem", expect_present = "Cert_X509Ext_CertificatePolicies_DeprecatedOID")
+
+	def test_certpol_duplicate_oid(self):
+		self._test_examine_x509test_resultcode("certs/constructed/certpol_duplicate_oid.pem", expect_present = "Cert_X509Ext_CertificatePolicies_DuplicateOID")
+
+	def test_certpol_duplicate_qualifier_oid(self):
+		self._test_examine_x509test_resultcode("certs/constructed/certpol_duplicate_qualifier_oid.pem", expect_present = "Cert_X509Ext_CertificatePolicies_DuplicateQualifierOID")
