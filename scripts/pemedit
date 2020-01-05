@@ -145,6 +145,37 @@ class ASN1Editor():
 
 		return pem_data.encode()
 
+	@staticmethod
+	def _decode_bitlist_match(match):
+		gdict = match.groupdict()
+		missing_bits = int(gdict["missing"], 16)
+		data = bytes.fromhex(gdict["data"])
+		total_bits = (len(data) * 8) - missing_bits
+		present_bits = [ ]
+		for abs_bitno in range(total_bits):
+			byteno = abs_bitno // 8
+			bitno = 7 - (abs_bitno % 8)
+			if (data[byteno] & (1 << bitno)) != 0:
+				present_bits.append(abs_bitno)
+
+		return ",".join(str(bit) for bit in sorted(present_bits))
+
+	@staticmethod
+	def _encode_bitlist_match(match):
+		gdict = match.groupdict()
+
+		bitlist = set(int(bit) for bit in gdict["bitlist"].split(","))
+		highest_bit = max(bitlist)
+		byte_count = 2 + (highest_bit // 8)
+		total_bits = (byte_count - 1) * 8
+		missing_bits = total_bits - (highest_bit + 1)
+
+		data = bytearray(byte_count - 1)
+		for abs_bitno in bitlist:
+			byteno = abs_bitno // 8
+			bitno = 7 - (abs_bitno % 8)
+			data[byteno] |= (1 << bitno)
+		return "%02x%s" % (missing_bits, data.hex())
 
 	def _substitute_ascii_der(self, binary_ascii_der):
 		ascii_der = binary_ascii_der.decode()
@@ -157,6 +188,11 @@ class ASN1Editor():
 				# Remove comment lines for those we know
 				regex = re.compile("^\s*# %s\s*\n" % (oid_name), flags = re.MULTILINE)
 				ascii_der = regex.sub("", ascii_der)
+
+		# Replace one or two byte bitfields
+		regex = re.compile("BIT_STRING\s*{\s*`(?P<missing>[a-f0-9]{2})` `(?P<data>[a-f0-9]{2,4})`\s*}")
+		ascii_der = regex.sub(lambda match: "BIT_STRING { bitlist=%s }" % (self._decode_bitlist_match(match)), ascii_der)
+
 		binary_ascii_der = ascii_der.encode()
 		return binary_ascii_der
 
@@ -167,6 +203,11 @@ class ASN1Editor():
 				# Replace OIDs with their names
 				regex = re.compile("OBJECT_IDENTIFIER\s*{\s*oid=%s\s*}" % (oid_name))
 				ascii_der = regex.sub("OBJECT_IDENTIFIER { %s }" % (oid), ascii_der)
+
+		# Replace bitfields
+		regex = re.compile("BIT_STRING\s*{\s*bitlist=(?P<bitlist>[\d,]*)\s*}")
+		ascii_der = regex.sub(lambda match: "BIT_STRING { `%s` }" % (self._encode_bitlist_match(match)), ascii_der)
+
 		binary_ascii_der = ascii_der.encode()
 		return binary_ascii_der
 
