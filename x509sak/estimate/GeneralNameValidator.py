@@ -128,6 +128,9 @@ class GeneralNameValidator():
 		if not ValidationTools.validate_email_address(self._gn.str_value):
 			self._report_error("email", "contains invalid email address \"%s\"." % (self._gn.str_value))
 
+	def _handle_directoryName(self):
+		pass
+
 	def _handle_uniformResourceIdentifier(self):
 		if not ValidationTools.validate_uri(str(self._gn.str_value)):
 			self._report_error("uri", "contains invalid URI \"%s\"." % (str(self._gn.str_value)))
