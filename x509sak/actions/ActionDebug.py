@@ -53,10 +53,7 @@ class DebugConsole(code.InteractiveConsole):
 class ActionDebug(BaseAction):
 	def __init__(self, cmdname, args):
 		BaseAction.__init__(self, cmdname, args)
-		if not self._args.der:
-			crts = X509Certificate.read_pemfile(self._args.crtfile)
-		else:
-			crts = [ X509Certificate.read_derfile(self._args.crtfile) ]
+		crts = self._read_certificates(self._args.crtfile)
 
 		self._hd = HexDump()
 		local_vars = {
@@ -64,8 +61,8 @@ class ActionDebug(BaseAction):
 			"derdec":	lambda data: pyasn1.codec.der.decoder.decode(data)[0],
 			"derenc":	pyasn1.codec.der.encoder.encode,
 			"crts":		crts,
-			"c":		crts[0],
-			"a":		crts[0].asn1,
+			"c":		crts[0] if (len(crts) > 0) else None,
+			"a":		crts[0].asn1 if (len(crts) > 0) else None,
 			"unpkcs1":	PaddingTools.unpad_pkcs1,
 			"decrsa":	self._decrypt_selfsigned_rsa_signature,
 			"md5":		lambda payload: hashlib.md5(payload).digest(),
@@ -86,6 +83,18 @@ class ActionDebug(BaseAction):
 			print()
 		if not self._args.no_interact:
 			console.interact()
+
+	def _read_certifiate(self, filename):
+		if not self._args.der:
+			return X509Certificate.read_pemfile(self._args.crtfile)
+		else:
+			return [ X509Certificate.read_derfile(self._args.crtfile) ]
+
+	def _read_certificates(self, filenames):
+		certificates = [ ]
+		for filename in filenames:
+			certificates += self._read_certificate(filename)
+		return certificates
 
 	def _write_py(self, data, outfile):
 		with open(outfile, "w") as f:

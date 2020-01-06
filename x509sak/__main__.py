@@ -262,7 +262,7 @@ def genparser(parser):
 	parser.add_argument("-n", "--no-interact", action = "store_true", help = "Do not enter interactive console mode. Useful if you only want to execute specific commands and immediately quit.")
 	parser.add_argument("-e", "--execute", metavar = "command", action = "append", default = [ ], help = "Execute the given command on the console. Can be specified multiple times.")
 	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
-	parser.add_argument("crtfile", metavar = "filename", type = str, help = "Certificate file that should be loaded in the console.")
+	parser.add_argument("crtfile", metavar = "filename", type = str, nargs = "*", help = "Certificate file that should be loaded in the console.")
 mc.register("debug", "Open an interactive Python console", genparser, aliases = [ "dbg" ], action = ActionDebug, visible = False)
 
 try:
