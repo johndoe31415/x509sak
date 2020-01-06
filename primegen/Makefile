@@ -1,4 +1,4 @@
-.PHONY: all test clean
+.PHONY: all test clean parser
 
 CFLAGS := $(CFLAGS) -std=c11
 CFLAGS += -Wall -Wmissing-prototypes -Wstrict-prototypes -Werror=implicit-function-declaration -Werror=format -Wshadow
@@ -15,6 +15,9 @@ test: all
 
 clean:
 	rm -f $(OBJS) primegen
+
+parser:
+	../../pypgmopts/pypgmopts
 
 primegen: $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LDFLAGS)
