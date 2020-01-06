@@ -34,8 +34,8 @@ from x509sak.Tools import PaddingTools
 from x509sak.HexDump import HexDump
 
 class DebugConsole(code.InteractiveConsole):
-	def __init__(self, locals = None, histfile = os.path.expanduser(".dbgconsole_history")):
-		code.InteractiveConsole.__init__(self, locals = locals)
+	def __init__(self, local_vars = None, histfile = os.path.expanduser(".dbgconsole_history")):
+		code.InteractiveConsole.__init__(self, locals = local_vars)
 		self.init_history(histfile)
 
 	def init_history(self, histfile):
@@ -59,7 +59,7 @@ class ActionDebug(BaseAction):
 			crts = [ X509Certificate.read_derfile(self._args.crtfile) ]
 
 		self._hd = HexDump()
-		variables = {
+		local_vars = {
 			"x509sak":	x509sak,
 			"derdec":	lambda data: pyasn1.codec.der.decoder.decode(data)[0],
 			"derenc":	pyasn1.codec.der.encoder.encode,
@@ -78,7 +78,7 @@ class ActionDebug(BaseAction):
 			"write_py":	self._write_py,
 		}
 
-		console = DebugConsole(locals = variables)
+		console = DebugConsole(local_vars = local_vars)
 		for command in self._args.execute:
 			print(">>> %s" % (command))
 			console.runcode(command)
