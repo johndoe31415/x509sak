@@ -99,6 +99,8 @@ class CertificateEstimator(BaseEstimator):
 			"purpose":		self.algorithm("purpose").analyze(cert),
 			"security":		self._analyze_certificate_general_issues(cert),
 		}
+		if root_cert is not None:
+			result["ca"] = self.algorithm("ca").analyze(cert, root_cert)
 		if self._analysis_options.include_raw_data:
 			result["raw"] = base64.b64encode(cert.der_data).decode("ascii")
 		return result

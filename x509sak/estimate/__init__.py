@@ -36,3 +36,4 @@ import x509sak.estimate.EstimateRSA
 import x509sak.estimate.EstimateDSA
 import x509sak.estimate.EstimateSigFunction
 import x509sak.estimate.EstimateSig
+import x509sak.estimate.EstimateCARelation
