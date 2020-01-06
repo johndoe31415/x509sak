@@ -92,6 +92,7 @@ class JudgementCode(enum.Enum):
 	Cert_Validity_GeneralizedTimeBeforeYear2050 = ("Certificate validity", "GeneralizedTime data type used for timestamp before year 2050")
 	Cert_X509Ext_Duplicate = ("X.509 extensions", "duplicate extensions present")
 	Cert_X509Ext_All_Unique = ("X.509 extensions", "all extensions unique")
+	Cert_X509Ext_EmptySequence = ("X.509 extensions", "extensions attribute is empty sequence")
 	Cert_X509Ext_BasicConstraints_Missing = ("X.509 Basic Constraints extension", "BC extension missing")
 	Cert_X509Ext_BasicConstraints_PresentButNotCritical = ("X.509 BasicConstraints extension", "BC extension present but not marked critical")
 	Cert_X509Ext_BasicConstraints_PresentAndCritical = ("X.509 BasicConstraints extension", "BC extension present and marked critical")

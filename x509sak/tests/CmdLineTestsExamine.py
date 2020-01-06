@@ -1092,3 +1092,9 @@ class CmdLineTestsExamine(BaseTest):
 
 	def test_nsct_empty(self):
 		self._test_examine_x509test_resultcode("certs/constructed/nsct_empty.pem", expect_present = "Cert_X509Ext_NetscapeCertType_Empty")
+
+	def test_ext_empty_sequence(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ext_empty_sequence.pem", expect_present = "Cert_X509Ext_EmptySequence")
+
+	def test_ext_not_present(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ext_not_present.pem", expect_absent = "Cert_X509Ext_EmptySequence")

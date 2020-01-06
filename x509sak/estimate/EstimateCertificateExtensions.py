@@ -94,11 +94,16 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		return result
 
 	def _judge_may_have_exts(self, certificate):
+		judgements = SecurityJudgements()
 		if (certificate.version < 3) and len(certificate.extensions) > 0:
 			standard = RFCReference(rfcno = 5280, sect = "4.1.2.9", verb = "MUST", text = "This field MUST only appear if the version is 3 (Section 4.1.2.1).")
-			return SecurityJudgement(JudgementCode.Cert_X509Ext_NotAllowed, "X.509 extension present in v%d certificate." % (certificate.version), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
-		else:
-			return None
+			judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_NotAllowed, "X.509 extension present in v%d certificate." % (certificate.version), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+
+		if len(certificate.extensions) == 0:
+			if certificate.asn1["tbsCertificate"]["extensions"].hasValue():
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_EmptySequence, "X.509 extensions are not present, but \"extensions\" attribute is present and contains an empty ASN.1 SEQUENCE.", commonness = Commonness.UNUSUAL)
+
+		return judgements
 
 	def _judge_extension_known(self, certificate):
 		judgements = SecurityJudgements()
