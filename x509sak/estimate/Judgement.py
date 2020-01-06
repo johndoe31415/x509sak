@@ -219,6 +219,7 @@ class JudgementCode(enum.Enum):
 	Cert_Purpose_NSCT_NoSSLServer = ("Certificate purpose", "NSCT extension does not contain sslServer flag")
 	Cert_Purpose_NSCT_NoCA = ("Certificate purpose", "NSCT extension does not contain any CA flag")
 	Cert_Purpose_NSCT_NonSSLCA = ("Certificate purpose", "NSCT extension is a CA, but not for use in SSL")
+	Cert_Version_Not_2 = ("Certificate version", "not v2 certificate")
 	Cert_Version_Not_3 = ("Certificate version", "not v3 certificate")
 	Cert_Serial_Zero = ("Certificate serial", "serial is zero")
 	Cert_Serial_Negative = ("Certificate serial", "serial is negative")

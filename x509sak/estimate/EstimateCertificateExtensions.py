@@ -135,6 +135,10 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 			if certificate.subject_unique_id is not None:
 				judgements += SecurityJudgement(JudgementCode.Cert_UniqueID_NotAllowedForCA, "Subject unique IDs is present in CA certificate.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
+		if (len(certificate.extensions) == 0) and (any(unique_id is not None for unique_id in (certificate.issuer_unique_id, certificate.subject_unique_id))) and (certificate.version != 2):
+			standard = RFCReference(rfcno = 5280, sect = "4.1.2.1", verb = "SHOULD", text = "If no extensions are present, but a UniqueIdentifier is present, the version SHOULD be 2 (value is 1); however, the version MAY be 3.")
+			judgements += SecurityJudgement(JudgementCode.Cert_Version_Not_2, "Certificate version is %d, but without X.509 extensions and a unique identifier present, it should be version 2." % (certificate.version), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+
 		return judgements
 
 	def _judge_uniqueness(self, certificate):

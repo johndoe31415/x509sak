@@ -417,21 +417,22 @@ class CmdLineTestsExamine(BaseTest):
 
 	def test_examine_x509test_xf_gentime_nonzulu(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-gentime-nonzulu.pem", "Cert_Validity_Invalid_NotAfter_Encoding")
-#
-#	def test_examine_x509test_xf_issuer_mismatch_v2(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-issuer-mismatch-v2.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-issuer-mismatch-v2.pem")
-#
-#	def test_examine_x509test_xf_issuer_mismatch1(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-issuer-mismatch1.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-issuer-mismatch1.pem")
-#
+
+	def test_examine_x509test_xf_issuer_mismatch_v2(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-issuer-mismatch-v2.pem", "CA_Relationship_SubjectIssuerMismatch", parent_certname = "certs/x509test/ok-ca.pem")
+
+	def test_examine_x509test_xf_issuer_mismatch1(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-issuer-mismatch1.pem", "CA_Relationship_SubjectIssuerMismatch", parent_certname = "certs/x509test/ok-ca.pem")
+
 	def test_examine_x509test_xf_pubkey_ecdsa_not_on_curve(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-pubkey-ecdsa-not-on-curve.pem", "ECC_Pubkey_Not_On_Curve")
 
 #	def test_examine_x509test_xf_pubkey_ecdsa_secp192r1(self):
+#		We omit this x509test check; it refers to RFC5480 Sect. 2.1.1.1 with
+#		the comment that the 192 bit finite field is too short. However,
+#		RFC5480 does not make any recommendation regarding security of curves
+#		and, on the contrary, includes secp192r1 as NIST-recommended curve.
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-pubkey-ecdsa-secp192r1.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-pubkey-ecdsa-secp192r1.pem")
 
 	def test_examine_x509test_xf_pubkey_ecdsa_unknown_curve(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-pubkey-ecdsa-unknown-curve.pem", "ECC_UnknownNamedCurve")
@@ -479,12 +480,10 @@ class CmdLineTestsExamine(BaseTest):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-v2-extensions.pem", "Cert_X509Ext_NotAllowed")
 
 	def test_examine_x509test_xf_v3_uniqueid_noexts1(self):
-		# TODO verify with x509test
-		self._test_examine_x509test_resultcode("certs/x509test/xf-v3-uniqueid-noexts1.pem", "Cert_UniqueID_NotAllowedForCA")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-v3-uniqueid-noexts1.pem", "Cert_Version_Not_2")
 
 	def test_examine_x509test_xf_v3_uniqueid_noexts2(self):
-		# TODO verify with x509test
-		self._test_examine_x509test_resultcode("certs/x509test/xf-v3-uniqueid-noexts2.pem", "Cert_UniqueID_NotAllowedForCA")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-v3-uniqueid-noexts2.pem", "Cert_Version_Not_2")
 
 ################################################################################################################################################################
 
