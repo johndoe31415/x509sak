@@ -59,6 +59,7 @@ class JudgementCode(enum.Enum):
 	DSA_Signature_R_BitBias = ("DSA signature", "R value has bit bias")
 	DSA_Signature_S_BitBias = ("DSA signature", "S value has bit bias")
 	DSA_Signature_Malformed = ("DSA signature", "signature is malformed")
+	DSA_Signature_TrailingData = ("DSA signature", "signature has trailing data")
 	DSA_Security_Level = ("DSA parameters", "security estimation")
 	ECC_Pubkey_CurveOrder = ("ECC pubkey", "curve order")
 	ECC_Pubkey_Not_On_Curve = ("ECC pubkey", "point not on curve")
@@ -256,7 +257,6 @@ class JudgementCode(enum.Enum):
 	CA_Relationship_Validity_NoOverlap = ("Certificate Authority relationship", "certificate and CA certificate lifetimes do not overlap")
 	CA_Relationship_Validity_PartialOverlap = ("Certificate Authority relationship", "certificate and CA certificate lifetimes partially overlap")
 	CA_Relationship_Validity_FullOverlap = ("Certificate Authority relationship", "certificate and CA certificate lifetimes fully overlap")
-
 	Analysis_Not_Implemented = ("x509sak", "functionality not implemented")
 
 	@property

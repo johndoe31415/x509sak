@@ -87,7 +87,7 @@ class CARelationshipSecurityEstimator(BaseEstimator):
 						break
 				else:
 					names = "None of the %d CA names" % (len(aki.ca_names)) if (len(aki.ca_names) != 1) else "The CA name"
-					judgements += SecurityJudgement(JudgementCode.CA_Relationship_AKI_CANameMismatch, "%s specified in the Authority Key Identifier extension of the certificate does not match the CA subject.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION)
+					judgements += SecurityJudgement(JudgementCode.CA_Relationship_AKI_CANameMismatch, "%s specified in the Authority Key Identifier extension of the certificate does not match the CA subject." % (names), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION)
 
 
 			if aki.serial is not None:
