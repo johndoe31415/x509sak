@@ -38,7 +38,7 @@ static struct pgmopts_t pgmopts_rw = {
 };
 const struct pgmopts_t *pgmopts = &pgmopts_rw;
 
-static bool parse_callback(enum argparse_option_t option, const char *value) {
+static bool parse_callback(enum argparse_option_t option, const char *value, argparse_errmsg_callback_t errmsg_callback) {
 	switch (option) {
 		case ARG_MODE:
 			if (!strcmp(value, "random")) {
@@ -63,7 +63,7 @@ static bool parse_callback(enum argparse_option_t option, const char *value) {
 		case ARG_THREAD_CNT:
 			pgmopts_rw.threads = atoi(value);
 			if ((pgmopts_rw.threads < 1) || (pgmopts_rw.threads > 1024)) {
-				fprintf(stderr, "Thread count must be in between 1 and 1024.\n");
+				errmsg_callback("Thread count must be in between 1 and 1024.");
 				return false;
 			}
 			break;
@@ -71,7 +71,7 @@ static bool parse_callback(enum argparse_option_t option, const char *value) {
 		case ARG_BIT_LENGTH:
 			pgmopts_rw.prime_bits = atoi(value);
 			if (pgmopts_rw.prime_bits < 8) {
-				fprintf(stderr, "Primes must be at least 8 bit.\n");
+				errmsg_callback("Primes must be at least 8 bit.");
 				return false;
 			}
 			break;
@@ -84,5 +84,5 @@ static bool parse_callback(enum argparse_option_t option, const char *value) {
 }
 
 void parse_opts(int argc, char **argv) {
-	argparse_parse_or_die(argc, argv, parse_callback);
+	argparse_parse_or_quit(argc, argv, parse_callback, NULL);
 }

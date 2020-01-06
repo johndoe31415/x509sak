@@ -17,7 +17,7 @@ clean:
 	rm -f $(OBJS) primegen
 
 parser:
-	../../pypgmopts/pypgmopts
+	../../pypgmopts/pypgmopts parser.py
 
 primegen: $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LDFLAGS)
