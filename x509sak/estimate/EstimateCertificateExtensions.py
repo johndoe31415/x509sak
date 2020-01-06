@@ -341,9 +341,9 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 				standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "Further, if the only subject identity included in the certificate is an alternative name form (e.g., an electronic mail address), then the subject distinguished name MUST be empty (an empty sequence), and the subjectAltName extension MUST be present.")
 				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_EmailOnly, "Subject Alternative Name X.509 extension only contains email addresses even though subject is non-empty.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 		else:
-			judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_Missing, "No Subject Alternative Name X.509 extension present in the certificate.", commonness = Commonness.UNUSUAL)
-
-			if certificate.subject.empty:
+			if not certificate.subject.empty:
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_Missing, "No Subject Alternative Name X.509 extension present in the certificate.", commonness = Commonness.UNUSUAL)
+			else:
 				standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "If the subject field contains an empty sequence, then the issuing CA MUST include a subjectAltName extension that is marked as critical.")
 				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_Missing, "Subject Alternative Name X.509 missing although subject is empty.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 

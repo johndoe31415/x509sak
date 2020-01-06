@@ -645,6 +645,9 @@ class CmdLineTestsExamine(BaseTest):
 	def test_san_missing(self):
 		self._test_examine_x509test_resultcode("certs/constructed/san_missing.pem", expect_present = "Cert_X509Ext_SubjectAltName_Missing")
 
+	def test_san_missing_nosubject(self):
+		self._test_examine_x509test_resultcode("certs/constructed/san_missing_nosubject.pem", expect_present = "Cert_X509Ext_SubjectAltName_Missing")
+
 	def test_san_bad_uri(self):
 		self._test_examine_x509test_resultcode("certs/constructed/san_bad_uri.pem", expect_present = "Cert_X509Ext_SubjectAltName_BadURI")
 
