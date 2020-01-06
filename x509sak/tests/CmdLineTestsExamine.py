@@ -1122,3 +1122,12 @@ class CmdLineTestsExamine(BaseTest):
 	def test_ca_relationship_validity_malformed(self):
 		self._test_examine_x509test_resultcode("certs/ok/short.pem", parent_certname = "certs/constructed/timestamp_malformed.pem", expect_present = "CA_Relationship_Validity_TimestampMalformed")
 		self._test_examine_x509test_resultcode("certs/constructed/timestamp_malformed.pem", parent_certname = "certs/ok/short.pem", expect_present = "CA_Relationship_Validity_TimestampMalformed")
+
+	def test_ca_relationship_aki_keyid_match(self):
+		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", parent_certname = "certs/ok/johannes-bauer-intermediate.pem", expect_present = "CA_Relationship_AKI_KeyIDMatch", expect_absent = "CA_Relationship_AKI_KeyIDMismatch")
+
+	def test_ca_relationship_aki_keyid_mismatch(self):
+		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", parent_certname = "certs/ok/johannes-bauer.com.pem", expect_present = "CA_Relationship_AKI_KeyIDMismatch", expect_absent = "CA_Relationship_AKI_KeyIDMatch")
+
+	def test_ca_relationship_aki_keyid_uncheckable(self):
+		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", parent_certname = "certs/ok/custom_key_usage.pem", expect_present = "CA_Relationship_AKI_UncheckableNoCASKI", expect_absent = [ "CA_Relationship_AKI_KeyIDMismatch", "CA_Relationship_AKI_KeyIDMatch" ])
