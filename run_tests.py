@@ -33,14 +33,12 @@ import subprocess
 import shutil
 import io
 import tempfile
-import x509sak.tests
 import contextlib
+import multiprocessing
+import x509sak.tests
 from x509sak.SubprocessExecutor import SubprocessExecutor
 from x509sak.FriendlyArgumentParser import FriendlyArgumentParser
-
-def get_processor_count():
-	with open("/proc/cpuinfo") as f:
-		return len(list(line for line in f.read().split("\n") if line.startswith("processor")))
+from x509sak.ParallelExecutor import ParallelExecutor
 
 class OutputRedirector(object):
 	def __init__(self):
@@ -78,162 +76,126 @@ class OutputRedirector(object):
 		self._stderr = self._restore_fd(self._stderr_f, sys.stderr.fileno())
 		self._stdout = self._restore_fd(self._stdout_f, sys.stdout.fileno())
 
-class Bucket(object):
-	def __init__(self):
-		self._content = [ ]
-		self._weight = 0
-
-	@property
-	def weight(self):
-		return self._weight
-
-	@property
-	def content(self):
-		return self._content
-
-	def put(self, obj, weight):
-		self._content.append(obj)
-		self._weight += weight
-
-	def __lt__(self, other):
-		return self.weight < other.weight
-
-class Bucketizer(object):
-	def __init__(self):
-		self._objects = [ ]
-
-	def add_item(self, obj, weight):
-		self._objects.append((weight, obj))
-
-	def split_into(self, bucket_count, verbose = None):
-		buckets = [ Bucket() for i in range(bucket_count) ]
-		for (weight, obj) in reversed(sorted(self._objects)):
-			# Place object in bucket that has least total weight
-			buckets.sort()
-			buckets[0].put(obj, weight)
-		buckets = [ bucket for bucket in buckets if len(bucket.content) > 0 ]
-		if verbose:
-			print("Split into %d parallel buckets:" % (len(buckets)))
-			buckets.sort()
-			for (bid, bucket) in enumerate(buckets):
-				print("    %2d  weight = %.1f" % (bid, bucket.weight))
-		return [ bucket.content for bucket in buckets ]
-
 class TestStats(object):
-	def __init__(self, runtime = 0, run = None, processes = 1):
+	def __init__(self, test_count):
+		self._starttime = time.time()
+		self._endtime = None
+		self._test_count = test_count
 		self._stats = {
-			"total_time":		runtime,
-			"cumulative_time":	0,
-			"run":				run or { },
-			"processes":		processes,
+			"cumulative_time":		0,
+			"pass": [ ],
+			"fail": [ ],
+			"error": [ ],
 		}
 
-	@classmethod
-	def from_json(cls, filename):
-		with open(filename) as f:
-			stats_json = json.load(f)
-		stats = cls()
-		stats._stats = stats_json
-		return stats
+	def _status_string(self):
+		return "%d in %.1f secs (cumulative %.1f secs), successful: %d (%.0f%%), failures: %d (%.0f%%)" % (
+					self.run_count, self.runtime, self._stats["cumulative_time"],
+					self.pass_count, 100 * self.pass_count / self.run_count,
+					self.fail_count, 100 * self.fail_count / self.run_count)
 
-	def merge(self, stats):
-		self._stats["cumulative_time"] += stats._stats["total_time"]
-		self._stats["run"].update(stats._stats["run"])
-		self._stats["processes"] += stats._stats["processes"]
+	def _show_progress(self, test_case, test_result):
+		if self.run_count > 1:
+			# Progress line from previous output, delete.
+			sys.stdout.write("\r\x1b[2K")
 
-	@property
-	def processes(self):
-		return self._stats["processes"]
+		if test_result["resultcode"] != "pass":
+			print("%s: %s.%s" % (test_result["resultcode"], test_case.class_name, test_case.test_name))
 
-	@property
-	def run_cnt(self):
-		return len(self._stats["run"])
+		sys.stdout.write("%d of %d (%.1f%%): %s" % (self.run_count, self.test_count, self.run_count / self.test_count * 100, self._status_string()))
+		sys.stdout.flush()
 
 	@property
-	def success_cnt(self):
-		return self._count_result(("success", ))
+	def runtime(self):
+		if self._endtime is None:
+			# Still running
+			return time.time() - self._starttime
+		else:
+			return self._endtime - self._starttime
+
+	def finish(self):
+		self._endtime = time.time()
+		self._stats["time"] = self.runtime
+		print()
+
+	def register_result(self, test_case, test_result, show_progress = False):
+		self._stats["cumulative_time"] += test_result["tdiff"]
+		details = {
+			"tcid":		".".join([ test_case.module_name, test_case.class_name, test_case.test_name ]),
+			"time":		test_result["tdiff"],
+		}
+		self._stats[test_result["resultcode"]].append(details)
+		if show_progress:
+			self._show_progress(test_case, test_result)
+
+	def all_details(self):
+		yield from self._stats["pass"]
+		yield from self._stats["fail"]
+		yield from self._stats["error"]
 
 	@property
-	def failed_cnt(self):
-		return self._count_result(("fail", "error"))
+	def run_count(self):
+		return self.pass_count + self.fail_count
+
+	@property
+	def pass_count(self):
+		return len(self._stats["pass"])
+
+	@property
+	def fail_count(self):
+		return len(self._stats["fail"]) + len(self._stats["error"])
+
+	@property
+	def test_count(self):
+		return self._test_count
 
 	@property
 	def failed_tcids(self):
-		return [ tcid for (tcid, details) in self._stats["run"].items() if details["result"] != "success" ]
-
-	@property
-	def runtime_by_tcid(self):
-		return { tcid: details["runtime"] for (tcid, details) in self._stats["run"].items() }
-
-	def _count_result(self, count_type):
-		return sum(1 for (tcid, results) in self._stats["run"].items() if results["result"] in count_type)
-
-	@property
-	def successful(self):
-		return self.failed_cnt == 0
-
-	def _to_dict(self):
-		return self._stats
-
-	def write_to_json_file(self, filename):
-		with open(filename, "w") as f:
-			json.dump(self._stats, fp = f)
+		return [ ]
+#		return [ tcid for (tcid, details) in self._stats["run"].items() if details["result"] != "success" ]
 
 	def write_failed_tests_file(self, filename):
 		with open(filename, "w") as f:
 			json.dump(self.failed_tcids, fp = f)
 
-	def merge_test_estimation_time(self, filename):
-		try:
-			with open(filename) as f:
-				estimate = json.load(f)
-		except (FileNotFoundError, json.decoder.JSONDecodeError):
-			estimate = { }
-		estimate.update(self.runtime_by_tcid)
-		with open(filename, "w") as f:
-			json.dump(estimate, fp = f)
-
 	def dump(self):
-		def _tc_header(tcstats):
-			print("~" * 120, file = sys.stderr)
-			print("%s: %s" % (tcstats["result"], tcstats["instance"]), file = sys.stderr)
-			if tcstats["stdout"] != "":
-				print(file = sys.stderr)
-				print(tcstats["stdout"], file = sys.stderr)
-			if tcstats["stderr"] != "":
-				print(file = sys.stderr)
-				print(tcstats["stderr"], file = sys.stderr)
+#		def _tc_header(tcstats):
+#			print("~" * 120, file = sys.stderr)
+#			print("%s: %s" % (tcstats["result"], tcstats["instance"]), file = sys.stderr)
+#			if tcstats["stdout"] != "":
+#				print(file = sys.stderr)
+#				print(tcstats["stdout"], file = sys.stderr)
+#			if tcstats["stderr"] != "":
+#				print(file = sys.stderr)
+#				print(tcstats["stderr"], file = sys.stderr)
+#
+#		for (tcid, tcstats) in sorted(self._stats["run"].items()):
+#			if tcstats["result"] != "success":
+#				_tc_header(tcstats)
+#				print(file = sys.stderr)
+#				print(tcstats["traceback"], file = sys.stderr)
+#			elif (tcstats["stdout"] != "") or (tcstats["stderr"] != ""):
+#				_tc_header(tcstats)
 
-		for (tcid, tcstats) in sorted(self._stats["run"].items()):
-			if tcstats["result"] != "success":
-				_tc_header(tcstats)
-				print(file = sys.stderr)
-				print(tcstats["traceback"], file = sys.stderr)
-			elif (tcstats["stdout"] != "") or (tcstats["stderr"] != ""):
-				_tc_header(tcstats)
+#		print("~" * 120, file = sys.stderr)
 
-		print("~" * 120, file = sys.stderr)
-
-		if self.run_cnt > 0:
-			print("ran: %d in %.1f secs (%d processes, cumulative %.1f secs), successful: %d (%.0f%%), failures: %d (%.0f%%)" % (
-						self.run_cnt, self._stats["total_time"], self.processes, self._stats["cumulative_time"],
-						self.success_cnt, 100 * self.success_cnt / self.run_cnt,
-						self.failed_cnt, 100 * self.failed_cnt / self.run_cnt))
+		if self.run_count > 0:
+			print("ran: %s" % (self._status_string()))
 		else:
 			print("No tests were run.", file = sys.stderr)
 
-class SelectiveTestRunner(object):
-	_InstanciatedTestCase = collections.namedtuple("InstanciatedTestCase", [ "module_name", "class_name", "test_name", "test" ])
+InstanciatedTestCase = collections.namedtuple("InstanciatedTestCase", [ "module_name", "class_name", "test_name", "test" ])
 
+class SelectiveTestRunner(object):
 	def __init__(self, args, root_module, failed_tests_file = None):
 		self._args = args
 		self._root_modules = [ root_module ]
-		self._suite = unittest.TestSuite()
+		self._suite = [ ]
 		self._failed_tests_file = failed_tests_file
 		self._include_regexes = [ re.compile(text, flags = re.IGNORECASE) for text in self._args.target ]
 		self._exclude_regexes = [ re.compile(text, flags = re.IGNORECASE) for text in self._args.exclude ]
 		self._found_testcases = { testcase.test.id(): testcase for testcase in self._enumerate_all_tests() }
-		self._test_result = None
+		self._test_results = None
 
 		search_term_given = len(self._include_regexes) > 0
 		have_failed_tests = (not self._args.all) and (os.path.isfile(self._failed_tests_file))
@@ -261,6 +223,10 @@ class SelectiveTestRunner(object):
 			os.unlink(self._failed_tests_file)
 		except FileNotFoundError:
 			pass
+		self._rearrange_testsuite()
+
+	def _rearrange_testsuite(self):
+		random.shuffle(self._suite)
 
 	def _is_testcase_included(self, testcase):
 		test_id = testcase.class_name + "." + testcase.test_name
@@ -288,13 +254,13 @@ class SelectiveTestRunner(object):
 				if not test_method_name.startswith("test_"):
 					continue
 				test = test_class(test_method_name)
-				instanciated_testcase = self._InstanciatedTestCase(module_name = module_name, class_name = test_class_name, test_name = test_method_name, test = test)
+				instanciated_testcase = InstanciatedTestCase(module_name = module_name, class_name = test_class_name, test_name = test_method_name, test = test)
 				yield instanciated_testcase
 
 	def _add_testcase(self, testcase):
 		if self._args.verbose:
 			print("Testing: %s.%s" % (testcase.class_name, testcase.test_name))
-		self._suite.addTest(testcase.test)
+		self._suite.append(testcase)
 
 	def _enumerate_all_tests(self):
 		for root_module in self._root_modules:
@@ -312,116 +278,50 @@ class SelectiveTestRunner(object):
 			if testcase is not None:
 				self._add_testcase(testcase)
 
-	def _wait_until_finished(self):
-		for i in range(self._subprocess_cnt):
-			self._subprocess_sem.acquire()
-	def _wait_for_subprocess(self, subproc):
-		subproc.wait()
-		self._subprocess_sem.release()
-
-	def _run_single(self):
-		t0_total = time.time()
-		stream = io.StringIO()
-		self._test_result = unittest.TextTestResult(stream = stream, descriptions = True, verbosity = 1)
-		details = { }
-		for testcase in self._suite:
-			t0 = time.time()
-			output_redirector = OutputRedirector()
-			with output_redirector:
-				testcase.run(self._test_result)
-			sys.stderr.write(stream.getvalue())
-			sys.stderr.flush()
-			stream.truncate(0)
-			t1 = time.time()
-			details[testcase.id()] = {
-				"runtime":		t1 - t0,
-				"stdout":		output_redirector.stdout.decode("utf-8", errors = "ignore").rstrip("\r\n"),
-				"stderr":		output_redirector.stderr.decode("utf-8", errors = "ignore").rstrip("\r\n"),
-				"instance":		str(testcase),
-				"result":		"success",
-			}
-			if self._args.fail_fast and (not self._test_result.wasSuccessful()):
-				break
-		t1_total = time.time()
-		runtime = t1_total - t0_total
-
-		for (fail_type, fails) in [ ("fail", self._test_result.failures), ("error", self._test_result.errors) ]:
-			for (testcase, traceback) in fails:
-				tcid = testcase.id()
-				traceback = traceback.rstrip("\r\n")
-				details[tcid]["result"] = fail_type
-				details[tcid]["traceback"] = traceback
-		test_stats = TestStats(runtime = runtime, run = details)
-		return test_stats
-
-	def _run_parallel(self):
-		result_tempfiles = [ ]
-		coverage_tempfiles = [ ]
-
-		try:
-			with open(".tests_estimate.json") as f:
-				estimate = json.load(f)
-		except (FileNotFoundError, json.decoder.JSONDecodeError):
-			estimate = { }
-
+	def _worker(self, test_case):
 		t0 = time.time()
-		bucketizer = Bucketizer()
-		for testcase in self._suite:
-			bucketizer.add_item(testcase.id(), weight = estimate.get(testcase.id(), 1))
-		buckets = bucketizer.split_into(bucket_count = self._args.parallel, verbose = self._args.verbose)
-
-		procs = [ ]
-		for (bid, bucket) in enumerate(buckets):
-			env = dict(os.environ)
-			result_tempfile = tempfile.NamedTemporaryFile(prefix = "bucket_%02d_" % (bid), suffix = ".json")
-			result_tempfiles.append(result_tempfile)
-			if self._args.coverage > 0:
-				user_dir = os.path.expanduser("~/.local") + "/*"
-				cmdline = [ "coverage", "run", "--append", "--omit", "/usr/*,run_tests.py," + user_dir ]
-			else:
-				cmdline = [ ]
-			cmdline += [ "./run_tests.py", "--parallel", "1", "--subprocess", "--dump-json", result_tempfile.name ]
-			if self._args.fail_fast:
-				cmdline += [ "--fail-fast" ]
-			if self._args.coverage > 0:
-				coverage_tempfile = tempfile.NamedTemporaryFile(prefix = "bucket_%02d_" % (bid), suffix = ".txt", delete = False)
-				os.unlink(coverage_tempfile.name)
-				coverage_tempfiles.append(coverage_tempfile)
-				cmdline += [ "--coverage" ]
-				env["COVERAGE_FILE"] = coverage_tempfile.name
-				env["X509SAK_COVERAGE"] = "1"
-
-			# Shuffle randomly so not all fast tests come at the very end
-			random.shuffle(bucket)
-			for tcid in bucket:
-				cmdline += [ "-i", tcid ]
-			if self._args.verbose > 0:
-				cmdline += [ "-" + ("v" * self._args.verbose) ]
-			proc = subprocess.Popen(cmdline, env = env)
-			procs.append(proc)
-
-		# Then wait for all procs to finish up
-		for proc in procs:
-			proc.wait()
+		result = test_case.test()
 		t1 = time.time()
 
-		# Finally, coalesce results
-		merged_results = TestStats(runtime = t1 - t0, processes = 0)
-		for result_tempfile in result_tempfiles:
-			merged_results.merge(TestStats.from_json(result_tempfile.name))
+		if len(result.errors) > 0:
+			resultcode = "error"
+		elif len(result.failures) > 0:
+			resultcode = "fail"
+		else:
+			resultcode = "pass"
 
-		# Also coalesce the coverage files
-		if len(coverage_tempfiles) > 0:
-			coverage_filenames = [ coverage_tempfile.name for coverage_tempfile in coverage_tempfiles ]
-			cmd = [ "coverage", "combine", "--append" ] + coverage_filenames
-			subprocess.check_call(cmd)
-		return merged_results
+		result = {
+			"tdiff":		t1 - t0,
+			"resultcode":	resultcode,
+		}
+		return (test_case, result)
+
+	def _dot_progress(self, test_case, result):
+		character = {
+			"pass":		".",
+			"fail":		"F",
+			"error":	"E",
+		}.get(result["resultcode"], "?")
+		sys.stdout.write(character)
+		sys.stdout.flush()
+
+	def _process_test_result(self, result):
+		(test_case, result) = result
+		self._test_results.register_result(test_case, result, show_progress = not self._args.dot_progress)
+		if self._args.dot_progress:
+			self._dot_progress(test_case, result)
 
 	def run(self):
-		if self._args.parallel == 1:
-			return self._run_single()
-		else:
-			return self._run_parallel()
+		print("Running %d testcases using %d parallel processes." % (len(self._suite), self._args.parallel), file = sys.stderr)
+		self._test_results = TestStats(len(self._suite))
+		if len(self._suite) > 0:
+			self._parallel_processor = ParallelExecutor(work_generator = lambda: iter(self._suite), result_processing_function = self._process_test_result, worker_function = self._worker)
+			try:
+				self._parallel_processor.run()
+			except KeyboardInterrupt:
+				print("Interrupted.")
+		self._test_results.finish()
+		return self._test_results
 
 parser = FriendlyArgumentParser()
 parser.add_argument("-e", "--exclude", metavar = "class_name", action = "append", default = [ ], help = "Exclude specific test cases. Can be regexes matching the \"{classname}.{testname}\" specifiers.")
@@ -429,11 +329,10 @@ parser.add_argument("-a", "--all", action = "store_true", help = "Regardless of 
 parser.add_argument("-i", "--full-id", metavar = "tcid", default = [ ], action = "append", help = "Specify a number of test cases by their full testcase ID. Can be supplied multiple times. Takes highest precedence.")
 parser.add_argument("-c", "--coverage", action = "count", default = 0, help = "Run all subprocesses through code coverage measurement. Specify twice to also show text report in console after run and three times to render HTML page and open up browser.")
 parser.add_argument("-d", "--debug-dumps", action = "store_true", help = "For certain testcases, automatically create debug dumpfiles. These can either be for tracing errors but also might include statistical information.")
-parser.add_argument("--dump-json", metavar = "filename", type = str, help = "Create a JSON dump of all testcase data and write it to the given file instead of printing results to stdout.")
-parser.add_argument("--subprocess", action = "store_true", help = argparse.SUPPRESS)
+parser.add_argument("--dot-progress", action = "store_true", help = "Show dots instead of progress bar.")
 parser.add_argument("-F", "--failed-tests-have-precedence", action = "store_true", help = "By default, when a search pattern is given on the command line, always that search pattern determines which tests are run. When this option is given, failed tests have precedence over any search strings.")
 parser.add_argument("-f", "--fail-fast", action = "store_true", help = "Fail fast, i.e., do not continue testing after the first test fails.")
-parser.add_argument("-p", "--parallel", metavar = "processes", type = int, default = get_processor_count(), help = "Split up testbench and concurrently run on multiple threads. Defaults to %(default)s.")
+parser.add_argument("-p", "--parallel", metavar = "processes", type = int, default = multiprocessing.cpu_count(), help = "Split up testbench and concurrently run on multiple threads. Defaults to %(default)s.")
 parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity.")
 parser.add_argument("target", metavar = "classname", type = str, nargs = "*", help = "Target for testing; can be a regex matching the \"{classname}.{testname}\" specifiers. By default, all are included.")
 args = parser.parse_args(sys.argv[1:])
@@ -442,15 +341,15 @@ if len(args.full_id) > 0:
 	if args.all or (len(args.exclude) > 0):
 		raise Exception("Either full ID can be specified or --all / --exclude. Not both.")
 
-if (not args.subprocess) and args.coverage:
-	try:
-		shutil.rmtree("htmlcov")
-	except FileNotFoundError:
-		pass
-	try:
-		os.unlink(".coverage")
-	except FileNotFoundError:
-		pass
+#if (not args.subprocess) and args.coverage:
+#	try:
+#		shutil.rmtree("htmlcov")
+#	except FileNotFoundError:
+#		pass
+#	try:
+#		os.unlink(".coverage")
+#	except FileNotFoundError:
+#		pass
 
 if args.coverage:
 	os.environ["X509SAK_COVERAGE"] = "1"
@@ -463,28 +362,21 @@ if args.verbose >= 2:
 	SubprocessExecutor.set_all_verbose()
 if args.verbose >= 3:
 	SubprocessExecutor.pause_after_failed_execution()
-runner = SelectiveTestRunner(args, x509sak.tests, failed_tests_file = ".tests_failed.json")
-results = runner.run()
 
-if args.dump_json is None:
-	# Print results
-	print(file = sys.stderr)
-	results.dump()
-	results.merge_test_estimation_time(".tests_estimate.json")
-	if results.successful:
-		returncode = 0
-	else:
-		results.write_failed_tests_file(".tests_failed.json")
-		returncode = 1
-else:
-	# Be quiet about results, write them to the JSON file
-	results.write_to_json_file(args.dump_json)
+testrunner = SelectiveTestRunner(args, x509sak.tests, failed_tests_file = ".tests_failed.json")
+results = testrunner.run()
+results.dump()
+
+if results.fail_count == 0:
 	returncode = 0
+else:
+	results.write_failed_tests_file(".tests_failed.json")
+	returncode = 1
 
-if (not args.subprocess) and (args.coverage >= 1):
-	subprocess.call([ "coverage", "report" ])
-if (not args.subprocess) and (args.coverage >= 2):
-	subprocess.call([ "coverage", "html" ])
-	subprocess.call([ "chromium-browser", "htmlcov/index.html" ])
+#if (not args.subprocess) and (args.coverage >= 1):
+#	subprocess.call([ "coverage", "report" ])
+#if (not args.subprocess) and (args.coverage >= 2):
+#	subprocess.call([ "coverage", "html" ])
+#	subprocess.call([ "chromium-browser", "htmlcov/index.html" ])
 
 sys.exit(returncode)
