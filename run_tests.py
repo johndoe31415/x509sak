@@ -83,9 +83,9 @@ class TestStats(object):
 		self._test_count = test_count
 		self._stats = {
 			"cumulative_time":		0,
-			"pass": [ ],
-			"fail": [ ],
-			"error": [ ],
+			"pass": { },
+			"fail": { },
+			"error": { },
 		}
 
 	def _status_string(self):
@@ -120,11 +120,12 @@ class TestStats(object):
 
 	def register_result(self, test_case, test_result, show_progress = False):
 		self._stats["cumulative_time"] += test_result["tdiff"]
+		tcid = ".".join([ test_case.module_name, test_case.class_name, test_case.test_name ])
 		details = {
-			"tcid":		".".join([ test_case.module_name, test_case.class_name, test_case.test_name ]),
+			"text":		test_result["text"],
 			"time":		test_result["tdiff"],
 		}
-		self._stats[test_result["resultcode"]].append(details)
+		self._stats[test_result["resultcode"]][tcid] = details
 		if show_progress:
 			self._show_progress(test_case, test_result)
 
@@ -132,6 +133,10 @@ class TestStats(object):
 		yield from self._stats["pass"]
 		yield from self._stats["fail"]
 		yield from self._stats["error"]
+
+	def failed_details(self):
+		yield from self._stats["fail"].items()
+		yield from self._stats["error"].items()
 
 	@property
 	def run_count(self):
@@ -177,7 +182,12 @@ class TestStats(object):
 #			elif (tcstats["stdout"] != "") or (tcstats["stderr"] != ""):
 #				_tc_header(tcstats)
 
-#		print("~" * 120, file = sys.stderr)
+		for (count, (tcid, tcdetails)) in enumerate(sorted(self.failed_details())):
+			if count != 0:
+				print("-" * 120)
+			print(tcdetails["text"])
+
+		print("~" * 120, file = sys.stderr)
 
 		if self.run_count > 0:
 			print("ran: %s" % (self._status_string()))
@@ -280,8 +290,15 @@ class SelectiveTestRunner(object):
 
 	def _worker(self, test_case):
 		t0 = time.time()
+		output_redirect = OutputRedirector()
 		result = test_case.test()
 		t1 = time.time()
+
+		error_text = ""
+		for err_source in [ result.failures, result.errors ]:
+			for (err_class, err_text) in err_source:
+				error_text += "%s\n" % (str(err_class))
+				error_text += err_text
 
 		if len(result.errors) > 0:
 			resultcode = "error"
@@ -293,6 +310,7 @@ class SelectiveTestRunner(object):
 		result = {
 			"tdiff":		t1 - t0,
 			"resultcode":	resultcode,
+			"text":			error_text,
 		}
 		return (test_case, result)
 
