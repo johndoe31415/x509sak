@@ -116,14 +116,10 @@ class RSASecurityEstimator(BaseEstimator):
 			judgements += SecurityJudgement(JudgementCode.RSA_Parameter_Field_Not_Present, "RSA parameter field should be present and should be of Null type, but is not present at all.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 		else:
 			# There is a parameters field present, it must be NULL
-			try:
-				(asn1_params, tail) = pyasn1.codec.der.decoder.decode(bytes(pubkey.params))
-				if not isinstance(asn1_params, pyasn1.type.univ.Null):
-					standard = RFCReference(rfcno = 3279, sect = "2.2.1", verb = "MUST", text = "When any of these three OIDs appears within the ASN.1 type AlgorithmIdentifier, the parameters component of that type SHALL be the ASN.1 type NULL.")
-					judgements += SecurityJudgement(JudgementCode.RSA_Parameter_Field_Not_Null, "RSA parameter field should be present and should be of Null type, but has different ASN.1 type.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
-			except pyasn1.error.PyAsn1Error:
+			(asn1_params, tail) = pyasn1.codec.der.decoder.decode(bytes(pubkey.params))
+			if not isinstance(asn1_params, pyasn1.type.univ.Null):
 				standard = RFCReference(rfcno = 3279, sect = "2.2.1", verb = "MUST", text = "When any of these three OIDs appears within the ASN.1 type AlgorithmIdentifier, the parameters component of that type SHALL be the ASN.1 type NULL.")
-				judgements += SecurityJudgement(JudgementCode.RSA_Parameter_Field_Not_Null, "RSA parameter field should be present and should be of Null type, but has different non-DER type.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+				judgements += SecurityJudgement(JudgementCode.RSA_Parameter_Field_Not_Null, "RSA parameter field should be present and should be of Null type, but has different ASN.1 type %s." % (type(asn1_params).__name__), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 		judgements += result["specific"]["n"]["security"]
 		judgements += result["specific"]["e"]["security"]

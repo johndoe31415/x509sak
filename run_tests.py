@@ -376,7 +376,8 @@ class SelectiveTestRunner(object):
 			result_tempfile = tempfile.NamedTemporaryFile(prefix = "bucket_%02d_" % (bid), suffix = ".json")
 			result_tempfiles.append(result_tempfile)
 			if self._args.coverage > 0:
-				cmdline = [ "coverage", "run", "--append", "--omit", "/usr/*,run_tests.py" ]
+				user_dir = os.path.expanduser("~/.local") + "/*"
+				cmdline = [ "coverage", "run", "--append", "--omit", "/usr/*,run_tests.py," + user_dir ]
 			else:
 				cmdline = [ ]
 			cmdline += [ "./run_tests.py", "--parallel", "1", "--subprocess", "--dump-json", result_tempfile.name ]

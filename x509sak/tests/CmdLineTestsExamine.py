@@ -811,7 +811,7 @@ class CmdLineTestsExamine(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/dsa_sig_malformed.pem", expect_present = "DSA_Signature_Malformed")
 
 	def test_dsa_typical_parameters(self):
-		self._test_examine_x509test_resultcode("certs/ok/dsa_sha1.pem", expect_present = [ "DSA_Parameter_L_N_Common", "DSA_Security_Level" ], expect_absent = "DSA_Parameter_L_N_Uncommon")
+		self._test_examine_x509test_resultcode("certs/ok/dsa_sha1.pem", expect_present = [ "DSA_Parameter_L_N_Common", "DSA_Security_Level" ], expect_absent = "DSA_Parameter_L_N_Uncommon", include_raw = True)
 
 	def test_dsa_atypical_parameters(self):
 		self._test_examine_x509test_resultcode("certs/ok/dsa_512_160_sha256.pem", expect_present = "DSA_Parameter_L_N_Uncommon", expect_absent = "DSA_Parameter_L_N_Common")
@@ -987,6 +987,11 @@ class CmdLineTestsExamine(BaseTest):
 	def test_key_usage_extension_missing(self):
 		self._test_examine_x509test_resultcode("certs/ok/short.pem", expect_present = "Cert_X509Ext_KeyUsage_Missing")
 
+	def test_key_usage_noncritical_ca(self):
+		# Different code path when the certificate is a CA certificate, include
+		# test for coverage of both paths.
+		self._test_examine_x509test_resultcode("certs/constructed/ku_noncritical_ca.pem", expect_present = "Cert_X509Ext_KeyUsage_NonCritical", purpose = "ca")
+
 	def test_certpol_polcount_1(self):
 		self._test_examine_x509test_resultcode("certs/constructed/certpol_polcount_1.pem", expect_absent = "Cert_X509Ext_CertificatePolicies_MoreThanOnePolicy")
 
@@ -1143,3 +1148,8 @@ class CmdLineTestsExamine(BaseTest):
 
 	def test_ca_relationship_aki_serial_mismatch(self):
 		self._test_examine_x509test_resultcode("certs/constructed/ca_rel_cert_serial_mismatch.pem", parent_certname = "certs/constructed/ca_rel_CA_y2k.pem", expect_present = "CA_Relationship_AKI_SerialMismatch", expect_absent = "CA_Relationship_AKI_SerialMatch")
+
+	def test_unique_id_issuer(self):
+		# Same code point as subject unique ID, but different code path; test
+		# both paths for full coverage
+		self._test_examine_x509test_resultcode("certs/constructed/unique_id_issuer.pem", "Cert_UniqueID_NotAllowed")

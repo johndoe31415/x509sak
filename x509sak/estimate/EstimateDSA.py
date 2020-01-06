@@ -97,8 +97,16 @@ class DSASecurityEstimator(BaseEstimator):
 		}
 
 		if self._analysis_options.include_raw_data:
-			result["specific"]["p"]["value"] = pubkey.p
-			result["specific"]["q"]["value"] = pubkey.q
-			result["specific"]["g"]["value"] = pubkey.g
-			result["specific"]["pubkey"]["value"] = pubkey.pubkey
+			result["specific"]["p"] = {
+				"value": pubkey.p,
+			}
+			result["specific"]["q"] = {
+				"value": pubkey.q,
+			}
+			result["specific"]["g"] = {
+				"value": pubkey.g,
+			}
+			result["specific"]["pubkey"] = {
+				"value": pubkey.pubkey,
+			}
 		return result
