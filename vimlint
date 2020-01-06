@@ -1,18 +1,116 @@
-#!/bin/bash
+#!/usr/bin/python3
+#	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
+#	Copyright (C) 2018-2018 Johannes Bauer
+#
+#	This file is part of x509sak.
+#
+#	x509sak is free software; you can redistribute it and/or modify
+#	it under the terms of the GNU General Public License as published by
+#	the Free Software Foundation; this program is ONLY licensed under
+#	version 3 of the License, later versions are explicitly excluded.
+#
+#	x509sak is distributed in the hope that it will be useful,
+#	but WITHOUT ANY WARRANTY; without even the implied warranty of
+#	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#	GNU General Public License for more details.
+#
+#	You should have received a copy of the GNU General Public License
+#	along with x509sak; if not, write to the Free Software
+#	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+#	Johannes Bauer <JohannesBauer@gmx.de>
 
-suppress() {
-	PATTERN="$1"
-	grep -vE "$PATTERN" /tmp/lint >/tmp/lint2
-	mv /tmp/lint2 /tmp/lint
-}
+import sys
+import tempfile
+import subprocess
+import re
+import collections
+from x509sak.FriendlyArgumentParser import FriendlyArgumentParser
 
-pylint --reports=n --output-format=parseable x509sak >/tmp/lint
-suppress "W0612\(unused-variable\).*Unused variable 'success'"
-suppress "W0612\(unused-variable\).*Unused variable 'tail'"
-suppress "E1102\(not-callable\).*self._ASN1_MODEL is not callable"
-suppress "E0102\(function-redefined\), genparser"
-suppress "W0613\(unused-argument\).*Unused argument 'args'"
-suppress "W0613\(unused-argument\).*Unused argument 'kwargs'"
-suppress "W0221\(arguments-differ\).*overridden 'analyze' method"
-vi -c ":set cmdheight=2" -c ":cf /tmp/lint"
+parser = FriendlyArgumentParser(description = "Run pylint on x509sak with specific suppressions.")
+parser.add_argument("--test-linter-filter", action = "store_true", help = "Debug the linter filtering.")
+parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increases verbosity. Can be specified multiple times to increase.")
+args = parser.parse_args(sys.argv[1:])
 
+class LinterCodeFilter():
+	_LinterMsg = collections.namedtuple("LinterMsg", [ "filename", "lineno", "text" ])
+
+	def __init__(self, linter_results):
+		self._msgs = [ ]
+		for line in linter_results.split("\n"):
+			line = line.strip()
+			if line.startswith("*") or (line == "") or line.startswith("-------"):
+				continue
+			split_line = line.split(":", maxsplit = 2)
+			if len(split_line) == 3:
+				split_line[2] = split_line[2].strip()
+				msg = self._LinterMsg(*split_line)
+				self._msgs.append(msg)
+			else:
+				print(line)
+				continue
+
+	def filter_function(self, filter_function):
+		self._msgs = [ msg for msg in self._msgs if not filter_function(msg) ]
+
+	def filter(self, **kwargs):
+		lambdas = [ ]
+		if "text_regex" in kwargs:
+			text_regex = re.compile(kwargs["text_regex"])
+			lambdas.append(lambda msg: text_regex.search(msg.text) is not None)
+
+		if "filespec_regex" in kwargs:
+			filespec_regex = re.compile(kwargs["filespec_regex"])
+			lambdas.append(lambda msg: filespec_regex.search(msg.filename) is not None)
+
+		assert(len(lambdas) > 0)
+		filter_fnc = lambda msg: all(subfilter(msg) for subfilter in lambdas)
+		self.filter_function(filter_fnc)
+
+	def filter_unused_variable(self, varname, **kwargs):
+		self.filter(text_regex = r"W0612\(unused-variable\).*Unused variable '%s'" % (varname), **kwargs)
+
+	def filter_unused_argument(self, varname, **kwargs):
+		self.filter(text_regex = r"W0613\(unused-argument\).*Unused argument '%s'" % (varname), **kwargs)
+
+	def filter_parameters_differ(self, methodname, **kwargs):
+		self.filter(text_regex = r"W0221\(arguments-differ\).*overridden '%s' method" % (methodname), **kwargs)
+
+	def filter_no_member(self, membername, **kwargs):
+		self.filter(text_regex = r"E1101\(no-member\).* has no '%s' member" % (membername), **kwargs)
+
+	def dump(self):
+		print("%d msgs:" % (len(self._msgs)))
+		for msg in self._msgs:
+			print("%-60s %s" % (msg.filename, msg.text))
+
+	@property
+	def text(self):
+		return "\n".join("%s:%s:%s" % (msg.filename, msg.lineno, msg.text) for msg in self._msgs)
+
+if not args.test_linter_filter:
+	lint = subprocess.run([ "pylint", "--reports=n", "--output-format=parseable", "x509sak" ], stdout = subprocess.PIPE)
+	lf = LinterCodeFilter(lint.stdout.decode())
+else:
+	lf = LinterCodeFilter(open("linter_output.txt").read())
+
+lf.filter_unused_variable("success")
+lf.filter_unused_variable("tail")
+lf.filter(text_regex = r"E1102\(not-callable\).*self._ASN1_MODEL is not callable")
+lf.filter(text_regex = r"E0102\(function-redefined\), genparser")
+lf.filter_unused_argument("args")
+lf.filter_unused_argument("kwargs")
+lf.filter_unused_argument("hooktype", filespec_regex_str = r"actions/ActionTLS.*")
+lf.filter_unused_argument("msg_id", filespec_regex_str = r"actions/ActionTLS.*")
+lf.filter_parameters_differ("analyze", filespec_regex_str = r"x509sak/estimate/.*")
+lf.filter_no_member("execution_result", filespec_regex_str = r"/__main__.py$")
+lf.filter(text_regex = r"W0107\(unnecessary-pass\)", filespec_regex_str = r"x509sak/ASN1Models\.py")
+lf.filter(text_regex = r"W0223\(abstract-method\).*Method '(neutral_point|point_addition)'", filespec_regex_str = r"x509sak/ECCMath\.py")
+
+if args.test_linter_filter:
+	lf.dump()
+else:
+	with tempfile.NamedTemporaryFile(mode = "w", prefix = "linter_", suffix = ".txt") as f:
+		print(lf.text, file = f)
+		f.flush()
+		subprocess.check_call([ "vi", "-f", "-c", ":set cmdheight=2", "-c", ":cf %s" % (f.name) ])
