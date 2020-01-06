@@ -141,6 +141,8 @@ class ASN1Editor():
 		openssl_output = self._openssl_text(filetype, der_data)
 		if openssl_output is not None:
 			print(openssl_output)
+			if not openssl_output.endswith("\n"):
+				openssl_output += "\n"
 			pem_data = openssl_output + pem_data
 
 		return pem_data.encode()

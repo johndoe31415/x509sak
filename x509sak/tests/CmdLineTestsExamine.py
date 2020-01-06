@@ -480,7 +480,7 @@ class CmdLineTestsExamine(BaseTest):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-v2-extensions.pem", "Cert_X509Ext_NotAllowed")
 
 	def test_examine_x509test_xf_v3_uniqueid_noexts1(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-v3-uniqueid-noexts1.pem", "Cert_Version_Not_2")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-v3-uniqueid-noexts1.pem", [ "Cert_Version_Not_2", "Cert_UniqueID_NotAllowedForCA" ])
 
 	def test_examine_x509test_xf_v3_uniqueid_noexts2(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-v3-uniqueid-noexts2.pem", "Cert_Version_Not_2")
@@ -1098,3 +1098,27 @@ class CmdLineTestsExamine(BaseTest):
 
 	def test_ext_not_present(self):
 		self._test_examine_x509test_resultcode("certs/constructed/ext_not_present.pem", expect_absent = "Cert_X509Ext_EmptySequence")
+
+	def test_ca_relationship_signature_success(self):
+		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", parent_certname = "certs/ok/johannes-bauer-intermediate.pem", expect_present = [ "CA_Relationship_SubjectIssuerMatch", "CA_Relationship_SignatureVerificationSuccess" ])
+
+	def test_ca_relationship_signature_failure(self):
+		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", parent_certname = "certs/ok/johannes-bauer-root.pem", expect_present = [ "CA_Relationship_SubjectIssuerMismatch", "CA_Relationship_SignatureVerificationFailure" ], expect_absent = "CA_Relationship_CACertificateInvalidAsCA")
+
+	def test_ca_relationship_invalid_as_ca(self):
+		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", parent_certname = "certs/ok/johannes-bauer.com.pem", expect_present = [ "CA_Relationship_SubjectIssuerMismatch", "CA_Relationship_SignatureVerificationFailure", "CA_Relationship_CACertificateInvalidAsCA" ])
+
+	def test_ca_relationship_validity_full_overlap(self):
+		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", parent_certname = "certs/ok/johannes-bauer-intermediate.pem", expect_present = "CA_Relationship_Validity_FullOverlap")
+
+	def test_ca_relationship_validity_partial_overlap(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ca_rel_valid_firsthalf.pem", parent_certname = "certs/constructed/ca_rel_CA_y2k.pem", expect_present = "CA_Relationship_Validity_PartialOverlap")
+		self._test_examine_x509test_resultcode("certs/constructed/ca_rel_valid_secondhalf.pem", parent_certname = "certs/constructed/ca_rel_CA_y2k.pem", expect_present = "CA_Relationship_Validity_PartialOverlap")
+
+	def test_ca_relationship_validity_no_overlap(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ca_rel_valid_before.pem", parent_certname = "certs/constructed/ca_rel_CA_y2k.pem", expect_present = "CA_Relationship_Validity_NoOverlap")
+		self._test_examine_x509test_resultcode("certs/constructed/ca_rel_valid_after.pem", parent_certname = "certs/constructed/ca_rel_CA_y2k.pem", expect_present = "CA_Relationship_Validity_NoOverlap")
+
+	def test_ca_relationship_validity_malformed(self):
+		self._test_examine_x509test_resultcode("certs/ok/short.pem", parent_certname = "certs/constructed/timestamp_malformed.pem", expect_present = "CA_Relationship_Validity_TimestampMalformed")
+		self._test_examine_x509test_resultcode("certs/constructed/timestamp_malformed.pem", parent_certname = "certs/ok/short.pem", expect_present = "CA_Relationship_Validity_TimestampMalformed")

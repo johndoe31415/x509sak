@@ -32,15 +32,15 @@ class CARelationshipSecurityEstimator(BaseEstimator):
 		judgements = SecurityJudgements()
 		if any(ts is None for ts in [ certificate.valid_not_before, certificate.valid_not_after, ca_certificate.valid_not_before, ca_certificate.valid_not_after ]):
 			judgements += SecurityJudgement(JudgementCode.CA_Relationship_Validity_TimestampMalformed, "Certificate or CA certificate validity field malformed, cannot perform checking of time intervals.", verdict = Verdict.NO_SECURITY, commonness = Commonness.HIGHLY_UNUSUAL)
-
-		if certificate.valid_not_before > ca_certificate.valid_not_after:
-			judgements += SecurityJudgement(JudgementCode.CA_Relationship_Validity_NoOverlap, "Certifiate becomes valid after CA certificate has expired.", verdict = Verdict.NO_SECURITY, commonness = Commonness.HIGHLY_UNUSUAL)
-		elif certificate.valid_not_after < ca_certificate.valid_not_before:
-			judgements += SecurityJudgement(JudgementCode.CA_Relationship_Validity_NoOverlap, "Certifiate becomes invalid before CA certificate becomes valid.", verdict = Verdict.NO_SECURITY, commonness = Commonness.HIGHLY_UNUSUAL)
-		elif ca_certificate.valid_not_before <= certificate.valid_not_before <= certificate.valid_not_after <= ca_certificate.valid_not_after:
-			judgements += SecurityJudgement(JudgementCode.CA_Relationship_Validity_FullOverlap, "Certifiate validity interval falls fully into CA certificate validity.", commonness = Commonness.COMMON)
 		else:
-			judgements += SecurityJudgement(JudgementCode.CA_Relationship_Validity_PartialOverlap, "Certifiate validity interval falls partially into CA certificate validity. The CA certificate therefore is only useful for a portion of lifetime of the certificate under test.", commonness = Commonness.UNUSUAL)
+			if certificate.valid_not_before > ca_certificate.valid_not_after:
+				judgements += SecurityJudgement(JudgementCode.CA_Relationship_Validity_NoOverlap, "Certifiate becomes valid after CA certificate has expired.", verdict = Verdict.NO_SECURITY, commonness = Commonness.HIGHLY_UNUSUAL)
+			elif certificate.valid_not_after < ca_certificate.valid_not_before:
+				judgements += SecurityJudgement(JudgementCode.CA_Relationship_Validity_NoOverlap, "Certifiate becomes invalid before CA certificate becomes valid.", verdict = Verdict.NO_SECURITY, commonness = Commonness.HIGHLY_UNUSUAL)
+			elif ca_certificate.valid_not_before <= certificate.valid_not_before <= certificate.valid_not_after <= ca_certificate.valid_not_after:
+				judgements += SecurityJudgement(JudgementCode.CA_Relationship_Validity_FullOverlap, "Certifiate validity interval falls fully into CA certificate validity.", commonness = Commonness.COMMON)
+			else:
+				judgements += SecurityJudgement(JudgementCode.CA_Relationship_Validity_PartialOverlap, "Certifiate validity interval falls partially into CA certificate validity. The CA certificate therefore is only useful for a portion of lifetime of the certificate under test.", commonness = Commonness.UNUSUAL)
 
 		return judgements
 
