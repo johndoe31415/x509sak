@@ -148,11 +148,14 @@ class RelativeDistinguishedName():
 	def __iter__(self):
 		return iter(self._rdn_list)
 
+	def _cmpkey(self):
+		return ((item.oid, item.printable_value if item.printable else item.asn1) for item in self._rdn_list)
+
 	def __hash__(self):
-		return hash(tuple(sorted(self._rdn_list)))
+		return hash(tuple(sorted(self._cmpkey())))
 
 	def __eq__(self, other):
-		return sorted(self._rdn_list) == sorted(other._rdn_list)
+		return sorted(self._cmpkey()) == sorted(other._cmpkey())
 
 	def __neq__(self, other):
 		return not (self == other)

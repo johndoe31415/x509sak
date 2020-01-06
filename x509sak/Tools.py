@@ -260,6 +260,15 @@ class JSONTools():
 
 class TextTools():
 	@classmethod
+	def sp(cls, count, singular, plural = None):
+		if plural is None:
+			plural = singular + "s"
+		if count == 1:
+			return "one %s" % (singular)
+		else:
+			return "%d %s" % (count, plural)
+
+	@classmethod
 	def abbreviate(cls, text, to_length):
 		if len(text) <= to_length:
 			return text

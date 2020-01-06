@@ -70,3 +70,17 @@ class DistinguishedNameTests(BaseTest):
 			(rdn_sequence_asn1, _) = pyasn1.codec.der.decoder.decode(rdn_sequence_derdata, asn1Spec = rfc2459.Name())
 			dn = DistinguishedName.from_asn1(rdn_sequence_asn1)
 			self.assertEqual(dn.rfc2253_str, testcase["rfc2253"])
+
+	def test_decoded_asn1_different_types(self):
+		(utf8, _) = pyasn1.codec.der.decoder.decode(bytes.fromhex("30 16 31 14 30 12 06 03 55 04 03 0c 0b 43 6f 6d 6d 6f 6e 20 4e 61 6d 65"), asn1Spec = rfc2459.Name())
+		(ia5, _) = pyasn1.codec.der.decoder.decode(bytes.fromhex("30 16 31 14 30 12 06 03 55 04 03 16 0b 43 6f 6d 6d 6f 6e 20 4e 61 6d 65"), asn1Spec = rfc2459.Name())
+		utf8dn = DistinguishedName.from_asn1(utf8)
+		ia5dn = DistinguishedName.from_asn1(ia5)
+		self.assertEqual(utf8dn, ia5dn)
+
+	def test_decoded_asn1_different_types_umlaut(self):
+		(utf8, _) = pyasn1.codec.der.decoder.decode(bytes.fromhex("30 17 31 15 30 13 06 03 55 04 03 0c 0c 43 c3 b6 6d 6d 6f 6e 20 4e 61 6d 65"), asn1Spec = rfc2459.Name())
+		(bmp, _) = pyasn1.codec.der.decoder.decode(bytes.fromhex("30 21 31 1f 30 1d 06 03 55 04 03 1e 16 00 43 00 f6 00 6d 00 6d 00 6f 00 6e 00 20 00 4e 00 61 00 6d 00 65"), asn1Spec = rfc2459.Name())
+		utf8dn = DistinguishedName.from_asn1(utf8)
+		bmpdn = DistinguishedName.from_asn1(bmp)
+		self.assertEqual(utf8dn, bmpdn)

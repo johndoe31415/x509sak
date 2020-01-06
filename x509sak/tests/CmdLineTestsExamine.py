@@ -1131,3 +1131,15 @@ class CmdLineTestsExamine(BaseTest):
 
 	def test_ca_relationship_aki_keyid_uncheckable(self):
 		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", parent_certname = "certs/ok/custom_key_usage.pem", expect_present = "CA_Relationship_AKI_UncheckableNoCASKI", expect_absent = [ "CA_Relationship_AKI_KeyIDMismatch", "CA_Relationship_AKI_KeyIDMatch" ])
+
+	def test_ca_relationship_aki_caname_match(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ca_rel_cert_caname_match.pem", parent_certname = "certs/constructed/ca_rel_CA_y2k.pem", expect_present = "CA_Relationship_AKI_CANameMatch", expect_absent = "CA_Relationship_AKI_CANameMismatch")
+
+	def test_ca_relationship_aki_caname_mismatch(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ca_rel_cert_caname_mismatch.pem", parent_certname = "certs/constructed/ca_rel_CA_y2k.pem", expect_present = "CA_Relationship_AKI_CANameMismatch", expect_absent = "CA_Relationship_AKI_CANameMatch")
+
+	def test_ca_relationship_aki_serial_match(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ca_rel_cert_serial_match.pem", parent_certname = "certs/constructed/ca_rel_CA_y2k.pem", expect_present = "CA_Relationship_AKI_SerialMatch", expect_absent = "CA_Relationship_AKI_SerialMismatch")
+
+	def test_ca_relationship_aki_serial_mismatch(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ca_rel_cert_serial_mismatch.pem", parent_certname = "certs/constructed/ca_rel_CA_y2k.pem", expect_present = "CA_Relationship_AKI_SerialMismatch", expect_absent = "CA_Relationship_AKI_SerialMatch")

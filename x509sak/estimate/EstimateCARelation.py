@@ -23,6 +23,7 @@ from x509sak.OID import OIDDB
 from x509sak.estimate.BaseEstimator import BaseEstimator
 from x509sak.estimate import JudgementCode, Compatibility
 from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, Commonness, Verdict, RFCReference
+from x509sak.Tools import TextTools
 
 @BaseEstimator.register
 class CARelationshipSecurityEstimator(BaseEstimator):
@@ -82,20 +83,22 @@ class CARelationshipSecurityEstimator(BaseEstimator):
 						judgements += SecurityJudgement(JudgementCode.CA_Relationship_AKI_KeyIDMatch, "Key ID specified in the Authority Key Identifier extension matches that of the CA Subject Key Identifier extension.", commonness = Commonness.COMMON)
 
 			if aki.ca_names is not None:
+				dir_name_count = 0
 				for ca_name in aki.ca_names:
-					if (ca_name.name == "directoryName") and (ca_name.directory_name == ca_certificate.subject):
-						break
+					if ca_name.name == "directoryName":
+						dir_name_count += 1
+						if ca_name.directory_name == ca_certificate.subject:
+							judgements += SecurityJudgement(JudgementCode.CA_Relationship_AKI_CANameMatch, "Directory name specified in the Authority Key Identifier extension of the certificate matches the CA subject.", commonness = Commonness.COMMON)
+							break
 				else:
 					names = "None of the %d CA names" % (len(aki.ca_names)) if (len(aki.ca_names) != 1) else "The CA name"
-					judgements += SecurityJudgement(JudgementCode.CA_Relationship_AKI_CANameMismatch, "%s specified in the Authority Key Identifier extension of the certificate does not match the CA subject." % (names), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION)
-
+					judgements += SecurityJudgement(JudgementCode.CA_Relationship_AKI_CANameMismatch, "%s (%s) specified in the Authority Key Identifier extension of the certificate matches the CA subject." % (names, TextTools.sp(dir_name_count, "directoryName")), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION)
 
 			if aki.serial is not None:
 				if aki.serial != ca_certificate.serial:
-					if ski.keyid != aki.keyid:
-						judgements += SecurityJudgement(JudgementCode.CA_Relationship_AKI_SerialMismatch, "Serial number specified in the Authority Key Identifier extension of the certificate does not match the serial number of the CA certificate.", commonness = Commonness.HIGHLY_UNUSUAL)
-					else:
-						judgements += SecurityJudgement(JudgementCode.CA_Relationship_AKI_SerialMatch, "Serial number specified in the Authority Key Identifier extension matches that of the CA certificate.", commonness = Commonness.COMMON)
+					judgements += SecurityJudgement(JudgementCode.CA_Relationship_AKI_SerialMismatch, "Serial number specified in the Authority Key Identifier extension of the certificate does not match the serial number of the CA certificate.", commonness = Commonness.HIGHLY_UNUSUAL)
+				else:
+					judgements += SecurityJudgement(JudgementCode.CA_Relationship_AKI_SerialMatch, "Serial number specified in the Authority Key Identifier extension matches that of the CA certificate.", commonness = Commonness.COMMON)
 
 		judgements += self._judge_validity_timestamps(certificate, ca_certificate)
 		judgements += self._judge_signature(certificate, ca_certificate)
