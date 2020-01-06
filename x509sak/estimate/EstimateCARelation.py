@@ -48,10 +48,10 @@ class CARelationshipSecurityEstimator(BaseEstimator):
 		judgements = SecurityJudgements()
 
 		if not ca_certificate.is_ca_certificate:
-			judgements += SecurityJudgement(JudgementCode.CA_Relationship_CACertificateInvalidAsCA, "CA certificate is not valid as a CA.", verdit = Verdict.NO_SECURITY, commonness = Commonness.HIGHLY_UNUSUAL)
+			judgements += SecurityJudgement(JudgementCode.CA_Relationship_CACertificateInvalidAsCA, "CA certificate is not valid as a CA.", verdict = Verdict.NO_SECURITY, commonness = Commonness.HIGHLY_UNUSUAL)
 
 		if not certificate.signed_by(ca_certificate):
-			judgements += SecurityJudgement(JudgementCode.CA_Relationship_SignatureVerificationFailure, "Certificate signature is not verifiable with CA public key.", verdit = Verdict.NO_SECURITY, commonness = Commonness.HIGHLY_UNUSUAL)
+			judgements += SecurityJudgement(JudgementCode.CA_Relationship_SignatureVerificationFailure, "Certificate signature is not verifiable with CA public key.", verdict = Verdict.NO_SECURITY, commonness = Commonness.HIGHLY_UNUSUAL)
 		else:
 			judgements += SecurityJudgement(JudgementCode.CA_Relationship_SignatureVerificationSuccess, "Certificate signature is valid.", commonness = Commonness.COMMON)
 
@@ -62,7 +62,7 @@ class CARelationshipSecurityEstimator(BaseEstimator):
 
 		if certificate.issuer != ca_certificate.subject:
 			standard = RFCReference(rfcno = 5280, sect = "4.1.2.4", verb = "MUST", text = "The issuer field identifies the entity that has signed and issued the certificate.")
-			judgements += SecurityJudgement(JudgementCode.CA_Relationship_SubjectIssuerMismatch, "Certificate issuer does not match CA subject.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION, standard = standard)
+			judgements += SecurityJudgement(JudgementCode.CA_Relationship_SubjectIssuerMismatch, "Certificate issuer does not match CA subject.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 		else:
 			judgements += SecurityJudgement(JudgementCode.CA_Relationship_SubjectIssuerMatch, "Certificate issuer matches CA subject.", commonness = Commonness.COMMON)
 
@@ -83,11 +83,11 @@ class CARelationshipSecurityEstimator(BaseEstimator):
 
 			if aki.ca_names is not None:
 				for ca_name in aki.ca_names:
-					if ca_name == ca_certificte.subject:
+					if (ca_name.name == "directoryName") and (ca_name.directory_name == ca_certificate.subject):
 						break
 				else:
 					names = "None of the %d CA names" % (len(aki.ca_names)) if (len(aki.ca_names) != 1) else "The CA name"
-					judgements += SecurityJudgement(JudgementCode.CA_Relationship_CANameMismatch, "%s specified in the Authority Key Identifier extension of the certificate does not match the CA subject.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_VIOLATION)
+					judgements += SecurityJudgement(JudgementCode.CA_Relationship_AKI_CANameMismatch, "%s specified in the Authority Key Identifier extension of the certificate does not match the CA subject.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION)
 
 
 			if aki.serial is not None:

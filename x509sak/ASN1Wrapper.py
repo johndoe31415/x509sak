@@ -38,6 +38,12 @@ class ASN1GeneralNameWrapper():
 		return self._asn1_value
 
 	@property
+	def directory_name(self):
+		assert(self.name == "directoryName")
+		dn = DistinguishedName.from_asn1(self.asn1_value)
+		return dn
+
+	@property
 	def str_value(self):
 		if self.name in [ "dNSName", "rfc822Name", "uniformResourceIdentifier" ]:
 			result = str(self.asn1_value)
@@ -50,8 +56,7 @@ class ASN1GeneralNameWrapper():
 			inner_value = bytes(self.asn1_value["value"])
 			result = "otherName:%s:#%s" % (oid, inner_value.hex())
 		elif self.name == "directoryName":
-			dn = DistinguishedName.from_asn1(self.asn1_value)
-			result = dn.pretty_str
+			result = self.directory_name.pretty_str
 		else:
 			result = "%s:#%s" % (self._name, pyasn1.codec.der.encoder.encode(self.asn1_value).hex())
 		return result
