@@ -176,6 +176,12 @@ class AnalysisPrinterText(AnalysisPrinter):
 		self._print_security_judgements(analysis["validity"]["security"], indent = "  ")
 		self._printer.print()
 
+		if "ca" in analysis:
+			self._printer.heading("CA Certificate")
+			self._printer.print("Subject: %s" % (analysis["ca"]["ca_subject"]["pretty"]))
+			self._print_security_judgements(analysis["ca"]["security"], indent = "  ")
+			self._printer.print()
+
 		self._printer.heading("Public Key")
 		self._printer.print("Used cryptography: %s" % (analysis["pubkey"]["pretty"]))
 		self._print_security_judgements(analysis["pubkey"]["security"], indent = "    ")
