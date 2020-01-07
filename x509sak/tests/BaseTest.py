@@ -36,6 +36,8 @@ class ResourceFileLoader():
 
 	@classmethod
 	def load_data(cls, filename, auto_decompress = True):
+		if filename is None:
+			return None
 		data = pkgutil.get_data("x509sak.tests.data", filename)
 		if auto_decompress and filename.endswith(".gz"):
 			data = gzip.decompress(data)
@@ -59,6 +61,10 @@ class ResourceFileLoader():
 					data = self.load_data(resource)
 					with open(tmpfile.name + "/" + os.path.basename(resource), "wb") as f:
 						f.write(data)
+			elif resource_name is None:
+				# Allow this to avoid having multiple nested cases (e.g.,
+				# loading cert + CA cert vs. only cert)
+				return None
 			else:
 				raise NotImplementedError(type(resource_name))
 			self._tempfiles.append(tmpfile)
