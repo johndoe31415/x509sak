@@ -3,6 +3,7 @@ __pycache__
 *.bak
 output
 .coverage
+.coverage.*
 .coveragerc
 htmlcov
 .tests_estimate.json

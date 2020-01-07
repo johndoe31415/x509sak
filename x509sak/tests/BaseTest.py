@@ -82,8 +82,8 @@ class BaseTest(unittest.TestCase):
 		if "X509SAK_COVERAGE" not in os.environ:
 			self._x509sak = [ os.path.realpath("x509sak.py") ]
 		else:
-			user_dir = os.path.expanduser("~/.local") + "/*"
-			self._x509sak = [ "coverage", "run", "--append", "--omit", "/usr/*," + user_dir, os.path.realpath("x509sak.py") ]
+			coverage_params = json.loads(os.environ["X509SAK_COVERAGE"])
+			self._x509sak = [ "coverage", "run", "--parallel-mode", "--rcfile", coverage_params["rcfile"], "--omit", coverage_params["omit"], os.path.realpath("x509sak.py") ]
 		self._debug_dumps = "X509SAK_DEBUG_DUMPS" in os.environ
 
 	def assertOcurrences(self, haystack, needle, expected_count):

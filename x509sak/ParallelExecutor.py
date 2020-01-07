@@ -91,7 +91,16 @@ class ParallelExecutor():
 		except KeyboardInterrupt:
 			self._mode = "interrupt"
 
+	def _run_single(self):
+		"""Run in single-process mode, mainly for debugging."""
+		for work_item in self._work_generator():
+			result = self._worker_function(work_item)
+			self._result_processing_function(result)
+
 	def run(self):
+		if self._process_count == 1:
+			return self._run_single()
+
 		self._work_queue = multiprocessing.Queue(maxsize = self._queue_size)
 		self._result_queue = multiprocessing.Queue(maxsize = self._queue_size)
 		self._mode = "run"
