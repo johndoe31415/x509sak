@@ -346,7 +346,7 @@ class SelectiveTestRunner(object):
 			self._dot_progress(test_case, result)
 
 	def run(self):
-		print("Running %s: %d total using %d parallel processes." % (self._mode, len(self._suite), self._args.parallel), file = sys.stderr)
+		print("Running %s: %d total using %d parallel processes%s." % (self._mode, len(self._suite), self._args.parallel, "" if (self._args.coverage == 0) else " and determining code coverage"), file = sys.stderr)
 		self._test_results = TestStats(len(self._suite), self._mode)
 		if len(self._suite) > 0:
 			self._parallel_processor = ParallelExecutor(work_generator = lambda: iter(self._suite), result_processing_function = self._process_test_result, worker_function = self._worker)
