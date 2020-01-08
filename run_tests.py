@@ -20,8 +20,10 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-
-import coverage
+try:
+	import coverage
+except ModuleNotFoundError:
+	coverage = None
 import random
 import time
 import sys
@@ -361,6 +363,9 @@ args = parser.parse_args(sys.argv[1:])
 if len(args.full_id) > 0:
 	if args.all or (len(args.exclude) > 0):
 		raise Exception("Either full ID can be specified or --all / --exclude. Not both.")
+
+if args.coverage and (coverage is None):
+	raise Exception("Code coverage analysis requires the 'coverage' package to be installed.")
 
 if args.coverage:
 	with contextlib.suppress(FileNotFoundError):
