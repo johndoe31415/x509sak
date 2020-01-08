@@ -138,7 +138,6 @@ class SignatureSecurityEstimator(BaseEstimator):
 						field_width = root_cert.pubkey.q.bit_length()
 
 						hweight_analysis = NumberTheory.hamming_weight_analysis(int(asn1["r"]), min_bit_length = field_width)
-						print(hweight_analysis)
 						if not hweight_analysis.plausibly_random:
 							judgements += SecurityJudgement(JudgementCode.DSA_Signature_R_BitBias, "Hamming weight of DSA signature R parameter is %d at bitlength %d, but expected a weight between %d and %d when randomly chosen; this is likely not coincidential." % (hweight_analysis.hweight, hweight_analysis.bitlen, hweight_analysis.rnd_min_hweight, hweight_analysis.rnd_max_hweight), commonness = Commonness.HIGHLY_UNUSUAL)
 
