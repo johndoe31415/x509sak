@@ -92,6 +92,7 @@ class TestStats(object):
 			"fail": { },
 			"error": { },
 		}
+		self._last_progress_msg = None
 
 	def _status_string(self):
 		return "%d in %.1f secs (cumulative %.1f secs), successful: %d (%.0f%%), failures: %d (%.0f%%)" % (
@@ -100,9 +101,15 @@ class TestStats(object):
 					self.fail_count, 100 * self.fail_count / self.run_count)
 
 	def _show_progress(self, test_case, test_result):
-		if self.run_count > 1:
+		now = time.time()
+		if (self._last_progress_msg is not None) and ((now - self._last_progress_msg) < 0.1):
+			# Don't update every 100ms
+			return
+
+		if self._last_progress_msg is not None:
 			# Progress line from previous output, delete.
 			sys.stdout.write("\r\x1b[2K")
+		self._last_progress_msg = now
 
 		if test_result["resultcode"] != "pass":
 			print("%s: %s.%s" % (test_result["resultcode"], test_case.class_name, test_case.test_name))
