@@ -25,16 +25,16 @@ from x509sak.SubprocessExecutor import SubprocessExecutor
 class CmdLineTestsFindCRT(BaseTest):
 	def test_find_all(self):
 		with ResourceFileLoader([ "certs/ok/johannes-bauer.com.pem", "certs/ok/johannes-bauer-root.pem", "certs/ok/pubkey_sig_ed25519.pem", "certs/ok/ecc_secp256r1.pem" ]) as srcdir:
-			stdout = SubprocessExecutor(self._x509sak + [ "find", srcdir ]).run().stdout
+			stdout = self._run_x509sak([ "find", srcdir ]).stdout
 			self.assertOcurrences(stdout, b"BEGIN CERTIFICATE", 4)
 
 	def test_find_specific(self):
 		with ResourceFileLoader([ "certs/ok/johannes-bauer.com.pem", "certs/ok/johannes-bauer-root.pem", "certs/ok/pubkey_sig_ed25519.pem", "certs/ok/ecc_secp256r1.pem" ]) as srcdir:
-			stdout = SubprocessExecutor(self._x509sak + [ "find", "-h", "853e", srcdir ]).run().stdout
+			stdout = self._run_x509sak([ "find", "-h", "853e", srcdir ]).stdout
 			self.assertIn(b"853ecf1f70c5f7db4d3883f3f217a9a06ec29445839e9c6acbcf69a399ecaea9", stdout)
 			self.assertOcurrences(stdout, b"BEGIN CERTIFICATE", 1)
 
 	def test_find_none(self):
 		with ResourceFileLoader([ "certs/ok/johannes-bauer.com.pem", "certs/ok/johannes-bauer-root.pem", "certs/ok/pubkey_sig_ed25519.pem", "certs/ok/ecc_secp256r1.pem" ]) as srcdir:
-			stdout = SubprocessExecutor(self._x509sak + [ "find", "-h", "abcdef112233", srcdir ]).run().stdout
+			stdout = self._run_x509sak([ "find", "-h", "abcdef112233", srcdir ]).stdout
 			self.assertEqual(b"", stdout)

@@ -29,8 +29,8 @@ from x509sak.CertificateRevocationList import CertificateRevocationList
 class CmdLineTestsCreateCRL(BaseTest):
 	def test_create_crl(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
-			SubprocessExecutor(self._x509sak + [ "createca", "root_ca" ]).run()
-			SubprocessExecutor(self._x509sak + [ "createcrl", "root_ca", "output.crl" ]).run()
+			self._run_x509sak([ "createca", "root_ca" ])
+			self._run_x509sak([ "createcrl", "root_ca", "output.crl" ])
 			crl = SubprocessExecutor([ "openssl", "crl", "-in", "output.crl", "-text", "-noout" ]).run().stdout
 			self.assertIn(b"No Revoked Certificates.", crl)
 
@@ -40,11 +40,11 @@ class CmdLineTestsCreateCRL(BaseTest):
 
 	def test_revoke_crt_crl(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
-			SubprocessExecutor(self._x509sak + [ "createca", "root_ca" ]).run()
-			SubprocessExecutor(self._x509sak + [ "createcrt", "-c", "root_ca", "client.key", "client.crt" ]).run()
+			self._run_x509sak([ "createca", "root_ca" ])
+			self._run_x509sak([ "createcrt", "-c", "root_ca", "client.key", "client.crt" ])
 
-			SubprocessExecutor(self._x509sak + [ "revokecrt", "root_ca", "client.crt" ]).run()
-			SubprocessExecutor(self._x509sak + [ "createcrl", "root_ca", "output.crl" ]).run()
+			self._run_x509sak([ "revokecrt", "root_ca", "client.crt" ])
+			self._run_x509sak([ "createcrl", "root_ca", "output.crl" ])
 			crl = SubprocessExecutor([ "openssl", "crl", "-in", "output.crl", "-text", "-noout" ]).run().stdout
 			self.assertIn(b"Revoked Certificates:", crl)
 
@@ -54,21 +54,21 @@ class CmdLineTestsCreateCRL(BaseTest):
 
 	def test_crl_hash(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
-			SubprocessExecutor(self._x509sak + [ "createca", "root_ca" ]).run()
-			SubprocessExecutor(self._x509sak + [ "createcrl", "root_ca", "--hashfnc", "sha256", "output.crl" ]).run()
+			self._run_x509sak([ "createca", "root_ca" ])
+			self._run_x509sak([ "createcrl", "root_ca", "--hashfnc", "sha256", "output.crl" ])
 			crl = SubprocessExecutor([ "openssl", "crl", "-in", "output.crl", "-text", "-noout" ]).run().stdout
 			self.assertIn(b"ecdsa-with-SHA256", crl)
 
-			SubprocessExecutor(self._x509sak + [ "createcrl", "root_ca", "--hashfnc", "sha384", "output.crl" ]).run()
+			self._run_x509sak([ "createcrl", "root_ca", "--hashfnc", "sha384", "output.crl" ])
 			crl = SubprocessExecutor([ "openssl", "crl", "-in", "output.crl", "-text", "-noout" ]).run().stdout
 			self.assertIn(b"ecdsa-with-SHA384", crl)
 
 	def test_crl_validity(self):
 		with tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
-			SubprocessExecutor(self._x509sak + [ "createca", "root_ca" ]).run()
+			self._run_x509sak([ "createca", "root_ca" ])
 
 			for days in [ 1, 30 ]:
-				SubprocessExecutor(self._x509sak + [ "createcrl", "root_ca", "-d", str(days), "output.crl" ]).run()
+				self._run_x509sak([ "createcrl", "root_ca", "-d", str(days), "output.crl" ])
 				now = datetime.datetime.utcnow()
 				der_crl = SubprocessExecutor([ "openssl", "crl", "-in", "output.crl", "-outform", "der" ]).run().stdout
 				crl = CertificateRevocationList(der_crl)

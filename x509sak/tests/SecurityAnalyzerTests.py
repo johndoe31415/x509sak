@@ -75,7 +75,8 @@ class SecurityAnalyzerTests(BaseTest):
 			ca_certificate = None
 
 		analysis_params = {
-			"fast_rsa":	fast_rsa,
+			"fast_rsa":				fast_rsa,
+			"include_raw_data":		include_raw,
 		}
 		if host_check is not None:
 			analysis_params.update({

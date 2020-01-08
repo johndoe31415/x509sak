@@ -380,14 +380,14 @@ if args.coverage:
 	for coverage_datafile in glob.glob(".coverage.*"):
 		os.unlink(coverage_datafile)
 
-if args.coverage:
-	omit_dirs = [
+if args.coverage > 0:
+	coverage_omit_dirs = [
 		"/usr/*",
 		os.path.expanduser("~/.local") + "/*",
 	]
 	os.environ["X509SAK_COVERAGE"] = json.dumps({
-		"rcfile":		os.path.realpath(os.path.dirname(__file__) + "/.coveragerc"),
-		"omit":			",".join(omit_dirs),
+		"coverage_path":	os.path.realpath(os.path.dirname(__file__)) + "/",
+		"omit":				",".join(coverage_omit_dirs),
 	})
 if args.debug_dumps:
 	os.environ["X509SAK_DEBUG_DUMPS"] = "1"
@@ -400,7 +400,7 @@ if args.verbose >= 3:
 	SubprocessExecutor.pause_after_failed_execution()
 
 if args.coverage > 0:
-	cov = coverage.Coverage(concurrency = "multiprocessing", check_preimported = True)
+	cov = coverage.Coverage(concurrency = "multiprocessing", check_preimported = True, omit = coverage_omit_dirs)
 	cov.start()
 
 import x509sak.tests

@@ -104,13 +104,13 @@ class HardwareTokenTests(BaseTest):
 			pubkey_start = pubkey_start[4:].encode("ascii")
 
 			# With unknown key object name, it fails
-			SubprocessExecutor(self._x509sak + [ "createca", "-f", "-s", "/CN=Root CA with key in HSM", "--pkcs11-so-search", hsm.so_search_path, "--pkcs11-module", "libsofthsm2.so", "--hardware-key", key_name.replace("secure", "UNKNOWN"), "root_ca" ], env = hsm.env, success_return_codes = [ 1 ]).run()
+			self._run_x509sak([ "createca", "-f", "-s", "/CN=Root CA with key in HSM", "--pkcs11-so-search", hsm.so_search_path, "--pkcs11-module", "libsofthsm2.so", "--hardware-key", key_name.replace("secure", "UNKNOWN"), "root_ca" ], env = hsm.env, success_return_codes = [ 1 ])
 
 			# With unknown token name, it fails
-			SubprocessExecutor(self._x509sak + [ "createca", "-f", "-s", "/CN=Root CA with key in HSM", "--pkcs11-so-search", hsm.so_search_path, "--pkcs11-module", "libsofthsm2.so", "--hardware-key", key_name.replace("Token", "UNKNOWN"), "root_ca" ], env = hsm.env, success_return_codes = [ 1 ]).run()
+			self._run_x509sak([ "createca", "-f", "-s", "/CN=Root CA with key in HSM", "--pkcs11-so-search", hsm.so_search_path, "--pkcs11-module", "libsofthsm2.so", "--hardware-key", key_name.replace("Token", "UNKNOWN"), "root_ca" ], env = hsm.env, success_return_codes = [ 1 ])
 
 			# Create root certificate with key in SoftHSM
-			SubprocessExecutor(self._x509sak + [ "createca", "-f", "-s", "/CN=Root CA with key in HSM", "--pkcs11-so-search", hsm.so_search_path, "--pkcs11-module", "libsofthsm2.so", "--hardware-key", key_name, "root_ca" ], env = hsm.env).run()
+			self._run_x509sak([ "createca", "-f", "-s", "/CN=Root CA with key in HSM", "--pkcs11-so-search", hsm.so_search_path, "--pkcs11-module", "libsofthsm2.so", "--hardware-key", key_name, "root_ca" ], env = hsm.env)
 
 			# Check that it's validly self-signed
 			SubprocessExecutor([ "openssl", "verify", "-check_ss_sig", "-CAfile", "root_ca/CA.crt", "root_ca/CA.crt" ]).run()
@@ -125,10 +125,10 @@ class HardwareTokenTests(BaseTest):
 			key_name = hsm.keygen(key_id = 1, key_label = "CA_key", key_spec = "EC:secp256r1")
 
 			# Create root certificate with key in SoftHSM
-			SubprocessExecutor(self._x509sak + [ "createca", "-s", "/CN=Root CA with key in HSM", "--pkcs11-so-search", hsm.so_search_path, "--pkcs11-module", "libsofthsm2.so", "--hardware-key", key_name, "root_ca" ], env = hsm.env).run()
+			self._run_x509sak([ "createca", "-s", "/CN=Root CA with key in HSM", "--pkcs11-so-search", hsm.so_search_path, "--pkcs11-module", "libsofthsm2.so", "--hardware-key", key_name, "root_ca" ], env = hsm.env)
 
 			# Then create child certificate with that CA, but have child key in software
-			SubprocessExecutor(self._x509sak + [ "createcsr", "-s", "/CN=Child Cert", "-t", "tls-client", "-c", "root_ca", "client.key", "client.crt" ], env = hsm.env).run()
+			self._run_x509sak([ "createcsr", "-s", "/CN=Child Cert", "-t", "tls-client", "-c", "root_ca", "client.key", "client.crt" ], env = hsm.env)
 
 			# Verify the child certificate is valid
 			SubprocessExecutor([ "openssl", "verify", "-check_ss_sig", "-CAfile", "root_ca/CA.crt", "client.crt" ]).run()
@@ -138,13 +138,13 @@ class HardwareTokenTests(BaseTest):
 			key_name = hsm.keygen(key_id = 1, key_label = "CA_key", key_spec = "EC:secp256r1")
 
 			# Create root certificate with key in SoftHSM
-			SubprocessExecutor(self._x509sak + [ "createca", "-s", "/CN=Root CA with key in HSM", "--pkcs11-so-search", hsm.so_search_path, "--pkcs11-module", "libsofthsm2.so", "--hardware-key", key_name, "root_ca" ], env = hsm.env).run()
+			self._run_x509sak([ "createca", "-s", "/CN=Root CA with key in HSM", "--pkcs11-so-search", hsm.so_search_path, "--pkcs11-module", "libsofthsm2.so", "--hardware-key", key_name, "root_ca" ], env = hsm.env)
 
 			# Then create child CSR
-			SubprocessExecutor(self._x509sak + [ "createcsr", "client.key", "client.csr" ], env = hsm.env).run()
+			self._run_x509sak([ "createcsr", "client.key", "client.csr" ], env = hsm.env)
 
 			# Finally, sign the child certificate
-			SubprocessExecutor(self._x509sak + [ "signcsr", "-s", "/CN=Child Cert", "-t", "tls-client", "root_ca", "client.csr", "client.crt" ], env = hsm.env).run()
+			self._run_x509sak([ "signcsr", "-s", "/CN=Child Cert", "-t", "tls-client", "root_ca", "client.csr", "client.crt" ], env = hsm.env)
 
 			# Verify the child certificate is valid
 			SubprocessExecutor([ "openssl", "verify", "-check_ss_sig", "-CAfile", "root_ca/CA.crt", "client.crt" ]).run()

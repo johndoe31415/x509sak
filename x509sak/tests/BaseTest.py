@@ -28,6 +28,7 @@ import json
 from x509sak import X509Certificate
 from x509sak.PublicKey import PublicKey
 from x509sak.RSAPrivateKey import RSAPrivateKey
+from x509sak.SubprocessExecutor import SubprocessExecutor
 
 class ResourceFileLoader():
 	def __init__(self, *resource_names):
@@ -85,12 +86,24 @@ class ResourceFileLoader():
 class BaseTest(unittest.TestCase):
 	def __init__(self, *args, **kwargs):
 		unittest.TestCase.__init__(self, *args, **kwargs)
-		if "X509SAK_COVERAGE" not in os.environ:
-			self._x509sak = [ os.path.realpath("x509sak.py") ]
-		else:
-			coverage_params = json.loads(os.environ["X509SAK_COVERAGE"])
-			self._x509sak = [ "coverage", "run", "--parallel-mode", "--rcfile", coverage_params["rcfile"], "--omit", coverage_params["omit"], os.path.realpath("x509sak.py") ]
+		self._x509sak_binary = os.path.realpath("x509sak.py")
 		self._debug_dumps = "X509SAK_DEBUG_DUMPS" in os.environ
+		if "X509SAK_COVERAGE" not in os.environ:
+			self._coverage = None
+		else:
+			self._coverage = json.loads(os.environ["X509SAK_COVERAGE"])
+
+	def _run_x509sak(self, cmdline, env = None, success_return_codes = None, on_failure = "exception"):
+		if self._coverage is None:
+			cmd = [ self._x509sak_binary ] + cmdline
+		else:
+			if env is None:
+				env = { }
+			env["COVERAGE_FILE"] = self._coverage["coverage_path"] + ".coverage." + os.urandom(8).hex()
+			cmd = [ "coverage", "run", "--parallel-mode", "--rcfile", self._coverage["coverage_path"] + ".coveragerc", "--omit", self._coverage["omit"], self._x509sak_binary ] + cmdline
+			cmdx = [ self._x509sak_binary ] + cmdline
+			print(cmdx)
+		return SubprocessExecutor(cmd, env = env, success_return_codes = success_return_codes, on_failure = on_failure).run()
 
 	def assertOcurrences(self, haystack, needle, expected_count):
 		count = haystack.count(needle)

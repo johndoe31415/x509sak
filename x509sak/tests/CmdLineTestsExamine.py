@@ -28,14 +28,14 @@ from x509sak.CertificateAnalyzer import CertificateAnalyzer
 class CmdLineTestsExamine(BaseTest):
 	def test_crt_with_custom_key_usage(self):
 		with ResourceFileLoader("certs/ok/custom_key_usage.pem") as certfile:
-			output = SubprocessExecutor(self._x509sak + [ "examine", certfile ]).run().stdout
+			output = self._run_x509sak([ "examine", certfile ]).stdout
 			self.assertIn(b"CN = 0b239049", output)
 			self.assertIn(b"CN = \"Root CA\"", output)
 			self.assertIn(b"ECC on prime256v1", output)
 
 	def test_examine_write_json(self):
 		with ResourceFileLoader("certs/ok/custom_key_usage.pem") as crtfile, tempfile.NamedTemporaryFile(prefix = "crt_", suffix = ".json") as jsonfile:
-			SubprocessExecutor(self._x509sak + [ "examine", "-f", "json", "-o", jsonfile.name, crtfile ]).run()
+			self._run_x509sak([ "examine", "-f", "json", "-o", jsonfile.name, crtfile ])
 			with open(jsonfile.name) as jsonfile:
 				json_data = json.load(jsonfile)
 			self.assertEqual(json_data["data"][0]["issuer"]["rfc2253"], "CN=Root CA")
@@ -45,30 +45,26 @@ class CmdLineTestsExamine(BaseTest):
 
 	def test_purpose_ca(self):
 		with ResourceFileLoader("certs/ok/johannes-bauer-root.pem") as crtfile:
-			SubprocessExecutor(self._x509sak + [ "examine", "-p", "ca", "--fast-rsa", crtfile ]).run()
+			self._run_x509sak([ "examine", "-p", "ca", "--fast-rsa", crtfile ])
 
 	def test_purpose_tls_server(self):
 		with ResourceFileLoader("certs/ok/johannes-bauer.com.pem") as crtfile:
-			output = SubprocessExecutor(self._x509sak + [ "examine", "-p", "tls-server", "-n", "johannes-bauer.com", crtfile ]).run().stdout_text
+			output = self._run_x509sak([ "examine", "-p", "tls-server", "-n", "johannes-bauer.com", crtfile ]).stdout_text
 			self.assertIn("Subject Alternative Name matches 'johannes-bauer.com'", output)
 
 	def test_encodings(self):
 		with ResourceFileLoader("certs/ok/johannes-bauer-intermediate.pem") as crtfile:
-			SubprocessExecutor(self._x509sak + [ "examine", "-p", "ca", "--fast-rsa", "-f", "ansitext", crtfile ]).run()
-			SubprocessExecutor(self._x509sak + [ "examine", "-p", "ca", "--fast-rsa", "-f", "text", crtfile ]).run()
-			SubprocessExecutor(self._x509sak + [ "examine", "-p", "ca", "--fast-rsa", "-f", "json", crtfile ]).run()
+			self._run_x509sak([ "examine", "-p", "ca", "--fast-rsa", "-f", "ansitext", crtfile ])
+			self._run_x509sak([ "examine", "-p", "ca", "--fast-rsa", "-f", "text", crtfile ])
+			self._run_x509sak([ "examine", "-p", "ca", "--fast-rsa", "-f", "json", crtfile ])
 
 	def test_rsa_pss_default(self):
 		with ResourceFileLoader("certs/ok/rsapss_defaults.pem") as crtfile:
-			SubprocessExecutor(self._x509sak + [ "examine", "-p", "tls-client", "--fast-rsa", "-f", "json", crtfile ]).run().stdout_json
+			self._run_x509sak([ "examine", "-p", "tls-client", "--fast-rsa", "-f", "json", crtfile ]).stdout_json
 
 	def test_rsa_pss_custom(self):
 		with ResourceFileLoader("certs/ok/rsapss_sha256_salt_32.pem") as crtfile:
-			SubprocessExecutor(self._x509sak + [ "examine", "-p", "tls-client", "--fast-rsa", "-f", "json", crtfile ]).run().stdout_json
-
-	def _test_examine_x509test_noparse(self, certname):
-		with ResourceFileLoader(certname) as certfile:
-			SubprocessExecutor(self._x509sak + [ "examine", "--fast-rsa", "-f", "json", "-o", "-", certfile ], success_return_codes = [ 1 ]).run()
+			self._run_x509sak([ "examine", "-p", "tls-client", "--fast-rsa", "-f", "json", crtfile ]).stdout_json
 
 	def _test_examine_x509test_resultcode(self, certname, expect_present = None, expect_absent = None, parent_certname = None, fast_rsa = True, host_check = None, include_raw = False, purpose = None):
 		if expect_present is None:
@@ -82,7 +78,7 @@ class CmdLineTestsExamine(BaseTest):
 			expect_absent = (expect_absent, )
 
 		def gen_cmdline(fast_rsa, host_check, include_raw, certfile_name, cacertfile_name, outfile_name, outformat = "json"):
-			cmdline = self._x509sak + [ "examine" ]
+			cmdline = [ "examine" ]
 			if fast_rsa:
 				cmdline += [ "--fast-rsa" ]
 			cmdline += [ "-f", outformat ]
@@ -102,15 +98,15 @@ class CmdLineTestsExamine(BaseTest):
 		with ResourceFileLoader(certname) as certfile, tempfile.NamedTemporaryFile(suffix = ".json") as outfile:
 			if parent_certname is None:
 				cmdline = gen_cmdline(fast_rsa, host_check, include_raw, certfile_name = certfile, cacertfile_name = None, outfile_name = outfile.name, outformat = "ansitext")
-				SubprocessExecutor(cmdline).run()
+				self._run_x509sak(cmdline)
 				cmdline = gen_cmdline(fast_rsa, host_check, include_raw, certfile_name = certfile, cacertfile_name = None, outfile_name = outfile.name, outformat = "json")
-				SubprocessExecutor(cmdline).run()
+				self._run_x509sak(cmdline)
 			else:
 				with ResourceFileLoader(parent_certname) as parent_crt:
 					cmdline = gen_cmdline(fast_rsa, host_check, include_raw, certfile_name = certfile, cacertfile_name = parent_crt, outfile_name = outfile.name, outformat = "ansitext")
-					SubprocessExecutor(cmdline).run()
+					self._run_x509sak(cmdline)
 					cmdline = gen_cmdline(fast_rsa, host_check, include_raw, certfile_name = certfile, cacertfile_name = parent_crt, outfile_name = outfile.name, outformat = "json")
-					SubprocessExecutor(cmdline).run()
+					self._run_x509sak(cmdline)
 
 			# Read all codes from the generated JSON
 			with open(outfile.name) as f:
