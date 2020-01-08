@@ -29,6 +29,30 @@ from x509sak.CertificateAnalyzer import CertificateAnalyzer
 from x509sak.X509Certificate import X509Certificate
 
 class SecurityAnalyzerTests(BaseTest):
+	def _update_stats_file(self, certname, parent_certname, encountered_codes, checked_codes):
+		stats_filename = ".examinecert_stats.json"
+		with FileLockTools.lock(stats_filename):
+			try:
+				with open(stats_filename) as f:
+					stats = json.load(f)
+			except (FileNotFoundError, json.JSONDecodeError):
+				stats = { }
+
+			if "encountered_codes" not in stats:
+				stats["encountered_codes"] = { }
+			for encountered_code in encountered_codes:
+				if encountered_code not in stats["encountered_codes"]:
+					stats["encountered_codes"][encountered_code] = [ certname, parent_certname ]
+
+			if "checked_codes" not in stats:
+				stats["checked_codes"] = { }
+			for checked_code in checked_codes:
+				if checked_code not in stats["checked_codes"]:
+					stats["checked_codes"][checked_code] = [ certname, parent_certname ]
+
+			with open(stats_filename, "w") as f:
+				json.dump(stats, f)
+
 	def _test_examine_x509test_resultcode(self, certname, expect_present = None, expect_absent = None, parent_certname = None, fast_rsa = True, host_check = None, include_raw = False, purpose = None, expect_parse_failure = False):
 		if expect_present is None:
 			expect_present = tuple()
