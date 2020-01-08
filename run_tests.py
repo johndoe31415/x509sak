@@ -22,7 +22,7 @@
 
 try:
 	import coverage
-except (ImportError, ModuleNotFoundError):
+except ImportError:
 	coverage = None
 import random
 import time
