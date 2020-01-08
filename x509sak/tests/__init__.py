@@ -23,12 +23,14 @@ import pkgutil
 import importlib
 from .BaseTest import BaseTest, ResourceFileLoader
 
-for (_module_info_module_finder, _module_info_name, _module_info_ispkg) in pkgutil.iter_modules([ "x509sak/tests" ]):
-	if _module_info_ispkg:
-		continue
-	_module = importlib.import_module("x509sak.tests." + _module_info_name)
-	_test_class = getattr(_module, _module_info_name, None)
-	if _test_class is None:
-		print("Warning: Module %s doesn't have a class named %s." % (_module, _module_info_name))
-	else:
-		globals()[_module_info_name] = _test_class
+def __discover_testcases():
+	for (module_info_module_finder, module_info_name, module_info_ispkg) in pkgutil.iter_modules([ "x509sak/tests" ]):
+		if module_info_ispkg:
+			continue
+		module = importlib.import_module("x509sak.tests." + module_info_name)
+		test_class = getattr(module, module_info_name, None)
+		if test_class is None:
+			print("Warning: Module %s doesn't have a class named %s." % (module, module_info_name))
+		else:
+			globals()[module_info_name] = test_class
+__discover_testcases()
