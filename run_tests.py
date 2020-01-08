@@ -82,10 +82,11 @@ class OutputRedirector(object):
 		self._stdout = self._restore_fd(self._stdout_f, sys.stdout.fileno())
 
 class TestStats(object):
-	def __init__(self, test_count):
+	def __init__(self, test_count, test_mode):
+		self._test_count = test_count
+		self._test_mode = test_mode
 		self._starttime = time.time()
 		self._endtime = None
-		self._test_count = test_count
 		self._stats = {
 			"cumulative_time":		0,
 			"pass": { },
@@ -226,9 +227,11 @@ class SelectiveTestRunner(object):
 		if len(self._args.full_id) > 0:
 			# Ignore all other arguments, full ID takes full precedence
 			self._add_testcases_with_full_id(self._args.full_id)
+			self._mode = "testcases with explicitly specified full testcase ID"
 		elif search_term_given and ((not have_failed_tests) or self._args.target_has_precedence):
 			# Have include regex, this takes second precedence
 			self._add_all_included_tests()
+			self._mode = "testcases which match search pattern"
 		elif have_failed_tests:
 			# No full IDs and no include regexes given, failed testcases is
 			# number three
@@ -236,17 +239,18 @@ class SelectiveTestRunner(object):
 				with open(self._failed_tests_file) as f:
 					full_testcase_ids = json.load(f)
 				self._add_testcases_with_full_id(full_testcase_ids)
+				self._mode = "previously failed testcases"
 			except json.JSONDecodeError:
 				self._add_all_included_tests()
+				self._mode = "all testcases"
 		else:
 			# Otherwise just run everything
 			self._add_all_included_tests()
 			with contextlib.suppress(FileNotFoundError):
 				os.unlink(".examinecert_stats.json")
-		try:
+			self._mode = "all testcases"
+		with contextlib.suppress(FileNotFoundError):
 			os.unlink(self._failed_tests_file)
-		except FileNotFoundError:
-			pass
 		self._rearrange_testsuite()
 
 	def _rearrange_testsuite(self):
@@ -342,8 +346,8 @@ class SelectiveTestRunner(object):
 			self._dot_progress(test_case, result)
 
 	def run(self):
-		print("Running %d testcases using %d parallel processes." % (len(self._suite), self._args.parallel), file = sys.stderr)
-		self._test_results = TestStats(len(self._suite))
+		print("Running %s: %d total using %d parallel processes." % (self._mode, len(self._suite), self._args.parallel), file = sys.stderr)
+		self._test_results = TestStats(len(self._suite), self._mode)
 		if len(self._suite) > 0:
 			self._parallel_processor = ParallelExecutor(work_generator = lambda: iter(self._suite), result_processing_function = self._process_test_result, worker_function = self._worker)
 			try:
@@ -415,6 +419,7 @@ if args.coverage > 0:
 		cov.report()
 	elif args.coverage >= 2:
 		cov.html_report()
+		subprocess.call([ "chromium-browser", "htmlcov/index.html" ])
 
 results.update_time_estimates(".tests_estimate.json")
 if results.fail_count == 0:
@@ -422,10 +427,4 @@ if results.fail_count == 0:
 else:
 	results.write_failed_tests_file(".tests_failed.json")
 	returncode = 1
-
-#if (not args.subprocess) and (args.coverage >= 1):
-#	subprocess.call([ "coverage", "report" ])
-#if (not args.subprocess) and (args.coverage >= 2):
-#	subprocess.call([ "coverage", "html" ])
-#	subprocess.call([ "chromium-browser", "htmlcov/index.html" ])
 sys.exit(returncode)
