@@ -87,7 +87,7 @@ class BaseTest(unittest.TestCase):
 	def __init__(self, *args, **kwargs):
 		unittest.TestCase.__init__(self, *args, **kwargs)
 		self._x509sak_binary = os.path.realpath("x509sak.py")
-		self._debug_dumps = "X509SAK_DEBUG_DUMPS" in os.environ
+		self._produce_statistics = "X509SAK_TEST_STATISTICS" in os.environ
 		if "X509SAK_COVERAGE" not in os.environ:
 			self._coverage = None
 		else:

@@ -91,7 +91,7 @@ class SecurityAnalyzerTests(BaseTest):
 		encountered_codes = CertificateAnalyzer.extract_codes_from_json(analyses)
 
 		# If we're in debugging mode, update the consolidated JSON stat file
-		if self._debug_dumps:
+		if self._produce_statistics:
 			self._update_stats_file(certname = certname, parent_certname = parent_certname, encountered_codes = encountered_codes, checked_codes = expect_present)
 		for code in expect_present:
 			self.assertIn(code, encountered_codes)

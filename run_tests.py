@@ -362,7 +362,7 @@ parser.add_argument("-e", "--exclude", metavar = "class_name", action = "append"
 parser.add_argument("-a", "--all", action = "store_true", help = "Regardless of a perviously persisted failed test file, test everything.")
 parser.add_argument("-i", "--full-id", metavar = "tcid", default = [ ], action = "append", help = "Specify a number of test cases by their full testcase ID. Can be supplied multiple times. Takes highest precedence.")
 parser.add_argument("-c", "--coverage", action = "count", default = 0, help = "Run all subprocesses through code coverage measurement. Specify twice to also show text report in console after run and three times to render HTML page and open up browser.")
-parser.add_argument("-d", "--debug-dumps", action = "store_true", help = "For certain testcases, automatically create debug dumpfiles. These can either be for tracing errors but also might include statistical information.")
+parser.add_argument("--no-statistical-info", action = "store_true", help = "By default, some testcases are configured to emit statistical information that is machine-readable and can be post-processed. With this option, no statistical information is generated.")
 parser.add_argument("--dot-progress", action = "store_true", help = "Show dots instead of progress bar.")
 parser.add_argument("-T", "--target-has-precedence", action = "store_true", help = "By default, when a search pattern is given on the command line but there are failed tests, the target is ignored and only the failed tests are re-run. When this option is given, the precedence is reversed and the target is always honored even in spite of failed tests.")
 parser.add_argument("-f", "--fail-fast", action = "store_true", help = "Fail fast, i.e., do not continue testing after the first test fails.")
@@ -393,8 +393,8 @@ if args.coverage > 0:
 		"coverage_path":	os.path.realpath(os.path.dirname(__file__)) + "/",
 		"omit":				",".join(coverage_omit_dirs),
 	})
-if args.debug_dumps:
-	os.environ["X509SAK_DEBUG_DUMPS"] = "1"
+if not args.no_statistical_info:
+	os.environ["X509SAK_TEST_STATISTICS"] = "1"
 
 if args.verbose >= 1:
 	SubprocessExecutor.set_failed_verbose()
