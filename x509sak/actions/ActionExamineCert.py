@@ -20,12 +20,9 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 import json
-import datetime
-import collections
 from x509sak.BaseAction import BaseAction
 from x509sak import X509Certificate
 from x509sak.Tools import JSONTools
-from x509sak.estimate import SecurityEstimator, AnalysisOptions
 from x509sak.FileWriter import FileWriter
 from x509sak.OpenSSLTools import OpenSSLTools
 from x509sak.CertificateAnalyzer import CertificateAnalyzer

@@ -84,7 +84,7 @@ class ActionDebug(BaseAction):
 		if not self._args.no_interact:
 			console.interact()
 
-	def _read_certifiate(self, filename):
+	def _read_certificate(self, filename):
 		if not self._args.der:
 			return X509Certificate.read_pemfile(self._args.crtfile)
 		else:

@@ -23,7 +23,6 @@ import tempfile
 import json
 from x509sak.tests import BaseTest, ResourceFileLoader
 from x509sak.SubprocessExecutor import SubprocessExecutor
-from x509sak.Tools import FileLockTools
 from x509sak.CertificateAnalyzer import CertificateAnalyzer
 
 class CmdLineTestsExamine(BaseTest):
@@ -118,9 +117,6 @@ class CmdLineTestsExamine(BaseTest):
 				data = json.load(f)
 			encountered_codes = CertificateAnalyzer.extract_codes_from_json(data)
 
-			# If we're in debugging mode, update the consolidated JSON stat file
-			if self._debug_dumps:
-				self._update_stats_file(certname = certname, parent_certname = parent_certname, encountered_codes = encountered_codes, checked_codes = expect_present)
 			for code in expect_present:
 				self.assertIn(code, encountered_codes)
 			for code in expect_absent:
@@ -131,7 +127,6 @@ class CmdLineTestsExamine(BaseTest):
 
 	def test_examine_x509test_xf_ext_auth_keyid_mismatch(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-keyid-mismatch.pem", "Cert_X509Ext_AuthorityKeyIdentifier_CA_KeyIDMismatch", parent_certname = "certs/x509test/ok-ca.pem")
-
 
 	def test_hostname_ok(self):
 		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", "Cert_SAN_Match", expect_absent = "Cert_SAN_NoMatch", host_check = "mail.johannes-bauer.com")

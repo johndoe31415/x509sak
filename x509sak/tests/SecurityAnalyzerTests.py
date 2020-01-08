@@ -19,11 +19,9 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-import tempfile
 import json
 from x509sak.Exceptions import UnexpectedFileContentException
 from x509sak.tests import BaseTest, ResourceFileLoader
-from x509sak.SubprocessExecutor import SubprocessExecutor
 from x509sak.Tools import FileLockTools
 from x509sak.CertificateAnalyzer import CertificateAnalyzer
 from x509sak.X509Certificate import X509Certificate
