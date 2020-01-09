@@ -21,7 +21,6 @@
 
 import tempfile
 from x509sak.tests import BaseTest, ResourceFileLoader
-from x509sak.SubprocessExecutor import SubprocessExecutor
 
 class CmdLineTestsHashPart(BaseTest):
 	def test_simple_hash(self):

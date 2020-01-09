@@ -20,7 +20,6 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 from x509sak.tests import BaseTest, ResourceFileLoader
-from x509sak.SubprocessExecutor import SubprocessExecutor
 
 class CmdLineTestsFindCRT(BaseTest):
 	def test_find_all(self):

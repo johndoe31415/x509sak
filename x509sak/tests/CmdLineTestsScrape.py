@@ -25,7 +25,6 @@ import shutil
 import json
 from x509sak.tests import BaseTest
 from x509sak.WorkDir import WorkDir
-from x509sak.SubprocessExecutor import SubprocessExecutor
 from x509sak.PRNG import HashedPRNG
 from x509sak.X509Certificate import X509Certificate
 from x509sak.PublicKey import PublicKey

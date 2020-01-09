@@ -22,7 +22,6 @@
 import tempfile
 import json
 from x509sak.tests import BaseTest, ResourceFileLoader
-from x509sak.SubprocessExecutor import SubprocessExecutor
 from x509sak.CertificateAnalyzer import CertificateAnalyzer
 
 class CmdLineTestsExamine(BaseTest):

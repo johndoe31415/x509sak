@@ -19,7 +19,6 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-from x509sak.SubprocessExecutor import SubprocessExecutor
 from x509sak.tests.BaseTest import BaseTest, ResourceFileLoader
 
 class CmdLineTestsDumpKey(BaseTest):

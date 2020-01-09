@@ -20,7 +20,6 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 from x509sak.tests import BaseTest
-from x509sak.SubprocessExecutor import SubprocessExecutor
 
 class HelpPageTest(BaseTest):
 	def test_help_page(self):
