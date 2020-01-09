@@ -295,7 +295,17 @@ class X509BasicConstraintsExtension(X509Extension):
 	_ASN1_MODEL = rfc2459.BasicConstraints
 
 	@property
+	def pathlen(self):
+		if self.asn1 is None:
+			return None
+		if self.asn1["pathLenConstraint"].hasValue():
+			return int(self.asn1["pathLenConstraint"])
+		else:
+			return None
+
+	@property
 	def is_ca(self):
+		print(self.asn1)
 		if self.asn1 is not None:
 			return bool(self.asn1["cA"])
 		else:
@@ -525,3 +535,74 @@ class X509CertificatePoliciesExtension(X509Extension):
 	def __repr__(self):
 		return "%s<%s>" % (self.__class__.__name__, ", ".join(str(oid) for (oid, qualifiers) in self._policies))
 X509ExtensionRegistry.set_handler_class(X509CertificatePoliciesExtension)
+
+class X509CRLDistributionPointsExtension(X509Extension):
+	_HANDLER_OID = OIDDB.X509Extensions.inverse("CRLDistributionPoints")
+	_ASN1_MODEL = rfc5280.CRLDistributionPoints
+	_KNOWN_REASON_BITS = {
+		0:		"unused",
+		1:		"keyCompromise",
+		2:		"cACompromise",
+		3:		"affiliationChanged",
+		4:		"superseded",
+		5:		"cessationOfOperation",
+		6:		"certificateHold",
+		7:		"privilegeWithdrawn",
+		8:		"aACompromise",
+	}
+	_ALL_USED_REASONS = set(name for name in _KNOWN_REASON_BITS.values() if (name != "unused"))
+	_DistributionPoint = collections.namedtuple("DistributionPoint", [ "point_name", "reasons", "crl_issuer" ])
+
+	@classmethod
+	def all_used_reasons(cls):
+		return iter(self._ALL_USED_REASONS)
+
+	@property
+	def points(self):
+		return iter(self._distribution_points)
+
+	@property
+	def malformed(self):
+		return self._distribution_points is None
+
+	def _decode_hook(self):
+		if self.asn1 is None:
+			self._distribution_points = None
+			return
+
+		self._distribution_points = [ ]
+		for asn1_point in self.asn1:
+			if asn1_point["distributionPoint"].hasValue():
+				point_name_asn1 = asn1_point["distributionPoint"].getComponent()
+				if asn1_point["distributionPoint"]["fullName"].hasValue():
+					# GeneralNames
+					point_name = [ ASN1GeneralNameWrapper.from_asn1(general_name) for general_name in point_name_asn1 ]
+				else:
+					# RelativeDistinguishedName
+					point_name = point_name_asn1
+			else:
+				point_name = None
+
+			if asn1_point["reasons"].hasValue():
+				reasons = set()
+				for (bitno, value) in enumerate(asn1_point["reasons"]):
+					if value == 1:
+						value = self._KNOWN_REASON_BITS.get(bitno, bitno)
+						reasons.add(value)
+			else:
+				reasons = None
+
+			if asn1_point["cRLIssuer"].hasValue():
+				crl_issuer = [ ASN1GeneralNameWrapper.from_asn1(general_name) for general_name in asn1_point["cRLIssuer"] ]
+			else:
+				crl_issuer = None
+
+			cdp = self._DistributionPoint(point_name = point_name, reasons = reasons, crl_issuer = crl_issuer)
+			self._distribution_points.append(cdp)
+
+	def __repr__(self):
+		if not self.malformed:
+			return "%s<%s>" % (self.__class__.__name__, ", ".join(str(point) for point in self.points))
+		else:
+			return "%s<malformed>" % (self.__class__.__name__)
+X509ExtensionRegistry.set_handler_class(X509CRLDistributionPointsExtension)

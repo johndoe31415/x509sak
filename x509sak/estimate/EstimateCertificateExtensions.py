@@ -21,6 +21,7 @@
 
 import collections
 import pyasn1.type.base
+import urllib.parse
 from x509sak.OID import OIDDB
 from x509sak.AlgorithmDB import HashFunctions
 from x509sak.X509Extensions import X509ExtendedKeyUsageExtension
@@ -75,6 +76,28 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		"dnsname_space":				GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_CAName_BadDNSName_Space, standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "In addition, while the string \" \" is a legal domain name, subjectAltName extensions with a dNSName of \" \" MUST NOT be used.")),
 		"dnsname_single_label":			GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_CAName_BadDNSName_SingleLabel),
 		"invalid_type":					GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_CAName_UncommonIdentifier),
+	})
+
+	_CRL_DISTRIBUTION_POINT_NAME_VALIDATOR = GeneralNameValidator(error_prefix_str = "X.509 CRL Distribution Points Extension (distribution point name)", permissible_types = [ "directoryName", "uniformResourceIdentifier" ], permissible_uri_schemes = [ "http", "https", "ftp", "ftps", "ldap" ], errors = {
+		"empty_value":					GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_CRLDistributionPoints_PointName_EmptyValue),
+		"email":						GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_CRLDistributionPoints_PointName_BadEmail, standard = RFCReference(rfcno = 822, sect = "6.1", verb = "MUST", text = "addr-spec = local-part \"@\" domain")),
+		"ip":							GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_CRLDistributionPoints_PointName_BadIP, standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "For IP version 4, as specified in [RFC791], the octet string MUST contain exactly four octets. For IP version 6, as specified in [RFC2460], the octet string MUST contain exactly sixteen octets.")),
+		"ip_private":					GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_CRLDistributionPoints_PointName_BadIP_Private),
+		"uri":							GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_CRLDistributionPoints_PointName_BadURI, standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "The name MUST NOT be a relative URI, and it MUST follow the URI syntax and encoding rules specified in [RFC3986]. The name MUST include both a scheme (e.g., \"http\" or \"ftp\") and a scheme-specific-part. URIs that include an authority ([RFC3986], Section 3.2) MUST include a fully qualified domain name or IP address as the host.")),
+		"uri_invalid_scheme":			GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_CRLDistributionPoints_PointName_UncommonURIScheme),
+		"dnsname":						GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_CRLDistributionPoints_PointName_BadDNSName, standard = RFCReference(rfcno = 1034, sect = "3.5", verb = "MUST", text = "The following syntax will result in fewer problems with many applications that use domain names (e.g., mail, TELNET).")),
+		"dnsname_space":				GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_CRLDistributionPoints_PointName_BadDNSName_Space, standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "In addition, while the string \" \" is a legal domain name, subjectAltName extensions with a dNSName of \" \" MUST NOT be used.")),
+		"dnsname_single_label":			GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_CRLDistributionPoints_PointName_BadDNSName_SingleLabel),
+		"invalid_type":					GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_CRLDistributionPoints_PointName_UncommonIdentifier),
+	})
+
+	_CRL_DISTRIBUTION_POINT_ISSUER_VALIDATOR = GeneralNameValidator(error_prefix_str = "X.509 CRL Distribution Points Extension (CRL issuer)", permissible_types = [ "directoryName" ], errors = {
+		#TODO
+#		"empty_value":					GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_CRLDistributionPoints_IssuerName_EmptyValue),
+#		"email":						GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_CRLDistributionPoints_IssuerName_BadEmail, standard = RFCReference(rfcno = 822, sect = "6.1", verb = "MUST", text = "addr-spec = local-part \"@\" domain")),
+#		"uri":							GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_CRLDistributionPoints_IssuerName_BadURI, standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "The name MUST NOT be a relative URI, and it MUST follow the URI syntax and encoding rules specified in [RFC3986]. The name MUST include both a scheme (e.g., \"http\" or \"ftp\") and a scheme-specific-part. URIs that include an authority ([RFC3986], Section 3.2) MUST include a fully qualified domain name or IP address as the host.")),
+#		"uri_invalid_scheme":			GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_CRLDistributionPoints_IssuerName_UncommonURIScheme),
+#		"invalid_type":					GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_CRLDistributionPoints_IssuerName_UncommonIdentifier),
 	})
 
 	def _analyze_extension(self, extension):
@@ -168,6 +191,20 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 				judgement = SecurityJudgement(JudgementCode.Cert_X509Ext_BasicConstraints_PresentButNotCritical, "BasicConstraints extension is present, but not marked as critical.", commonness = Commonness.UNUSUAL)
 			else:
 				judgement = SecurityJudgement(JudgementCode.Cert_X509Ext_BasicConstraints_PresentAndCritical, "BasicConstraints extension is present and marked as critical.", commonness = Commonness.COMMON)
+
+			if bc.pathlen is not None:
+				if not bc.is_ca:
+					standard = RFCReference(rfcno = 5280, sect = "4.2.1.9", verb = "MUST", text = "CAs MUST NOT include the pathLenConstraint field unless the cA boolean is asserted")
+					judgement = SecurityJudgement(JudgementCode.Cert_X509Ext_BasicConstraints_PathLenWithoutCA, "BasicConstraints extension contains a pathLen constraint, but does not assert the \"CA\" attribute.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+
+				ku_ext = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("KeyUsage"))
+				if ku_ext is None:
+					standard = RFCReference(rfcno = 5280, sect = "4.2.1.9", verb = "MUST", text = "CAs MUST NOT include the pathLenConstraint field unless the cA boolean is asserted and the key usage extension asserts the keyCertSign bit.")
+					judgement = SecurityJudgement(JudgementCode.Cert_X509Ext_BasicConstraints_PathLenWithoutKeyCertSign, "BasicConstraints extension contains a pathLen constraint, but does not have a key usage extension.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+				elif "keyCertSign" not in ku_ext.flags:
+					standard = RFCReference(rfcno = 5280, sect = "4.2.1.9", verb = "MUST", text = "CAs MUST NOT include the pathLenConstraint field unless the cA boolean is asserted and the key usage extension asserts the keyCertSign bit.")
+					judgement = SecurityJudgement(JudgementCode.Cert_X509Ext_BasicConstraints_PathLenWithoutKeyCertSign, "BasicConstraints extension contains a pathLen constraint, but its key usage extension does not contain the \"keyCertsign\" bit.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+
 		return judgement
 
 	def _judge_subject_key_identifier(self, certificate):
@@ -502,6 +539,112 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_NetscapeCertType_UnusedBitSet, "Netscape Certificate Types X.509 extension has an invalid/unused bit set.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION)
 		return judgements
 
+	def _judge_crl_distribution_points_point_general_name(self, pointno, nameno, general_name):
+		judgements = SecurityJudgements()
+
+		judgements += self._CRL_DISTRIBUTION_POINT_NAME_VALIDATOR.validate(general_name)
+		if general_name.name == "uniformResourceIdentifier":
+			uri = urllib.parse.urlparse(general_name.str_value)
+
+			if uri.scheme.lower() in ("http", "ftp"):
+				if uri.path.endswith("/"):
+					standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "MUST", text = "When the HTTP or FTP URI scheme is used, the URI MUST point to a single DER encoded CRL as specified in [RFC2585].")
+					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_PointName_PossiblyNoDERCRLServed, "CRL Distribution Points X.509 extension contains distribution point #%d (name #%d) which points to a HTTP or FTP URI of which the filetype cannot be deduced. The endpoint could be serving non-DER data." % (pointno, nameno), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+				elif not uri.path.lower().endswith(".crl"):
+					standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "MUST", text = "When the HTTP or FTP URI scheme is used, the URI MUST point to a single DER encoded CRL as specified in [RFC2585].")
+					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_PointName_PossiblyNoDERCRLServed, "CRL Distribution Points X.509 extension contains distribution point #%d (name #%d) which points to a HTTP or FTP URI of which the filetype indicates it could be a non-DER-encoded CRL. The endpoint could be serving non-DER data." % (pointno, nameno), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+			elif uri.scheme.lower() == "ldap":
+				if uri.path == "":
+					standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "MUST", text = "When the LDAP URI scheme [RFC4516] is used, the URI MUST include a <dn> field containing the distinguished name of the entry holding the CRL")
+					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_PointName_ContainsNoLDAPDN, "CRL Distribution Points X.509 extension contains distribution point #%d (name #%d) which points to an LDAP URI which does not contain a Distinguished Name." % (pointno, nameno), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+
+				if uri.query == "":
+					standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "MUST", text = "When the LDAP URI scheme [RFC4516] is used, the URI MUST include a <dn> field containing the distinguished name of the entry holding the CRL, MUST include a single <attrdesc> that contains an appropriate attribute description for the attribute that holds the CRL [RFC4523]")
+					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_PointName_ContainsNoLDAPAttrdesc, "CRL Distribution Points X.509 extension contains distribution point #%d (name #%d) which points to an LDAP URI which does not contain an attrdesc element describing the attribute under which the CRL can be looked up." % (pointno, nameno), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+
+				if uri.netloc == "":
+					standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "SHOULD", text = "When the LDAP URI scheme [RFC4516] is used, the URI MUST include a <dn> field containing the distinguished name of the entry holding the CRL, MUST include a single <attrdesc> that contains an appropriate attribute description for the attribute that holds the CRL [RFC4523], and SHOULD include a <host>")
+					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_PointName_PossiblyNoLDAPHostname, "CRL Distribution Points X.509 extension contains distribution point #%d (name #%d) which points to an LDAP URI which does not contain a hostname." % (pointno, nameno), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+
+		return judgements
+
+
+	def _judge_crl_distribution_points(self, certificate):
+		judgements = SecurityJudgements()
+		cdp_ext = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("CRLDistributionPoints"))
+		if cdp_ext is not None:
+			if cdp_ext.critical:
+				standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "SHOULD", text = "The extension SHOULD be non-critical")
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_Critical, "CRL Distribution Points X.509 extension is present, but marked critical.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+
+			if cdp_ext.malformed:
+				standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "MUST", text = "CRLDistributionPoints ::= SEQUENCE SIZE (1..MAX) OF DistributionPoint")
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_Malformed, "CRL Distribution Points X.509 extension is malformed and cannot be decoded.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+			else:
+				has_all_reasons = False
+				for (pointno, point) in enumerate(cdp_ext.points, 1):
+					if (point.point_name is None) and (point.reasons is None) and (point.crl_issuer is None):
+						standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "MUST", text = "either distributionPoint or cRLIssuer MUST be present.")
+						judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_Point_Empty, "CRL Distribution Points X.509 extension contains distribution point #%d which is entirely empty." % (pointno), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+					elif (point.point_name is None) and (point.reasons is not None) and (point.crl_issuer is None):
+						standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "MUST", text = "While each of these fields is optional, a DistributionPoint MUST NOT consist of only the reasons field")
+						judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_Point_ContainsOnlyReasons, "CRL Distribution Points X.509 extension contains distribution point #%d which contains only the reasons field." % (pointno), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+
+					if point.crl_issuer is None:
+						if any(certificate.issuer == crl_issuer.directory_name for crl_issuer in point.crl_issuer if (crl_issuer.name == "directoryName")):
+							standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "MUST", text = "If the certificate issuer is also the CRL issuer, then conforming CAs MUST omit the cRLIssuer field and MUST include the distributionPoint field.")
+							judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_CRLIssuer_RedundantlyPresent, "CRL Distribution Points X.509 extension contains distribution point #%d which contains only the reasons field." % (pointno), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+
+					if point.point_name is not None:
+						if isinstance(point.point_name, list):
+							# List of distributionPoints is GeneralNames: Where
+							# to get the CRL from
+
+							ldap_http_uri_count = 0
+							for (nameno, general_name) in enumerate(point.point_name, 1):
+								judgements += self._judge_crl_distribution_points_point_general_name(pointno, nameno, general_name)
+
+								if general_name.name == "uniformResourceIdentifier":
+									scheme = urllib.parse.urlparse(general_name.str_value).scheme.lower()
+									if scheme in ("ldap", "http"):
+										ldap_http_uri_count += 1
+
+							if ldap_http_uri_count == 0:
+								standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "SHOULD", text = "When present, DistributionPointName SHOULD include at least one LDAP or HTTP URI.")
+								judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_Point_NoLDAPOrHTTPURIPresent, "CRL Distribution Points X.509 extension contains no distribution point name that contains either an LDAP or HTTP URI.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+
+						else:
+							# DistributionPoint is a single RDN
+							standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "SHOULD", text = "Conforming CAs SHOULD NOT use nameRelativeToCRLIssuer to specify distribution point names.")
+							judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_PointName_Relative, "CRL Distribution Points X.509 extension contains distribution point #%d which points to the CRL using a RDN." % (pointno), commonness = Commonness.HIGHLY_UNUSUAL)
+
+							if point.crl_issuer is not None:
+								crl_issuer_dns = [ gn for gn in point.crl_issuer if (gn.name == "directoryName") ]
+								if len(crl_issuer_dns) > 1:
+									standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "MUST", text = "The DistributionPointName MUST NOT use the nameRelativeToCRLIssuer alternative when cRLIssuer contains more than one distinguished name.")
+									judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_PointName_RelativeToMultipleDNs, "CRL Distribution Points X.509 extension contains distribution point #%d which points to the CRL using a RDN, but the DN it is relative to is ambiguous (%d different CRL issuer DNs given)." % (pointno, len(crl_issuer_dns)), commonness = Commonness.HIGHLY_UNUSUAL)
+
+					if point.reasons is not None:
+						missing_reasons = set(cdp_ext.all_used_reasons) - cdp_ext.reasons
+						if len(missing_reasons) > 0:
+							standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "RECOMMEND", text = "This profile RECOMMENDS against segmenting CRLs by reason code.")
+							judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_Reason_SegmentationUsed, "CRL Distribution Points X.509 extension contains distribution point #%d which does not have CRLs for all possible reasons (%s are missing)." % (pointno, ", ".sorted(missing_reasons)), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+						else:
+							has_all_reasons = True
+
+						if "unused" in cdp_ext.reasons:
+							judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_Reason_UnusedBitAsserted, "CRL Distribution Points X.509 extension contains distribution point #%d which asserts an unused bit for CRL reason.", commonness = Commonness.UNUSUAL)
+
+						undefined_bits = [ bitno for bitno in cdp_ext.reasons if isinstance(bitno, int) ]
+						if len(undefined_bits) > 0:
+							standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "MUST", text = "ReasonFlags ::= BIT STRING {")
+							judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_Reason_UndefinedBitAsserted, "CRL Distribution Points X.509 extension contains distribution point #%d which asserts undefined bit(s) %s." % (", ".join(str(bit) for bit in sorted(undefined_bits))), commonness = Commonness.UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+
+				if not has_all_reasons:
+					standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "MUST", text = "When a conforming CA includes a cRLDistributionPoints extension in a certificate, it MUST include at least one DistributionPoint that points to a CRL that covers the certificate for all reasons.")
+					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_NoPointWithAllReasonBits, "CRL Distribution Points X.509 extension contains no distribution point which asserts all reason bits.", commonness = Commonness.UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+		return judgements
+
 	def analyze(self, certificate, root_cert = None):
 		individual = [ ]
 		for extension in certificate.extensions:
@@ -524,6 +667,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		judgements += self._judge_authority_information_access(certificate)
 		judgements += self._judge_certificate_policy(certificate)
 		judgements += self._judge_netscape_certificate_type(certificate)
+		judgements += self._judge_crl_distribution_points(certificate)
 
 		return {
 			"individual":	individual,

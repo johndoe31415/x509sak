@@ -194,37 +194,29 @@ class SecurityAnalyzerTests(BaseTest):
 	def test_examine_x509test_xf_ext_constraints_neg_pathlen(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-constraints-neg-pathlen.pem", "Cert_X509Ext_Malformed")
 
-#	def test_examine_x509test_xf_ext_constraints_noncritical(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-constraints-noncritical.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-constraints-noncritical.pem")
-#
-#	def test_examine_x509test_xf_ext_constraints_path_nonca(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-constraints-path-nonca.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-constraints-path-nonca.pem")
-#
-#	def test_examine_x509test_xf_ext_constraints_path_nosign(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-constraints-path-nosign.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-constraints-path-nosign.pem")
-#
-#	def test_examine_x509test_xf_ext_crl_point_critical(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-crl-point-critical.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-crl-point-critical.pem")
-#
-#	def test_examine_x509test_xf_ext_crl_point_reasons_only(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-crl-point-reasons-only.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-crl-point-reasons-only.pem")
-#
-#	def test_examine_x509test_xf_ext_ct_poison(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-ct-poison.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-ct-poison.pem")
-#
-#	def test_examine_x509test_xf_ext_ct_sct_trailing_data(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-ct-sct-trailing-data.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-ct-sct-trailing-data.pem")
-#
-#	def test_examine_x509test_xf_ext_ct_sct_wrong_type(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-ct-sct-wrong-type.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-ct-sct-wrong-type.pem")
+	def test_examine_x509test_xf_ext_constraints_noncritical(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-constraints-noncritical.pem", "Cert_X509Ext_BasicConstraints_PresentButNotCritical")
+
+	def test_examine_x509test_xf_ext_constraints_path_nonca(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-constraints-path-nonca.pem", "Cert_X509Ext_BasicConstraints_PathLenWithoutCA")
+
+	def test_examine_x509test_xf_ext_constraints_path_nosign(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-constraints-path-nosign.pem", "Cert_X509Ext_BasicConstraints_PathLenWithoutKeyCertSign")
+
+	def test_examine_x509test_xf_ext_crl_point_critical(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-crl-point-critical.pem", "Cert_X509Ext_CRLDistributionPoint_Critical")
+
+	def test_examine_x509test_xf_ext_crl_point_reasons_only(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-crl-point-reasons-only.pem", "Cert_X509Ext_CRLDistributionPoint_OnlyReasons")
+
+	def test_examine_x509test_xf_ext_ct_poison(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-ct-poison.pem", "Cert_X509Ext_CTPrecertificatePoison_Present")
+
+	def test_examine_x509test_xf_ext_ct_sct_trailing_data(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-ct-sct-trailing-data.pem", "Cert_X509Ext_CTPrecertificateSCTs_TrailingData")
+
+	def test_examine_x509test_xf_ext_ct_sct_wrong_type(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-ct-sct-wrong-type.pem", "Cert_X509Ext_CTPrecertificateSCTs_Malformed")
 
 	def test_examine_x509test_xf_ext_extended_any_key_usage(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-extended-any-key-usage.pem", "Cert_X509Ext_ExtKeyUsage_AnyUsageCritical")
