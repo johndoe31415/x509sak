@@ -196,6 +196,7 @@ class OIDDB():
 		OID.from_str("1.3.6.1.4.1.311.21.1"):		"CertSRVCAVersion",
 
 		OID.from_str("1.3.6.1.4.1.11129.2.4.2"):	"CertificateTransparency",
+		OID.from_str("1.3.6.1.4.1.11129.2.4.3"):	"CertificateTransparencyPrecertificatePoison",
 
 		OID.from_str("2.23.42.7.0"):				"hashedRootKey",
 

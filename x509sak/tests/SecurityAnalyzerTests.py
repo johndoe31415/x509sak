@@ -213,7 +213,7 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-crl-point-reasons-only.pem", "Cert_X509Ext_CRLDistributionPoints_Point_ContainsOnlyReasons")
 
 	def test_examine_x509test_xf_ext_ct_poison(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-ct-poison.pem", "Cert_X509Ext_CTPrecertificatePoison_Present")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-ct-poison.pem", "Cert_X509Ext_CertificateTransparencyPoison_IsPrecertificate")
 
 	def test_examine_x509test_xf_ext_ct_sct_trailing_data(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-ct-sct-trailing-data.pem", "Cert_X509Ext_CTPrecertificateSCTs_TrailingData")

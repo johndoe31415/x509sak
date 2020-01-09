@@ -641,6 +641,22 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_NoPointWithAllReasonBits, "CRL Distribution Points X.509 extension contains no distribution point which asserts all reason bits.", commonness = Commonness.UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 		return judgements
 
+	def _judge_certificate_transparency_poison(self, certificate):
+		judgements = SecurityJudgements()
+		poison_ext = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("CertificateTransparencyPrecertificatePoison"))
+		if poison_ext is not None:
+			judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificateTransparencyPoison_IsPrecertificate, "The Certificate Transparency Precertificate Poison X.509 extension is present in the certificate, making it a precertificate.", commonness = Commonness.HIGHLY_UNUSUAL, bits = 0)
+
+			if not poison_ext.critical:
+				standard = RFCReference(rfcno = 6962, sect = "3.1", verb = "MUST", text = "The Precertificate is constructed from the certificate to be issued by adding a special critical poison extension")
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificateTransparencyPoison_InvalidPayload, "The Certificate Transparency Precertificate Poison X.509 extension is not marked as critical, turning it into an invalid precertificate.", commonness = Commonness.HIGHLY_UNUSUAL)
+
+			if poison_ext.asn1:
+				standard = RFCReference(rfcno = 6962, sect = "3.1", verb = "MUST", text = "whose extnValue OCTET STRING contains ASN.1 NULL data (0x05 0x00))")
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificateTransparencyPoison_InvalidPayload, "The Certificate Transparency Precertificate Poison X.509 extension needs to contain an ASN.1 NULL value, but instead contains %s." % ("TODO"), commonness = Commonness.HIGHLY_UNUSUAL)
+
+		return judgements
+
 	def analyze(self, certificate, root_cert = None):
 		individual = [ ]
 		for extension in certificate.extensions:
@@ -664,6 +680,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		judgements += self._judge_certificate_policy(certificate)
 		judgements += self._judge_netscape_certificate_type(certificate)
 		judgements += self._judge_crl_distribution_points(certificate)
+		judgements += self._judge_certificate_transparency_poison(certificate)
 
 		return {
 			"individual":	individual,
