@@ -305,7 +305,6 @@ class X509BasicConstraintsExtension(X509Extension):
 
 	@property
 	def is_ca(self):
-		print(self.asn1)
 		if self.asn1 is not None:
 			return bool(self.asn1["cA"])
 		else:
