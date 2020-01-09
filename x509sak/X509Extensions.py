@@ -29,7 +29,9 @@ from pyasn1_modules import rfc2459, rfc5280
 from x509sak.OID import OID, OIDDB
 from x509sak import ASN1Models
 from x509sak.ASN1Wrapper import ASN1GeneralNameWrapper, ASN1GeneralNamesWrapper
-from x509sak.Tools import ASN1Tools
+from x509sak.Tools import ASN1Tools, DebugTools
+from x509sak.OtherModels import SignedCertificateTimestampList
+from x509sak.tls.DataBuffer import DataBuffer
 
 class X509Extensions():
 	def __init__(self, extensions):
@@ -605,3 +607,34 @@ class X509CRLDistributionPointsExtension(X509Extension):
 		else:
 			return "%s<malformed>" % (self.__class__.__name__)
 X509ExtensionRegistry.set_handler_class(X509CRLDistributionPointsExtension)
+
+
+class X509CertificateTransparencySCTsExtension(X509Extension):
+	_HANDLER_OID = OIDDB.X509Extensions.inverse("CertificateTransparency")
+	_ASN1_MODEL = pyasn1.type.univ.OctetString
+
+	@property
+	def payload(self):
+		return self._payload
+
+	@property
+	def malformed_asn1(self):
+		return self.asn1 is None
+
+	@property
+	def malformed_payload(self):
+		return self.payload is None
+
+	def _decode_hook(self):
+		self._payload = None
+		if self.asn1 is None:
+			return
+		raw_data = bytes(self._asn1)
+		try:
+			self._payload = SignedCertificateTimestampList.unpack(DataBuffer(raw_data))
+		except DeserializationException:
+			pass
+
+	def __repr__(self):
+		return "%s<%s>" % (self.__class__.__name__, str(self.payload))
+X509ExtensionRegistry.set_handler_class(X509CertificateTransparencySCTsExtension)

@@ -180,13 +180,14 @@ class StructureElementInteger(StructureMemberFactoryElement):
 class StructureElementOpaque(StructureMemberFactoryElement):
 	_REGEX = r"opaque(?P<bit>\d+)"
 
-	def __init__(self, name, length_field, inner = None, contains_array = None, string_encoding = None, fixed_value = None):
+	def __init__(self, name, length_field, inner = None, contains_array = None, string_encoding = None, fixed_value = None, allow_trailing_data = False):
 		StructureMemberFactoryElement.__init__(self, name)
 		self._length_field = length_field
 		self._inner = inner
 		self._contains_array = contains_array
 		self._string_encoding = string_encoding
 		self._fixed_value = fixed_value
+		self._allow_trailing_data = allow_trailing_data
 		if (self._string_encoding is not None) and (self._inner is not None):
 			raise ProgrammerErrorException("Opaque object can either encode strings or have an inner object, but not both.")
 
@@ -220,7 +221,7 @@ class StructureElementOpaque(StructureMemberFactoryElement):
 					if pre_unpack == db.remaining:
 						raise InfiniteUnpackingException("Inner unpacking of %s consumed no data, still %d bytes remaining. Breaking infinite loop." % (str(self._inner), db.remaining))
 				data = result_array
-			if db.remaining > 0:
+			if (db.remaining > 0) and (not self._allow_trailing_data):
 				raise IncompleteUnpackingException("%s unpacking still has %d bytes of trailing, non-consumed data left." % (self.typename, db.remaining))
 		return data
 
@@ -299,6 +300,10 @@ class Structure(BaseStructureMember):
 	@property
 	def typename(self):
 		return "Structure"
+
+	@property
+	def implicit_value(self):
+		return False
 
 	@property
 	def members(self):

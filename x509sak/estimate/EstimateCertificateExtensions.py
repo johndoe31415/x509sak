@@ -29,6 +29,8 @@ from x509sak.estimate import JudgementCode, Commonness, Compatibility
 from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, RFCReference
 from x509sak.estimate.GeneralNameValidator import GeneralNameValidator
 from x509sak.ASN1Wrapper import ASN1GeneralNamesWrapper
+from x509sak.OtherModels import SCTVersion
+from x509sak.tls.Enums import HashAlgorithm, SignatureAlgorithm
 
 @BaseEstimator.register
 class CrtExtensionsSecurityEstimator(BaseEstimator):
@@ -641,6 +643,46 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_NoPointWithAllReasonBits, "CRL Distribution Points X.509 extension contains no distribution point which asserts all reason bits.", commonness = Commonness.UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 		return judgements
 
+	def _judge_certificate_transparency_sct(self, timestamp_no, sct):
+		judgements = SecurityJudgements()
+		if not isinstance(sct["sct_version"], SCTVersion):
+			standard = RFCReference(rfcno = 6962, sect = "3.2", verb = "MUST", text = "enum { v1(0), (255) } Version;")
+			judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificateTransparencySCTs_SCT_UnknownVersion, "Certificate Transparency Signed Certificate Timestamp X.509 contains timestamp #%d with unknown version %d." % (timestamp_no, sct["sct_version"]), commonness = Commonness.UNUSUAL, comatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+
+		if not (1262304000000 <= sct["timestamp"] <= 4102444799000):
+			judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificateTransparencySCTs_SCT_ImplausibleTimestamp, "Certificate Transparency Signed Certificate Timestamp X.509 contains implausible timestamp #%d that dates either before 2010 or after 2099 (time_t is %d)." % (timestamp_no, sct["timestamp"] // 1000), commonness = Commonness.UNUSUAL)
+
+		if sct["DigitalSignature"]["hash_algorithm"] not in (HashAlgorithm.sha256, ):
+			standard = RFCReference(rfcno = 6962, sect = "2.1.4", verb = "MUST", text = "A log MUST use either elliptic curve signatures using the NIST P-256 curve (Section D.1.2.3 of the Digital Signature Standard [DSS]) or RSA signatures (RSASSA-PKCS1-V1_5 with SHA-256")
+			judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificateTransparencySCTs_SCT_InvalidHashFunction, "Certificate Transparency Signed Certificate Timestamp X.509 contains timestamp #%d with disallowed hash algorithm %s." % (timestamp_no, str(sct["DigitalSignature"]["hash_algorithm"])), commonness = Commonness.UNUSUAL, comatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+
+		if sct["DigitalSignature"]["sig_algorithm"] not in (SignatureAlgorithm.ECDSA, SignatureAlgorithm.RSA):
+			standard = RFCReference(rfcno = 6962, sect = "2.1.4", verb = "MUST", text = "A log MUST use either elliptic curve signatures using the NIST P-256 curve (Section D.1.2.3 of the Digital Signature Standard [DSS]) or RSA signatures (RSASSA-PKCS1-V1_5 with SHA-256")
+			judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificateTransparencySCTs_SCT_InvalidSignatureFunction, "Certificate Transparency Signed Certificate Timestamp X.509 contains timestamp #%d with disallowed signature algorithm %s." % (timestamp_no, str(sct["DigitalSignature"]["hash_algorithm"])), commonness = Commonness.UNUSUAL, comatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+
+		return judgements
+
+	def _judge_certificate_transparency_scts(self, certificate):
+		judgements = SecurityJudgements()
+
+		scts_ext = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("CertificateTransparency"))
+		if scts_ext is not None:
+			if scts_ext.malformed_asn1:
+				standard = RFCReference(rfcno = 6962, sect = "3.3", verb = "MUST", text = "SignedCertificateTimestampList ::= OCTET STRING")
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificateTransparencySCTs_ASN1Malformed, "Certificate Transparency Signed Certificate Timestamp X.509 extension cannot be decoded on ASN.1 layer.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+			elif scts_ext.malformed_payload:
+				standard = RFCReference(rfcno = 6962, sect = "3.2", verb = "MUST", text = "struct { ... } SignedCertificateTimestamp;")
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificateTransparencySCTs_ContentMalformed, "Certificate Transparency Signed Certificate Timestamp X.509 extension cannot be decoded on payload layer.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+			else:
+				for (timestamp_no, scts) in enumerate(scts_ext.payload["payload"], 1):
+					sct = scts["sct"]
+					judgements += self._judge_certificate_transparency_sct(timestamp_no, sct)
+
+				if len(scts_ext.not_decoded) > 0:
+					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificateTransparencySCTs_TrailingData, "Certificate Transparency Signed Certificate Timestamp X.509 extension contains %d bytes of trailing data." % (len(scts_ext.not_decoded)), commonness = Commonness.HIGHLY_UNUSUAL)
+
+		return judgements
+
 	def _judge_certificate_transparency_poison(self, certificate):
 		judgements = SecurityJudgements()
 		poison_ext = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("CertificateTransparencyPrecertificatePoison"))
@@ -680,6 +722,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		judgements += self._judge_certificate_policy(certificate)
 		judgements += self._judge_netscape_certificate_type(certificate)
 		judgements += self._judge_crl_distribution_points(certificate)
+		judgements += self._judge_certificate_transparency_scts(certificate)
 		judgements += self._judge_certificate_transparency_poison(certificate)
 
 		return {

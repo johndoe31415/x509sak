@@ -216,10 +216,10 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-ct-poison.pem", "Cert_X509Ext_CertificateTransparencyPoison_IsPrecertificate")
 
 	def test_examine_x509test_xf_ext_ct_sct_trailing_data(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-ct-sct-trailing-data.pem", "Cert_X509Ext_CTPrecertificateSCTs_TrailingData")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-ct-sct-trailing-data.pem", "Cert_X509Ext_CertificateTransparencySCTs_TrailingData")
 
 	def test_examine_x509test_xf_ext_ct_sct_wrong_type(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-ct-sct-wrong-type.pem", "Cert_X509Ext_CTPrecertificateSCTs_Malformed")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-ct-sct-wrong-type.pem", "Cert_X509Ext_CertificateTransparencySCTs_ASN1Malformed")
 
 	def test_examine_x509test_xf_ext_extended_any_key_usage(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-extended-any-key-usage.pem", "Cert_X509Ext_ExtKeyUsage_AnyUsageCritical")
