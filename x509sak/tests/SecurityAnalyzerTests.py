@@ -204,10 +204,10 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-constraints-path-nosign.pem", "Cert_X509Ext_BasicConstraints_PathLenWithoutKeyCertSign")
 
 	def test_examine_x509test_xf_ext_crl_point_critical(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-crl-point-critical.pem", "Cert_X509Ext_CRLDistributionPoint_Critical")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-crl-point-critical.pem", "Cert_X509Ext_CRLDistributionPoints_Critical")
 
 	def test_examine_x509test_xf_ext_crl_point_reasons_only(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-crl-point-reasons-only.pem", "Cert_X509Ext_CRLDistributionPoint_OnlyReasons")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-crl-point-reasons-only.pem", "Cert_X509Ext_CRLDistributionPoints_Point_ContainsOnlyReasons")
 
 	def test_examine_x509test_xf_ext_ct_poison(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-ct-poison.pem", "Cert_X509Ext_CTPrecertificatePoison_Present")
