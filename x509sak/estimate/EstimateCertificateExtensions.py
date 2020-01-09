@@ -92,12 +92,11 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 	})
 
 	_CRL_DISTRIBUTION_POINT_ISSUER_VALIDATOR = GeneralNameValidator(error_prefix_str = "X.509 CRL Distribution Points Extension (CRL issuer)", permissible_types = [ "directoryName" ], errors = {
-		#TODO
-#		"empty_value":					GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_CRLDistributionPoints_IssuerName_EmptyValue),
-#		"email":						GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_CRLDistributionPoints_IssuerName_BadEmail, standard = RFCReference(rfcno = 822, sect = "6.1", verb = "MUST", text = "addr-spec = local-part \"@\" domain")),
-#		"uri":							GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_CRLDistributionPoints_IssuerName_BadURI, standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "The name MUST NOT be a relative URI, and it MUST follow the URI syntax and encoding rules specified in [RFC3986]. The name MUST include both a scheme (e.g., \"http\" or \"ftp\") and a scheme-specific-part. URIs that include an authority ([RFC3986], Section 3.2) MUST include a fully qualified domain name or IP address as the host.")),
-#		"uri_invalid_scheme":			GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_CRLDistributionPoints_IssuerName_UncommonURIScheme),
-#		"invalid_type":					GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_CRLDistributionPoints_IssuerName_UncommonIdentifier),
+		"empty_value":					GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_CRLDistributionPoints_IssuerName_EmptyValue),
+		"email":						GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_CRLDistributionPoints_IssuerName_BadEmail, standard = RFCReference(rfcno = 822, sect = "6.1", verb = "MUST", text = "addr-spec = local-part \"@\" domain")),
+		"uri":							GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_CRLDistributionPoints_IssuerName_BadURI, standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "The name MUST NOT be a relative URI, and it MUST follow the URI syntax and encoding rules specified in [RFC3986]. The name MUST include both a scheme (e.g., \"http\" or \"ftp\") and a scheme-specific-part. URIs that include an authority ([RFC3986], Section 3.2) MUST include a fully qualified domain name or IP address as the host.")),
+		"uri_invalid_scheme":			GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_CRLDistributionPoints_IssuerName_UncommonURIScheme),
+		"invalid_type":					GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_CRLDistributionPoints_IssuerName_UncommonIdentifier),
 	})
 
 	def _analyze_extension(self, extension):
@@ -591,6 +590,8 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 						judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_Point_ContainsOnlyReasons, "CRL Distribution Points X.509 extension contains distribution point #%d which contains only the reasons field." % (pointno), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 					if point.crl_issuer is not None:
+						for issuer_name in point.crl_issuer:
+							judgements += self._CRL_DISTRIBUTION_ISSUERt_NAME_VALIDATOR.validate(general_name)
 						if any(certificate.issuer == crl_issuer.directory_name for crl_issuer in point.crl_issuer.filter_by_type("directoryName")):
 							standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "MUST", text = "If the certificate issuer is also the CRL issuer, then conforming CAs MUST omit the cRLIssuer field and MUST include the distributionPoint field.")
 							judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_CRLIssuer_RedundantlyPresent, "CRL Distribution Points X.509 extension contains distribution point #%d which contains only the reasons field." % (pointno), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
