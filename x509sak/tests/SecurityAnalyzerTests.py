@@ -62,6 +62,9 @@ class SecurityAnalyzerTests(BaseTest):
 		if not isinstance(expect_absent, (list, tuple)):
 			expect_absent = (expect_absent, )
 
+		# Plausibilize we're not chasing non-existing judgement codes (those would always be absent)
+		self.assertTrue(JudgementCode.getattr(codename, None) is not None for codename in expect_absent)
+
 		if expect_parse_failure:
 			with self.assertRaises(UnexpectedFileContentException):
 				X509Certificate.from_pem_data(ResourceFileLoader.load_data(certname))

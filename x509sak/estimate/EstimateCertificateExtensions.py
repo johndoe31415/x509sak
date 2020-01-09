@@ -183,28 +183,29 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 
 	def _judge_basic_constraints(self, certificate):
 		bc = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("BasicConstraints"))
+		judgements = SecurityJudgements()
 		if bc is None:
-			judgement = SecurityJudgement(JudgementCode.Cert_X509Ext_BasicConstraints_Missing, "BasicConstraints extension is missing.", commonness = Commonness.HIGHLY_UNUSUAL)
+			judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_BasicConstraints_Missing, "BasicConstraints extension is missing.", commonness = Commonness.HIGHLY_UNUSUAL)
 		else:
 			if not bc.critical:
-				judgement = SecurityJudgement(JudgementCode.Cert_X509Ext_BasicConstraints_PresentButNotCritical, "BasicConstraints extension is present, but not marked as critical.", commonness = Commonness.UNUSUAL)
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_BasicConstraints_PresentButNotCritical, "BasicConstraints extension is present, but not marked as critical.", commonness = Commonness.UNUSUAL)
 			else:
-				judgement = SecurityJudgement(JudgementCode.Cert_X509Ext_BasicConstraints_PresentAndCritical, "BasicConstraints extension is present and marked as critical.", commonness = Commonness.COMMON)
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_BasicConstraints_PresentAndCritical, "BasicConstraints extension is present and marked as critical.", commonness = Commonness.COMMON)
 
 			if bc.pathlen is not None:
 				if not bc.is_ca:
 					standard = RFCReference(rfcno = 5280, sect = "4.2.1.9", verb = "MUST", text = "CAs MUST NOT include the pathLenConstraint field unless the cA boolean is asserted")
-					judgement = SecurityJudgement(JudgementCode.Cert_X509Ext_BasicConstraints_PathLenWithoutCA, "BasicConstraints extension contains a pathLen constraint, but does not assert the \"CA\" attribute.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_BasicConstraints_PathLenWithoutCA, "BasicConstraints extension contains a pathLen constraint, but does not assert the \"CA\" attribute.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 				ku_ext = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("KeyUsage"))
 				if ku_ext is None:
 					standard = RFCReference(rfcno = 5280, sect = "4.2.1.9", verb = "MUST", text = "CAs MUST NOT include the pathLenConstraint field unless the cA boolean is asserted and the key usage extension asserts the keyCertSign bit.")
-					judgement = SecurityJudgement(JudgementCode.Cert_X509Ext_BasicConstraints_PathLenWithoutKeyCertSign, "BasicConstraints extension contains a pathLen constraint, but does not have a key usage extension.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_BasicConstraints_PathLenWithoutKeyCertSign, "BasicConstraints extension contains a pathLen constraint, but does not have a key usage extension.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 				elif "keyCertSign" not in ku_ext.flags:
 					standard = RFCReference(rfcno = 5280, sect = "4.2.1.9", verb = "MUST", text = "CAs MUST NOT include the pathLenConstraint field unless the cA boolean is asserted and the key usage extension asserts the keyCertSign bit.")
-					judgement = SecurityJudgement(JudgementCode.Cert_X509Ext_BasicConstraints_PathLenWithoutKeyCertSign, "BasicConstraints extension contains a pathLen constraint, but its key usage extension does not contain the \"keyCertsign\" bit.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_BasicConstraints_PathLenWithoutKeyCertSign, "BasicConstraints extension contains a pathLen constraint, but its key usage extension does not contain the \"keyCertsign\" bit.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
-		return judgement
+		return judgements
 
 	def _judge_subject_key_identifier(self, certificate):
 		ski = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("SubjectKeyIdentifier"))
