@@ -28,7 +28,7 @@ from pyasn1.type import tag
 from pyasn1_modules import rfc2459, rfc5280
 from x509sak.OID import OID, OIDDB
 from x509sak import ASN1Models
-from x509sak.ASN1Wrapper import ASN1GeneralNameWrapper
+from x509sak.ASN1Wrapper import ASN1GeneralNameWrapper, ASN1GeneralNamesWrapper
 from x509sak.Tools import ASN1Tools
 
 class X509Extensions():
@@ -555,7 +555,7 @@ class X509CRLDistributionPointsExtension(X509Extension):
 
 	@classmethod
 	def all_used_reasons(cls):
-		return iter(self._ALL_USED_REASONS)
+		return iter(cls._ALL_USED_REASONS)
 
 	@property
 	def points(self):
@@ -576,7 +576,7 @@ class X509CRLDistributionPointsExtension(X509Extension):
 				point_name_asn1 = asn1_point["distributionPoint"].getComponent()
 				if asn1_point["distributionPoint"]["fullName"].hasValue():
 					# GeneralNames
-					point_name = [ ASN1GeneralNameWrapper.from_asn1(general_name) for general_name in point_name_asn1 ]
+					point_name = ASN1GeneralNamesWrapper.from_asn1(point_name_asn1)
 				else:
 					# RelativeDistinguishedName
 					point_name = point_name_asn1
@@ -593,7 +593,7 @@ class X509CRLDistributionPointsExtension(X509Extension):
 				reasons = None
 
 			if asn1_point["cRLIssuer"].hasValue():
-				crl_issuer = [ ASN1GeneralNameWrapper.from_asn1(general_name) for general_name in asn1_point["cRLIssuer"] ]
+				crl_issuer = ASN1GeneralNamesWrapper.from_asn1(asn1_point["cRLIssuer"])
 			else:
 				crl_issuer = None
 

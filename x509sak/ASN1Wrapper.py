@@ -19,15 +19,20 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
+import urllib.parse
 import pyasn1.codec.der.encoder
 from pyasn1_modules import rfc5280
 from x509sak.DistinguishedName import DistinguishedName
 
 class ASN1GeneralNameWrapper():
+	KNOWN_TYPE_NAMES = set([ "otherName", "rfc822Name", "dNSName", "x400Address", "directoryName", "ediPartyName", "uniformResourceIdentifier", "iPAddress", "registeredID" ])
+
 	def __init__(self, name, asn1_value):
 		assert(isinstance(name, str))
+		assert(name in self.KNOWN_TYPE_NAMES)
 		self._name = name
 		self._asn1_value = asn1_value
+		self._cached = None
 
 	@property
 	def name(self):
@@ -40,8 +45,16 @@ class ASN1GeneralNameWrapper():
 	@property
 	def directory_name(self):
 		assert(self.name == "directoryName")
-		dn = DistinguishedName.from_asn1(self.asn1_value)
-		return dn
+		if self._cached is None:
+			self._cached = DistinguishedName.from_asn1(self.asn1_value)
+		return self._cached
+
+	@property
+	def uri(self):
+		assert(self.name == "uniformResourceIdentifier")
+		if self._cached is None:
+			self._cached = urllib.parse.urlparse(self.str_value)
+		return self._cached
 
 	@property
 	def str_value(self):
@@ -77,3 +90,36 @@ class ASN1GeneralNameWrapper():
 
 	def __repr__(self):
 		return "%s = %s" % (self.name, self.str_value)
+
+class ASN1GeneralNamesWrapper():
+	def __init__(self, general_names):
+		self._names = general_names
+
+	def filter_by_type(self, typename):
+		assert(typename in ASN1GeneralNameWrapper.KNOWN_TYPE_NAMES)
+		return ASN1GeneralNamesWrapper([ general_name for general_name in self if (general_name.name == typename) ])
+
+	def get_contained_uri_scheme_set(self, ignore_case = True):
+		uri_schemes = set()
+		for general_name in self.filter_by_type("uniformResourceIdentifier"):
+			uri_scheme = general_name.uri.scheme
+			if ignore_case:
+				uri_scheme = uri_scheme.lower()
+			uri_schemes.add(uri_scheme)
+		return uri_schemes
+
+	@classmethod
+	def from_asn1(cls, general_names):
+		general_names = [ ]
+		for general_name_asn1 in general_names:
+			general_names.append(ASN1GeneralNameWrapper.from_asn1(general_name_asn1))
+		return cls(general_names)
+
+	def __iter__(self):
+		return iter(self._names)
+
+	def __len__(self):
+		return len(self._names)
+
+	def __repr__(self):
+		return "GeneralNames<%s>" % (", ".join(str(name) for name in self))
