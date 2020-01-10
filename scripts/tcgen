@@ -1,0 +1,53 @@
+#!/usr/bin/python3
+#	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
+#	Copyright (C) 2020-2020 Johannes Bauer
+#
+#	This file is part of x509sak.
+#
+#	x509sak is free software; you can redistribute it and/or modify
+#	it under the terms of the GNU General Public License as published by
+#	the Free Software Foundation; this program is ONLY licensed under
+#	version 3 of the License, later versions are explicitly excluded.
+#
+#	x509sak is distributed in the hope that it will be useful,
+#	but WITHOUT ANY WARRANTY; without even the implied warranty of
+#	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#	GNU General Public License for more details.
+#
+#	You should have received a copy of the GNU General Public License
+#	along with x509sak; if not, write to the Free Software
+#	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+#	Johannes Bauer <JohannesBauer@gmx.de>
+
+import sys
+import os
+from x509sak.FriendlyArgumentParser import FriendlyArgumentParser
+
+parser = FriendlyArgumentParser(description = "Generate testcase template.")
+parser.add_argument("filename", metavar = "filename", type = str, nargs = "+", help = "Filenames of PEM files to test")
+args = parser.parse_args(sys.argv[1:])
+
+def get_relname(filename):
+	filename = os.path.realpath(filename)
+	dirname = os.path.dirname(filename)
+	for i in range(10):
+		if os.path.isdir(dirname + "/constructed"):
+			break
+		dirname = dirname + "/.."
+	dirname = dirname + "/.."
+	dirname = os.path.realpath(dirname)
+
+	relname = filename[len(dirname) + 1: ]
+	tcname = os.path.splitext(os.path.basename(relname))[0]
+	return (relname, tcname)
+
+results = [ ]
+for filename in args.filename:
+	results.append(get_relname(filename))
+
+results.sort()
+for (relname, tcname) in results:
+	print("	def test_%s(self):" % (tcname))
+	print("		self._test_examine_x509test_resultcode(\"%s\", expect_present = \"\", expect_absent = \"\")" % (relname))
+	print()
