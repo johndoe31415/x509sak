@@ -37,7 +37,7 @@ class ParallelExecutor():
 		self._process_count = process_count
 		if self._process_count is None:
 			self._process_count = multiprocessing.cpu_count()
-		self._queue_size = queue_size or self._process_count
+		self._queue_size = queue_size or (2 * self._process_count)
 		self._work_queue = None
 		self._result_queue = None
 		self._mode = None
