@@ -1107,3 +1107,21 @@ class SecurityAnalyzerTests(BaseTest):
 
 	def test_crldp_reason_no_point_with_all(self):
 		self._test_examine_x509test_resultcode("certs/constructed/crldp_reason_no_point_with_all.pem", expect_present = [ "Cert_X509Ext_CRLDistributionPoints_NoPointWithAllReasonBits", "Cert_X509Ext_CRLDistributionPoints_Reason_SegmentationUsed" ])
+
+	def test_crldp_point_name_bad_dns(self):
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_name_bad_dns.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_PointName_BadDNSName")
+
+	def test_crldp_point_name_bad_dns_single_label(self):
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_name_bad_dns_single_label.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_PointName_BadDNSName_SingleLabel")
+
+	def test_crldp_point_name_bad_dns_space(self):
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_name_bad_dns_space.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_PointName_BadDNSName_Space")
+
+	def test_crldp_point_name_bad_email(self):
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_name_bad_email.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_PointName_BadEmail")
+
+	def test_crldp_point_name_bad_ip(self):
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_name_bad_ip.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_PointName_BadIP")
+
+	def test_crldp_point_name_bad_ip_private(self):
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_name_bad_ip_private.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_PointName_BadIP_Private")

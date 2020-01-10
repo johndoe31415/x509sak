@@ -592,7 +592,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 
 					if point.crl_issuer is not None:
 						for issuer_name in point.crl_issuer:
-							judgements += self._CRL_DISTRIBUTION_ISSUERt_NAME_VALIDATOR.validate(general_name)
+							judgements += self._CRL_DISTRIBUTION_POINT_ISSUER_VALIDATOR.validate(issuer_name)
 						if any(certificate.issuer == crl_issuer.directory_name for crl_issuer in point.crl_issuer.filter_by_type("directoryName")):
 							standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "MUST", text = "If the certificate issuer is also the CRL issuer, then conforming CAs MUST omit the cRLIssuer field and MUST include the distributionPoint field.")
 							judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_CRLIssuer_RedundantlyPresent, "CRL Distribution Points X.509 extension contains distribution point #%d which contains only the reasons field." % (pointno), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)

@@ -110,10 +110,10 @@ class ASN1GeneralNamesWrapper():
 
 	@classmethod
 	def from_asn1(cls, general_names):
-		general_names = [ ]
+		wrapped_general_names = [ ]
 		for general_name_asn1 in general_names:
-			general_names.append(ASN1GeneralNameWrapper.from_asn1(general_name_asn1))
-		return cls(general_names)
+			wrapped_general_names.append(ASN1GeneralNameWrapper.from_asn1(general_name_asn1))
+		return cls(wrapped_general_names)
 
 	def __iter__(self):
 		return iter(self._names)
