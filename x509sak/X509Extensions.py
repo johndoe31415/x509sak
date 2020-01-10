@@ -552,7 +552,7 @@ class X509CRLDistributionPointsExtension(X509Extension):
 		8:		"aACompromise",
 	}
 	_ALL_USED_REASONS = set(name for name in _KNOWN_REASON_BITS.values() if (name != "unused"))
-	_DistributionPoint = collections.namedtuple("DistributionPoint", [ "point_name", "reasons", "crl_issuer" ])
+	_DistributionPoint = collections.namedtuple("DistributionPoint", [ "point_name", "reasons", "reasons_trailing_zero", "crl_issuer" ])
 
 	@classmethod
 	def all_used_reasons(cls):
@@ -590,15 +590,17 @@ class X509CRLDistributionPointsExtension(X509Extension):
 					if value == 1:
 						value = self._KNOWN_REASON_BITS.get(bitno, bitno)
 						reasons.add(value)
+				reasons_trailing_zero = ASN1Tools.bitstring_has_trailing_zeros(asn1_point["reasons"])
 			else:
 				reasons = None
+				reasons_trailing_zero = False
 
 			if asn1_point["cRLIssuer"].hasValue():
 				crl_issuer = ASN1GeneralNamesWrapper.from_asn1(asn1_point["cRLIssuer"])
 			else:
 				crl_issuer = None
 
-			cdp = self._DistributionPoint(point_name = point_name, reasons = reasons, crl_issuer = crl_issuer)
+			cdp = self._DistributionPoint(point_name = point_name, reasons = reasons, reasons_trailing_zero = reasons_trailing_zero, crl_issuer = crl_issuer)
 			self._distribution_points.append(cdp)
 
 	def __repr__(self):

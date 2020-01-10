@@ -339,8 +339,6 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 			if certificate.is_ca_certificate:
 				standard = RFCReference(rfcno = 5280, sect = "4.2.1.3", verb = "MUST", text = "Conforming CAs MUST include this extension in certificates that contain public keys that are used to validate digital signatures on other public key certificates or CRLs.")
 				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_KeyUsage_Missing, "CA certificate must contain a KeyUsage X.509 extension, but it is missing.", commonness = Commonness.UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
-
-
 		return judgements
 
 	def _judge_extended_key_usage(self, certificate):
@@ -637,6 +635,9 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 						if len(undefined_bits) > 0:
 							standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "MUST", text = "ReasonFlags ::= BIT STRING {")
 							judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_Reason_UndefinedBitAsserted, "CRL Distribution Points X.509 extension contains distribution point #%d which asserts undefined bit(s) %s." % (pointno, ", ".join(str(bit) for bit in sorted(undefined_bits))), commonness = Commonness.UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+
+						if point.reasons_trailing_zero:
+							judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_Reason_TrailingBits, "CRL Distribution Points X.509 extension contains distribution point #%d which has traililng bit(s)." % (pointno), commonness = Commonness.UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 					else:
 						has_all_reasons = True
 
@@ -695,9 +696,12 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 				standard = RFCReference(rfcno = 6962, sect = "3.1", verb = "MUST", text = "The Precertificate is constructed from the certificate to be issued by adding a special critical poison extension")
 				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificateTransparencyPoison_InvalidPayload, "The Certificate Transparency Precertificate Poison X.509 extension is not marked as critical, turning it into an invalid precertificate.", commonness = Commonness.HIGHLY_UNUSUAL)
 
-			if poison_ext.asn1:
+			if poison_ext.asn1 is None:
 				standard = RFCReference(rfcno = 6962, sect = "3.1", verb = "MUST", text = "whose extnValue OCTET STRING contains ASN.1 NULL data (0x05 0x00))")
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificateTransparencyPoison_InvalidPayload, "The Certificate Transparency Precertificate Poison X.509 extension needs to contain an ASN.1 NULL value, but instead contains %s." % ("TODO"), commonness = Commonness.HIGHLY_UNUSUAL)
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificateTransparencyPoison_MalformedPayload, "The Certificate Transparency Precertificate Poison X.509 extension needs to contain an ASN.1 NULL value, but instead is not decodable.", commonness = Commonness.HIGHLY_UNUSUAL)
+			else:
+				standard = RFCReference(rfcno = 6962, sect = "3.1", verb = "MUST", text = "whose extnValue OCTET STRING contains ASN.1 NULL data (0x05 0x00))")
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificateTransparencyPoison_InvalidPayload, "The Certificate Transparency Precertificate Poison X.509 extension needs to contain an ASN.1 NULL value, but instead contains %s." % (type(poison_ext.asn1).__name__), commonness = Commonness.HIGHLY_UNUSUAL)
 
 		return judgements
 
