@@ -218,7 +218,7 @@ class JudgementCode(enum.Enum):
 	Cert_X509Ext_CRLDistributionPoints_PointName_PossiblyNoDERCRLServed = ("CRL Distribution Points extension", "distribution point name possibly serves no DER data")
 	Cert_X509Ext_CRLDistributionPoints_PointName_ContainsNoLDAPDN = ("CRL Distribution Points extension", "distribution point name contains no LDAP DN")
 	Cert_X509Ext_CRLDistributionPoints_PointName_ContainsNoLDAPAttrdesc = ("CRL Distribution Points extension", "distribution point name contains no LDAP attrdesc")
-	Cert_X509Ext_CRLDistributionPoints_PointName_PossiblyNoLDAPHostname = ("CRL Distribution Points extension", "distribution point name contains no LDAP hostname")
+	Cert_X509Ext_CRLDistributionPoints_PointName_ContainsNoLDAPHostname = ("CRL Distribution Points extension", "distribution point name contains no LDAP hostname")
 	Cert_X509Ext_CRLDistributionPoints_Reason_SegmentationUsed = ("CRL Distribution Points extension", "distribution point CRL seems to be segmented by reason")
 	Cert_X509Ext_CRLDistributionPoints_Reason_UnusedBitAsserted = ("CRL Distribution Points extension", "distribution point CRL reason has unused bit asserted")
 	Cert_X509Ext_CRLDistributionPoints_Reason_UndefinedBitAsserted = ("CRL Distribution Points extension", "distribution point CRL reason has undefined bit asserted")
