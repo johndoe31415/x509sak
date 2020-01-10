@@ -1,0 +1,77 @@
+#!/usr/bin/python3
+#	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
+#	Copyright (C) 2020-2020 Johannes Bauer
+#
+#	This file is part of x509sak.
+#
+#	x509sak is free software; you can redistribute it and/or modify
+#	it under the terms of the GNU General Public License as published by
+#	the Free Software Foundation; this program is ONLY licensed under
+#	version 3 of the License, later versions are explicitly excluded.
+#
+#	x509sak is distributed in the hope that it will be useful,
+#	but WITHOUT ANY WARRANTY; without even the implied warranty of
+#	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#	GNU General Public License for more details.
+#
+#	You should have received a copy of the GNU General Public License
+#	along with x509sak; if not, write to the Free Software
+#	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+#	Johannes Bauer <JohannesBauer@gmx.de>
+
+import sys
+from pyasn1.type.univ import BitString
+import pyasn1.codec.der.encoder
+import pyasn1.codec.der.decoder
+from x509sak.FriendlyArgumentParser import FriendlyArgumentParser
+
+def try_decode(string_input):
+	try:
+		hex_bitfield = bytes.fromhex(string_input)
+		(decoded, tail) = pyasn1.codec.der.decoder.decode(bytes([ 0x03, len(hex_bitfield) ]) + hex_bitfield)
+		bitstring = list(decoded)
+		return bitstring
+	except (ValueError, pyasn1.error.PyAsn1Error):
+		pass
+
+	try:
+		bits = set(int(x) for x in string_input.split(","))
+		length = max(bits) + 1
+		bitstring = [ 0 ] * length
+		for bit in bits:
+			bitstring[bit] = 1
+		return bitstring
+	except ValueError:
+		pass
+
+	raise Exception("Unable to decode '%s'." % (string_input))
+
+def format_bitstring(bitstring):
+	print(bitstring)
+
+def bitstring2bitlist(bitstring):
+	set_bits = set()
+	for (bitno, value) in enumerate(bitstring):
+		if value == 1:
+			set_bits.add(bitno)
+	return set_bits
+
+parser = FriendlyArgumentParser(description = "Encode or decode a ASN.1 DER bitfield.")
+parser.add_argument("-l", "--length", type = int, help = "Pad bitstring to this length")
+parser.add_argument("bitstring", metavar = "bitstring", type = str, help = "Hex string or comma-separated bitlist")
+args = parser.parse_args(sys.argv[1:])
+
+bitstring = try_decode(args.bitstring)
+if (args.length is not None) and (args.length > len(bitstring)):
+	padlen = args.length - len(bitstring)
+	bitstring += [ 0 ] * padlen
+asn1 = BitString(bitstring)
+der = pyasn1.codec.der.encoder.encode(asn1)
+
+print("Length                    : %d" % (len(bitstring)))
+print("Bitstring (original order): %s" % (str(bitstring)))
+print("Bitstring (human readable): %s" % (str(list(reversed(bitstring)))))
+print("Set bits                  : %s" % (", ".join(str(bit) for bit in bitstring2bitlist(bitstring))))
+print("ASN.1 DER                 : %s" % (der.hex()))
+print("ASN.1 DER inner           : %s" % (der[2:].hex()))
