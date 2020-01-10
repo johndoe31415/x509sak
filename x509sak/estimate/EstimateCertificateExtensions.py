@@ -636,7 +636,9 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 						undefined_bits = [ bitno for bitno in point.reasons if isinstance(bitno, int) ]
 						if len(undefined_bits) > 0:
 							standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "MUST", text = "ReasonFlags ::= BIT STRING {")
-							judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_Reason_UndefinedBitAsserted, "CRL Distribution Points X.509 extension contains distribution point #%d which asserts undefined bit(s) %s." % (", ".join(str(bit) for bit in sorted(undefined_bits))), commonness = Commonness.UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+							judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_Reason_UndefinedBitAsserted, "CRL Distribution Points X.509 extension contains distribution point #%d which asserts undefined bit(s) %s." % (pointno, ", ".join(str(bit) for bit in sorted(undefined_bits))), commonness = Commonness.UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+					else:
+						has_all_reasons = True
 
 				if not has_all_reasons:
 					standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "MUST", text = "When a conforming CA includes a cRLDistributionPoints extension in a certificate, it MUST include at least one DistributionPoint that points to a CRL that covers the certificate for all reasons.")

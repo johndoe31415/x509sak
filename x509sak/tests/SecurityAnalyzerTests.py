@@ -1083,3 +1083,21 @@ class SecurityAnalyzerTests(BaseTest):
 		# Same code point as subject unique ID, but different code path; test
 		# both paths for full coverage
 		self._test_examine_x509test_resultcode("certs/constructed/unique_id_issuer.pem", "Cert_UniqueID_NotAllowed")
+
+	def test_crl_distribution_points_point_empty(self):
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_empty.pem", expect_present = [ "Cert_X509Ext_CRLDistributionPoints_Point_Empty" ], expect_absent = [ "Cert_X509Ext_CRLDistributionPoints_Point_ContainsOnlyReasons", "Cert_X509Ext_CRLDistributionPoints_Point_NoLDAPOrHTTPURIPresent" ])
+
+	def test_crl_distribution_points_only_reasons(self):
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_only_reasons.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_Point_ContainsOnlyReasons")
+
+	def test_crl_distribution_points_point_nohttpldap(self):
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_nohttpldap.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_Point_NoLDAPOrHTTPURIPresent")
+
+	def test_crl_distribution_points_nopointwithallreasons(self):
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_nopointwithallreasons.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_NoPointWithAllReasonBits")
+
+	def test_crl_distribution_points_havepointwithallreasons(self):
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_havepointwithallreasons.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_Reason_UndefinedBitAsserted", expect_absent = "Cert_X509Ext_CRLDistributionPoints_NoPointWithAllReasonBits")
+
+	def test_crl_distribution_points_havepointwithnoreasonsfield(self):
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_havepointwithnoreasonsfield.pem", expect_absent = "Cert_X509Ext_CRLDistributionPoints_NoPointWithAllReasonBits")
