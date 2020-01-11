@@ -62,6 +62,15 @@ class RelativeDistinguishedName():
 		return cls(rdn_list)
 
 	@classmethod
+	def from_asn1(cls, asn1):
+		rdn_elements = [ ]
+		for attribute_type_and_value in asn1:
+			attribute_type_oid = OID.from_asn1(attribute_type_and_value[0])
+			attribute_value = bytes(attribute_type_and_value[1])
+			rdn_elements.append((attribute_type_oid, attribute_value))
+		return cls(rdn_elements)
+
+	@classmethod
 	def _decode_item(cls, oid, derdata):
 		try:
 			(decoded_attribute_value, tail) = pyasn1.codec.der.decoder.decode(derdata)
@@ -206,12 +215,8 @@ class DistinguishedName():
 
 		rdns = [ ]
 		for rdn in rdn_sequence:
-			rdn_elements = [ ]
-			for attribute_type_and_value in rdn:
-				attribute_type_oid = OID.from_asn1(attribute_type_and_value[0])
-				attribute_value = bytes(attribute_type_and_value[1])
-				rdn_elements.append((attribute_type_oid, attribute_value))
-			rdns.append(RelativeDistinguishedName(rdn_elements))
+			rdns.append(RelativeDistinguishedName.from_asn1(rdn))
+
 		dn = cls(rdns)
 		return dn
 

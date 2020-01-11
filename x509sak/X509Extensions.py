@@ -32,6 +32,8 @@ from x509sak.ASN1Wrapper import ASN1GeneralNameWrapper, ASN1GeneralNamesWrapper
 from x509sak.Tools import ASN1Tools, DebugTools
 from x509sak.OtherModels import SignedCertificateTimestampList
 from x509sak.tls.DataBuffer import DataBuffer
+from x509sak.Exceptions import InvalidInputException
+from x509sak.DistinguishedName import RelativeDistinguishedName
 
 class X509Extensions():
 	def __init__(self, extensions):
@@ -552,7 +554,7 @@ class X509CRLDistributionPointsExtension(X509Extension):
 		8:		"aACompromise",
 	}
 	_ALL_USED_REASONS = set(name for name in _KNOWN_REASON_BITS.values() if (name != "unused"))
-	_DistributionPoint = collections.namedtuple("DistributionPoint", [ "point_name", "reasons", "reasons_trailing_zero", "crl_issuer" ])
+	_DistributionPoint = collections.namedtuple("DistributionPoint", [ "point_name", "point_name_rdn_malformed", "reasons", "reasons_trailing_zero", "crl_issuer" ])
 
 	@classmethod
 	def all_used_reasons(cls):
@@ -573,6 +575,7 @@ class X509CRLDistributionPointsExtension(X509Extension):
 
 		self._distribution_points = [ ]
 		for asn1_point in self.asn1:
+			point_name_rdn_malformed = False
 			if asn1_point["distributionPoint"].hasValue():
 				point_name_asn1 = asn1_point["distributionPoint"].getComponent()
 				if asn1_point["distributionPoint"]["fullName"].hasValue():
@@ -580,7 +583,11 @@ class X509CRLDistributionPointsExtension(X509Extension):
 					point_name = ASN1GeneralNamesWrapper.from_asn1(point_name_asn1)
 				else:
 					# RelativeDistinguishedName
-					point_name = point_name_asn1
+					try:
+						point_name = RelativeDistinguishedName.from_asn1(point_name_asn1)
+					except InvalidInputException:
+						point_name = None
+						point_name_rdn_malformed = True
 			else:
 				point_name = None
 
@@ -600,7 +607,7 @@ class X509CRLDistributionPointsExtension(X509Extension):
 			else:
 				crl_issuer = None
 
-			cdp = self._DistributionPoint(point_name = point_name, reasons = reasons, reasons_trailing_zero = reasons_trailing_zero, crl_issuer = crl_issuer)
+			cdp = self._DistributionPoint(point_name = point_name, point_name_rdn_malformed = point_name_rdn_malformed, reasons = reasons, reasons_trailing_zero = reasons_trailing_zero, crl_issuer = crl_issuer)
 			self._distribution_points.append(cdp)
 
 	def __repr__(self):

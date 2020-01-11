@@ -97,11 +97,11 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 	})
 
 	_CRL_DISTRIBUTION_POINT_ISSUER_VALIDATOR = GeneralNameValidator(error_prefix_str = "X.509 CRL Distribution Points Extension (CRL issuer)", permissible_types = [ "directoryName" ], errors = {
-		"empty_value":					GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_CRLDistributionPoints_IssuerName_EmptyValue),
-		"email":						GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_CRLDistributionPoints_IssuerName_BadEmail, standard = RFCReference(rfcno = 822, sect = "6.1", verb = "MUST", text = "addr-spec = local-part \"@\" domain")),
-		"uri":							GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_CRLDistributionPoints_IssuerName_BadURI, standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "The name MUST NOT be a relative URI, and it MUST follow the URI syntax and encoding rules specified in [RFC3986]. The name MUST include both a scheme (e.g., \"http\" or \"ftp\") and a scheme-specific-part. URIs that include an authority ([RFC3986], Section 3.2) MUST include a fully qualified domain name or IP address as the host.")),
-		"uri_invalid_scheme":			GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_CRLDistributionPoints_IssuerName_UncommonURIScheme),
-		"invalid_type":					GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_CRLDistributionPoints_IssuerName_UncommonIdentifier),
+		"empty_value":					GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_CRLDistributionPoints_CRLIssuer_Name_EmptyValue),
+		"email":						GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_CRLDistributionPoints_CRLIssuer_Name_BadEmail, standard = RFCReference(rfcno = 822, sect = "6.1", verb = "MUST", text = "addr-spec = local-part \"@\" domain")),
+		"uri":							GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_CRLDistributionPoints_CRLIssuer_Name_BadURI, standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "The name MUST NOT be a relative URI, and it MUST follow the URI syntax and encoding rules specified in [RFC3986]. The name MUST include both a scheme (e.g., \"http\" or \"ftp\") and a scheme-specific-part. URIs that include an authority ([RFC3986], Section 3.2) MUST include a fully qualified domain name or IP address as the host.")),
+		"uri_invalid_scheme":			GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_CRLDistributionPoints_CRLIssuer_Name_UncommonURIScheme),
+		"invalid_type":					GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_CRLDistributionPoints_CRLIssuer_Name_UncommonIdentifier),
 	})
 
 	def _analyze_extension(self, extension):
@@ -624,32 +624,36 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 						else:
 							# DistributionPoint is a single RDN
 							standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "SHOULD", text = "Conforming CAs SHOULD NOT use nameRelativeToCRLIssuer to specify distribution point names.")
-							judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_PointName_Relative, "CRL Distribution Points X.509 extension contains distribution point #%d which points to the CRL using a RDN." % (pointno), commonness = Commonness.HIGHLY_UNUSUAL)
+							judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_PointName_RDN_Used, "CRL Distribution Points X.509 extension contains distribution point #%d which points to the CRL using a RDN." % (pointno), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 							if point.crl_issuer is not None:
 								crl_issuer_distinguished_names = point.crl_issuer.filter_by_type("directoryName")
 								if len(crl_issuer_distinguished_names) > 1:
 									standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "MUST", text = "The DistributionPointName MUST NOT use the nameRelativeToCRLIssuer alternative when cRLIssuer contains more than one distinguished name.")
-									judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_PointName_RelativeToMultipleDNs, "CRL Distribution Points X.509 extension contains distribution point #%d which points to the CRL using a RDN, but the DN it is relative to is ambiguous (%d different CRL issuer DNs given)." % (pointno, len(crl_issuer_distinguished_names)), commonness = Commonness.HIGHLY_UNUSUAL)
+									judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_PointName_RDN_Ambiguous, "CRL Distribution Points X.509 extension contains distribution point #%d which points to the CRL using a RDN, but the DN it is relative to is ambiguous (%d different CRL issuer DNs given)." % (pointno, len(crl_issuer_distinguished_names)), commonness = Commonness.HIGHLY_UNUSUAL)
+
+					elif point.point_name_rdn_malformed:
+						standard = RFCReference(rfcno = 5280, sect = "A.1", verb = "MUST", text = "RelativeDistinguishedName ::= SET SIZE (1..MAX) OF AttributeTypeAndValue")
+						judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_PointName_RDN_Malformed, "CRL Distribution Points X.509 extension contains distribution point #%d which points to the CRL using a malformed RDN." % (pointno), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 					if point.reasons is not None:
 						missing_reasons = set(cdp_ext.all_used_reasons()) - point.reasons
 						if len(missing_reasons) > 0:
 							standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "RECOMMEND", text = "This profile RECOMMENDS against segmenting CRLs by reason code.")
-							judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_Reason_SegmentationUsed, "CRL Distribution Points X.509 extension contains distribution point #%d which does not have CRLs for all possible reasons (%s are missing)." % (pointno, ", ".join(sorted(missing_reasons))), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+							judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_Reasons_SegmentationUsed, "CRL Distribution Points X.509 extension contains distribution point #%d which does not have CRLs for all possible reasons (%s are missing)." % (pointno, ", ".join(sorted(missing_reasons))), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 						else:
 							has_all_reasons = True
 
 						if "unused" in point.reasons:
-							judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_Reason_UnusedBitAsserted, "CRL Distribution Points X.509 extension contains distribution point #%d which asserts an unused bit for CRL reason.", commonness = Commonness.UNUSUAL)
+							judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_Reasons_UnusedBitAsserted, "CRL Distribution Points X.509 extension contains distribution point #%d which asserts an unused bit for CRL reason." % (pointno), commonness = Commonness.UNUSUAL)
 
 						undefined_bits = [ bitno for bitno in point.reasons if isinstance(bitno, int) ]
 						if len(undefined_bits) > 0:
 							standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "MUST", text = "ReasonFlags ::= BIT STRING {")
-							judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_Reason_UndefinedBitAsserted, "CRL Distribution Points X.509 extension contains distribution point #%d which asserts undefined bit(s) %s." % (pointno, ", ".join(str(bit) for bit in sorted(undefined_bits))), commonness = Commonness.UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+							judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_Reasons_UndefinedBitAsserted, "CRL Distribution Points X.509 extension contains distribution point #%d which asserts undefined bit(s) %s." % (pointno, ", ".join(str(bit) for bit in sorted(undefined_bits))), commonness = Commonness.UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 						if point.reasons_trailing_zero:
-							judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_Reason_TrailingBits, "CRL Distribution Points X.509 extension contains distribution point #%d which has traililng bit(s)." % (pointno), commonness = Commonness.UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+							judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_Reasons_TrailingBits, "CRL Distribution Points X.509 extension contains distribution point #%d which has traililng bit(s)." % (pointno), commonness = Commonness.UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 					else:
 						has_all_reasons = True
 

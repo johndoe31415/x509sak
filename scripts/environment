@@ -1,6 +1,11 @@
-SCRIPT_DIR=`readlink -f "${BASH_SOURCE}"`
-SCRIPT_DIR=`dirname "${SCRIPT_DIR}"`
-PATH="${PATH}:${SCRIPT_DIR}"
-PS1="(x5s) ${PS1}"
-export PATH PS1
-unset SCRIPT_DIR
+which pemedit >/dev/null 2>&1
+if [ "$?" != "0" ]; then
+	SCRIPT_DIR=`readlink -f "${BASH_SOURCE}"`
+	SCRIPT_DIR=`dirname "${SCRIPT_DIR}"`
+	PATH="${PATH}:${SCRIPT_DIR}:${SCRIPT_DIR}/.."
+	PS1="(x5s) ${PS1}"
+	export PATH PS1
+	unset SCRIPT_DIR
+else
+	echo "Not re-setting environment."
+fi

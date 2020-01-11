@@ -1091,22 +1091,22 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_no_http_ldap.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_Point_NoLDAPOrHTTPURIPresent")
 
 	def test_crldp_reason_unused_bit_set(self):
-		self._test_examine_x509test_resultcode("certs/constructed/crldp_reason_unused_bit_set.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_Reason_UnusedBitAsserted", expect_absent = "Cert_X509Ext_CRLDistributionPoints_Reason_UndefinedBitAsserted")
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_reason_unused_bit_set.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_Reasons_UnusedBitAsserted", expect_absent = "Cert_X509Ext_CRLDistributionPoints_Reasons_UndefinedBitAsserted")
 
 	def test_crldp_reason_undefined_bits_set(self):
-		self._test_examine_x509test_resultcode("certs/constructed/crldp_reason_undefined_bits_set.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_Reason_UndefinedBitAsserted", expect_absent = "Cert_X509Ext_CRLDistributionPoints_Reason_UnusedBitAsserted")
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_reason_undefined_bits_set.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_Reasons_UndefinedBitAsserted", expect_absent = "Cert_X509Ext_CRLDistributionPoints_Reasons_UnusedBitAsserted")
 
 	def test_crldp_reason_trailing_bits(self):
-		self._test_examine_x509test_resultcode("certs/constructed/crldp_reason_trailing_bits.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_Reason_TrailingBits")
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_reason_trailing_bits.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_Reasons_TrailingBits")
 
 	def test_crldp_reason_only_field(self):
 		self._test_examine_x509test_resultcode("certs/constructed/crldp_reason_only_field.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_Point_ContainsOnlyReasons")
 
 	def test_crldp_reason_not_present(self):
-		self._test_examine_x509test_resultcode("certs/constructed/crldp_reason_not_present.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_Reason_SegmentationUsed", expect_absent = "Cert_X509Ext_CRLDistributionPoints_NoPointWithAllReasonBits")
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_reason_not_present.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_Reasons_SegmentationUsed", expect_absent = "Cert_X509Ext_CRLDistributionPoints_NoPointWithAllReasonBits")
 
 	def test_crldp_reason_no_point_with_all(self):
-		self._test_examine_x509test_resultcode("certs/constructed/crldp_reason_no_point_with_all.pem", expect_present = [ "Cert_X509Ext_CRLDistributionPoints_NoPointWithAllReasonBits", "Cert_X509Ext_CRLDistributionPoints_Reason_SegmentationUsed" ])
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_reason_no_point_with_all.pem", expect_present = [ "Cert_X509Ext_CRLDistributionPoints_NoPointWithAllReasonBits", "Cert_X509Ext_CRLDistributionPoints_Reasons_SegmentationUsed" ])
 
 	def test_crldp_point_name_bad_dns(self):
 		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_name_bad_dns.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_PointName_BadDNSName")
@@ -1150,3 +1150,29 @@ class SecurityAnalyzerTests(BaseTest):
 	def test_crldp_point_invalid_ldap_dn3(self):
 		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_invalid_ldap_dn3.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_PointName_ContainsInvalidLDAPDN")
 
+	def test_crldp_point_valid_ldap_dn(self):
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_valid_ldap_dn.pem", expect_absent = "Cert_X509Ext_CRLDistributionPoints_PointName_ContainsInvalidLDAPDN")
+
+	def test_crldp_malformed(self):
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_malformed.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_Malformed")
+
+	def test_crldp_point_rdn_used(self):
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_rdn_used.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_PointName_RDN_Used")
+
+	def test_crldp_point_rdn_malformed(self):
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_rdn_malformed.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_PointName_RDN_Malformed")
+
+	def test_crldp_point_rdn_ambiguous(self):
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_rdn_ambiguous.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_PointName_RDN_Ambiguous")
+
+	def test_crldp_point_name_empty_value(self):
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_name_empty_value.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_PointName_EmptyValue")
+
+	def test_crldp_point_name_possibly_no_der_crl(self):
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_name_possibly_no_der_crl.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_PointName_PossiblyNoDERCRLServed")
+
+	def test_crldp_point_name_uncommon_identifier(self):
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_name_uncommon_identifier.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_PointName_UncommonIdentifier")
+
+	def test_crldp_point_name_uncommon_uri_scheme(self):
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_name_uncommon_uri_scheme.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_PointName_UncommonURIScheme")
