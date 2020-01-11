@@ -25,6 +25,7 @@ from x509sak.tests import BaseTest, ResourceFileLoader
 from x509sak.Tools import FileLockTools
 from x509sak.CertificateAnalyzer import CertificateAnalyzer
 from x509sak.X509Certificate import X509Certificate
+from x509sak.estimate.Judgement import JudgementCode
 
 class SecurityAnalyzerTests(BaseTest):
 	def _update_stats_file(self, certname, parent_certname, encountered_codes, checked_codes):
@@ -63,7 +64,7 @@ class SecurityAnalyzerTests(BaseTest):
 			expect_absent = (expect_absent, )
 
 		# Plausibilize we're not chasing non-existing judgement codes (those would always be absent)
-		self.assertTrue(JudgementCode.getattr(codename, None) is not None for codename in expect_absent)
+		self.assertTrue(all(getattr(JudgementCode, codename, None) is not None for codename in expect_absent))
 
 		if expect_parse_failure:
 			with self.assertRaises(UnexpectedFileContentException):
@@ -1194,3 +1195,24 @@ class SecurityAnalyzerTests(BaseTest):
 
 	def test_crldp_issuer_redundantly_present(self):
 		self._test_examine_x509test_resultcode("certs/constructed/crldp_issuer_redundantly_present.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_CRLIssuer_RedundantlyPresent")
+
+	def test_ct_poison_invalid_payload(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ct_poison_invalid_payload.pem", expect_present = "Cert_X509Ext_CertificateTransparencyPoison_InvalidPayload")
+
+	def test_ct_poison_malformed(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ct_poison_malformed.pem", expect_present = "Cert_X509Ext_CertificateTransparencyPoison_MalformedPayload")
+
+	def test_ct_poison_ok(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ct_poison_ok.pem", expect_absent = [ "Cert_X509Ext_CertificateTransparencyPoison_MalformedPayload", "Cert_X509Ext_CertificateTransparencyPoison_InvalidPayload" ])
+
+	def test_ct_poison_not_critical(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ct_poison_not_critical.pem", expect_present = "Cert_X509Ext_CertificateTransparencyPoison_NotCritical")
+
+	def test_ct_scts_malformed(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ct_scts_malformed.pem", expect_present = "Cert_X509Ext_CertificateTransparencySCTs_ASN1Malformed")
+
+	def test_ct_scts_ok(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ct_scts_ok.pem", expect_absent = [ "Cert_X509Ext_CertificateTransparencySCTs_ASN1Malformed", "Cert_X509Ext_CertificateTransparencySCTs_ContentMalformed" ])
+
+	def test_ct_scts_content_malformed(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ct_scts_content_malformed.pem", expect_present = "Cert_X509Ext_CertificateTransparencySCTs_ContentMalformed")

@@ -20,8 +20,9 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 import collections
-import pyasn1.type.base
 import urllib.parse
+import pyasn1.type.base
+import pyasn1.type.univ
 from x509sak.OID import OIDDB
 from x509sak.AlgorithmDB import HashFunctions
 from x509sak.X509Extensions import X509ExtendedKeyUsageExtension
@@ -710,14 +711,15 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 
 			if not poison_ext.critical:
 				standard = RFCReference(rfcno = 6962, sect = "3.1", verb = "MUST", text = "The Precertificate is constructed from the certificate to be issued by adding a special critical poison extension")
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificateTransparencyPoison_InvalidPayload, "The Certificate Transparency Precertificate Poison X.509 extension is not marked as critical, turning it into an invalid precertificate.", commonness = Commonness.HIGHLY_UNUSUAL)
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificateTransparencyPoison_NotCritical, "The Certificate Transparency Precertificate Poison X.509 extension is not marked as critical, turning it into an invalid precertificate.", commonness = Commonness.HIGHLY_UNUSUAL)
 
-			if poison_ext.asn1 is None:
+			if poison_ext.malformed:
 				standard = RFCReference(rfcno = 6962, sect = "3.1", verb = "MUST", text = "whose extnValue OCTET STRING contains ASN.1 NULL data (0x05 0x00))")
 				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificateTransparencyPoison_MalformedPayload, "The Certificate Transparency Precertificate Poison X.509 extension needs to contain an ASN.1 NULL value, but instead is not decodable.", commonness = Commonness.HIGHLY_UNUSUAL)
 			else:
-				standard = RFCReference(rfcno = 6962, sect = "3.1", verb = "MUST", text = "whose extnValue OCTET STRING contains ASN.1 NULL data (0x05 0x00))")
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificateTransparencyPoison_InvalidPayload, "The Certificate Transparency Precertificate Poison X.509 extension needs to contain an ASN.1 NULL value, but instead contains %s." % (type(poison_ext.asn1).__name__), commonness = Commonness.HIGHLY_UNUSUAL)
+				if not isinstance(poison_ext.asn1, pyasn1.type.univ.Null):
+					standard = RFCReference(rfcno = 6962, sect = "3.1", verb = "MUST", text = "whose extnValue OCTET STRING contains ASN.1 NULL data (0x05 0x00))")
+					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificateTransparencyPoison_InvalidPayload, "The Certificate Transparency Precertificate Poison X.509 extension needs to contain an ASN.1 NULL value, but instead contains %s." % (type(poison_ext.asn1).__name__), commonness = Commonness.HIGHLY_UNUSUAL)
 
 		return judgements
 

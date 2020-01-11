@@ -21,8 +21,8 @@
 
 import enum
 from x509sak.tests import BaseTest
-from x509sak.tls.Structure import Structure, instantiate_member as IM, IncompleteUnpackingException, UnexpectedFixedValueException
-from x509sak.tls.DataBuffer import DataBuffer, NotEnoughDataException
+from x509sak.tls.Structure import Structure, instantiate_member as IM, IncompleteUnpackingException, UnexpectedFixedValueException, DeserializationException
+from x509sak.tls.DataBuffer import DataBuffer
 from x509sak.Exceptions import ProgrammerErrorException, InvalidInputException
 
 class _FooEnum(enum.IntEnum):
@@ -83,7 +83,7 @@ class StructureTests(BaseTest):
 		# after unpacking, no halfways things.
 		db = DataBuffer.fromhex("00 aa ab cd 11 22")
 		db.offset = 1
-		with self.assertRaises(NotEnoughDataException):
+		with self.assertRaises(DeserializationException):
 			self._BASE_STRUCT.unpack(db)
 		self.assertEqual(db.offset, 1)
 

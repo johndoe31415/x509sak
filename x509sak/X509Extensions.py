@@ -32,6 +32,7 @@ from x509sak.ASN1Wrapper import ASN1GeneralNameWrapper, ASN1GeneralNamesWrapper
 from x509sak.Tools import ASN1Tools, DebugTools
 from x509sak.OtherModels import SignedCertificateTimestampList
 from x509sak.tls.DataBuffer import DataBuffer
+from x509sak.tls.Structure import DeserializationException
 from x509sak.Exceptions import InvalidInputException
 from x509sak.DistinguishedName import RelativeDistinguishedName
 
@@ -115,6 +116,7 @@ class X509ExtensionRegistry():
 class X509Extension():
 	_HANDLER_OID = None
 	_ASN1_MODEL = None
+	_ASN1_GENERIC_DECODE = False
 
 	def __init__(self, oid, critical, data):
 		assert(isinstance(oid, OID))
@@ -125,11 +127,12 @@ class X509Extension():
 		self._data = data
 		self._asn1 = None
 		self._not_decoded = data
-		if self._ASN1_MODEL is not None:
+		if (self._ASN1_MODEL is not None) or self._ASN1_GENERIC_DECODE:
+			spec = self._ASN1_MODEL() if (self._ASN1_MODEL is not None) else None
 			try:
-				(self._asn1, self._not_decoded) = pyasn1.codec.der.decoder.decode(self.data, asn1Spec = self._ASN1_MODEL())
+				(self._asn1, self._not_decoded) = pyasn1.codec.der.decoder.decode(self.data, asn1Spec = spec)
 			except pyasn1.error.PyAsn1Error as e:
-#				print("Couldn't parse ASN.1 extension: %s" % (str(e)))
+				#print("Couldn't parse ASN.1 extension: %s" % (str(e)))
 				pass
 		self._decode_hook()
 
@@ -647,3 +650,16 @@ class X509CertificateTransparencySCTsExtension(X509Extension):
 	def __repr__(self):
 		return "%s<%s>" % (self.__class__.__name__, str(self.payload))
 X509ExtensionRegistry.set_handler_class(X509CertificateTransparencySCTsExtension)
+
+
+class X509CertificateTransparencyPrecertificatePoisonExtension(X509Extension):
+	_HANDLER_OID = OIDDB.X509Extensions.inverse("CertificateTransparencyPrecertificatePoison")
+	_ASN1_GENERIC_DECODE = True
+
+	@property
+	def malformed(self):
+		return self.asn1 is None
+
+	def __repr__(self):
+		return "%s<%s>" % (self.__class__.__name__, "malformed" if self.malformed else "OK")
+X509ExtensionRegistry.set_handler_class(X509CertificateTransparencyPrecertificatePoisonExtension)

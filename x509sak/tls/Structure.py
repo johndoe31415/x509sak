@@ -31,6 +31,7 @@ class DeserializationException(StructureException): pass
 class InvalidInputTypeException(SerializationException): pass
 class NoPossibleSerializationException(SerializationException): pass
 
+class NoMoreDataToUnpackException(DeserializationException): pass
 class InfiniteUnpackingException(DeserializationException): pass
 class IncompleteUnpackingException(DeserializationException): pass
 class UnexpectedFixedValueException(DeserializationException): pass
@@ -47,8 +48,14 @@ class BaseStructureMember():
 	def pack(self, values):
 		raise NotImplementedError(self.__class__.__name__)
 
-	def unpack(self, databuffer):
+	def _unpack(self, databuffer):
 		raise NotImplementedError(self.__class__.__name__)
+
+	def unpack(self, databuffer):
+		try:
+			return self._unpack(databuffer)
+		except DataBufferException as e:
+			raise NoMoreDataToUnpackException(e)
 
 class StructureMemberFactory():
 	_REGISTERED = [ ]
@@ -111,7 +118,7 @@ class StructureElementFixed(StructureMemberFactoryElement):
 	def implicit_value(self):
 		return True
 
-	def unpack(self, databuffer):
+	def _unpack(self, databuffer):
 		data = databuffer.get(len(self._fixed_data))
 		if data != self._fixed_data:
 			raise UnexpectedFixedValueException("%s unpacking expected %s but got %s." % (str(self), self._fixed_data.hex(), data.hex()))
@@ -148,7 +155,7 @@ class StructureElementInteger(StructureMemberFactoryElement):
 	def implicit_value(self):
 		return self._fixed_value is not None
 
-	def unpack(self, databuffer):
+	def _unpack(self, databuffer):
 		data = databuffer.get(self._length_bytes)
 		value = int.from_bytes(data, byteorder = "big")
 		if self._enum_class is not None:
@@ -204,7 +211,7 @@ class StructureElementOpaque(StructureMemberFactoryElement):
 	def implicit_value(self):
 		return self._fixed_value is not None
 
-	def unpack(self, databuffer):
+	def _unpack(self, databuffer):
 		length = self._length_field.unpack(databuffer)
 		data = databuffer.get(length)
 		if (self._string_encoding is not None):
@@ -269,7 +276,7 @@ class StructureElementArray(StructureMemberFactoryElement):
 		else:
 			return "array[%d, %02x]" % (self._length, self._padbyte)
 
-	def unpack(self, databuffer):
+	def _unpack(self, databuffer):
 		return databuffer.get(self._length)
 
 	def pack(self, data):
@@ -329,7 +336,7 @@ class Structure(BaseStructureMember):
 				result_data += member.pack()
 		return bytes(result_data)
 
-	def unpack(self, databuffer):
+	def _unpack(self, databuffer):
 		result = { }
 		with databuffer.rewind_on_exception():
 			for member in self.members:
@@ -364,7 +371,7 @@ class VariableType(BaseStructureMember):
 		(inner_class, values) = type_value_tuple
 		return inner_class.pack(values)
 
-	def unpack(self, databuffer):
+	def _unpack(self, databuffer):
 		for possible_inner_class in self._possible_inner_classes:
 			try:
 				unpacking = possible_inner_class.unpack(databuffer)
