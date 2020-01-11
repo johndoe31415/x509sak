@@ -1172,8 +1172,11 @@ class SecurityAnalyzerTests(BaseTest):
 	def test_crldp_point_name_empty_value(self):
 		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_name_empty_value.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_PointName_EmptyValue")
 
-	def test_crldp_point_name_possibly_no_der_crl(self):
-		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_name_possibly_no_der_crl.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_PointName_PossiblyNoDERCRLServed")
+	def test_crldp_point_name_possibly_no_der_crl1(self):
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_name_possibly_no_der_crl1.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_PointName_PossiblyNoDERCRLServed")
+
+	def test_crldp_point_name_possibly_no_der_crl2(self):
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_name_possibly_no_der_crl2.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_PointName_PossiblyNoDERCRLServed")
 
 	def test_crldp_point_name_uncommon_identifier(self):
 		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_name_uncommon_identifier.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_PointName_UncommonIdentifier")
@@ -1237,3 +1240,7 @@ class SecurityAnalyzerTests(BaseTest):
 
 	def test_ct_scts_version2(self):
 		self._test_examine_x509test_resultcode("certs/constructed/ct_scts_version2.pem", expect_present = "Cert_X509Ext_CertificateTransparencySCTs_SCT_UnknownVersion")
+
+	def test_bc_pathlen_but_no_ku(self):
+		self._test_examine_x509test_resultcode("certs/constructed/bc_pathlen_but_no_ku.pem", expect_present = "Cert_X509Ext_BasicConstraints_PathLenWithoutKeyCertSign")
+
