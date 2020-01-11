@@ -269,16 +269,14 @@ class SecurityAnalyzerTests(BaseTest):
 	def test_examine_x509test_xf_ext_keysign_nonca(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-keysign-nonca.pem", "Cert_X509Ext_KeyUsage_SignCertNoCA")
 
-#	def test_examine_x509test_xf_ext_name_constraints_badip(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-name-constraints-badip.pem", "Cert_X509Ext_NameConstraints_BadIP")
-
 #	def test_examine_x509test_xf_ext_name_constraints_empty(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-name-constraints-empty.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-name-constraints-empty.pem")
-#
+#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-name-constraints-empty.pem", "Cert_X509Ext_NameConstraints_Empty")
+
+#	def test_examine_x509test_xf_ext_name_constraints_badip(self):
+#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-name-constraints-badip.pem", "Cert_X509Ext_NameConstraints_Subtree_Name_BadIP")
+
 #	def test_examine_x509test_xf_ext_name_constraints_minmax(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-name-constraints-minmax.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-name-constraints-minmax.pem")
+#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-name-constraints-minmax.pem", expect_present = [ "Cert_X509Ext_NameConstraints_Subtree_MinimumNotZero", "Cert_X509Ext_NameConstraints_Subtree_MaximumIsPresent" ])
 
 	def test_examine_x509test_xf_ext_name_constraints_nonca(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-name-constraints-nonca.pem", "Cert_X509Ext_NameConstraints_PresentButNotCA")
@@ -287,9 +285,8 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-name-constraints-noncrit.pem", "Cert_X509Ext_NameConstraints_PresentButNotCritical")
 
 #	def test_examine_x509test_xf_ext_name_constraints_regid(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-name-constraints-regid.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-name-constraints-regid.pem")
-#
+#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-name-constraints-regid.pem", "Cert_X509Ext_NameConstraints_Subtree_Name_RegisteredID")
+
 #	def test_examine_x509test_xf_ext_policy_constraint_empty(self):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-policy-constraint-empty.pem", "")
 #		self._test_examine_x509test_noparse("certs/x509test/xf-ext-policy-constraint-empty.pem")

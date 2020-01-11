@@ -314,6 +314,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 			if not certificate.is_ca_certificate:
 				standard = RFCReference(rfcno = 5280, sect = "4.2.1.10", verb = "MUST", text = "The name constraints extension, which MUST be used only in a CA certificate, indicates a name space within which all subject names in subsequent certificates in a certification path MUST be located.")
 				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_NameConstraints_PresentButNotCA, "NameConstraints X.509 extension present, but certificate is not a CA certificate.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+
 		return judgements
 
 
