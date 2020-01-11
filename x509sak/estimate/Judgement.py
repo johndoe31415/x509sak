@@ -122,6 +122,7 @@ class JudgementCode(enum.Enum):
 	Cert_X509Ext_AuthorityKeyIdentifier_CA_KeyIDMismatch = ("X.509 AuthorityKeyIdentifier", "key ID does not match CA SKI")
 	Cert_X509Ext_AuthorityKeyIdentifier_CA_SerialMismatch = ("X.509 AuthorityKeyIdentifier", "serial does not match CA serial")
 	Cert_X509Ext_SubjectKeyIdentifier_Missing = ("X.509 SubjectKeyIdentifier extension", "SKI extension missing")
+	Cert_X509Ext_SubjectKeyIdentifier_Critical = ("X.509 SubjectKeyIdentifier extension", "SKI extension marked critical")
 	Cert_X509Ext_SubjectKeyIdentifier_SHA1 = ("X.509 SubjectKeyIdentifier extension", "SKI matches SHA-1 hash of public key")
 	Cert_X509Ext_SubjectKeyIdentifier_OtherHash = ("X.509 SubjectKeyIdentifier extension", "SKI matches a hash of public key, but not SHA-1")
 	Cert_X509Ext_SubjectKeyIdentifier_Arbitrary = ("X.509 SubjectKeyIdentifier extension", "SKI does not appear to be hash of public key")

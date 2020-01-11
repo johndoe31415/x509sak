@@ -214,10 +214,19 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		return judgements
 
 	def _judge_subject_key_identifier(self, certificate):
+		judgements = SecurityJudgements()
 		ski = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("SubjectKeyIdentifier"))
 		if ski is None:
-			judgement = SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectKeyIdentifier_Missing, "SubjectKeyIdentifier extension is missing.", commonness = Commonness.UNUSUAL)
+			if not certificate.is_ca_certificate:
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectKeyIdentifier_Missing, "SubjectKeyIdentifier extension is missing.", commonness = Commonness.UNUSUAL)
+			else:
+				standard = RFCReference(rfcno = 5280, sect = "4.2.1.2", verb = "MUST", text = "To facilitate certification path construction, this extension MUST appear in all conforming CA certificates")
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectKeyIdentifier_Missing, "SubjectKeyIdentifier extension is missing, but required for compliant CA certificate.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 		else:
+			if ski.critical:
+				standard = RFCReference(rfcno = 5280, sect = "4.2.1.2", verb = "MUST", text = "Conforming CAs MUST mark this extension as non-critical.")
+				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectKeyIdentifier_Critical, "SubjectKeyIdentifier extension is marked as critical.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+
 			check_hashfncs = [ HashFunctions.sha1, HashFunctions.sha256, HashFunctions.sha224, HashFunctions.sha384, HashFunctions.sha512, HashFunctions.md5, HashFunctions.sha3_256, HashFunctions.sha3_384, HashFunctions.sha3_512 ]
 			tried_hashfncs = [ ]
 			cert_ski = ski.keyid
@@ -226,16 +235,20 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 					computed_ski = certificate.pubkey.keyid(hashfnc = hashfnc.name)
 					if cert_ski == computed_ski:
 						if hashfnc == HashFunctions.sha1:
-							judgement = SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectKeyIdentifier_SHA1, "SubjectKeyIdentifier present and matches SHA-1 of contained public key.", commonness = Commonness.COMMON)
+							judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectKeyIdentifier_SHA1, "SubjectKeyIdentifier present and matches SHA-1 of contained public key.", commonness = Commonness.COMMON)
 						else:
-							judgement = SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectKeyIdentifier_OtherHash, "SubjectKeyIdentifier present and matches %s of contained public key." % (hashfnc.value.pretty_name), commonness = Commonness.UNUSUAL)
+							judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectKeyIdentifier_OtherHash, "SubjectKeyIdentifier present and matches %s of contained public key." % (hashfnc.value.pretty_name), commonness = Commonness.UNUSUAL)
 						break
 					tried_hashfncs.append(hashfnc)
 				except ValueError:
 					pass
 			else:
-				judgement = SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectKeyIdentifier_Arbitrary, "SubjectKeyIdentifier key ID (%s) does not match any tested cryptographic hash function (%s) over the contained public key." % (ski.keyid.hex(), ", ".join(hashfnc.value.pretty_name for hashfnc in tried_hashfncs)), commonness = Commonness.HIGHLY_UNUSUAL)
-		return judgement
+				if not certificate.is_ca_certificate:
+					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectKeyIdentifier_Arbitrary, "SubjectKeyIdentifier key ID (%s) does not match any tested cryptographic hash function (%s) over the contained public key." % (ski.keyid.hex(), ", ".join(hashfnc.value.pretty_name for hashfnc in tried_hashfncs)), commonness = Commonness.HIGHLY_UNUSUAL)
+				else:
+					standard = RFCReference(rfcno = 5280, sect = "4.2.1.2", verb = "SHOULD", text = "For CA certificates, subject key identifiers SHOULD be derived from the public key or a method that generates unique values. ")
+					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectKeyIdentifier_Arbitrary, "SubjectKeyIdentifier key ID (%s) does not match any tested cryptographic hash function (%s) over the contained public key." % (ski.keyid.hex(), ", ".join(hashfnc.value.pretty_name for hashfnc in tried_hashfncs)), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+		return judgements
 
 	def _judge_authority_key_identifier(self, certificate, root_cert = None):
 		judgements = SecurityJudgements()

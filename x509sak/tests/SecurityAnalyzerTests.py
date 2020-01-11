@@ -63,9 +63,13 @@ class SecurityAnalyzerTests(BaseTest):
 		if not isinstance(expect_absent, (list, tuple)):
 			expect_absent = (expect_absent, )
 
-		# Plausibilize we're not chasing non-existing judgement codes
-		self.assertTrue(all(getattr(JudgementCode, codename, None) is not None for codename in expect_present))
-		self.assertTrue(all(getattr(JudgementCode, codename, None) is not None for codename in expect_absent))
+		# Plausibilize we're not chasing non-existing judgement codes -- don't
+		# check the empty string because we often use that for debugging and
+		# it's *obviously* wrong.
+		if expect_present != ("", ):
+			self.assertTrue(all(getattr(JudgementCode, codename, None) is not None for codename in expect_present))
+		if expect_absent != ("", ):
+			self.assertTrue(all(getattr(JudgementCode, codename, None) is not None for codename in expect_absent))
 
 		if expect_parse_failure:
 			with self.assertRaises(UnexpectedFileContentException):
@@ -329,15 +333,13 @@ class SecurityAnalyzerTests(BaseTest):
 #	def test_examine_x509test_xf_ext_subject_info_empty(self):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-subject-info-empty.pem", "")
 #		self._test_examine_x509test_noparse("certs/x509test/xf-ext-subject-info-empty.pem")
-#
-#	def test_examine_x509test_xf_ext_subject_keyid_ca_absent(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-subject-keyid-ca-absent.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-subject-keyid-ca-absent.pem")
-#
-#	def test_examine_x509test_xf_ext_subject_keyid_critical(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-subject-keyid-critical.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-subject-keyid-critical.pem")
-#
+
+	def test_examine_x509test_xf_ext_subject_keyid_ca_absent(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-subject-keyid-ca-absent.pem", "Cert_X509Ext_SubjectKeyIdentifier_Missing")
+
+	def test_examine_x509test_xf_ext_subject_keyid_critical(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-subject-keyid-critical.pem", "Cert_X509Ext_SubjectKeyIdentifier_Critical")
+
 	def test_examine_x509test_xf_gentime_fraction_secs(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-gentime-fraction-secs.pem", "Cert_Validity_Invalid_NotAfter_Encoding")
 
