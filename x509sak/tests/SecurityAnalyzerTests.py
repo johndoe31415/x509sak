@@ -63,7 +63,8 @@ class SecurityAnalyzerTests(BaseTest):
 		if not isinstance(expect_absent, (list, tuple)):
 			expect_absent = (expect_absent, )
 
-		# Plausibilize we're not chasing non-existing judgement codes (those would always be absent)
+		# Plausibilize we're not chasing non-existing judgement codes
+		self.assertTrue(all(getattr(JudgementCode, codename, None) is not None for codename in expect_present))
 		self.assertTrue(all(getattr(JudgementCode, codename, None) is not None for codename in expect_absent))
 
 		if expect_parse_failure:
@@ -1212,7 +1213,25 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/ct_scts_malformed.pem", expect_present = "Cert_X509Ext_CertificateTransparencySCTs_ASN1Malformed")
 
 	def test_ct_scts_ok(self):
-		self._test_examine_x509test_resultcode("certs/constructed/ct_scts_ok.pem", expect_absent = [ "Cert_X509Ext_CertificateTransparencySCTs_ASN1Malformed", "Cert_X509Ext_CertificateTransparencySCTs_ContentMalformed" ])
+		self._test_examine_x509test_resultcode("certs/constructed/ct_scts_ok.pem", expect_absent = [ "Cert_X509Ext_CertificateTransparencySCTs_SCT_InvalidSignatureFunction", "Cert_X509Ext_CertificateTransparencySCTs_SCT_InvalidHashFunction", "Cert_X509Ext_CertificateTransparencySCTs_ASN1Malformed", "Cert_X509Ext_CertificateTransparencySCTs_ContentMalformed" ])
 
 	def test_ct_scts_content_malformed(self):
 		self._test_examine_x509test_resultcode("certs/constructed/ct_scts_content_malformed.pem", expect_present = "Cert_X509Ext_CertificateTransparencySCTs_ContentMalformed")
+
+	def test_ct_scts_hash_sha384(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ct_scts_hash_sha384.pem", expect_present = "Cert_X509Ext_CertificateTransparencySCTs_SCT_InvalidHashFunction")
+
+	def test_ct_scts_sig_ed25519(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ct_scts_sig_ed25519.pem", expect_present = "Cert_X509Ext_CertificateTransparencySCTs_SCT_InvalidSignatureFunction")
+
+	def test_ct_scts_sig_rsa(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ct_scts_sig_rsa.pem", expect_absent = "Cert_X509Ext_CertificateTransparencySCTs_SCT_InvalidSignatureFunction")
+
+	def test_ct_scts_timestamp_early(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ct_scts_timestamp_early.pem", expect_present = "Cert_X509Ext_CertificateTransparencySCTs_SCT_ImplausibleTimestamp")
+
+	def test_ct_scts_timestamp_late(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ct_scts_timestamp_late.pem", expect_present = "Cert_X509Ext_CertificateTransparencySCTs_SCT_ImplausibleTimestamp")
+
+	def test_ct_scts_version2(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ct_scts_version2.pem", expect_present = "Cert_X509Ext_CertificateTransparencySCTs_SCT_UnknownVersion")

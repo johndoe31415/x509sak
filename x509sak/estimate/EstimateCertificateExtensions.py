@@ -667,18 +667,18 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		judgements = SecurityJudgements()
 		if not isinstance(sct["sct_version"], SCTVersion):
 			standard = RFCReference(rfcno = 6962, sect = "3.2", verb = "MUST", text = "enum { v1(0), (255) } Version;")
-			judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificateTransparencySCTs_SCT_UnknownVersion, "Certificate Transparency Signed Certificate Timestamp X.509 contains timestamp #%d with unknown version %d." % (timestamp_no, sct["sct_version"]), commonness = Commonness.UNUSUAL, comatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+			judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificateTransparencySCTs_SCT_UnknownVersion, "Certificate Transparency Signed Certificate Timestamp X.509 contains timestamp #%d with unknown version %d." % (timestamp_no, sct["sct_version"]), commonness = Commonness.UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 		if not (1262304000000 <= sct["timestamp"] <= 4102444799000):
 			judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificateTransparencySCTs_SCT_ImplausibleTimestamp, "Certificate Transparency Signed Certificate Timestamp X.509 contains implausible timestamp #%d that dates either before 2010 or after 2099 (time_t is %d)." % (timestamp_no, sct["timestamp"] // 1000), commonness = Commonness.UNUSUAL)
 
 		if sct["DigitalSignature"]["hash_algorithm"] not in (HashAlgorithm.sha256, ):
 			standard = RFCReference(rfcno = 6962, sect = "2.1.4", verb = "MUST", text = "A log MUST use either elliptic curve signatures using the NIST P-256 curve (Section D.1.2.3 of the Digital Signature Standard [DSS]) or RSA signatures (RSASSA-PKCS1-V1_5 with SHA-256")
-			judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificateTransparencySCTs_SCT_InvalidHashFunction, "Certificate Transparency Signed Certificate Timestamp X.509 contains timestamp #%d with disallowed hash algorithm %s." % (timestamp_no, str(sct["DigitalSignature"]["hash_algorithm"])), commonness = Commonness.UNUSUAL, comatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+			judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificateTransparencySCTs_SCT_InvalidHashFunction, "Certificate Transparency Signed Certificate Timestamp X.509 contains timestamp #%d with disallowed hash algorithm %s." % (timestamp_no, str(sct["DigitalSignature"]["hash_algorithm"])), commonness = Commonness.UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 		if sct["DigitalSignature"]["sig_algorithm"] not in (SignatureAlgorithm.ECDSA, SignatureAlgorithm.RSA):
 			standard = RFCReference(rfcno = 6962, sect = "2.1.4", verb = "MUST", text = "A log MUST use either elliptic curve signatures using the NIST P-256 curve (Section D.1.2.3 of the Digital Signature Standard [DSS]) or RSA signatures (RSASSA-PKCS1-V1_5 with SHA-256")
-			judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificateTransparencySCTs_SCT_InvalidSignatureFunction, "Certificate Transparency Signed Certificate Timestamp X.509 contains timestamp #%d with disallowed signature algorithm %s." % (timestamp_no, str(sct["DigitalSignature"]["hash_algorithm"])), commonness = Commonness.UNUSUAL, comatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+			judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificateTransparencySCTs_SCT_InvalidSignatureFunction, "Certificate Transparency Signed Certificate Timestamp X.509 contains timestamp #%d with disallowed signature algorithm %s." % (timestamp_no, str(sct["DigitalSignature"]["sig_algorithm"])), commonness = Commonness.UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 		return judgements
 
