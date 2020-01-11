@@ -23,6 +23,7 @@ import base64
 import pyasn1.codec.der.decoder
 from pyasn1_modules import rfc2459
 from x509sak.tests import BaseTest
+from x509sak.Exceptions import InvalidInputException
 from x509sak.DistinguishedName import RelativeDistinguishedName, DistinguishedName
 
 class DistinguishedNameTests(BaseTest):
@@ -84,3 +85,35 @@ class DistinguishedNameTests(BaseTest):
 		utf8dn = DistinguishedName.from_asn1(utf8)
 		bmpdn = DistinguishedName.from_asn1(bmp)
 		self.assertEqual(utf8dn, bmpdn)
+
+	def test_equality_rdn(self):
+		rdn1 = RelativeDistinguishedName.create("CN", "Foo", "O", "Bar")
+		rdn2 = RelativeDistinguishedName.create("O", "Bar", "CN", "Foo")
+		self.assertEqual(rdn1, rdn2)
+
+	def test_equality_dn(self):
+		dn1 = DistinguishedName([ RelativeDistinguishedName.create("CN", "Foo"), RelativeDistinguishedName.create("CN", "Bar") ])
+		dn2 = DistinguishedName([ RelativeDistinguishedName.create("CN", "Bar"), RelativeDistinguishedName.create("CN", "Foo") ])
+		dn3 = DistinguishedName([ RelativeDistinguishedName.create("CN", "Foo"), RelativeDistinguishedName.create("CN", "Bar") ])
+		self.assertNotEqual(dn1, dn2)
+		self.assertEqual(dn1, dn3)
+
+	def test_string_parse(self):
+		dn = DistinguishedName.from_rfc2253_str("cn=foo,ou=bar,o=koo")
+		self.assertEqual(dn, DistinguishedName([ RelativeDistinguishedName.create("CN", "foo"), RelativeDistinguishedName.create("OU", "bar"), RelativeDistinguishedName.create("O", "koo") ]))
+
+		dn = DistinguishedName.from_rfc2253_str("cn=foo,ou=bar,o=koo+ou=moo")
+		self.assertEqual(dn, DistinguishedName([ RelativeDistinguishedName.create("CN", "foo"), RelativeDistinguishedName.create("OU", "bar"), RelativeDistinguishedName.create("O", "koo", "OU", "moo") ]))
+
+		dn = DistinguishedName.from_rfc2253_str("")
+		self.assertEqual(dn, DistinguishedName([ ]))
+
+	def test_string_parse_fail(self):
+		with self.assertRaises(InvalidInputException):
+			dn = DistinguishedName.from_rfc2253_str("/")
+
+		with self.assertRaises(InvalidInputException):
+			dn = DistinguishedName.from_rfc2253_str("CN,OU=bar")
+
+		with self.assertRaises(InvalidInputException):
+			dn = DistinguishedName.from_rfc2253_str("MUH=KUH")

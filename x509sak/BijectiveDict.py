@@ -19,28 +19,36 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-import collections
+from x509sak.Exceptions import InvalidInternalDataException
+
+class BijectiveDictException(InvalidInternalDataException): pass
 
 class BijectiveDict():
-	def __init__(self, values):
-		self._dict = dict(values)
-		self._revdict = { value: key for (key, value) in self._dict.items() }
-		if len(self._dict) != len(self._revdict):
-			ctr = collections.Counter(self._dict.values())
-			dupes = [ element for (element, count) in ctr.items() if count > 1 ]
-			raise Exception("Dictionary not bijective: Duplicate values are %s." % (", ".join(dupes)))
+	def __init__(self, values, key_predicate = None, value_predicate = None):
+		self._key_predicate = key_predicate if (key_predicate is not None) else lambda key: key
+		self._value_predicate = value_predicate if (value_predicate is not None) else lambda value: value
+		self._lookup_dict = { self._key_predicate(key): value for (key, value) in values.items() }
+		self._lookup_revdict = { self._value_predicate(value): key for (key, value) in values.items() }
+		if len(values) != len(self._lookup_dict):
+			raise BijectiveDictException("Dictionary has duplicate keys after application of key predicate.")
 
-	def inverse(self, key):
-		return self._revdict[key]
+		if len(values) != len(self._lookup_revdict):
+			raise BijectiveDictException("Dictionary not bijective.")
+
+	def inverse(self, value):
+		value = self._value_predicate(value)
+		return self._lookup_revdict[value]
 
 	def get(self, key, surrogate = None):
-		return self._dict.get(key, surrogate)
+		key = self._key_predicate(key)
+		return self._lookup_dict.get(key, surrogate)
 
 	def __getitem__(self, key):
-		return self._dict[key]
+		key = self._key_predicate(key)
+		return self._lookup_dict[key]
 
 	def __len__(self):
-		return len(self._dict)
+		return len(self._lookup_dict)
 
 	def __iter__(self):
-		return iter(self._dict)
+		return iter(self._lookup_dict)

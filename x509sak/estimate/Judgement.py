@@ -217,6 +217,7 @@ class JudgementCode(enum.Enum):
 	Cert_X509Ext_CRLDistributionPoints_PointName_UncommonIdentifier = ("CRL Distribution Points extension", "distribution point name contains uncommon identifier")
 	Cert_X509Ext_CRLDistributionPoints_PointName_PossiblyNoDERCRLServed = ("CRL Distribution Points extension", "distribution point name possibly serves no DER data")
 	Cert_X509Ext_CRLDistributionPoints_PointName_ContainsNoLDAPDN = ("CRL Distribution Points extension", "distribution point name contains no LDAP DN")
+	Cert_X509Ext_CRLDistributionPoints_PointName_ContainsInvalidLDAPDN = ("CRL Distribution Points extension", "distribution point name contains invalid LDAP DN")
 	Cert_X509Ext_CRLDistributionPoints_PointName_ContainsNoLDAPAttrdesc = ("CRL Distribution Points extension", "distribution point name contains no LDAP attrdesc")
 	Cert_X509Ext_CRLDistributionPoints_PointName_ContainsNoLDAPHostname = ("CRL Distribution Points extension", "distribution point name contains no LDAP hostname")
 	Cert_X509Ext_CRLDistributionPoints_Reason_SegmentationUsed = ("CRL Distribution Points extension", "distribution point CRL seems to be segmented by reason")

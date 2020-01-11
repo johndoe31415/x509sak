@@ -21,6 +21,7 @@
 
 import collections
 import pyasn1.type.base
+import urllib.parse
 from x509sak.OID import OIDDB
 from x509sak.AlgorithmDB import HashFunctions
 from x509sak.X509Extensions import X509ExtendedKeyUsageExtension
@@ -31,6 +32,8 @@ from x509sak.estimate.GeneralNameValidator import GeneralNameValidator
 from x509sak.ASN1Wrapper import ASN1GeneralNamesWrapper
 from x509sak.OtherModels import SCTVersion
 from x509sak.tls.Enums import HashAlgorithm, SignatureAlgorithm
+from x509sak.DistinguishedName import DistinguishedName
+from x509sak.Exceptions import InvalidInputException
 
 @BaseEstimator.register
 class CrtExtensionsSecurityEstimator(BaseEstimator):
@@ -554,9 +557,18 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 					standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "MUST", text = "When the HTTP or FTP URI scheme is used, the URI MUST point to a single DER encoded CRL as specified in [RFC2585].")
 					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_PointName_PossiblyNoDERCRLServed, "CRL Distribution Points X.509 extension contains distribution point #%d (name #%d) which points to a HTTP or FTP URI of which the filetype indicates it could be a non-DER-encoded CRL. The endpoint could be serving non-DER data." % (pointno, nameno), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 			elif uri.scheme.lower() == "ldap":
-				if uri.path == "":
+				uri_path = uri.path.strip()
+				if uri_path.startswith("/"):
+					uri_path = uri_path[1:]
+
+				try:
+					parsed_dn = DistinguishedName.from_rfc2253_str(urllib.parse.unquote(uri_path))
+					if parsed_dn.rdn_count == 0:
+						standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "MUST", text = "When the LDAP URI scheme [RFC4516] is used, the URI MUST include a <dn> field containing the distinguished name of the entry holding the CRL")
+						judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_PointName_ContainsNoLDAPDN, "CRL Distribution Points X.509 extension contains distribution point #%d (name #%d) which points to an LDAP URI which does not contain a Distinguished Name." % (pointno, nameno), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+				except InvalidInputException:
 					standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "MUST", text = "When the LDAP URI scheme [RFC4516] is used, the URI MUST include a <dn> field containing the distinguished name of the entry holding the CRL")
-					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_PointName_ContainsNoLDAPDN, "CRL Distribution Points X.509 extension contains distribution point #%d (name #%d) which points to an LDAP URI which does not contain a Distinguished Name." % (pointno, nameno), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_PointName_ContainsInvalidLDAPDN, "CRL Distribution Points X.509 extension contains distribution point #%d (name #%d) which points to an LDAP URI which contain an unparsable Distinguished Name (\"%s\")." % (pointno, nameno, uri.path), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 				if uri.query == "":
 					standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "MUST", text = "When the LDAP URI scheme [RFC4516] is used, the URI MUST include a <dn> field containing the distinguished name of the entry holding the CRL, MUST include a single <attrdesc> that contains an appropriate attribute description for the attribute that holds the CRL [RFC4523]")

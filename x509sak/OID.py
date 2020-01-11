@@ -108,7 +108,7 @@ class OIDDB():
 	})
 
 	"""Relative Distinguished Name type component OIDs."""
-	RDNTypes = BijectiveDict({
+	RDNTypes = BijectiveDict(value_predicate = lambda name: name.lower(), values = {
 		OID.from_str("2.5.4.0"):					"objectClass",
 		OID.from_str("2.5.4.1"):					"aliasedEntryName",
 		OID.from_str("2.5.4.2"):					"knowledgeinformation",

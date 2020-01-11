@@ -27,6 +27,9 @@ import pyasn1.codec.der.decoder
 from pyasn1.type.char import UTF8String
 from x509sak.OID import OID, OIDDB
 from x509sak.Exceptions import InvalidInputException
+from x509sak.StringParser import StringParser
+
+_RFC2253_StringParser = StringParser(escape_chars = "\\+\"<>;,=")
 
 class RelativeDistinguishedName():
 	_RDNItem = collections.namedtuple("RDNItem", [ "oid", "derdata", "asn1", "decodable", "printable", "printable_value" ])
@@ -51,7 +54,10 @@ class RelativeDistinguishedName():
 		for (key, value) in zip(key_values[ : : 2], key_values[1 : : 2]):
 			assert(isinstance(key, str))
 			assert(isinstance(value, (str, bytes)))
-			oid = OIDDB.RDNTypes.inverse(key)
+			try:
+				oid = OIDDB.RDNTypes.inverse(key)
+			except KeyError:
+				raise InvalidInputException("Cannot create RDN with key '%s', cannot look up OID for it." % (key))
 			rdn_list.append((oid, encode(value)))
 		return cls(rdn_list)
 
@@ -93,6 +99,18 @@ class RelativeDistinguishedName():
 			if item.oid == oid:
 				return item
 		return None
+
+	@classmethod
+	def from_rfc2253_str(cls, string):
+		keyvalues = [ ]
+		for item in _RFC2253_StringParser.split(string, control_char = "+", reassemble = True):
+			keyvalue = _RFC2253_StringParser.split(item, control_char = "=", reassemble = True)
+			if len(keyvalue) != 2:
+				raise InvalidInputException("RDN string item has %d members, expected 2." % (len(keyvalue)))
+			(key, value) = keyvalue
+			keyvalues.append(key)
+			keyvalues.append(value)
+		return cls.create(*keyvalues)
 
 	@property
 	def rfc2253_str(self):
@@ -196,6 +214,13 @@ class DistinguishedName():
 			rdns.append(RelativeDistinguishedName(rdn_elements))
 		dn = cls(rdns)
 		return dn
+
+	@classmethod
+	def from_rfc2253_str(cls, string):
+		rdns = [ ]
+		for rdn_parsed in _RFC2253_StringParser.split(string, control_char = ",", reassemble = True):
+			rdns.append(RelativeDistinguishedName.from_rfc2253_str(rdn_parsed))
+		return cls(rdns)
 
 	@property
 	def rfc2253_str(self):

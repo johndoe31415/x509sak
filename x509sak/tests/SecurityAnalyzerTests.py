@@ -1125,3 +1125,28 @@ class SecurityAnalyzerTests(BaseTest):
 
 	def test_crldp_point_name_bad_ip_private(self):
 		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_name_bad_ip_private.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_PointName_BadIP_Private")
+
+	def test_crldp_point_name_bad_uri(self):
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_name_bad_uri.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_PointName_BadURI")
+
+	def test_crldp_point_name_bad_uri_ldap_no_attrspec(self):
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_name_bad_uri_ldap_no_attrspec.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_PointName_ContainsNoLDAPAttrdesc")
+
+	def test_crldp_point_name_bad_uri_ldap_no_dn1(self):
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_name_bad_uri_ldap_no_dn1.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_PointName_ContainsNoLDAPDN")
+
+	def test_crldp_point_name_bad_uri_ldap_no_dn2(self):
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_name_bad_uri_ldap_no_dn2.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_PointName_ContainsNoLDAPDN")
+
+	def test_crldp_point_name_bad_uri_ldap_no_host(self):
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_name_bad_uri_ldap_no_host.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_PointName_ContainsNoLDAPHostname")
+
+	def test_crldp_point_invalid_ldap_dn1(self):
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_invalid_ldap_dn1.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_PointName_ContainsInvalidLDAPDN")
+
+	def test_crldp_point_invalid_ldap_dn2(self):
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_invalid_ldap_dn2.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_PointName_ContainsInvalidLDAPDN")
+
+	def test_crldp_point_invalid_ldap_dn3(self):
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_invalid_ldap_dn3.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_PointName_ContainsInvalidLDAPDN")
+
