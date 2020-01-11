@@ -1176,3 +1176,21 @@ class SecurityAnalyzerTests(BaseTest):
 
 	def test_crldp_point_name_uncommon_uri_scheme(self):
 		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_name_uncommon_uri_scheme.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_PointName_UncommonURIScheme")
+
+	def test_crldp_issuer_name_bad_email(self):
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_issuer_name_bad_email.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_CRLIssuer_Name_BadEmail")
+
+	def test_crldp_issuer_name_bad_uri(self):
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_issuer_name_bad_uri.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_CRLIssuer_Name_BadURI")
+
+	def test_crldp_issuer_name_empty_value(self):
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_issuer_name_empty_value.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_CRLIssuer_Name_EmptyValue")
+
+	def test_crldp_issuer_name_uncommon_identifier(self):
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_issuer_name_uncommon_identifier.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_CRLIssuer_Name_UncommonIdentifier")
+
+	def test_crldp_issuer_name_uncommon_uri_scheme(self):
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_issuer_name_uncommon_uri_scheme.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_CRLIssuer_Name_UncommonURIScheme")
+
+	def test_crldp_issuer_redundantly_present(self):
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_issuer_redundantly_present.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_CRLIssuer_RedundantlyPresent")

@@ -96,7 +96,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		"invalid_type":					GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_CRLDistributionPoints_PointName_UncommonIdentifier),
 	})
 
-	_CRL_DISTRIBUTION_POINT_ISSUER_VALIDATOR = GeneralNameValidator(error_prefix_str = "X.509 CRL Distribution Points Extension (CRL issuer)", permissible_types = [ "directoryName" ], errors = {
+	_CRL_DISTRIBUTION_POINT_ISSUER_VALIDATOR = GeneralNameValidator(error_prefix_str = "X.509 CRL Distribution Points Extension (CRL issuer)", permissible_types = [ "directoryName" ], permissible_uri_schemes = [ "http", "https", "ftp", "ftps", "ldap" ], errors = {
 		"empty_value":					GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_CRLDistributionPoints_CRLIssuer_Name_EmptyValue),
 		"email":						GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_CRLDistributionPoints_CRLIssuer_Name_BadEmail, standard = RFCReference(rfcno = 822, sect = "6.1", verb = "MUST", text = "addr-spec = local-part \"@\" domain")),
 		"uri":							GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_CRLDistributionPoints_CRLIssuer_Name_BadURI, standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "The name MUST NOT be a relative URI, and it MUST follow the URI syntax and encoding rules specified in [RFC3986]. The name MUST include both a scheme (e.g., \"http\" or \"ftp\") and a scheme-specific-part. URIs that include an authority ([RFC3986], Section 3.2) MUST include a fully qualified domain name or IP address as the host.")),
