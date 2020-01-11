@@ -195,8 +195,13 @@ class TestStats(object):
 		with open(time_estimate_filename, "w") as f:
 			json.dump(time_estimates, f)
 
-	def dump(self):
-		for (count, (tcid, tcdetails)) in enumerate(sorted(self.failed_details())):
+	def dump(self, print_all = False):
+		if not print_all:
+			testcase_details = self.failed_details()
+		else:
+			testcase_details = self.all_details()
+
+		for (count, (tcid, tcdetails)) in enumerate(sorted(testcase_details)):
 			if count != 0:
 				print("-" * 120)
 			else:
@@ -279,7 +284,7 @@ class SelectiveTestRunner(object):
 				yield instanciated_testcase
 
 	def _add_testcase(self, testcase):
-		if self._args.verbose:
+		if self._args.verbose >= 2:
 			print("Testing: %s.%s" % (testcase.class_name, testcase.test_name))
 		self._suite.append(testcase)
 
@@ -410,7 +415,7 @@ if args.coverage > 0:
 import x509sak.tests
 testrunner = SelectiveTestRunner(args, x509sak.tests, failed_tests_file = ".tests_failed.json")
 results = testrunner.run()
-results.dump()
+results.dump(print_all = (args.verbose >= 1))
 if args.coverage > 0:
 	cov.stop()
 	cov.save()
