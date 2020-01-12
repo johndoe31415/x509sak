@@ -48,17 +48,17 @@ class RSASecurityEstimator(BaseEstimator):
 	@staticmethod
 	def analyze_e(e):
 		if e < 1:
-			return SecurityJudgement(JudgementCode.RSA_Exponent_Is_Zero_Or_Negative, "RSA exponent is zero or negative, this is a malicious key.", bits = 0)
+			return SecurityJudgement(ExperimentalJudgementCodes.Crypto_AsymCryptoSys_RSA_Exponent_Negative, "RSA exponent is zero or negative, this is a malicious key.", bits = 0)
 		elif e == 1:
-			return SecurityJudgement(JudgementCode.RSA_Exponent_Is_0x1, "RSA exponent is 1, this is a malicious key.", bits = 0)
+			return SecurityJudgement(ExperimentalJudgementCodes.Crypto_AsymCryptoSys_RSA_Exponent_One, "RSA exponent is 1, this is a malicious key.", bits = 0)
 		elif e in [ 3, 5, 7, 17, 257 ]:
-			return SecurityJudgement(JudgementCode.RSA_Exponent_Small, "RSA exponent is small, but fairly common.", verdict = Verdict.MEDIUM, commonness = Commonness.FAIRLY_COMMON)
+			return SecurityJudgement(ExperimentalJudgementCodes.Crypto_AsymCryptoSys_RSA_Exponent_Small, "RSA exponent is small, but fairly common.", verdict = Verdict.MEDIUM, commonness = Commonness.FAIRLY_COMMON)
 		elif e < 65537:
-			return SecurityJudgement(JudgementCode.RSA_Exponent_SmallUnusual, "RSA exponent is small and an uncommon choice.", verdict = Verdict.MEDIUM, commonness = Commonness.UNUSUAL)
+			return SecurityJudgement(ExperimentalJudgementCodes.Crypto_AsymCryptoSys_RSA_Exponent_SmallAndUncommon, "RSA exponent is small and an uncommon choice.", verdict = Verdict.MEDIUM, commonness = Commonness.UNUSUAL)
 		elif e == 65537:
-			return SecurityJudgement(JudgementCode.RSA_Exponent_Is_0x10001, "RSA exponent is the most common choice.", verdict = Verdict.BEST_IN_CLASS, commonness = Commonness.COMMON)
+			return SecurityJudgement(ExperimentalJudgementCodes.Crypto_AsymCryptoSys_RSA_Exponent_MostCommonValue, "RSA exponent is the most common choice.", verdict = Verdict.BEST_IN_CLASS, commonness = Commonness.COMMON)
 		else:
-			return SecurityJudgement(JudgementCode.RSA_Exponent_Large, "RSA exponent is uncommonly large. This need not be a weakness, but is highly unusual and may cause interoperability issues.", verdict = Verdict.BEST_IN_CLASS, commonness = Commonness.HIGHLY_UNUSUAL)
+			return SecurityJudgement(ExperimentalJudgementCodes.Crypto_AsymCryptoSys_RSA_Exponent_Large, "RSA exponent is uncommonly large. This need not be a weakness, but is highly unusual and may cause interoperability issues.", verdict = Verdict.BEST_IN_CLASS, commonness = Commonness.HIGHLY_UNUSUAL)
 
 	def analyze_n(self, n):
 		judgements = SecurityJudgements()

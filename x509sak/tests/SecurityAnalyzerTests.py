@@ -368,7 +368,7 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-pubkey-ecdsa-unknown-curve.pem", "ECC_UnknownNamedCurve")
 
 	def test_examine_x509test_xf_pubkey_rsa_exponent_negative(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-pubkey-rsa-exponent-negative.pem", "RSA_Exponent_Is_Zero_Or_Negative")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-pubkey-rsa-exponent-negative.pem", "Crypto_AsymCryptoSys_RSA_Exponent_Negative")
 
 	def test_examine_x509test_xf_pubkey_rsa_modulus_negative(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-pubkey-rsa-modulus-negative.pem", "Crypto_AsymCryptoSys_RSA_Modulus_Negative")
@@ -483,22 +483,22 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/rsa_modulus_compromised.pem", "Crypto_AsymCryptoSys_RSA_Modulus_FactorizationKnown")
 
 	def test_constructed_rsa_exponent0(self):
-		self._test_examine_x509test_resultcode("certs/constructed/rsa_exponent0.pem", "RSA_Exponent_Is_Zero_Or_Negative")
+		self._test_examine_x509test_resultcode("certs/constructed/rsa_exponent0.pem", "Crypto_AsymCryptoSys_RSA_Exponent_Negative")
 
 	def test_constructed_rsa_exponent1(self):
-		self._test_examine_x509test_resultcode("certs/constructed/rsa_exponent1.pem", "RSA_Exponent_Is_0x1")
+		self._test_examine_x509test_resultcode("certs/constructed/rsa_exponent1.pem", "Crypto_AsymCryptoSys_RSA_Exponent_One")
 
 	def test_constructed_rsa_exponent3(self):
-		self._test_examine_x509test_resultcode("certs/constructed/rsa_exponent3.pem", "RSA_Exponent_Small")
+		self._test_examine_x509test_resultcode("certs/constructed/rsa_exponent3.pem", "Crypto_AsymCryptoSys_RSA_Exponent_Small")
 
 	def test_constructed_rsa_exponent101(self):
-		self._test_examine_x509test_resultcode("certs/constructed/rsa_exponent101.pem", "RSA_Exponent_SmallUnusual")
+		self._test_examine_x509test_resultcode("certs/constructed/rsa_exponent101.pem", "Crypto_AsymCryptoSys_RSA_Exponent_SmallAndUncommon")
 
 	def test_constructed_rsa_exponent65537(self):
-		self._test_examine_x509test_resultcode("certs/constructed/rsa_exponent65537.pem", "RSA_Exponent_Is_0x10001")
+		self._test_examine_x509test_resultcode("certs/constructed/rsa_exponent65537.pem", "Crypto_AsymCryptoSys_RSA_Exponent_MostCommonValue")
 
 	def test_constructed_rsa_exponent_long(self):
-		self._test_examine_x509test_resultcode("certs/constructed/rsa_exponent_long.pem", "RSA_Exponent_Large")
+		self._test_examine_x509test_resultcode("certs/constructed/rsa_exponent_long.pem", "Crypto_AsymCryptoSys_RSA_Exponent_Large")
 
 	def test_constructed_rsa_parameter_missing(self):
 		self._test_examine_x509test_resultcode("certs/constructed/rsa_parameter_missing.pem", "RSA_Parameter_Field_Not_Present")

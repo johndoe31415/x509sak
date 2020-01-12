@@ -39,12 +39,27 @@
 			"_label": "AsymCryptoSys",
 			"RSA": {
 				"Exponent": {
-					"Zero or Negative": { },
-					"One": { },
-					"Small": { },
-					"Small and Uncommon": { },
-					"Most Common Value": { },
-					"Large": { }
+					"Negative": {
+						"_description": "exponent is negative"
+					},
+					"Zero": {
+						"_description": "exponent is 0"
+					},
+					"One": {
+						"_description": "exponent is 1"
+					},
+					"Small": {
+						"_description": "exponent is small"
+					},
+					"Small and Uncommon": {
+						"_description": "exponent is small and uncommon"
+					},
+					"Most Common Value": {
+						"_description": "exponent is most common value"
+					},
+					"Large": {
+						"_description": "exponent is atypically large"
+					}
 				},
 				"Modulus": {
 					"_import": "random_compound/*",
