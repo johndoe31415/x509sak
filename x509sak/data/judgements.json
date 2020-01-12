@@ -3,33 +3,23 @@
 		"_export": true,
 		"Random": {
 			"_short_id": "random_value",
-			"Bit Bias Present": {
-				"_description": "bit bias present"
-			}
+			"Bit Bias Present": { "_desc": "bit bias present" }
 		},
 		"Random Primes": {
 			"_short_id": "random_prime",
 			"_import": "random_value/*",
-			"Not Prime": {
-				"_description": "value is not prime"
-			}
+			"Not Prime": { "_desc": "value is not prime" }
 		},
 		"Random Non-primes": {
 			"_short_id": "random_nonprime",
 			"_import": "random_value/*",
-			"Prime": {
-				"_description": "value is prime"
-			}
+			"Prime": { "_desc": "value is prime"	}
 		},
 		"Random Unfactorable Compound": {
 			"_short_id": "random_compound",
 			"_import": "random_nonprime/*",
-			"Factorable": {
-				"_description": "compound value has small factor"
-			},
-			"Factorization Known": {
-				"_description": "compound value has publicly known factorization"
-			}
+			"Factorable": { "_desc": "compound value has small factor" },
+			"Factorization Known": { "_desc": "compound value has publicly known factorization" }
 		}
 	},
 
@@ -39,41 +29,21 @@
 			"_label": "AsymCryptoSys",
 			"RSA": {
 				"Exponent": {
-					"Negative": {
-						"_description": "exponent is negative"
-					},
-					"Zero": {
-						"_description": "exponent is 0"
-					},
-					"One": {
-						"_description": "exponent is 1"
-					},
-					"Small": {
-						"_description": "exponent is small"
-					},
-					"Small and Uncommon": {
-						"_description": "exponent is small and uncommon"
-					},
-					"Most Common Value": {
-						"_description": "exponent is most common value"
-					},
-					"Large": {
-						"_description": "exponent is atypically large"
-					}
+					"Negative": { "_desc": "exponent is negative" },
+					"Zero": { "_desc": "exponent is 0" },
+					"One": { "_desc": "exponent is 1" },
+					"Small": { "_desc": "exponent is small" },
+					"Small and Uncommon": { "_desc": "exponent is small and uncommon" },
+					"Most Common Value": { "_desc": "exponent is most common value" },
+					"Large": { "_desc": "exponent is atypically large" }
 				},
 				"Modulus": {
 					"_import": "random_compound/*",
-					"Negative": {
-						"_description": "modulus is negative"
-					},
-					"Zero": {
-						"_description": "modulus is zero"
-					},
-					"One": {
-						"_description": "modulus is 1"
-					},
+					"Negative": { "_desc": "modulus is negative" },
+					"Zero": { "_desc": "modulus is zero" },
+					"One": { "_desc": "modulus is 1"	},
 					"Length in Bits": {
-						"_description": "modulus length in bits",
+						"_desc": "modulus length in bits",
 						"_flags": [ "datapoint" ]
 					}
 				}
@@ -177,7 +147,7 @@
 						"_label": "AKI",
 						"CA name": {
 							"_import": "general_name_issues",
-							"Empty": { }
+							"Empty": { "_desc": "empty TODO" }
 						}
 					},
 					"Name Constraints": {
@@ -234,87 +204,63 @@
 			"Encoding Issues": {
 				"_short_id": "asn1_encoding_issues",
 				"Trailing Data": {
-					"_description": "trailing data present"
+					"_desc": "trailing data present"
 				},
 				"Malformed": {
-					"Undecodable": {
-						"_description": "no valid DER encoding"
-					},
-					"Non-DER Encoding": {
-						"_description": "decodable, but no valid DER"
-					},
-					"Unexpected Type": {
-						"_description": "decoding resulted in unexpected type"
-					}
+					"Undecodable": { "_desc": "no valid DER encoding" },
+					"Non-DER Encoding": { "_desc": "decodable, but no valid DER" },
+					"Unexpected Type": { "_desc": "decoding resulted in unexpected type" }
 				}
 			},
 			"Structures": {
 				"DateTime": {
 					"_short_id": "datetime_encoding_issues",
-					"Malformed": {
-						"_description": "Malformed encoding used"
-					},
-					"Invalid Type": {
-						"_description": "GeneralizedTime data type used for timestamp before year 2050"
-				   	}
+					"Malformed": { "_desc": "Malformed encoding used" },
+					"Invalid Type": { "_desc": "GeneralizedTime data type used for timestamp before year 2050" }
 				},
-				"PublicKey": {
-					"_import": "asn1_encoding_issues/*"
+				"RSA Public Key": {
+					"_import": "asn1_encoding_issues/*",
+					"Parameter field not present": { "_desc": "parameter field is not present" },
+					"Parameter field not NULL": { "_desc": "parameter field is not NULL" }
 				},
 				"ECDSA Signature": {
 					"_import": "asn1_encoding_issues/*"
 				},
 				"BitString": {
 					"_short_id": "bitstring_issues",
-					"Trailing Zeros": {
-					}
+					"Trailing Zeros": { "_desc": "BitString has trailing zeros" }
 				},
 				"GeneralName Validation": {
 					"_label": "GenName",
 					"_short_id": "general_name_issues",
 					"Email": {
-						"Malformed": {
-						}
+						"Unexpected": { "_desc": "unexpected data type" },
+						"Malformed": { "_desc": "email address is malformed" }
 					},
 					"IP Address": {
-						"Private Address Space": {
-						},
-						"Malformed": {
-						}
+						"Unexpected": { "_desc": "unexpected data type" },
+						"Private Address Space": { "_desc": "IP address falls in private address space" },
+						"Malformed": { "_desc": "IP address is malformed" }
 					},
 					"Directory Address": {
+						"Unexpected": { "_desc": "unexpected data type" }
 					},
 					"URI": {
-						"Malformed": {
-							"_description": "URI malformed"
-						},
-						"Uncommon URI Scheme": {
-							"_description": "uncommon URI scheme"
-						}
+						"Unexpected": { "_desc": "unexpected data type" },
+						"Malformed": { "_desc": "URI malformed" },
+						"Uncommon URI Scheme": { "_desc": "uncommon URI scheme" }
 					},
 					"Domain Name": {
-						"Only Whitespace": {
-							"_description": "domain name consists only of space character"
-						},
-						"Single Label": {
-							"_description": "domain name consists only of a single label"
-						},
+						"_label": "DNS",
+						"Unexpected": { "_desc": "unexpected data type" },
+						"Only Whitespace": { "_desc": "domain name consists only of space character"	},
+						"Single Label": { "_desc": "domain name consists only of a single label"	},
 						"Wildcard": {
-							"Not Permitted": {
-								"_description": "wildcard not permitted in domain name"
-							},
-							"Not Leftmost": {
-								"_description": "wildcard appears not leftmost in label"
-							},
-							"Mulitple Wildcards": {
-								"_description": "multiple wildcard present in label"
-							},
-							"International Label": {
-								"_description": "wildcard used in international label"
-							},
-							"Broad Match": {
-								"_description": "wildcard matches broadly"
-							}
+							"Not Permitted": { "_desc": "wildcard not permitted in domain name" },
+							"Not Leftmost": { "_desc": "wildcard appears not leftmost in label" },
+							"Mulitple Wildcards": { "_desc": "multiple wildcard present in label" },
+							"International Label": { "_desc": "wildcard used in international label" },
+							"Broad Match": { "_desc": "wildcard matches broadly" }
 						}
 					}
 				}
@@ -346,32 +292,29 @@
 				"_label": "Client Cert",
 				"Extended Key Usage Mismatch": {
 					"_label": "EKU Mismatch",
-					"_description": "extended key usage does not include clientAuth"
+					"_desc": "extended key usage does not include clientAuth"
 				}
 			},
 			"Server Certificate": {
 				"_label": "Server Cert",
 				"Extended Key Usage Mismatch": {
 					"_label": "EKU Mismatch",
-					"_description": "extended key usage does not include serverAuth"
+					"_desc": "extended key usage does not include serverAuth"
 				}
 			},
 			"CA Certificate": {
 				"_label": "CA Cert",
 				"Extended Key Usage Mismatch": {
 					"_label": "EKU Mismatch",
-					"_description": "extended key usage does not include TODO"
+					"_desc": "extended key usage does not include TODO"
 				}
 			}
 		},
 		"CA Relationship": {
 			"Validity Periods": {
-				"Full Overlap": {
-				},
-				"Partial Overlap": {
-				},
-				"Full Overlap": {
-				}
+				"Full Overlap": { "_desc": "full overlap in validity periods" },
+				"Partial Overlap": { "_desc": "partial overlap in validity periods" },
+				"No Overlap": { "_desc": "no overlap in validity periods" }
 			}
 		}
 	}

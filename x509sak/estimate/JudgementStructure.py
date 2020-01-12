@@ -45,7 +45,7 @@ class RichJudgementCode():
 
 	@classmethod
 	def from_node(cls, node):
-		return cls(code = node.long_id, description = node.attrs["description"])
+		return cls(code = node.long_id, description = node.attrs["desc"])
 
 	def __eq__(self, other):
 		return self.code == other.code
@@ -59,7 +59,7 @@ class RichJudgementCode():
 class StructureNode():
 	_LABEL_REGULAR_CHARS = set(string.ascii_lowercase + string.ascii_uppercase + string.digits)
 	_LABEL_UNDERSCORE_CHARS = set("/")
-	_ALLOWED_ATTRIBUTES = set([ "short_id", "long_id", "import", "export", "flags", "description", "label" ])
+	_ALLOWED_ATTRIBUTES = set([ "short_id", "long_id", "import", "export", "flags", "desc", "label" ])
 	_ALLOWED_FLAGS = set([ "datapoint" ])
 
 	def __init__(self, name, children = None, attributes = None):
@@ -254,7 +254,7 @@ class JudgementStructure():
 	def create_enum_class(self):
 		exported_nodes = { }
 		def visit(node):
-			if node.attrs.get("description") is not None:
+			if node.attrs.get("desc") is not None:
 				exported_nodes[node.long_id] = node
 		self._root.walk(visit)
 
