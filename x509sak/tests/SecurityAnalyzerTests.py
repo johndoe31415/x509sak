@@ -125,10 +125,10 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-der-pubkey-rsa-nonminimal-int.pem", "Cert_Pubkey_Invalid_DER")
 
 	def test_examine_x509test_xf_duplicate_extension(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-duplicate-extension.pem", "Cert_X509Ext_Duplicate")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-duplicate-extension.pem", "X509Cert_Body_X509Exts_DuplicatesPresent")
 
 	def test_examine_x509test_xf_duplicate_extension2(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-duplicate-extension2.pem", "Cert_X509Ext_Duplicate")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-duplicate-extension2.pem", "X509Cert_Body_X509Exts_DuplicatesPresent")
 
 	def test_examine_x509test_xf_ext_altname_blank_domain(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-blank-domain.pem", "Cert_X509Ext_SubjectAltName_BadDNSName_Space")
@@ -974,10 +974,10 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/certpol_unknown_qualifier_oid.pem", expect_present = "Cert_X509Ext_CertificatePolicies_UnknownQualifierOID")
 
 	def test_duplicate_extension_present(self):
-		self._test_examine_x509test_resultcode("certs/constructed/duplicate_extension.pem", expect_absent = "Cert_X509Ext_All_Unique")
+		self._test_examine_x509test_resultcode("certs/constructed/duplicate_extension.pem", expect_absent = "X509Cert_Body_X509Exts_AllUnique")
 
 	def test_no_duplicate_extension_present(self):
-		self._test_examine_x509test_resultcode("certs/ok/short.pem", expect_present = "Cert_X509Ext_All_Unique")
+		self._test_examine_x509test_resultcode("certs/ok/short.pem", expect_present = "X509Cert_Body_X509Exts_AllUnique")
 
 	def test_eku_no_client(self):
 		self._test_examine_x509test_resultcode("certs/constructed/eku_server.pem", expect_present = "Cert_Purpose_EKU_NoClientAuth", purpose = "tls-client")
@@ -1032,10 +1032,10 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/nsct_empty.pem", expect_present = "Cert_X509Ext_NetscapeCertType_Empty")
 
 	def test_ext_empty_sequence(self):
-		self._test_examine_x509test_resultcode("certs/constructed/ext_empty_sequence.pem", expect_present = "Cert_X509Ext_EmptySequence")
+		self._test_examine_x509test_resultcode("certs/constructed/ext_empty_sequence.pem", expect_present = "X509Cert_Body_X509Exts_EmptySequence")
 
 	def test_ext_not_present(self):
-		self._test_examine_x509test_resultcode("certs/constructed/ext_not_present.pem", expect_absent = "Cert_X509Ext_EmptySequence")
+		self._test_examine_x509test_resultcode("certs/constructed/ext_not_present.pem", expect_absent = "X509Cert_Body_X509Exts_EmptySequence")
 
 	def test_ca_relationship_signature_success(self):
 		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", parent_certname = "certs/ok/johannes-bauer-intermediate.pem", expect_present = [ "CA_Relationship_SubjectIssuerMatch", "CA_Relationship_SignatureVerificationSuccess" ])

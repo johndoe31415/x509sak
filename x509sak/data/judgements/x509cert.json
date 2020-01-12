@@ -58,8 +58,9 @@
 			},
 			"X.509 Extensions": {
 				"_label": "X509Exts",
-				"All Unique": { },
-				"Duplicates Present": { },
+				"All Unique": { "_desc": "all extensions unique" },
+				"Duplicates Present": { "_desc": "duplicate extensions present" },
+				"Empty Sequence": { "_desc": "extensions field is an empty sequence" },
 				"Known Extensions": {
 					"_label": "Ext",
 					"Basic Constraints": {
@@ -113,8 +114,8 @@
 				},
 				"Unknown Extension": {
 					"_label": "Unknown",
-					"Present": { },
-					"Critical": { }
+					"Present": { "_desc": "unkwown extension present" },
+					"Critical": { "_desc": "unknown extension marked critical" }
 				}
 			}
 		},

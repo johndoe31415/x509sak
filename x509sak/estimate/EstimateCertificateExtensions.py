@@ -129,7 +129,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 
 		if len(certificate.extensions) == 0:
 			if certificate.asn1["tbsCertificate"]["extensions"].hasValue():
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_EmptySequence, "X.509 extensions are not present, but \"extensions\" attribute is present and contains an empty ASN.1 SEQUENCE.", commonness = Commonness.UNUSUAL)
+				judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_EmptySequence, "X.509 extensions are not present, but \"extensions\" attribute is present and contains an empty ASN.1 SEQUENCE.", commonness = Commonness.UNUSUAL)
 
 		return judgements
 
@@ -180,11 +180,11 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		for extension in certificate.extensions:
 			if extension.oid in have_oids:
 				standard = RFCReference(rfcno = 5280, sect = "4.2", verb = "MUST", text = "A certificate MUST NOT include more than one instance of a particular extension.")
-				judgement = SecurityJudgement(JudgementCode.Cert_X509Ext_Duplicate, "X.509 extension %s (OID %s) is present at least twice." % (extension.name, str(extension.oid)), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+				judgement = SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_DuplicatesPresent, "X.509 extension %s (OID %s) is present at least twice." % (extension.name, str(extension.oid)), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 				break
 			have_oids.add(extension.oid)
 		else:
-			judgement = SecurityJudgement(JudgementCode.Cert_X509Ext_All_Unique, "All X.509 extensions are unique.", commonness = Commonness.COMMON)
+			judgement = SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_AllUnique, "All X.509 extensions are unique.", commonness = Commonness.COMMON)
 		return judgement
 
 	def _judge_basic_constraints(self, certificate):
