@@ -61,7 +61,7 @@ class ECCSecurityEstimator(BaseEstimator):
 		# Check that the encoded public key point is on curve first
 		Q = curve.point(pubkey.x, pubkey.y)
 		if not Q.on_curve():
-			judgements += SecurityJudgement(JudgementCode.ECC_Pubkey_Not_On_Curve, "Public key point Q is not on the underlying curve %s." % (pubkey.curve), bits = 0)
+			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_ECC_PublicKeyPoint_NotOnCurve, "Public key point Q is not on the underlying curve %s." % (pubkey.curve), bits = 0)
 
 		# Check that the encoded public key is not Gx
 		if Q.x == curve.Gx:
@@ -101,7 +101,7 @@ class ECCSecurityEstimator(BaseEstimator):
 			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_ECC_DomainParameters_CurveProperty_KoblitzCurve, "Prime field Koblitz curves might have more efficient attacks than non-Koblitz curves. In this case, attack performance improves roughly by a factor of ~%.1f." % (speedup), commonness = Commonness.UNUSUAL, literature = literature)
 
 		bits_security = math.floor(bits_security)
-		judgements += self.algorithm("bits").analyze(JudgementCode.ECC_Pubkey_CurveOrder, bits_security)
+		judgements += self.algorithm("bits").analyze(ExperimentalJudgementCodes.X509Cert_PublicKey_ECC_CurveOrderInBits, bits_security)
 
 		# Check if the affine X/Y coordinates of the public key are about the
 		# same length as the curve order. If randomly generated, both X and Y

@@ -48,6 +48,7 @@
 			"ECC": {
 				"_short_id": "ecc_crypto",
 				"Curve Order in Bits": {
+					"_desc": "curve order in bits",
 					"_flags": [ "datapoint" ]
 				},
 				"Domain Parameters": {
@@ -59,6 +60,8 @@
 				},
 				"Public Key Point": {
 					"Is Generator": { "_desc": "public key point is equal to the generator of the curve" },
+					"Not on Curve": { "_desc": "public key point is not on curve" },
+					"On Quadratic Twist": { "_desc": "public key point is on quadratic twist of curve" },
 					"X Coordinate": {
 						"_label": "X",
 						"_import": "random_value/*"

@@ -355,7 +355,7 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-issuer-mismatch1.pem", "CA_Relationship_SubjectIssuerMismatch", parent_certname = "certs/x509test/ok-ca.pem")
 
 	def test_examine_x509test_xf_pubkey_ecdsa_not_on_curve(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-pubkey-ecdsa-not-on-curve.pem", "ECC_Pubkey_Not_On_Curve")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-pubkey-ecdsa-not-on-curve.pem", "X509Cert_PublicKey_ECC_PublicKeyPoint_NotOnCurve")
 
 #	def test_examine_x509test_xf_pubkey_ecdsa_secp192r1(self):
 #		We omit this x509test check; it refers to RFC5480 Sect. 2.1.1.1 with
@@ -365,7 +365,7 @@ class SecurityAnalyzerTests(BaseTest):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-pubkey-ecdsa-secp192r1.pem", "")
 
 	def test_examine_x509test_xf_pubkey_ecdsa_unknown_curve(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-pubkey-ecdsa-unknown-curve.pem", "ECC_UnknownNamedCurve")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-pubkey-ecdsa-unknown-curve.pem", "X509Cert_PublicKey_ECC_DomainParameters_Name_UnkownName")
 
 	def test_examine_x509test_xf_pubkey_rsa_exponent_negative(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-pubkey-rsa-exponent-negative.pem", "X509Cert_PublicKey_RSA_Exponent_Negative")
@@ -424,9 +424,9 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/pubkey_ecc_G.pem", "X509Cert_PublicKey_ECC_PublicKeyPoint_IsGenerator")
 
 	def test_constructed_pubkey_ecc_curveorder(self):
-		self._test_examine_x509test_resultcode("certs/ok/ecc_secp256r1.pem", expect_present = "ECC_Pubkey_CurveOrder")
-		self._test_examine_x509test_resultcode("certs/ok/ecc_sect283k1.pem", expect_present = "ECC_Pubkey_CurveOrder")
-		self._test_examine_x509test_resultcode("certs/ok/rsa_512.pem", expect_absent = "ECC_Pubkey_CurveOrder")
+		self._test_examine_x509test_resultcode("certs/ok/ecc_secp256r1.pem", expect_present = "X509Cert_PublicKey_ECC_CurveOrderInBits")
+		self._test_examine_x509test_resultcode("certs/ok/ecc_sect283k1.pem", expect_present = "X509Cert_PublicKey_ECC_CurveOrderInBits")
+		self._test_examine_x509test_resultcode("certs/ok/rsa_512.pem", expect_absent = "X509Cert_PublicKey_ECC_CurveOrderInBits")
 
 	def test_constructed_pubkey_ecc_fp_non_koblitz(self):
 		self._test_examine_x509test_resultcode("certs/ok/ecc_secp256r1.pem", expect_absent = "X509Cert_PublicKey_ECC_DomainParameters_CurveProperty_KoblitzCurve")
