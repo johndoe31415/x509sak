@@ -1,0 +1,89 @@
+{
+	"Encoding": {
+		"_export": true,
+		"ASN.1 DER": {
+			"Encoding Issues": {
+				"_short_id": "asn1_encoding_issues",
+				"Trailing Data": {
+					"_desc": "trailing data present"
+				},
+				"Malformed": {
+					"Undecodable": { "_desc": "no valid DER encoding" },
+					"Non-DER Encoding": { "_desc": "decodable, but no valid DER" },
+					"Unexpected Type": { "_desc": "decoding resulted in unexpected type" }
+				}
+			},
+			"Structures": {
+				"Timestamp": {
+					"_short_id": "timestamp_encoding_issues",
+					"Malformed": { "_desc": "Malformed encoding used" },
+					"Invalid Type": { "_desc": "GeneralizedTime data type used for timestamp before year 2050" }
+				},
+				"RSA Public Key": {
+					"_short_id": "rsa_pubkey_encoding_issues",
+					"_import": "asn1_encoding_issues/*",
+					"Parameter field not present": { "_desc": "parameter field is not present" },
+					"RSA Encryption": {
+						"Parameter field not NULL": { "_desc": "parameter field is not NULL" }
+					},
+					"RSA/PSS": {
+						"_label": "RSAPSS",
+						"Invalid salt length": { "_desc": "invalid salt length specified" },
+						"Parameters": {
+							"_import": "asn1_encoding_issues/*"
+						}
+					}
+				},
+				"ECDSA Public Key": {
+					"_short_id": "ecdsa_pubkey_encoding_issues",
+					"_import": "asn1_encoding_issues/*"
+				},
+				"ECDSA Signature": {
+					"_short_id": "ecdsa_signature_encoding_issues",
+					"_import": "asn1_encoding_issues/*"
+				},
+				"BitString": {
+					"_short_id": "bitstring_issues",
+					"Trailing Zeros": { "_desc": "BitString has trailing zeros" }
+				},
+				"GeneralName Validation": {
+					"_label": "GenName",
+					"_short_id": "general_name_issues",
+					"Email": {
+						"Unexpected": { "_desc": "unexpected data type" },
+						"Malformed": { "_desc": "email address is malformed" }
+					},
+					"IP Address": {
+						"Unexpected": { "_desc": "unexpected data type" },
+						"Private Address Space": { "_desc": "IP address falls in private address space" },
+						"Malformed": { "_desc": "IP address is malformed" }
+					},
+					"Directory Address": {
+						"Unexpected": { "_desc": "unexpected data type" }
+					},
+					"URI": {
+						"Unexpected": { "_desc": "unexpected data type" },
+						"Malformed": { "_desc": "URI malformed" },
+						"Uncommon URI Scheme": { "_desc": "uncommon URI scheme" }
+					},
+					"Domain Name": {
+						"_label": "DNS",
+						"Unexpected": { "_desc": "unexpected data type" },
+						"Only Whitespace": { "_desc": "domain name consists only of space character"	},
+						"Single Label": { "_desc": "domain name consists only of a single label"	},
+						"Wildcard": {
+							"Not Permitted": { "_desc": "wildcard not permitted in domain name" },
+							"Not Leftmost": { "_desc": "wildcard appears not leftmost in label" },
+							"Mulitple Wildcards": { "_desc": "multiple wildcard present in label" },
+							"International Label": { "_desc": "wildcard used in international label" },
+							"Broad Match": { "_desc": "wildcard matches broadly" }
+						}
+					}
+				}
+			}
+		},
+		"RFC5246": {
+
+		}
+	}
+}

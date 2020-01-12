@@ -1,0 +1,25 @@
+{
+	"Number Theoretical": {
+		"_export": true,
+		"Random": {
+			"_short_id": "random_value",
+			"Bit Bias Present": { "_desc": "bit bias present" }
+		},
+		"Random Primes": {
+			"_short_id": "random_prime",
+			"_import": "random_value/*",
+			"Not Prime": { "_desc": "value is not prime" }
+		},
+		"Random Non-primes": {
+			"_short_id": "random_nonprime",
+			"_import": "random_value/*",
+			"Prime": { "_desc": "value is prime" }
+		},
+		"Random Unfactorable Compound": {
+			"_short_id": "random_compound",
+			"_import": "random_nonprime/*",
+			"Factorable": { "_desc": "compound value has small factor" },
+			"Factorization Known": { "_desc": "compound value has publicly known factorization" }
+		}
+	}
+}

@@ -231,23 +231,28 @@ class JudgementStructure():
 				target.append_children_of(source_clone)
 
 		def visit(node):
-			import_short_id = node.attrs.get("import")
-			if import_short_id is None:
+			import_short_ids = node.attrs.get("import")
+			if import_short_ids is None:
 				return
-			if import_short_id.endswith("/*"):
-				import_children = True
-				import_short_id = import_short_id[:-2]
-			else:
-				import_children = False
-			if import_short_id not in self._nodes_by_short_id:
-				raise Exception("Import of '%s' requested, but no node by that short ID found." % (import_short_id))
-			import_node = self._nodes_by_short_id[import_short_id]
 
-			# Recursively descent before importing, in case the import imports something of its own
-			visit(import_node)
+			if isinstance(import_short_ids, str):
+				import_short_ids = [ import_short_ids ]
 
-			# Then import
-			do_import(node, import_node, import_children = import_children)
+			for import_short_id in import_short_ids:
+				if import_short_id.endswith("/*"):
+					import_children = True
+					import_short_id = import_short_id[:-2]
+				else:
+					import_children = False
+				if import_short_id not in self._nodes_by_short_id:
+					raise Exception("Import of '%s' requested, but no node by that short ID found." % (import_short_id))
+				import_node = self._nodes_by_short_id[import_short_id]
+
+				# Recursively descent before importing, in case the import imports something of its own
+				visit(import_node)
+
+				# Then import
+				do_import(node, import_node, import_children = import_children)
 
 		self._root.walk(visit)
 
@@ -267,4 +272,3 @@ class JudgementStructure():
 		with open(filename) as f:
 			structure_data = json.load(f)
 		return cls(structure_data)
-

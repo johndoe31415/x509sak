@@ -1,0 +1,148 @@
+{
+	"X.509 Certificate": {
+		"_label": "X509Cert",
+		"Public Key": {
+			"RSA": {
+				"_import": [ "rsa_pubkey_encoding_issues/*", "rsa_algorithm/*" ]
+			},
+			"ECDSA": {
+				"_import": [ "ecdsa_pubkey_encoding_issues/*", "ecdsa_pubkey_encoding_issues/*" ]
+			}
+		},
+		"Metadata": {
+			"_label": "Body",
+			"Version": {
+				"Not 2": { "_desc": "certificate version is not v2" },
+				"Not 3": { "_desc": "certificate version is not v3" }
+			},
+			"Validity": {
+				"Not Before": {
+					"_import": "timestamp_encoding_issues/*"
+				},
+				"Not After": {
+					"_import": "timestamp_encoding_issues/*"
+				}
+			},
+			"Issuer": {
+			},
+			"Subject": {
+			},
+			"Serial Number": {
+				"Zero": { "_desc": "serial number is zero" },
+				"Negative": { "_desc": "serial number is negative" },
+				"Large": {  "_desc": "serial number is too large" }
+			},
+			"X.509 Extensions": {
+				"_label": "X509Exts",
+				"All Unique": { },
+				"Duplicates Present": { },
+				"Known Extensions": {
+					"_label": "Ext",
+					"Basic Constraints": {
+						"_label": "BC"
+					},
+					"Subject Key Identifier": {
+						"_label": "SKI"
+					},
+					"Authority Key Identifier": {
+						"_label": "AKI",
+						"CA name": {
+							"_import": "general_name_issues",
+							"Empty": { "_desc": "empty TODO" }
+						}
+					},
+					"Name Constraints": {
+						"_label": "NC"
+					},
+					"Key Usage": {
+						"_label": "KU"
+					},
+					"Extended Key Usage": {
+						"_label": "EKU",
+						"_import": "bitstring_issues/*"
+					},
+					"Issuer Alternative Name": {
+						"_label": "IAN"
+					},
+					"Subject Alternative Name": {
+						"_label": "SAN"
+					},
+					"Authority Information Access": {
+						"_label": "AIA"
+					},
+					"_import": "asn1_encoding_issues/*",
+					"Certificate Policies": {
+						"_label": "CP"
+					},
+					"Netscape Certificate Type": {
+						"_label": "NSCT"
+					},
+					"CRL Distribution Points": {
+						"_label": "CRLDP"
+					},
+					"Certificate Transparency Precertificate Poison": {
+						"_label": "CTPP"
+					},
+					"Certificate Transparency Signed Certificate Timestamps": {
+						"_label": "CTSCT"
+					}
+				},
+				"Unknown Extension": {
+					"_label": "Unknown",
+					"Present": { },
+					"Critical": { }
+				}
+			}
+		},
+		"Signature": {
+		}
+	},
+
+	"Usage Checks": {
+		"Extended Key Usage": {
+			"Excess Purpose Included": { },
+			"Required Purpose Missing": { },
+			"Extension Missing": { }
+		},
+		"Key Usage": {
+			"Excess Usage Bit Included": { },
+			"Required Usage Bit Missing": { },
+			"Extension Missing": { }
+		}
+	},
+
+	"Certificate Usage": {
+		"_label": "Cert Usage",
+		"Purposes": {
+			"_label": "Purpose",
+			"Client Certificate": {
+				"_label": "Client Cert",
+				"Extended Key Usage Mismatch": {
+					"_label": "EKU Mismatch",
+					"_desc": "extended key usage does not include clientAuth"
+				}
+			},
+			"Server Certificate": {
+				"_label": "Server Cert",
+				"Extended Key Usage Mismatch": {
+					"_label": "EKU Mismatch",
+					"_desc": "extended key usage does not include serverAuth"
+				}
+			},
+			"CA Certificate": {
+				"_label": "CA Cert",
+				"Extended Key Usage Mismatch": {
+					"_label": "EKU Mismatch",
+					"_desc": "extended key usage does not include TODO"
+				}
+			}
+		},
+		"CA Relationship": {
+			"Validity Periods": {
+				"Full Overlap": { "_desc": "full overlap in validity periods" },
+				"Partial Overlap": { "_desc": "partial overlap in validity periods" },
+				"No Overlap": { "_desc": "no overlap in validity periods" }
+			}
+		}
+	}
+}

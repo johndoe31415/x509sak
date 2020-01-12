@@ -1,0 +1,91 @@
+{
+	"Cryptography": {
+		"_export": true,
+		"Asymmetric Cryptosystem": {
+			"RSA": {
+				"_short_id": "rsa_crypto",
+				"Exponent": {
+					"Negative": { "_desc": "exponent is negative" },
+					"Zero": { "_desc": "exponent is 0" },
+					"One": { "_desc": "exponent is 1" },
+					"Small": { "_desc": "exponent is small" },
+					"Small and Uncommon": { "_desc": "exponent is small and uncommon" },
+					"Most Common Value": { "_desc": "exponent is most common value" },
+					"Large": { "_desc": "exponent is atypically large" }
+				},
+				"Modulus": {
+					"_import": "random_compound/*",
+					"Negative": { "_desc": "modulus is negative" },
+					"Zero": { "_desc": "modulus is zero" },
+					"One": { "_desc": "modulus is 1"	},
+					"Length in Bits": {
+						"_desc": "modulus length in bits",
+						"_flags": [ "datapoint" ]
+					}
+				}
+			},
+			"DSA": {
+				"P": {
+					"_import": "random_prime/*"
+				},
+				"Q": {
+					"_import": "random_prime/*",
+					"No Divisor Of P-1": { "_desc": "q does not divide (p - 1)" }
+				},
+				"G": {
+					"Invalid": { "_desc": "generator g does not fulfill g^q = 1 mod p" },
+					"Invalid Range": { "_desc": "generator g outside valid range" }
+				},
+				"L/N": {
+					"_flags": [ "datapoint" ],
+					"Uncommon": { "_desc": "parameter values L/N are uncommon" },
+					"Common": { "_desc": "parameter values L/N are common" }
+				}
+			},
+			"ECC": {
+				"Curve Order in Bits": {
+					"_flags": [ "datapoint" ]
+				},
+				"ECC F_p": {
+				},
+				"ECC F_2m": {
+				},
+				"ECC Twisted Edwards": {
+				}
+			}
+		},
+		"Algortihms": {
+			"Signature Algorithms": {
+				"RSA": {
+					"_short_id": "rsa_algorithm",
+					"RSA Encryption": {
+					},
+					"RSA/PSS": {
+						"No Salt Used": { "_desc": "short salt value used" },
+						"Short Salt Used": { "_desc": "short salt value used" },
+						"Multiple Hash Functions": { "_desc": "multiple hash functions used" },
+						"Unknown Trailer Field": { "_desc": "unknown trailer field specified" }
+					}
+				},
+				"DSA / ECDSA": {
+					"_short_id": "dsa_signature",
+					"R": {
+						"_import": "random_value/*"
+					},
+					"S": {
+						"_import": "random_value/*"
+					}
+				}
+			}
+		},
+		"Symmetric Cryptography": {
+			"Hash Function": {
+				"Digest Length in Bits": {
+					"_flags": [ "datapoint" ]
+				}
+			},
+			"Encryption Algorithm": {
+			}
+		}
+	}
+}
