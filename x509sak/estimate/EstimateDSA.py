@@ -50,11 +50,11 @@ class DSASecurityEstimator(BaseEstimator):
 
 		if not NumberTheory.is_probable_prime(pubkey.p):
 			standard = LiteratureReference(quote = "p: a prime modulus", sect = "4.1", author = "National Institute of Standards and Technology", title = "FIPS PUB 186-4: Digital Signature Standard (DSS)", year = 2013, month = 7, doi = "10.6028/NIST.FIPS.186-4")
-			judgements += SecurityJudgement(ExperimentalJudgementCodes.Crypto_AsymCryptoSys_DSA_P_NotPrime, "DSA parameter p is not prime.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, bits = 0, standard = standard)
+			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_DSA_Parameters_P_NotPrime, "DSA parameter p is not prime.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, bits = 0, standard = standard)
 
 		if not NumberTheory.is_probable_prime(pubkey.q):
 			standard = LiteratureReference(quote = "q: a prime divisor of (p - 1)", sect = "4.1", author = "National Institute of Standards and Technology", title = "FIPS PUB 186-4: Digital Signature Standard (DSS)", year = 2013, month = 7, doi = "10.6028/NIST.FIPS.186-4")
-			judgements += SecurityJudgement(ExperimentalJudgementCodes.Crypto_AsymCryptoSys_DSA_Q_NotPrime, "DSA parameter q is not prime.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, bits = 0, standard = standard)
+			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_DSA_Parameters_Q_NotPrime, "DSA parameter q is not prime.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, bits = 0, standard = standard)
 
 		if ((pubkey.p - 1) % pubkey.q) != 0:
 			standard = LiteratureReference(quote = "q: a prime divisor of (p - 1)", sect = "4.1", author = "National Institute of Standards and Technology", title = "FIPS PUB 186-4: Digital Signature Standard (DSS)", year = 2013, month = 7, doi = "10.6028/NIST.FIPS.186-4")
@@ -69,11 +69,11 @@ class DSASecurityEstimator(BaseEstimator):
 
 		hweight_analysis = NumberTheory.hamming_weight_analysis(pubkey.p)
 		if not hweight_analysis.plausibly_random:
-			judgements += SecurityJudgement(ExperimentalJudgementCodes.Crypto_AsymCryptoSys_DSA_P_BitBiasPresent, "Hamming weight of DSA prime p is %d at bitlength %d, but expected a weight between %d and %d when randomly chosen; this is likely not coincidential." % (hweight_analysis.hweight, hweight_analysis.bitlen, hweight_analysis.rnd_min_hweight, hweight_analysis.rnd_max_hweight), commonness = Commonness.HIGHLY_UNUSUAL)
+			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_DSA_Parameters_P_BitBiasPresent, "Hamming weight of DSA prime p is %d at bitlength %d, but expected a weight between %d and %d when randomly chosen; this is likely not coincidential." % (hweight_analysis.hweight, hweight_analysis.bitlen, hweight_analysis.rnd_min_hweight, hweight_analysis.rnd_max_hweight), commonness = Commonness.HIGHLY_UNUSUAL)
 
 		hweight_analysis = NumberTheory.hamming_weight_analysis(pubkey.q)
 		if not hweight_analysis.plausibly_random:
-			judgements += SecurityJudgement(ExperimentalJudgementCodes.Crypto_AsymCryptoSys_DSA_Q_BitBiasPresent, "Hamming weight of DSA prime q is %d at bitlength %d, but expected a weight between %d and %d when randomly chosen; this is likely not coincidential." % (hweight_analysis.hweight, hweight_analysis.bitlen, hweight_analysis.rnd_min_hweight, hweight_analysis.rnd_max_hweight), commonness = Commonness.HIGHLY_UNUSUAL)
+			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_DSA_Parameters_Q_BitBiasPresent, "Hamming weight of DSA prime q is %d at bitlength %d, but expected a weight between %d and %d when randomly chosen; this is likely not coincidential." % (hweight_analysis.hweight, hweight_analysis.bitlen, hweight_analysis.rnd_min_hweight, hweight_analysis.rnd_max_hweight), commonness = Commonness.HIGHLY_UNUSUAL)
 
 		if (L in self._TYPICAL_L_N_VALUES) and (N in self._TYPICAL_L_N_VALUES[L]):
 			# Typical

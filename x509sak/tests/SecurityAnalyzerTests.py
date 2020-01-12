@@ -471,7 +471,7 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", "Cert_SAN_NoMatch", expect_absent = "Cert_SAN_Match", host_check = "wwwQjohannes-bauer.com")
 
 	def test_constructed_rsa_bitbias(self):
-		self._test_examine_x509test_resultcode("certs/constructed/rsa_bitbias.pem", "Crypto_AsymCryptoSys_RSA_Modulus_BitBiasPresent")
+		self._test_examine_x509test_resultcode("certs/constructed/rsa_bitbias.pem", "X509Cert_PublicKey_RSA_Modulus_BitBiasPresent")
 
 	def test_constructed_rsa_modulus_prime(self):
 		self._test_examine_x509test_resultcode("certs/constructed/rsa_modulus_prime.pem", "X509Cert_PublicKey_RSA_Modulus_Prime", fast_rsa = False)
@@ -486,13 +486,13 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/rsa_exponent0.pem", "X509Cert_PublicKey_RSA_Exponent_Negative")
 
 	def test_constructed_rsa_exponent1(self):
-		self._test_examine_x509test_resultcode("certs/constructed/rsa_exponent1.pem", "Crypto_AsymCryptoSys_RSA_Exponent_One")
+		self._test_examine_x509test_resultcode("certs/constructed/rsa_exponent1.pem", "X509Cert_PublicKey_RSA_Exponent_One")
 
 	def test_constructed_rsa_exponent3(self):
-		self._test_examine_x509test_resultcode("certs/constructed/rsa_exponent3.pem", "Crypto_AsymCryptoSys_RSA_Exponent_Small")
+		self._test_examine_x509test_resultcode("certs/constructed/rsa_exponent3.pem", "X509Cert_PublicKey_RSA_Exponent_Small")
 
 	def test_constructed_rsa_exponent101(self):
-		self._test_examine_x509test_resultcode("certs/constructed/rsa_exponent101.pem", "Crypto_AsymCryptoSys_RSA_Exponent_SmallAndUncommon")
+		self._test_examine_x509test_resultcode("certs/constructed/rsa_exponent101.pem", "X509Cert_PublicKey_RSA_Exponent_SmallAndUncommon")
 
 	def test_constructed_rsa_exponent65537(self):
 		self._test_examine_x509test_resultcode("certs/constructed/rsa_exponent65537.pem", "X509Cert_PublicKey_RSA_Exponent_MostCommonValue")
@@ -716,16 +716,16 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/mismatch_header_footer_sigparams.pem", expect_present = "Cert_Signature_Algorithm_Mismatch")
 
 	def test_dsa_p_not_prime(self):
-		self._test_examine_x509test_resultcode("certs/constructed/dsa_p_not_prime.pem", expect_present = "Crypto_AsymCryptoSys_DSA_P_NotPrime")
+		self._test_examine_x509test_resultcode("certs/constructed/dsa_p_not_prime.pem", expect_present = "X509Cert_PublicKey_DSA_Parameters_P_NotPrime")
 
 	def test_dsa_q_not_prime(self):
-		self._test_examine_x509test_resultcode("certs/constructed/dsa_q_not_prime.pem", expect_present = "Crypto_AsymCryptoSys_DSA_Q_NotPrime")
+		self._test_examine_x509test_resultcode("certs/constructed/dsa_q_not_prime.pem", expect_present = "X509Cert_PublicKey_DSA_Parameters_Q_NotPrime")
 
 	def test_dsa_p_bitbias(self):
-		self._test_examine_x509test_resultcode("certs/constructed/dsa_p_bitbias.pem", expect_present = "Crypto_AsymCryptoSys_DSA_P_BitBiasPresent", expect_absent = "Crypto_AsymCryptoSys_DSA_Q_BitBiasPresent")
+		self._test_examine_x509test_resultcode("certs/constructed/dsa_p_bitbias.pem", expect_present = "X509Cert_PublicKey_DSA_Parameters_P_BitBiasPresent", expect_absent = "X509Cert_PublicKey_DSA_Parameters_Q_BitBiasPresent")
 
 	def test_dsa_q_bitbias(self):
-		self._test_examine_x509test_resultcode("certs/constructed/dsa_q_bitbias.pem", expect_present = "Crypto_AsymCryptoSys_DSA_Q_BitBiasPresent", expect_absent = "Crypto_AsymCryptoSys_DSA_P_BitBiasPresent")
+		self._test_examine_x509test_resultcode("certs/constructed/dsa_q_bitbias.pem", expect_present = "X509Cert_PublicKey_DSA_Parameters_Q_BitBiasPresent", expect_absent = "X509Cert_PublicKey_DSA_Parameters_P_BitBiasPresent")
 
 	def test_dsa_r_bitbias(self):
 		# Need the CA for this test, since the signature can only be checked

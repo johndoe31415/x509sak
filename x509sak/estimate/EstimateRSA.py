@@ -50,11 +50,11 @@ class RSASecurityEstimator(BaseEstimator):
 		if e < 1:
 			return SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_RSA_Exponent_Negative, "RSA exponent is zero or negative, this is a malicious key.", bits = 0)
 		elif e == 1:
-			return SecurityJudgement(ExperimentalJudgementCodes.Crypto_AsymCryptoSys_RSA_Exponent_One, "RSA exponent is 1, this is a malicious key.", bits = 0)
+			return SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_RSA_Exponent_One, "RSA exponent is 1, this is a malicious key.", bits = 0)
 		elif e in [ 3, 5, 7, 17, 257 ]:
-			return SecurityJudgement(ExperimentalJudgementCodes.Crypto_AsymCryptoSys_RSA_Exponent_Small, "RSA exponent is small, but fairly common.", verdict = Verdict.MEDIUM, commonness = Commonness.FAIRLY_COMMON)
+			return SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_RSA_Exponent_Small, "RSA exponent is small, but fairly common.", verdict = Verdict.MEDIUM, commonness = Commonness.FAIRLY_COMMON)
 		elif e < 65537:
-			return SecurityJudgement(ExperimentalJudgementCodes.Crypto_AsymCryptoSys_RSA_Exponent_SmallAndUncommon, "RSA exponent is small and an uncommon choice.", verdict = Verdict.MEDIUM, commonness = Commonness.UNUSUAL)
+			return SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_RSA_Exponent_SmallAndUncommon, "RSA exponent is small and an uncommon choice.", verdict = Verdict.MEDIUM, commonness = Commonness.UNUSUAL)
 		elif e == 65537:
 			return SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_RSA_Exponent_MostCommonValue, "RSA exponent is the most common choice.", verdict = Verdict.BEST_IN_CLASS, commonness = Commonness.COMMON)
 		else:
@@ -86,7 +86,7 @@ class RSASecurityEstimator(BaseEstimator):
 
 		hweight_analysis = NumberTheory.hamming_weight_analysis(n)
 		if not hweight_analysis.plausibly_random:
-			judgements += SecurityJudgement(ExperimentalJudgementCodes.Crypto_AsymCryptoSys_RSA_Modulus_BitBiasPresent, "Modulus does not appear to be random. Expected a Hamming weight between %d and %d for a %d bit modulus, but found Hamming weight %d." % (hweight_analysis.rnd_min_hweight, hweight_analysis.rnd_max_hweight, hweight_analysis.bitlen, hweight_analysis.hweight), commonness = Commonness.HIGHLY_UNUSUAL)
+			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_RSA_Modulus_BitBiasPresent, "Modulus does not appear to be random. Expected a Hamming weight between %d and %d for a %d bit modulus, but found Hamming weight %d." % (hweight_analysis.rnd_min_hweight, hweight_analysis.rnd_max_hweight, hweight_analysis.bitlen, hweight_analysis.hweight), commonness = Commonness.HIGHLY_UNUSUAL)
 
 		# We estimate the complexity of factoring the modulus by the asymptotic
 		# complexity of the GNFS.
