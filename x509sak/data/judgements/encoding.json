@@ -36,7 +36,13 @@
 				},
 				"ECDSA Public Key": {
 					"_short_id": "ecdsa_pubkey_encoding_issues",
-					"_import": "asn1_encoding_issues/*"
+					"_import": "asn1_encoding_issues/*",
+					"Domain Parameters": {
+						"Binary Field": {
+							"Duplicate Polynomial Power": { "_desc": "duplicate power in field polynomial" },
+							"Invalid Polynomial Power": { "_desc": "invalid power in field polynomial" }
+						}
+					}
 				},
 				"ECDSA Signature": {
 					"_short_id": "ecdsa_signature_encoding_issues",
