@@ -1,0 +1,14 @@
+#!/usr/bin/python3
+#
+import subprocess
+
+with open("refactor") as f:
+	for line in f:
+		line = line.rstrip("\r\n")
+		line = line.split()
+		if len(line) == 2:
+			(old, new) = line
+			print("%s -> %s" % (old, new))
+			subprocess.check_call([ "replaceall", "-R", "-cn", "-g", "*.py", "-s", "JudgementCode.%s" % (old), "-r", "ExperimentalJudgementCodes.%s" % (new), "x509sak" ])
+			subprocess.check_call([ "replaceall", "-R", "-cn", "-g", "*.py", "-s", "\"%s\"" % (old), "-r", "\"%s\"" % (new), "x509sak" ])
+			subprocess.check_call([ "replaceall", "-cn", "-s", "([ \t]+%s = )" % (old), "-r", "#\\1", "x509sak/estimate/Judgement.py" ])
