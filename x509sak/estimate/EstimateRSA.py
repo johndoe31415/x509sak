@@ -23,7 +23,7 @@ import pyasn1
 from x509sak.ModulusDB import ModulusDB
 from x509sak.NumberTheory import NumberTheory
 from x509sak.estimate.BaseEstimator import BaseEstimator
-from x509sak.estimate import JudgementCode, AnalysisOptions, Verdict, Commonness, Compatibility
+from x509sak.estimate import JudgementCode, ExperimentalJudgementCodes, AnalysisOptions, Verdict, Commonness, Compatibility
 from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, RFCReference
 from x509sak.Exceptions import LazyDeveloperException
 
@@ -64,7 +64,7 @@ class RSASecurityEstimator(BaseEstimator):
 		judgements = SecurityJudgements()
 
 		if n < 0:
-			judgements += SecurityJudgement(JudgementCode.RSA_Modulus_Negative, "Modulus uses incorrect encoding, representation is a negative integer.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION)
+			judgements += SecurityJudgement(ExperimentalJudgementCodes.Crypto_AsymCryptoSys_RSA_Modulus_Negative, "Modulus uses incorrect encoding, representation is a negative integer.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION)
 
 			# Fix up n so it's a positive integer for the rest of the tests
 			bitlen = (n.bit_length() + 7) // 8 * 8
@@ -73,20 +73,20 @@ class RSASecurityEstimator(BaseEstimator):
 
 		if self._test_probable_prime:
 			if NumberTheory.is_probable_prime(n):
-				judgements += SecurityJudgement(JudgementCode.RSA_Modulus_Prime, "Modulus is prime, not a compound integer as we would expect for RSA.", bits = 0)
+				judgements += SecurityJudgement(ExperimentalJudgementCodes.Crypto_AsymCryptoSys_RSA_Modulus_Prime, "Modulus is prime, not a compound integer as we would expect for RSA.", bits = 0)
 
 		if self._pollards_rho_iterations > 0:
 			small_factor = NumberTheory.pollard_rho(n, max_iterations = self._pollards_rho_iterations)
 			if small_factor is not None:
-				judgements += SecurityJudgement(JudgementCode.RSA_Modulus_Factorable, "Modulus has small factor (%d) and is therefore trivially factorable." % (small_factor), bits = 0)
+				judgements += SecurityJudgement(ExperimentalJudgementCodes.Crypto_AsymCryptoSys_RSA_Modulus_Factorable, "Modulus has small factor (%d) and is therefore trivially factorable." % (small_factor), bits = 0)
 
 		match = ModulusDB().find(n)
 		if match is not None:
-			judgements += SecurityJudgement(JudgementCode.RSA_Modulus_FactorizationKnown, "Modulus is known to be compromised: %s" % (match.text), bits = 0)
+			judgements += SecurityJudgement(ExperimentalJudgementCodes.Crypto_AsymCryptoSys_RSA_Modulus_FactorizationKnown, "Modulus is known to be compromised: %s" % (match.text), bits = 0)
 
 		hweight_analysis = NumberTheory.hamming_weight_analysis(n)
 		if not hweight_analysis.plausibly_random:
-			judgements += SecurityJudgement(JudgementCode.RSA_Modulus_BitBias, "Modulus does not appear to be random. Expected a Hamming weight between %d and %d for a %d bit modulus, but found Hamming weight %d." % (hweight_analysis.rnd_min_hweight, hweight_analysis.rnd_max_hweight, hweight_analysis.bitlen, hweight_analysis.hweight), commonness = Commonness.HIGHLY_UNUSUAL)
+			judgements += SecurityJudgement(ExperimentalJudgementCodes.Crypto_AsymCryptoSys_RSA_Modulus_BitBiasPresent, "Modulus does not appear to be random. Expected a Hamming weight between %d and %d for a %d bit modulus, but found Hamming weight %d." % (hweight_analysis.rnd_min_hweight, hweight_analysis.rnd_max_hweight, hweight_analysis.bitlen, hweight_analysis.hweight), commonness = Commonness.HIGHLY_UNUSUAL)
 
 		# We estimate the complexity of factoring the modulus by the asymptotic
 		# complexity of the GNFS.

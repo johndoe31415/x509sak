@@ -3,21 +3,21 @@
 		"_export": true,
 		"Random": {
 			"_short_id": "random_value",
-			"Bit Bias Present": { 
+			"Bit Bias Present": {
 				"_description": "bit bias present"
 			}
 		},
 		"Random Primes": {
 			"_short_id": "random_prime",
 			"_import": "random_value/*",
-			"Not Prime": { 
+			"Not Prime": {
 				"_description": "value is not prime"
 			}
 		},
 		"Random Non-primes": {
 			"_short_id": "random_nonprime",
 			"_import": "random_value/*",
-			"Prime": { 
+			"Prime": {
 				"_description": "value is prime"
 			}
 		},
@@ -27,7 +27,7 @@
 			"Factorable": {
 				"_description": "compound value has small factor"
 			},
-			"Factorization Known": { 
+			"Factorization Known": {
 				"_description": "compound value has publicly known factorization"
 			}
 		}
@@ -48,9 +48,17 @@
 				},
 				"Modulus": {
 					"_import": "random_compound/*",
-					"Zero or Negative": { },
-					"One": { },
+					"Negative": {
+						"_description": "modulus is negative"
+					},
+					"Zero": {
+						"_description": "modulus is zero"
+					},
+					"One": {
+						"_description": "modulus is 1"
+					},
 					"Length in Bits": {
+						"_description": "modulus length in bits",
 						"_flags": [ "datapoint" ]
 					}
 				}
@@ -124,7 +132,7 @@
 				},
 				"Not After": {
 					"_import": "datetime_encoding_issues/*"
-				}	
+				}
 			},
 			"Issuer": {
 			},
@@ -154,7 +162,7 @@
 						"_label": "AKI",
 						"CA name": {
 							"_import": "general_name_issues",
-							"Empty": { }							
+							"Empty": { }
 						}
 					},
 					"Name Constraints": {
@@ -165,7 +173,7 @@
 					},
 					"Extended Key Usage": {
 						"_label": "EKU",
-						"_import": "bitstring_issues/*"					
+						"_import": "bitstring_issues/*"
 					},
 					"Issuer Alternative Name": {
 						"_label": "IAN"
@@ -228,7 +236,7 @@
 			"Structures": {
 				"DateTime": {
 					"_short_id": "datetime_encoding_issues",
-					"Malformed": { 
+					"Malformed": {
 						"_description": "Malformed encoding used"
 					},
 					"Invalid Type": {

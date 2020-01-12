@@ -20,7 +20,7 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 import urllib.parse
-from x509sak.estimate import JudgementCode
+from x509sak.estimate import JudgementCode, ExperimentalJudgementCodes
 from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, Commonness
 from x509sak.ASN1Wrapper import ASN1GeneralNameWrapper
 from x509sak.Tools import ValidationTools

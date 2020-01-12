@@ -23,7 +23,7 @@ import math
 from x509sak.AlgorithmDB import Cryptosystems
 from x509sak.NumberTheory import NumberTheory
 from x509sak.estimate.BaseEstimator import BaseEstimator
-from x509sak.estimate import JudgementCode, Commonness, Compatibility
+from x509sak.estimate import JudgementCode, ExperimentalJudgementCodes, Commonness, Compatibility
 from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, LiteratureReference
 from x509sak.ECCMath import PrimeFieldEllipticCurve, BinaryFieldEllipticCurve
 from x509sak.CurveDB import CurveDB

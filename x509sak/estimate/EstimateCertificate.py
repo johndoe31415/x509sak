@@ -23,7 +23,7 @@ import base64
 import pyasn1
 from x509sak.OID import OID, OIDDB
 from x509sak.estimate.BaseEstimator import BaseEstimator
-from x509sak.estimate import JudgementCode, Commonness, Compatibility
+from x509sak.estimate import JudgementCode, ExperimentalJudgementCodes, Commonness, Compatibility
 from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, RFCReference
 from x509sak.CurveDB import CurveNotFoundException
 

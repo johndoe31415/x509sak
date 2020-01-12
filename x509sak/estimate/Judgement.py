@@ -34,11 +34,11 @@ class JudgementCode(enum.Enum):
 	RSA_Exponent_SmallUnusual = ("RSA Exponent", "e is small and uncommon")
 	RSA_Exponent_Is_0x10001 = ("RSA Exponent", "e is 0x10001")
 	RSA_Exponent_Large = ("RSA Exponent", "e is unusually large")
-	RSA_Modulus_Negative = ("RSA Modulus", "n is negative")
-	RSA_Modulus_Prime = ("RSA Modulus", "n is prime")
-	RSA_Modulus_Factorable = ("RSA Modulus", "n has small factors")
-	RSA_Modulus_FactorizationKnown = ("RSA Modulus", "factorization of n is public")
-	RSA_Modulus_BitBias = ("RSA Modulus", "n has bit bias")
+#	RSA_Modulus_Negative = ("RSA Modulus", "n is negative")
+#	RSA_Modulus_Prime = ("RSA Modulus", "n is prime")
+#	RSA_Modulus_Factorable = ("RSA Modulus", "n has small factors")
+#	RSA_Modulus_FactorizationKnown = ("RSA Modulus", "factorization of n is public")
+#	RSA_Modulus_BitBias = ("RSA Modulus", "n has bit bias")
 	RSA_Modulus_Length = ("RSA Modulus", "length of n")
 	RSA_PSS_Parameters_Malformed = ("RSA/PSS Encoding", "malformed parameters")
 	RSA_PSS_Parameters_TrailingData = ("RSA/PSS Encoding", "trailing garbage data")
@@ -48,8 +48,8 @@ class JudgementCode(enum.Enum):
 	RSA_PSS_Salt_Length = ("RSA/PSS Salt", "length of salt")
 	RSA_PSS_Unknown_Trailer_Field = ("RSA/PSS Salt", "trailer field unknown")
 	RSA_PSS_Multiple_Hash_Functions = ("RSA/PSS Salt", "multiple hash functions used")
-	DSA_Parameter_P_BitBias = ("DSA parameters", "p has bit bias")
-	DSA_Parameter_Q_BitBias = ("DSA parameters", "q has bit bias")
+#	DSA_Parameter_P_BitBias = ("DSA parameters", "p has bit bias")
+#	DSA_Parameter_Q_BitBias = ("DSA parameters", "q has bit bias")
 	DSA_Parameter_P_Not_Prime = ("DSA parameters", "p is not prime")
 	DSA_Parameter_Q_Not_Prime = ("DSA parameters", "q is not prime")
 	DSA_Parameter_Q_No_Divisor_Of_P1 = ("DSA parameters", "q does not divide (p - 1)")
@@ -427,7 +427,9 @@ class SecurityJudgement():
 	@classmethod
 	def from_dict(cls, judgement_data):
 		if "code" in judgement_data:
-			code = getattr(JudgementCode, judgement_data["code"])
+			# TODO this is broken until refactoring complete
+			#code = getattr(JudgementCode, judgement_data["code"])
+			code = None
 		else:
 			code = None
 		text = judgement_data["text"]

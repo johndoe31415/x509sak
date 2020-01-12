@@ -127,7 +127,7 @@ class CmdLineTestsExamine(BaseTest):
 		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", "Cert_SAN_Match", expect_absent = "Cert_SAN_NoMatch", host_check = "mail.johannes-bauer.com")
 
 	def test_constructed_rsa_modulus_prime(self):
-		self._test_examine_x509test_resultcode("certs/constructed/rsa_modulus_prime.pem", "RSA_Modulus_Prime", fast_rsa = False)
+		self._test_examine_x509test_resultcode("certs/constructed/rsa_modulus_prime.pem", "Crypto_AsymCryptoSys_RSA_Modulus_Prime", fast_rsa = False)
 
 	def test_include_raw_data_ecc_f2m(self):
 		self._test_examine_x509test_resultcode("certs/ok/ecc_sect283r1.pem", include_raw = True)

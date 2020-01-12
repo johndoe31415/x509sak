@@ -371,7 +371,7 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-pubkey-rsa-exponent-negative.pem", "RSA_Exponent_Is_Zero_Or_Negative")
 
 	def test_examine_x509test_xf_pubkey_rsa_modulus_negative(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-pubkey-rsa-modulus-negative.pem", "RSA_Modulus_Negative")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-pubkey-rsa-modulus-negative.pem", "Crypto_AsymCryptoSys_RSA_Modulus_Negative")
 
 	def test_examine_x509test_xf_pubkey_rsa_param_nonnull(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-pubkey-rsa-param-nonnull.pem", "RSA_Parameter_Field_Not_Null")
@@ -471,16 +471,16 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", "Cert_SAN_NoMatch", expect_absent = "Cert_SAN_Match", host_check = "wwwQjohannes-bauer.com")
 
 	def test_constructed_rsa_bitbias(self):
-		self._test_examine_x509test_resultcode("certs/constructed/rsa_bitbias.pem", "RSA_Modulus_BitBias")
+		self._test_examine_x509test_resultcode("certs/constructed/rsa_bitbias.pem", "Crypto_AsymCryptoSys_RSA_Modulus_BitBiasPresent")
 
 	def test_constructed_rsa_modulus_prime(self):
-		self._test_examine_x509test_resultcode("certs/constructed/rsa_modulus_prime.pem", "RSA_Modulus_Prime", fast_rsa = False)
+		self._test_examine_x509test_resultcode("certs/constructed/rsa_modulus_prime.pem", "Crypto_AsymCryptoSys_RSA_Modulus_Prime", fast_rsa = False)
 
 	def test_constructed_rsa_modulus_smallfactor(self):
-		self._test_examine_x509test_resultcode("certs/constructed/rsa_modulus_smallfactor.pem", "RSA_Modulus_Factorable", fast_rsa = False)
+		self._test_examine_x509test_resultcode("certs/constructed/rsa_modulus_smallfactor.pem", "Crypto_AsymCryptoSys_RSA_Modulus_Factorable", fast_rsa = False)
 
 	def test_constructed_rsa_modulus_compromised(self):
-		self._test_examine_x509test_resultcode("certs/constructed/rsa_modulus_compromised.pem", "RSA_Modulus_FactorizationKnown")
+		self._test_examine_x509test_resultcode("certs/constructed/rsa_modulus_compromised.pem", "Crypto_AsymCryptoSys_RSA_Modulus_FactorizationKnown")
 
 	def test_constructed_rsa_exponent0(self):
 		self._test_examine_x509test_resultcode("certs/constructed/rsa_exponent0.pem", "RSA_Exponent_Is_Zero_Or_Negative")
@@ -722,10 +722,10 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/dsa_q_not_prime.pem", expect_present = "Crypto_AsymCryptoSys_DSA_Q_NotPrime")
 
 	def test_dsa_p_bitbias(self):
-		self._test_examine_x509test_resultcode("certs/constructed/dsa_p_bitbias.pem", expect_present = "DSA_Parameter_P_BitBias", expect_absent = "DSA_Parameter_Q_BitBias")
+		self._test_examine_x509test_resultcode("certs/constructed/dsa_p_bitbias.pem", expect_present = "Crypto_AsymCryptoSys_DSA_P_BitBiasPresent", expect_absent = "Crypto_AsymCryptoSys_DSA_Q_BitBiasPresent")
 
 	def test_dsa_q_bitbias(self):
-		self._test_examine_x509test_resultcode("certs/constructed/dsa_q_bitbias.pem", expect_present = "DSA_Parameter_Q_BitBias", expect_absent = "DSA_Parameter_P_BitBias")
+		self._test_examine_x509test_resultcode("certs/constructed/dsa_q_bitbias.pem", expect_present = "Crypto_AsymCryptoSys_DSA_Q_BitBiasPresent", expect_absent = "Crypto_AsymCryptoSys_DSA_P_BitBiasPresent")
 
 	def test_dsa_r_bitbias(self):
 		# Need the CA for this test, since the signature can only be checked

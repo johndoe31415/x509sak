@@ -22,7 +22,7 @@
 import math
 from x509sak.NumberTheory import NumberTheory
 from x509sak.estimate.BaseEstimator import BaseEstimator
-from x509sak.estimate import JudgementCode, ExperimentalJudgementCodes, Commonness, Compatibility
+from x509sak.estimate import JudgementCode, ExperimentalJudgementCodes, ExperimentalJudgementCodes, Commonness, Compatibility
 from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, LiteratureReference
 
 @BaseEstimator.register
@@ -69,11 +69,11 @@ class DSASecurityEstimator(BaseEstimator):
 
 		hweight_analysis = NumberTheory.hamming_weight_analysis(pubkey.p)
 		if not hweight_analysis.plausibly_random:
-			judgements += SecurityJudgement(JudgementCode.DSA_Parameter_P_BitBias, "Hamming weight of DSA prime p is %d at bitlength %d, but expected a weight between %d and %d when randomly chosen; this is likely not coincidential." % (hweight_analysis.hweight, hweight_analysis.bitlen, hweight_analysis.rnd_min_hweight, hweight_analysis.rnd_max_hweight), commonness = Commonness.HIGHLY_UNUSUAL)
+			judgements += SecurityJudgement(ExperimentalJudgementCodes.Crypto_AsymCryptoSys_DSA_P_BitBiasPresent, "Hamming weight of DSA prime p is %d at bitlength %d, but expected a weight between %d and %d when randomly chosen; this is likely not coincidential." % (hweight_analysis.hweight, hweight_analysis.bitlen, hweight_analysis.rnd_min_hweight, hweight_analysis.rnd_max_hweight), commonness = Commonness.HIGHLY_UNUSUAL)
 
 		hweight_analysis = NumberTheory.hamming_weight_analysis(pubkey.q)
 		if not hweight_analysis.plausibly_random:
-			judgements += SecurityJudgement(JudgementCode.DSA_Parameter_Q_BitBias, "Hamming weight of DSA prime q is %d at bitlength %d, but expected a weight between %d and %d when randomly chosen; this is likely not coincidential." % (hweight_analysis.hweight, hweight_analysis.bitlen, hweight_analysis.rnd_min_hweight, hweight_analysis.rnd_max_hweight), commonness = Commonness.HIGHLY_UNUSUAL)
+			judgements += SecurityJudgement(ExperimentalJudgementCodes.Crypto_AsymCryptoSys_DSA_Q_BitBiasPresent, "Hamming weight of DSA prime q is %d at bitlength %d, but expected a weight between %d and %d when randomly chosen; this is likely not coincidential." % (hweight_analysis.hweight, hweight_analysis.bitlen, hweight_analysis.rnd_min_hweight, hweight_analysis.rnd_max_hweight), commonness = Commonness.HIGHLY_UNUSUAL)
 
 		if (L in self._TYPICAL_L_N_VALUES) and (N in self._TYPICAL_L_N_VALUES[L]):
 			# Typical

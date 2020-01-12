@@ -24,7 +24,7 @@ import calendar
 from pyasn1.type.useful import GeneralizedTime
 from x509sak.Tools import DateTimeTools
 from x509sak.estimate.BaseEstimator import BaseEstimator
-from x509sak.estimate import JudgementCode, Verdict, Commonness, Compatibility
+from x509sak.estimate import JudgementCode, ExperimentalJudgementCodes, Verdict, Commonness, Compatibility
 from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, RFCReference
 
 @BaseEstimator.register
