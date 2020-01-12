@@ -340,13 +340,13 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-subject-keyid-critical.pem", "Cert_X509Ext_SubjectKeyIdentifier_Critical")
 
 	def test_examine_x509test_xf_gentime_fraction_secs(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-gentime-fraction-secs.pem", "Cert_Validity_Invalid_NotAfter_Encoding")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-gentime-fraction-secs.pem", "X509Cert_Body_Validity_NotAfter_Malformed")
 
 	def test_examine_x509test_xf_gentime_no_secs(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-gentime-no-secs.pem", "Cert_Validity_Invalid_NotAfter_Encoding")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-gentime-no-secs.pem", "X509Cert_Body_Validity_NotAfter_Malformed")
 
 	def test_examine_x509test_xf_gentime_nonzulu(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-gentime-nonzulu.pem", "Cert_Validity_Invalid_NotAfter_Encoding")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-gentime-nonzulu.pem", "X509Cert_Body_Validity_NotAfter_Malformed")
 
 	def test_examine_x509test_xf_issuer_mismatch_v2(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-issuer-mismatch-v2.pem", "CA_Relationship_SubjectIssuerMismatch", parent_certname = "certs/x509test/ok-ca.pem")
@@ -383,7 +383,7 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-serial-zero.pem", "Cert_Serial_Zero")
 
 	def test_examine_x509test_xf_soon_generalized_time(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-soon-generalized-time.pem", "Cert_Validity_GeneralizedTimeBeforeYear2050")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-soon-generalized-time.pem", "X509Cert_Body_Validity_NotBefore_InvalidType")
 
 	def test_examine_x509test_xf_subject_nonprintable(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-subject-nonprintable.pem", "DN_Contains_Illegal_Char")
@@ -395,10 +395,10 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-unknown-critical-ext.pem", "Cert_X509Ext_Unknown_Critical")
 
 	def test_examine_x509test_xf_utctime_no_secs(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-utctime-no-secs.pem", "Cert_Validity_Invalid_NotBefore_Encoding")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-utctime-no-secs.pem", "X509Cert_Body_Validity_NotBefore_Malformed")
 
 	def test_examine_x509test_xf_utctime_nonzulu(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-utctime-nonzulu.pem", "Cert_Validity_Invalid_NotBefore_Encoding")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-utctime-nonzulu.pem", "X509Cert_Body_Validity_NotBefore_Malformed")
 
 	def test_examine_x509test_xf_v1_extensions(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-v1-extensions.pem", "Cert_X509Ext_NotAllowed")
@@ -647,16 +647,16 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/algorithm_alternate_oid.pem", expect_present = "SignatureFunction_NonPreferred_OID")
 
 	def test_validity_never_valid(self):
-		self._test_examine_x509test_resultcode("certs/constructed/validity_never_valid.pem", expect_present = "Cert_Validity_NeverValid")
+		self._test_examine_x509test_resultcode("certs/constructed/validity_never_valid.pem", expect_present = "X509Cert_Body_Validity_Status_NeverValid")
 
 	def test_validity_expired(self):
-		self._test_examine_x509test_resultcode("certs/constructed/validity_expired.pem", expect_present = "Cert_Validity_Expired")
+		self._test_examine_x509test_resultcode("certs/constructed/validity_expired.pem", expect_present = "X509Cert_Body_Validity_Status_Expired")
 
 	def test_validity_valid(self):
-		self._test_examine_x509test_resultcode("certs/constructed/validity_valid.pem", expect_present = "Cert_Validity_Valid")
+		self._test_examine_x509test_resultcode("certs/constructed/validity_valid.pem", expect_present = "X509Cert_Body_Validity_Status_CurrentlyValid")
 
 	def test_not_yet_validity_not_yet_valid(self):
-		self._test_examine_x509test_resultcode("certs/constructed/validity_not_yet_valid.pem", expect_present = "Cert_Validity_NotYetValid")
+		self._test_examine_x509test_resultcode("certs/constructed/validity_not_yet_valid.pem", expect_present = "X509Cert_Body_Validity_Status_NotYetValid")
 
 	def test_unknown_sigfnc(self):
 		self._test_examine_x509test_resultcode("certs/constructed/unknown_sigfnc.pem", expect_present = "Cert_Unknown_SignatureAlgorithm")
@@ -882,28 +882,28 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/ext_malformed.pem", expect_present = "Cert_X509Ext_Malformed")
 
 	def test_certificate_lifetime_noca_conservative(self):
-		self._test_examine_x509test_resultcode("certs/constructed/lifetime_noca_conservative.pem", expect_present = "Cert_Validity_Length_Conservative")
+		self._test_examine_x509test_resultcode("certs/constructed/lifetime_noca_conservative.pem", expect_present = "X509Cert_Body_Validity_Length_Conservative")
 
 	def test_certificate_lifetime_noca_long(self):
-		self._test_examine_x509test_resultcode("certs/constructed/lifetime_noca_long.pem", expect_present = "Cert_Validity_Length_Long")
+		self._test_examine_x509test_resultcode("certs/constructed/lifetime_noca_long.pem", expect_present = "X509Cert_Body_Validity_Length_Long")
 
 	def test_certificate_lifetime_noca_verylong(self):
-		self._test_examine_x509test_resultcode("certs/constructed/lifetime_noca_verylong.pem", expect_present = "Cert_Validity_Length_VeryLong")
+		self._test_examine_x509test_resultcode("certs/constructed/lifetime_noca_verylong.pem", expect_present = "X509Cert_Body_Validity_Length_VeryLong")
 
 	def test_certificate_lifetime_noca_exceptionallylong(self):
-		self._test_examine_x509test_resultcode("certs/constructed/lifetime_noca_exceptionallylong.pem", expect_present = "Cert_Validity_Length_ExceptionallyLong")
+		self._test_examine_x509test_resultcode("certs/constructed/lifetime_noca_exceptionallylong.pem", expect_present = "X509Cert_Body_Validity_Length_ExceptionallyLong")
 
 	def test_certificate_lifetime_ca_conservative(self):
-		self._test_examine_x509test_resultcode("certs/constructed/lifetime_ca_conservative.pem", expect_present = "Cert_Validity_Length_Conservative")
+		self._test_examine_x509test_resultcode("certs/constructed/lifetime_ca_conservative.pem", expect_present = "X509Cert_Body_Validity_Length_Conservative")
 
 	def test_certificate_lifetime_ca_long(self):
-		self._test_examine_x509test_resultcode("certs/constructed/lifetime_ca_long.pem", expect_present = "Cert_Validity_Length_Long")
+		self._test_examine_x509test_resultcode("certs/constructed/lifetime_ca_long.pem", expect_present = "X509Cert_Body_Validity_Length_Long")
 
 	def test_certificate_lifetime_ca_verylong(self):
-		self._test_examine_x509test_resultcode("certs/constructed/lifetime_ca_verylong.pem", expect_present = "Cert_Validity_Length_VeryLong")
+		self._test_examine_x509test_resultcode("certs/constructed/lifetime_ca_verylong.pem", expect_present = "X509Cert_Body_Validity_Length_VeryLong")
 
 	def test_certificate_lifetime_ca_exceptionallylong(self):
-		self._test_examine_x509test_resultcode("certs/constructed/lifetime_ca_exceptionallylong.pem", expect_present = "Cert_Validity_Length_ExceptionallyLong")
+		self._test_examine_x509test_resultcode("certs/constructed/lifetime_ca_exceptionallylong.pem", expect_present = "X509Cert_Body_Validity_Length_ExceptionallyLong")
 
 	def test_key_usage_excessive(self):
 		self._test_examine_x509test_resultcode("certs/constructed/ku-xmas.pem", expect_present = [ "Cert_Purpose_KU_ExcessKeyUsage", "Cert_Purpose_KU_UnusualKeyUsage" ], purpose = "tls-server")

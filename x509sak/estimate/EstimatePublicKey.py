@@ -23,7 +23,7 @@ from x509sak.AlgorithmDB import Cryptosystems
 from x509sak.estimate.BaseEstimator import BaseEstimator
 from x509sak.Exceptions import LazyDeveloperException
 from x509sak.CurveDB import CurveNotFoundException
-from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, JudgementCode, Compatibility, Commonness
+from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, JudgementCode, ExperimentalJudgementCodes, Compatibility, Commonness
 
 @BaseEstimator.register
 class PublicKeyEstimator(BaseEstimator):

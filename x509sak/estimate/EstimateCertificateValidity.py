@@ -44,21 +44,21 @@ class CrtValiditySecurityEstimator(BaseEstimator):
 		judgements = SecurityJudgements()
 
 		if not_before is None:
-			judgements += SecurityJudgement(JudgementCode.Cert_Validity_Invalid_NotBefore_Encoding, "'Not Before' timestamp is malformed. Certificate is always invalid.", bits = 0, compatibility = Compatibility.STANDARDS_DEVIATION)
+			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_Validity_NotBefore_Malformed, "'Not Before' timestamp is malformed. Certificate is always invalid.", bits = 0, compatibility = Compatibility.STANDARDS_DEVIATION)
 			validity_days = 0
 		elif not_after is None:
-			judgements += SecurityJudgement(JudgementCode.Cert_Validity_Invalid_NotAfter_Encoding, "'Not After' timestamp is malformed. Certificate is always invalid.", bits = 0, compatibility = Compatibility.STANDARDS_DEVIATION)
+			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_Validity_NotAfter_Malformed, "'Not After' timestamp is malformed. Certificate is always invalid.", bits = 0, compatibility = Compatibility.STANDARDS_DEVIATION)
 			validity_days = 0
 		else:
 			now = datetime.datetime.utcnow()
 			if not_before > not_after:
-				judgements += SecurityJudgement(JudgementCode.Cert_Validity_NeverValid, "'Not Before' timestamp is greater than 'not after' timestamp. Certificate is always invalid.", bits = 0)
+				judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_Validity_Status_NeverValid, "'Not Before' timestamp is greater than 'not after' timestamp. Certificate is always invalid.", bits = 0)
 			elif now < not_before:
-				judgements += SecurityJudgement(JudgementCode.Cert_Validity_NotYetValid, "Certificate is not yet valid, becomes valid in the future.", bits = 0, commonness = Commonness.UNUSUAL)
+				judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_Validity_Status_NotYetValid, "Certificate is not yet valid, becomes valid in the future.", bits = 0, commonness = Commonness.UNUSUAL)
 			elif now > not_after:
-				judgements += SecurityJudgement(JudgementCode.Cert_Validity_Expired, "Certificate has expired.", bits = 0, commonness = Commonness.COMMON)
+				judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_Validity_Status_Expired, "Certificate has expired.", bits = 0, commonness = Commonness.COMMON)
 			else:
-				judgements += SecurityJudgement(JudgementCode.Cert_Validity_Valid, "Certificate is currently valid.", commonness = Commonness.COMMON)
+				judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_Validity_Status_CurrentlyValid, "Certificate is currently valid.", commonness = Commonness.COMMON)
 
 			validity_days = ((not_after - not_before).total_seconds()) / 86400
 
@@ -72,20 +72,20 @@ class CrtValiditySecurityEstimator(BaseEstimator):
 
 			crt_type = "CA" if is_ca else "non-CA"
 			if validity_days < margins[0]:
-				judgements += SecurityJudgement(JudgementCode.Cert_Validity_Length_Conservative, "Lifetime is conservative for %s certificate." % (crt_type), commonness = Commonness.COMMON, verdict = Verdict.BEST_IN_CLASS)
+				judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_Validity_Length_Conservative, "Lifetime is conservative for %s certificate." % (crt_type), commonness = Commonness.COMMON, verdict = Verdict.BEST_IN_CLASS)
 			elif validity_days < margins[1]:
-				judgements += SecurityJudgement(JudgementCode.Cert_Validity_Length_Long, "Lifetime is long, but still acceptable for %s certificate." % (crt_type), commonness = Commonness.COMMON, verdict = Verdict.HIGH)
+				judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_Validity_Length_Long, "Lifetime is long, but still acceptable for %s certificate." % (crt_type), commonness = Commonness.COMMON, verdict = Verdict.HIGH)
 			elif validity_days < margins[2]:
-				judgements += SecurityJudgement(JudgementCode.Cert_Validity_Length_VeryLong, "Lifetime is very long for %s certificate." % (crt_type), commonness = Commonness.UNUSUAL, verdict = Verdict.MEDIUM)
+				judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_Validity_Length_VeryLong, "Lifetime is very long for %s certificate." % (crt_type), commonness = Commonness.UNUSUAL, verdict = Verdict.MEDIUM)
 			else:
-				judgements += SecurityJudgement(JudgementCode.Cert_Validity_Length_ExceptionallyLong, "Lifetime is exceptionally long for %s certificate." % (crt_type), commonness = Commonness.HIGHLY_UNUSUAL, verdict = Verdict.WEAK)
+				judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_Validity_Length_ExceptionallyLong, "Lifetime is exceptionally long for %s certificate." % (crt_type), commonness = Commonness.HIGHLY_UNUSUAL, verdict = Verdict.WEAK)
 
 			if (not_before < datetime.datetime(2050, 1, 1, 0, 0, 0)) and isinstance(certificate.asn1["tbsCertificate"]["validity"]["notBefore"].getComponent(), GeneralizedTime):
 				standard = RFCReference(rfcno = 5280, sect = "4.1.2.5", verb = "MUST", text = "CAs conforming to this profile MUST always encode certificate validity dates through the year 2049 as UTCTime; certificate validity dates in 2050 or later MUST be encoded as GeneralizedTime.")
-				judgements += SecurityJudgement(JudgementCode.Cert_Validity_GeneralizedTimeBeforeYear2050, "GeneralizedTime used for 'not before' validity timestamp although earlier than year 2050.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+				judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_Validity_NotBefore_InvalidType, "GeneralizedTime used for 'not before' validity timestamp although earlier than year 2050.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 			if (not_after < datetime.datetime(2050, 1, 1, 0, 0, 0)) and isinstance(certificate.asn1["tbsCertificate"]["validity"]["notAfter"].getComponent(), GeneralizedTime):
 				standard = RFCReference(rfcno = 5280, sect = "4.1.2.5", verb = "MUST", text = "CAs conforming to this profile MUST always encode certificate validity dates through the year 2049 as UTCTime; certificate validity dates in 2050 or later MUST be encoded as GeneralizedTime.")
-				judgements += SecurityJudgement(JudgementCode.Cert_Validity_GeneralizedTimeBeforeYear2050, "GeneralizedTime used for 'not after' validity timestamp although earlier than year 2050.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+				judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_Validity_NotBefore_InvalidType, "GeneralizedTime used for 'not after' validity timestamp although earlier than year 2050.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 		return {
 			"not_before":		self._format_datetime(not_before) if not_before is not None else None,
