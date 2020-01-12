@@ -28,6 +28,18 @@
 				"Not 3": { "_desc": "certificate version is not v3" }
 			},
 			"Validity": {
+				"Status": {
+					"Never valid": { "_desc": "certificate can never be valid" },
+					"Not yet valid": { "_desc": "certificate is not yet valid" },
+					"Expired": { "_desc": "certificate has expire" },
+					"Currently valid": { "_desc": "certificate is currently valid" }
+				},
+				"Length": {
+					"Conservative": { "_desc": "conservative certificate lifetime" },
+					"Long": { "_desc": "long certificate lifetime" },
+					"Very long": { "_desc": "very long certificate lifetime" },
+					"Exceptionally Long": { "_desc": "exceptionally long certificate lifetime" }
+				},
 				"Not Before": {
 					"_import": "timestamp_encoding_issues/*"
 				},
@@ -107,6 +119,12 @@
 			}
 		},
 		"Signature": {
+			"ECDSA": {
+				"_import": [ "dsa_signature/*", "asn1_encoding_issues/*" ]
+			},
+			"DSA": {
+				"_import": [ "dsa_signature/*", "asn1_encoding_issues/*" ]
+			}
 		}
 	},
 

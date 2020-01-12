@@ -443,15 +443,15 @@ class SecurityAnalyzerTests(BaseTest):
 	def test_constructed_ecdsa_sig_r_bitbias(self):
 		# Need the CA for this test, since the signature can only be checked
 		# when the curve is known, which is encoded in the CA's public key.
-		self._test_examine_x509test_resultcode("certs/constructed/ecdsa_sig_r_bitbias.pem", "ECDSA_Signature_R_BitBias", parent_certname = "certs/ok/johannes-bauer.com.pem")
+		self._test_examine_x509test_resultcode("certs/constructed/ecdsa_sig_r_bitbias.pem", "X509Cert_Signature_ECDSA_R_BitBiasPresent", parent_certname = "certs/ok/johannes-bauer.com.pem")
 
 	def test_constructed_ecdsa_sig_s_bitbias(self):
 		# Need the CA for this test, since the signature can only be checked
 		# when the curve is known, which is encoded in the CA's public key.
-		self._test_examine_x509test_resultcode("certs/constructed/ecdsa_sig_s_bitbias.pem", "ECDSA_Signature_S_BitBias", parent_certname = "certs/ok/johannes-bauer.com.pem")
+		self._test_examine_x509test_resultcode("certs/constructed/ecdsa_sig_s_bitbias.pem", "X509Cert_Signature_ECDSA_S_BitBiasPresent", parent_certname = "certs/ok/johannes-bauer.com.pem")
 
 	def test_constructed_ecdsa_sig_malformed(self):
-		self._test_examine_x509test_resultcode("certs/constructed/ecdsa_sig_malformed.pem", "ECDSA_Signature_Malformed", parent_certname = "certs/constructed/ecdsa_sig_malformed.pem")
+		self._test_examine_x509test_resultcode("certs/constructed/ecdsa_sig_malformed.pem", "X509Cert_Signature_ECDSA_Malformed_Undecodable", parent_certname = "certs/constructed/ecdsa_sig_malformed.pem")
 
 	def test_constructed_pubkey_bitbias_x_low_hweight(self):
 		self._test_examine_x509test_resultcode("certs/constructed/ecc_pubkey_x_bitbias1.pem", "X509Cert_PublicKey_ECC_PublicKeyPoint_X_BitBiasPresent", expect_absent = "X509Cert_PublicKey_ECC_PublicKeyPoint_Y_BitBiasPresent")
@@ -730,18 +730,18 @@ class SecurityAnalyzerTests(BaseTest):
 	def test_dsa_r_bitbias(self):
 		# Need the CA for this test, since the signature can only be checked
 		# when the curve is known, which is encoded in the CA's public key.
-		self._test_examine_x509test_resultcode("certs/constructed/dsa_r_bitbias.pem", expect_present = "DSA_Signature_R_BitBias", parent_certname = "certs/constructed/dsa_base.pem")
+		self._test_examine_x509test_resultcode("certs/constructed/dsa_r_bitbias.pem", expect_present = "X509Cert_Signature_DSA_R_BitBiasPresent", parent_certname = "certs/constructed/dsa_base.pem")
 
 	def test_dsa_s_bitbias(self):
 		# Need the CA for this test, since the signature can only be checked
 		# when the curve is known, which is encoded in the CA's public key.
-		self._test_examine_x509test_resultcode("certs/constructed/dsa_s_bitbias.pem", expect_present = "DSA_Signature_S_BitBias", parent_certname = "certs/constructed/dsa_base.pem")
+		self._test_examine_x509test_resultcode("certs/constructed/dsa_s_bitbias.pem", expect_present = "X509Cert_Signature_DSA_S_BitBiasPresent", parent_certname = "certs/constructed/dsa_base.pem")
 
 	def test_dsa_q_does_not_divide_p1(self):
 		self._test_examine_x509test_resultcode("certs/constructed/dsa_q_does_not_divide_p1.pem", expect_present = "X509Cert_PublicKey_DSA_Parameters_Q_NoDivisorOfP1")
 
 	def test_dsa_sig_malformed(self):
-		self._test_examine_x509test_resultcode("certs/constructed/dsa_sig_malformed.pem", expect_present = "DSA_Signature_Malformed")
+		self._test_examine_x509test_resultcode("certs/constructed/dsa_sig_malformed.pem", expect_present = "X509Cert_Signature_DSA_Malformed_Undecodable")
 
 	def test_dsa_typical_parameters(self):
 		self._test_examine_x509test_resultcode("certs/ok/dsa_sha1.pem", expect_present = [ "X509Cert_PublicKey_DSA_L_N_Common", "DSA_Security_Level" ], expect_absent = "X509Cert_PublicKey_DSA_L_N_Uncommon", include_raw = True)
