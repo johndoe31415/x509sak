@@ -22,7 +22,7 @@
 import math
 from x509sak.NumberTheory import NumberTheory
 from x509sak.estimate.BaseEstimator import BaseEstimator
-from x509sak.estimate import JudgementCode, Commonness, Compatibility
+from x509sak.estimate import JudgementCode, ExperimentalJudgementCodes, Commonness, Compatibility
 from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, LiteratureReference
 
 @BaseEstimator.register
@@ -50,11 +50,11 @@ class DSASecurityEstimator(BaseEstimator):
 
 		if not NumberTheory.is_probable_prime(pubkey.p):
 			standard = LiteratureReference(quote = "p: a prime modulus", sect = "4.1", author = "National Institute of Standards and Technology", title = "FIPS PUB 186-4: Digital Signature Standard (DSS)", year = 2013, month = 7, doi = "10.6028/NIST.FIPS.186-4")
-			judgements += SecurityJudgement(JudgementCode.DSA_Parameter_P_Not_Prime, "DSA parameter p is not prime.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, bits = 0, standard = standard)
+			judgements += SecurityJudgement(ExperimentalJudgementCodes.Crypto_AsymCryptoSys_DSA_P_NotPrime, "DSA parameter p is not prime.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, bits = 0, standard = standard)
 
 		if not NumberTheory.is_probable_prime(pubkey.q):
 			standard = LiteratureReference(quote = "q: a prime divisor of (p - 1)", sect = "4.1", author = "National Institute of Standards and Technology", title = "FIPS PUB 186-4: Digital Signature Standard (DSS)", year = 2013, month = 7, doi = "10.6028/NIST.FIPS.186-4")
-			judgements += SecurityJudgement(JudgementCode.DSA_Parameter_Q_Not_Prime, "DSA parameter q is not prime.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, bits = 0, standard = standard)
+			judgements += SecurityJudgement(ExperimentalJudgementCodes.Crypto_AsymCryptoSys_DSA_Q_NotPrime, "DSA parameter q is not prime.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, bits = 0, standard = standard)
 
 		if ((pubkey.p - 1) % pubkey.q) != 0:
 			standard = LiteratureReference(quote = "q: a prime divisor of (p - 1)", sect = "4.1", author = "National Institute of Standards and Technology", title = "FIPS PUB 186-4: Digital Signature Standard (DSS)", year = 2013, month = 7, doi = "10.6028/NIST.FIPS.186-4")

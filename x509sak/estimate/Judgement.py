@@ -23,6 +23,7 @@ import enum
 from x509sak.Tools import JSONTools
 from x509sak.Exceptions import LazyDeveloperException
 from x509sak.KwargsChecker import KwargsChecker
+from x509sak.estimate.ExperimentalJudgementCodes import ExperimentalJudgementCodes
 
 class JudgementCode(enum.Enum):
 	RSA_Parameter_Field_Not_Present = ("RSA pubkey", "parameter field not present")
@@ -347,7 +348,9 @@ class StandardDeviationType(enum.IntEnum):
 
 class SecurityJudgement():
 	def __init__(self, code, text, bits = None, verdict = None, commonness = None, compatibility = None, prefix_topic = False, standard = None, literature = None):
-		assert((code is None) or isinstance(code, JudgementCode))
+		# TODO disable check until refactoring of ExperimentalJudgementCode is finished
+		#assert((code is None) or isinstance(code, JudgementCode))
+
 		assert((bits is None) or isinstance(bits, (int, float)))
 		assert((verdict is None) or isinstance(verdict, Verdict))
 		assert((commonness is None) or isinstance(commonness, Commonness))
@@ -376,14 +379,22 @@ class SecurityJudgement():
 		if self.code is None:
 			return None
 		else:
-			return self.code.topic
+			# TODO refactor
+			if isinstance(self.code.value, tuple):
+				return self.code.value[0]
+			else:
+				return self.code.value.topic
 
 	@property
 	def short_text(self):
 		if self.code is None:
 			return None
 		else:
-			return self.code.short_text
+			# TODO refactor
+			if isinstance(self.code.value, tuple):
+				return self.code.value[1]
+			else:
+				return self.code.value.short_text
 
 	@property
 	def text(self):

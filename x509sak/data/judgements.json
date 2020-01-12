@@ -1,0 +1,355 @@
+{
+	"Number Theoretical": {
+		"_export": true,
+		"Random": {
+			"_short_id": "random_value",
+			"Bit Bias Present": { 
+				"_description": "bit bias present"
+			}
+		},
+		"Random Primes": {
+			"_short_id": "random_prime",
+			"_import": "random_value/*",
+			"Not Prime": { 
+				"_description": "value is not prime"
+			}
+		},
+		"Random Non-primes": {
+			"_short_id": "random_nonprime",
+			"_import": "random_value/*",
+			"Prime": { 
+				"_description": "value is prime"
+			}
+		},
+		"Random Unfactorable Compound": {
+			"_short_id": "random_compound",
+			"_import": "random_nonprime/*",
+			"Factorable": {
+				"_description": "compound value has small factor"
+			},
+			"Factorization Known": { 
+				"_description": "compound value has publicly known factorization"
+			}
+		}
+	},
+
+	"Cryptography": {
+		"_label": "Crypto",
+		"Asymmetric Cryptosystem": {
+			"_label": "AsymCryptoSys",
+			"RSA": {
+				"Exponent": {
+					"Zero or Negative": { },
+					"One": { },
+					"Small": { },
+					"Small and Uncommon": { },
+					"Most Common Value": { },
+					"Large": { }
+				},
+				"Modulus": {
+					"_import": "random_compound/*",
+					"Zero or Negative": { },
+					"One": { },
+					"Length in Bits": {
+						"_flags": [ "datapoint" ]
+					}
+				}
+			},
+			"DSA": {
+				"P": {
+					"_import": "random_prime/*"
+				},
+				"Q": {
+					"_import": "random_prime/*"
+				},
+				"G": {
+
+				},
+				"L/N": {
+					"_flags": [ "datapoint" ]
+				}
+			},
+			"ECC": {
+				"Curve Order in Bits": {
+					"_flags": [ "datapoint" ]
+				},
+				"ECC F_p": {
+				},
+				"ECC F_2m": {
+				},
+				"ECC Twisted Edwards": {
+				}
+			}
+		},
+		"Algortihms": {
+			"_label": "Alg",
+			"Signature Algorithms": {
+				"RSA Encryption": {
+				},
+				"RSA/PSS": {
+				},
+				"DSA / ECDSA": {
+					"R": {
+						"Bit Bias Present": { }
+					},
+					"S": {
+						"Bit Bias Present": { }
+					}
+				}
+			}
+		},
+		"Symmetric Cryptography": {
+			"_label": "Symmetric",
+			"Hash Function": {
+				"Output Length in Bits": {
+					"_flags": [ "datapoint" ]
+				}
+			},
+			"Encryption Algorithm": {
+			}
+		}
+	},
+
+	"X.509 Certificate": {
+		"_label": "X509Cert",
+		"Metadata": {
+			"_label": "Body",
+			"Version": {
+				"Not 2": { },
+				"Not 3": { }
+			},
+			"Validity": {
+				"Not Before": {
+					"_import": "datetime_encoding_issues/*"
+				},
+				"Not After": {
+					"_import": "datetime_encoding_issues/*"
+				}	
+			},
+			"Issuer": {
+			},
+			"Subject": {
+			},
+			"Serial Number": {
+				"Zero": {
+				},
+				"Negative": {
+				},
+				"Large": {
+				}
+			},
+			"X.509 Extensions": {
+				"_label": "X509Exts",
+				"All Unique": { },
+				"Duplicates Present": { },
+				"Known Extensions": {
+					"_label": "Ext",
+					"Basic Constraints": {
+						"_label": "BC"
+					},
+					"Subject Key Identifier": {
+						"_label": "SKI"
+					},
+					"Authority Key Identifier": {
+						"_label": "AKI",
+						"CA name": {
+							"_import": "general_name_issues",
+							"Empty": { }							
+						}
+					},
+					"Name Constraints": {
+						"_label": "NC"
+					},
+					"Key Usage": {
+						"_label": "KU"
+					},
+					"Extended Key Usage": {
+						"_label": "EKU",
+						"_import": "bitstring_issues/*"					
+					},
+					"Issuer Alternative Name": {
+						"_label": "IAN"
+					},
+					"Subject Alternative Name": {
+						"_label": "SAN"
+					},
+					"Authority Information Access": {
+						"_label": "AIA"
+					},
+					"Certificate Policies": {
+						"_label": "CP"
+					},
+					"Netscape Certificate Type": {
+						"_label": "NSCT"
+					},
+					"CRL Distribution Points": {
+						"_label": "CRLDP"
+					},
+					"Certificate Transparency Precertificate Poison": {
+						"_label": "CTPP"
+					},
+					"Certificate Transparency Signed Certificate Timestamps": {
+						"_label": "CTSCT"
+					}
+				},
+				"Unknown Extension": {
+					"_label": "Unknown",
+					"Present": { },
+					"Critical": { }
+				}
+			}
+		},
+		"Public Key": {
+		},
+		"Signature": {
+		}
+	},
+
+	"Encoding": {
+		"_export": true,
+		"ASN.1 DER": {
+			"Encoding Issues": {
+				"_short_id": "asn1_encoding_issues",
+				"Trailing Data": {
+					"_description": "trailing data present"
+				},
+				"Malformed": {
+					"Undecodable": {
+						"_description": "no valid DER encoding"
+					},
+					"Non-DER Encoding": {
+						"_description": "decodable, but no valid DER"
+					},
+					"Unexpected Type": {
+						"_description": "decoding resulted in unexpected type"
+					}
+				}
+			},
+			"Structures": {
+				"DateTime": {
+					"_short_id": "datetime_encoding_issues",
+					"Malformed": { 
+						"_description": "Malformed encoding used"
+					},
+					"Invalid Type": {
+						"_description": "GeneralizedTime data type used for timestamp before year 2050"
+				   	}
+				},
+				"PublicKey": {
+					"_import": "asn1_encoding_issues/*"
+				},
+				"ECDSA Signature": {
+					"_import": "asn1_encoding_issues/*"
+				},
+				"BitString": {
+					"_short_id": "bitstring_issues",
+					"Trailing Zeros": {
+					}
+				},
+				"GeneralName Validation": {
+					"_label": "GenName",
+					"_short_id": "general_name_issues",
+					"Email": {
+						"Malformed": {
+						}
+					},
+					"IP Address": {
+						"Private Address Space": {
+						},
+						"Malformed": {
+						}
+					},
+					"Directory Address": {
+					},
+					"URI": {
+						"Malformed": {
+							"_description": "URI malformed"
+						},
+						"Uncommon URI Scheme": {
+							"_description": "uncommon URI scheme"
+						}
+					},
+					"Domain Name": {
+						"Only Whitespace": {
+							"_description": "domain name consists only of space character"
+						},
+						"Single Label": {
+							"_description": "domain name consists only of a single label"
+						},
+						"Wildcard": {
+							"Not Permitted": {
+								"_description": "wildcard not permitted in domain name"
+							},
+							"Not Leftmost": {
+								"_description": "wildcard appears not leftmost in label"
+							},
+							"Mulitple Wildcards": {
+								"_description": "multiple wildcard present in label"
+							},
+							"International Label": {
+								"_description": "wildcard used in international label"
+							},
+							"Broad Match": {
+								"_description": "wildcard matches broadly"
+							}
+						}
+					}
+				}
+			}
+		},
+		"RFC5246": {
+
+		}
+	},
+
+	"Usage Checks": {
+		"Extended Key Usage": {
+			"Excess Purpose Included": { },
+			"Required Purpose Missing": { },
+			"Extension Missing": { }
+		},
+		"Key Usage": {
+			"Excess Usage Bit Included": { },
+			"Required Usage Bit Missing": { },
+			"Extension Missing": { }
+		}
+	},
+
+	"Certificate Usage": {
+		"_label": "Cert Usage",
+		"Purposes": {
+			"_label": "Purpose",
+			"Client Certificate": {
+				"_label": "Client Cert",
+				"Extended Key Usage Mismatch": {
+					"_label": "EKU Mismatch",
+					"_description": "extended key usage does not include clientAuth"
+				}
+			},
+			"Server Certificate": {
+				"_label": "Server Cert",
+				"Extended Key Usage Mismatch": {
+					"_label": "EKU Mismatch",
+					"_description": "extended key usage does not include serverAuth"
+				}
+			},
+			"CA Certificate": {
+				"_label": "CA Cert",
+				"Extended Key Usage Mismatch": {
+					"_label": "EKU Mismatch",
+					"_description": "extended key usage does not include TODO"
+				}
+			}
+		},
+		"CA Relationship": {
+			"Validity Periods": {
+				"Full Overlap": {
+				},
+				"Partial Overlap": {
+				},
+				"Full Overlap": {
+				}
+			}
+		}
+	}
+}
