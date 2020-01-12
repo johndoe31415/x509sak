@@ -3,34 +3,21 @@
 		"_label": "X509Cert",
 		"Public Key": {
 			"RSA": {
-				"_import": [ "rsa_pubkey_encoding_issues/*", "rsa_algorithm/*" ]
+				"_import": [ "rsa_algorithm/*", "rsa_crypto/*", "rsa_pubkey_encoding_issues/*" ]
 			},
 			"ECC": {
-				"_import": [ "ecdsa_pubkey_encoding_issues/*", "ecdsa_pubkey_encoding_issues/*" ],
+				"_import": [ "ecc_crypto/*", "ecdsa_pubkey_encoding_issues/*" ],
 				"Domain Parameters": {
-					"Binary Field": { "_desc": "curve domain is over binary field" },
-					"Prime Field": { "_desc": "curve domain is over prime field" },
 					"Name": {
 						"Named Curve": { "_desc": "curve is named by its OID" },
 						"Explicit Curve": { "_desc": "curve has explicitly encoded domain parameters" },
 						"Unknown Explicit": { "_desc": "explicit curve domain parameters are entirely unknown" },
 						"Unused Name": { "_desc": "explicit curve domain parameters are equal to named curve" }
-					},
-					"Curve Property": {
-						"Koblitz Curve": { "_desc": "curve domain is a Koblitz curve" }
-					}
-				},
-				"Public Key Point": {
-					"Is Generator": { "_desc": "public key point is equal to the generator of the curve" },
-					"X Coordinate": {
-						"_label": "X",
-						"_import": "random_value/*"
-					},
-					"Y Coordinate": {
-						"_label": "Y",
-						"_import": "random_value/*"
 					}
 				}
+			},
+			"DSA": {
+				"_import": [ "dsa_crypto/*", "dsa_pubkey_encoding_issues/*" ]
 			}
 		},
 		"Metadata": {

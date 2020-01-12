@@ -25,16 +25,19 @@
 				}
 			},
 			"DSA": {
-				"P": {
-					"_import": "random_prime/*"
-				},
-				"Q": {
-					"_import": "random_prime/*",
-					"No Divisor Of P-1": { "_desc": "q does not divide (p - 1)" }
-				},
-				"G": {
-					"Invalid": { "_desc": "generator g does not fulfill g^q = 1 mod p" },
-					"Invalid Range": { "_desc": "generator g outside valid range" }
+				"_short_id": "dsa_crypto",
+				"Parameters": {
+					"P": {
+						"_import": "random_prime/*"
+					},
+					"Q": {
+						"_import": "random_prime/*",
+						"No Divisor Of P-1": { "_desc": "q does not divide (p - 1)" }
+					},
+					"G": {
+						"Invalid": { "_desc": "generator g does not fulfill g^q = 1 mod p" },
+						"Invalid Range": { "_desc": "generator g outside valid range" }
+					}
 				},
 				"L/N": {
 					"_flags": [ "datapoint" ],
@@ -43,14 +46,27 @@
 				}
 			},
 			"ECC": {
+				"_short_id": "ecc_crypto",
 				"Curve Order in Bits": {
 					"_flags": [ "datapoint" ]
 				},
-				"ECC F_p": {
+				"Domain Parameters": {
+					"Binary Field": { "_desc": "curve domain is over binary field" },
+					"Prime Field": { "_desc": "curve domain is over prime field" },
+					"Curve Property": {
+						"Koblitz Curve": { "_desc": "curve domain is a Koblitz curve" }
+					}
 				},
-				"ECC F_2m": {
-				},
-				"ECC Twisted Edwards": {
+				"Public Key Point": {
+					"Is Generator": { "_desc": "public key point is equal to the generator of the curve" },
+					"X Coordinate": {
+						"_label": "X",
+						"_import": "random_value/*"
+					},
+					"Y Coordinate": {
+						"_label": "Y",
+						"_import": "random_value/*"
+					}
 				}
 			}
 		},
@@ -64,7 +80,11 @@
 						"No Salt Used": { "_desc": "short salt value used" },
 						"Short Salt Used": { "_desc": "short salt value used" },
 						"Multiple Hash Functions": { "_desc": "multiple hash functions used" },
-						"Unknown Trailer Field": { "_desc": "unknown trailer field specified" }
+						"Unknown Trailer Field": { "_desc": "unknown trailer field specified" },
+						"Salt Length in Bytes": {
+							"_desc": "salt length in bytes",
+							"_flags": [ "datapoint" ]
+						}
 					}
 				},
 				"DSA / ECDSA": {

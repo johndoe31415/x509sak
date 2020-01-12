@@ -91,7 +91,7 @@ class RSASecurityEstimator(BaseEstimator):
 		# We estimate the complexity of factoring the modulus by the asymptotic
 		# complexity of the GNFS.
 		bits_security = NumberTheory.asymtotic_complexity_gnfs_bits(n)
-		judgements += self.algorithm("bits").analyze(JudgementCode.RSA_Modulus_Length, bits_security)
+		judgements += self.algorithm("bits").analyze(ExperimentalJudgementCodes.X509Cert_PublicKey_RSA_Modulus_LengthInBits, bits_security)
 
 		return judgements
 

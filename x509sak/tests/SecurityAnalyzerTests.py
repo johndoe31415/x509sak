@@ -504,7 +504,7 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/rsa_parameter_missing.pem", "X509Cert_PublicKey_RSA_ParameterFieldNotPresent")
 
 	def test_include_raw_data_rsa(self):
-		self._test_examine_x509test_resultcode("certs/ok/rsa_512.pem", expect_present = [ "SignatureFunction_Common", "HashFunction_Derated", "RSA_Modulus_Length", "HashFunction_Length" ], include_raw = True)
+		self._test_examine_x509test_resultcode("certs/ok/rsa_512.pem", expect_present = [ "SignatureFunction_Common", "HashFunction_Derated", "X509Cert_PublicKey_RSA_Modulus_LengthInBits", "HashFunction_Length" ], include_raw = True)
 
 	def test_include_raw_data_ecc_fp(self):
 		self._test_examine_x509test_resultcode("certs/ok/ecc_secp256r1.pem", expect_present = "SignatureFunction_Common", include_raw = True)
@@ -677,25 +677,25 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/rsapss_malformed1.pem", expect_present = "X509Cert_PublicKey_RSA_RSAPSS_InvalidSaltLength")
 
 	def test_rsa_pss_malformed2(self):
-		self._test_examine_x509test_resultcode("certs/constructed/rsapss_malformed2.pem", expect_present = "RSA_PSS_Unknown_Trailer_Field")
+		self._test_examine_x509test_resultcode("certs/constructed/rsapss_malformed2.pem", expect_present = "X509Cert_PublicKey_RSA_RSA_PSS_UnknownTrailerField")
 
 	def test_rsa_pss_malformed3(self):
-		self._test_examine_x509test_resultcode("certs/constructed/rsapss_malformed3.pem", expect_present = "RSA_PSS_Unknown_Trailer_Field")
+		self._test_examine_x509test_resultcode("certs/constructed/rsapss_malformed3.pem", expect_present = "X509Cert_PublicKey_RSA_RSA_PSS_UnknownTrailerField")
 
 	def test_rsa_pss_malformed4(self):
 		self._test_examine_x509test_resultcode("certs/constructed/rsapss_malformed4.pem", expect_present = "X509Cert_PublicKey_RSA_RSAPSS_Parameters_Malformed_Undecodable")
 
 	def test_rsa_pss_salt0(self):
-		self._test_examine_x509test_resultcode("certs/constructed/rsapss_salt0.pem", expect_present = "RSA_PSS_No_Salt_Used")
+		self._test_examine_x509test_resultcode("certs/constructed/rsapss_salt0.pem", expect_present = "X509Cert_PublicKey_RSA_RSA_PSS_NoSaltUsed")
 
 	def test_rsa_pss_salt3(self):
-		self._test_examine_x509test_resultcode("certs/constructed/rsapss_salt3.pem", expect_present = "RSA_PSS_Short_Salt_Used")
+		self._test_examine_x509test_resultcode("certs/constructed/rsapss_salt3.pem", expect_present = "X509Cert_PublicKey_RSA_RSA_PSS_ShortSaltUsed")
 
 	def test_rsa_pss_salt16(self):
-		self._test_examine_x509test_resultcode("certs/constructed/rsapss_salt16.pem", expect_present = "RSA_PSS_Salt_Length")
+		self._test_examine_x509test_resultcode("certs/constructed/rsapss_salt16.pem", expect_present = "X509Cert_PublicKey_RSA_RSA_PSS_SaltLengthInBytes")
 
 	def test_rsa_pss_multiple_hashes(self):
-		self._test_examine_x509test_resultcode("certs/constructed/rsapss_multiple_hashes.pem", expect_present = "RSA_PSS_Multiple_Hash_Functions")
+		self._test_examine_x509test_resultcode("certs/constructed/rsapss_multiple_hashes.pem", expect_present = "X509Cert_PublicKey_RSA_RSA_PSS_MultipleHashFunctions")
 
 	def test_rsa_pss_mismatch_algo1(self):
 		self._test_examine_x509test_resultcode("certs/constructed/rsapss_mismatch_algo1.pem", expect_present = "Cert_Signature_Algorithm_Mismatch")
@@ -738,31 +738,31 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/dsa_s_bitbias.pem", expect_present = "DSA_Signature_S_BitBias", parent_certname = "certs/constructed/dsa_base.pem")
 
 	def test_dsa_q_does_not_divide_p1(self):
-		self._test_examine_x509test_resultcode("certs/constructed/dsa_q_does_not_divide_p1.pem", expect_present = "DSA_Parameter_Q_No_Divisor_Of_P1")
+		self._test_examine_x509test_resultcode("certs/constructed/dsa_q_does_not_divide_p1.pem", expect_present = "X509Cert_PublicKey_DSA_Parameters_Q_NoDivisorOfP1")
 
 	def test_dsa_sig_malformed(self):
 		self._test_examine_x509test_resultcode("certs/constructed/dsa_sig_malformed.pem", expect_present = "DSA_Signature_Malformed")
 
 	def test_dsa_typical_parameters(self):
-		self._test_examine_x509test_resultcode("certs/ok/dsa_sha1.pem", expect_present = [ "DSA_Parameter_L_N_Common", "DSA_Security_Level" ], expect_absent = "DSA_Parameter_L_N_Uncommon", include_raw = True)
+		self._test_examine_x509test_resultcode("certs/ok/dsa_sha1.pem", expect_present = [ "X509Cert_PublicKey_DSA_L_N_Common", "DSA_Security_Level" ], expect_absent = "X509Cert_PublicKey_DSA_L_N_Uncommon", include_raw = True)
 
 	def test_dsa_atypical_parameters(self):
-		self._test_examine_x509test_resultcode("certs/ok/dsa_512_160_sha256.pem", expect_present = "DSA_Parameter_L_N_Uncommon", expect_absent = "DSA_Parameter_L_N_Common")
+		self._test_examine_x509test_resultcode("certs/ok/dsa_512_160_sha256.pem", expect_present = "X509Cert_PublicKey_DSA_L_N_Uncommon", expect_absent = "X509Cert_PublicKey_DSA_L_N_Common")
 
 	def test_dsa_g_invalid_range(self):
-		self._test_examine_x509test_resultcode("certs/constructed/dsa_g_invalid.pem", expect_present = "DSA_Parameter_G_Invalid")
+		self._test_examine_x509test_resultcode("certs/constructed/dsa_g_invalid.pem", expect_present = "X509Cert_PublicKey_DSA_Parameters_G_Invalid")
 
 	def test_dsa_g_invalid_range1(self):
-		self._test_examine_x509test_resultcode("certs/constructed/dsa_g_invalid_range1.pem", expect_present = "DSA_Parameter_G_Invalid_Range")
+		self._test_examine_x509test_resultcode("certs/constructed/dsa_g_invalid_range1.pem", expect_present = "X509Cert_PublicKey_DSA_Parameters_G_InvalidRange")
 
 	def test_dsa_g_invalid_range2(self):
-		self._test_examine_x509test_resultcode("certs/constructed/dsa_g_invalid_range2.pem", expect_present = "DSA_Parameter_G_Invalid_Range")
+		self._test_examine_x509test_resultcode("certs/constructed/dsa_g_invalid_range2.pem", expect_present = "X509Cert_PublicKey_DSA_Parameters_G_InvalidRange")
 
 	def test_dsa_g_invalid_range3(self):
-		self._test_examine_x509test_resultcode("certs/constructed/dsa_g_invalid_range3.pem", expect_present = "DSA_Parameter_G_Invalid_Range")
+		self._test_examine_x509test_resultcode("certs/constructed/dsa_g_invalid_range3.pem", expect_present = "X509Cert_PublicKey_DSA_Parameters_G_InvalidRange")
 
 	def test_dsa_g_invalid_range4(self):
-		self._test_examine_x509test_resultcode("certs/constructed/dsa_g_invalid_range4.pem", expect_present = "DSA_Parameter_G_Invalid_Range")
+		self._test_examine_x509test_resultcode("certs/constructed/dsa_g_invalid_range4.pem", expect_present = "X509Cert_PublicKey_DSA_Parameters_G_InvalidRange")
 
 	def test_ski_missing(self):
 		self._test_examine_x509test_resultcode("certs/constructed/ski_missing.pem", expect_present = "Cert_X509Ext_SubjectKeyIdentifier_Missing")
