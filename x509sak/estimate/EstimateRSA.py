@@ -48,7 +48,7 @@ class RSASecurityEstimator(BaseEstimator):
 	@staticmethod
 	def analyze_e(e):
 		if e < 1:
-			return SecurityJudgement(ExperimentalJudgementCodes.Crypto_AsymCryptoSys_RSA_Exponent_Negative, "RSA exponent is zero or negative, this is a malicious key.", bits = 0)
+			return SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_RSA_Exponent_Negative, "RSA exponent is zero or negative, this is a malicious key.", bits = 0)
 		elif e == 1:
 			return SecurityJudgement(ExperimentalJudgementCodes.Crypto_AsymCryptoSys_RSA_Exponent_One, "RSA exponent is 1, this is a malicious key.", bits = 0)
 		elif e in [ 3, 5, 7, 17, 257 ]:
@@ -56,15 +56,15 @@ class RSASecurityEstimator(BaseEstimator):
 		elif e < 65537:
 			return SecurityJudgement(ExperimentalJudgementCodes.Crypto_AsymCryptoSys_RSA_Exponent_SmallAndUncommon, "RSA exponent is small and an uncommon choice.", verdict = Verdict.MEDIUM, commonness = Commonness.UNUSUAL)
 		elif e == 65537:
-			return SecurityJudgement(ExperimentalJudgementCodes.Crypto_AsymCryptoSys_RSA_Exponent_MostCommonValue, "RSA exponent is the most common choice.", verdict = Verdict.BEST_IN_CLASS, commonness = Commonness.COMMON)
+			return SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_RSA_Exponent_MostCommonValue, "RSA exponent is the most common choice.", verdict = Verdict.BEST_IN_CLASS, commonness = Commonness.COMMON)
 		else:
-			return SecurityJudgement(ExperimentalJudgementCodes.Crypto_AsymCryptoSys_RSA_Exponent_Large, "RSA exponent is uncommonly large. This need not be a weakness, but is highly unusual and may cause interoperability issues.", verdict = Verdict.BEST_IN_CLASS, commonness = Commonness.HIGHLY_UNUSUAL)
+			return SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_RSA_Exponent_Large, "RSA exponent is uncommonly large. This need not be a weakness, but is highly unusual and may cause interoperability issues.", verdict = Verdict.BEST_IN_CLASS, commonness = Commonness.HIGHLY_UNUSUAL)
 
 	def analyze_n(self, n):
 		judgements = SecurityJudgements()
 
 		if n < 0:
-			judgements += SecurityJudgement(ExperimentalJudgementCodes.Crypto_AsymCryptoSys_RSA_Modulus_Negative, "Modulus uses incorrect encoding, representation is a negative integer.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION)
+			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_RSA_Modulus_Negative, "Modulus uses incorrect encoding, representation is a negative integer.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION)
 
 			# Fix up n so it's a positive integer for the rest of the tests
 			bitlen = (n.bit_length() + 7) // 8 * 8
@@ -73,16 +73,16 @@ class RSASecurityEstimator(BaseEstimator):
 
 		if self._test_probable_prime:
 			if NumberTheory.is_probable_prime(n):
-				judgements += SecurityJudgement(ExperimentalJudgementCodes.Crypto_AsymCryptoSys_RSA_Modulus_Prime, "Modulus is prime, not a compound integer as we would expect for RSA.", bits = 0)
+				judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_RSA_Modulus_Prime, "Modulus is prime, not a compound integer as we would expect for RSA.", bits = 0)
 
 		if self._pollards_rho_iterations > 0:
 			small_factor = NumberTheory.pollard_rho(n, max_iterations = self._pollards_rho_iterations)
 			if small_factor is not None:
-				judgements += SecurityJudgement(ExperimentalJudgementCodes.Crypto_AsymCryptoSys_RSA_Modulus_Factorable, "Modulus has small factor (%d) and is therefore trivially factorable." % (small_factor), bits = 0)
+				judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_RSA_Modulus_Factorable, "Modulus has small factor (%d) and is therefore trivially factorable." % (small_factor), bits = 0)
 
 		match = ModulusDB().find(n)
 		if match is not None:
-			judgements += SecurityJudgement(ExperimentalJudgementCodes.Crypto_AsymCryptoSys_RSA_Modulus_FactorizationKnown, "Modulus is known to be compromised: %s" % (match.text), bits = 0)
+			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_RSA_Modulus_FactorizationKnown, "Modulus is known to be compromised: %s" % (match.text), bits = 0)
 
 		hweight_analysis = NumberTheory.hamming_weight_analysis(n)
 		if not hweight_analysis.plausibly_random:
@@ -113,13 +113,13 @@ class RSASecurityEstimator(BaseEstimator):
 
 		if pubkey.params is None:
 			standard = RFCReference(rfcno = 3279, sect = "2.2.1", verb = "MUST", text = "When any of these three OIDs appears within the ASN.1 type AlgorithmIdentifier, the parameters component of that type SHALL be the ASN.1 type NULL.")
-			judgements += SecurityJudgement(JudgementCode.RSA_Parameter_Field_Not_Present, "RSA parameter field should be present and should be of Null type, but is not present at all.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_RSA_ParameterFieldNotPresent, "RSA parameter field should be present and should be of Null type, but is not present at all.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 		else:
 			# There is a parameters field present, it must be NULL
 			(asn1_params, tail) = pyasn1.codec.der.decoder.decode(bytes(pubkey.params))
 			if not isinstance(asn1_params, pyasn1.type.univ.Null):
 				standard = RFCReference(rfcno = 3279, sect = "2.2.1", verb = "MUST", text = "When any of these three OIDs appears within the ASN.1 type AlgorithmIdentifier, the parameters component of that type SHALL be the ASN.1 type NULL.")
-				judgements += SecurityJudgement(JudgementCode.RSA_Parameter_Field_Not_Null, "RSA parameter field should be present and should be of Null type, but has different ASN.1 type %s." % (type(asn1_params).__name__), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+				judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_RSA_ParameterFieldNotPresent, "RSA parameter field should be present and should be of Null type, but has different ASN.1 type %s." % (type(asn1_params).__name__), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 		judgements += result["specific"]["n"]["security"]
 		judgements += result["specific"]["e"]["security"]

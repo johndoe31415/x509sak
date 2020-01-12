@@ -1,14 +1,22 @@
 #!/usr/bin/python3
 #
 import subprocess
+import sys
 
-with open("refactor") as f:
-	for line in f:
-		line = line.rstrip("\r\n")
-		line = line.split()
-		if len(line) == 2:
-			(old, new) = line
-			print("%s -> %s" % (old, new))
-			subprocess.check_call([ "replaceall", "-R", "-cn", "-g", "*.py", "-s", "JudgementCode.%s" % (old), "-r", "ExperimentalJudgementCodes.%s" % (new), "x509sak" ])
-			subprocess.check_call([ "replaceall", "-R", "-cn", "-g", "*.py", "-s", "\"%s\"" % (old), "-r", "\"%s\"" % (new), "x509sak" ])
-			subprocess.check_call([ "replaceall", "-cn", "-s", "([ \t]+%s = )" % (old), "-r", "#\\1", "x509sak/estimate/Judgement.py" ])
+def replace(old, new):
+	print("%s -> %s" % (old, new))
+	subprocess.check_call([ "replaceall", "-R", "-vcn", "-g", "*.py", "-s", "JudgementCode.%s" % (old), "-r", "ExperimentalJudgementCodes.%s" % (new), "x509sak" ])
+	subprocess.check_call([ "replaceall", "-R", "-vcn", "-g", "*.py", "-s", "\"%s\"" % (old), "-r", "\"%s\"" % (new), "x509sak" ])
+	subprocess.check_call([ "replaceall", "-vcn", "-s", "^([ \t]+%s = )" % (old), "-r", "#\\1", "x509sak/estimate/Judgement.py" ])
+
+if len(sys.argv) == 3:
+	(old, new) = sys.argv[1:]
+	replace(old, new)
+else:
+	with open("refactor") as f:
+		for line in f:
+			line = line.rstrip("\r\n")
+			line = line.split()
+			if len(line) == 2:
+				(old, new) = line
+				replace(old, new)

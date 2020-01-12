@@ -37,11 +37,11 @@ class SignatureSecurityEstimator(BaseEstimator):
 		try:
 			rsapss = RSAPSSParameters.decode(signature_alg_params)
 		except pyasn1.error.PyAsn1Error:
-			judgements += SecurityJudgement(JudgementCode.RSA_PSS_Parameters_Malformed, "RSA/PSS parameter are malformed, unable to decode them.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, bits = 0)
+			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_RSA_RSAPSS_Parameters_Malformed_Undecodable, "RSA/PSS parameter are malformed, unable to decode them.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, bits = 0)
 			return (None, judgements)
 
 		if len(rsapss.asn1_tail) > 0:
-			judgements += SecurityJudgement(JudgementCode.RSA_PSS_Parameters_TrailingData, "RSA/PSS parameter encoding has %d bytes of trailing data." % (len(rsapss.asn1_tail)), commonness = Commonness.HIGHLY_UNUSUAL)
+			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_RSA_RSAPSS_Parameters_TrailingData, "RSA/PSS parameter encoding has %d bytes of trailing data." % (len(rsapss.asn1_tail)), commonness = Commonness.HIGHLY_UNUSUAL)
 
 		if rsapss.hash_algorithm is None:
 			judgements += SecurityJudgement(JudgementCode.Cert_Unknown_HashAlgorithm, "Certificate has unknown hash function for use in RSA-PSS, OID %s. Cannot make security determination for that part." % (rsapss.hash_algorithm_oid), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
@@ -60,7 +60,7 @@ class SignatureSecurityEstimator(BaseEstimator):
 			judgements += SecurityJudgement(JudgementCode.RSA_PSS_Multiple_Hash_Functions, "RSA-PSS uses hash function %s for hashing, but %s for masking. This is discouraged." % (rsapss.hash_algorithm.name, rsapss.mask_hash_algorithm.name), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT, standard = standard)
 
 		if rsapss.salt_length < 0:
-			judgements += SecurityJudgement(JudgementCode.RSA_PSS_Invalid_Salt_Length, "Certificate has negative salt length for use in RSA-PSS, %d bytes specified." % (rsapss.salt_length), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, bits = 0)
+			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_RSA_RSAPSS_InvalidSaltLength, "Certificate has negative salt length for use in RSA-PSS, %d bytes specified." % (rsapss.salt_length), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, bits = 0)
 		elif rsapss.salt_length == 0:
 			judgements += SecurityJudgement(JudgementCode.RSA_PSS_No_Salt_Used, "RSA-PSS does not use any salt.", commonness = Commonness.HIGHLY_UNUSUAL)
 		elif rsapss.salt_length < 16:

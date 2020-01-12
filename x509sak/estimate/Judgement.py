@@ -26,8 +26,8 @@ from x509sak.KwargsChecker import KwargsChecker
 from x509sak.estimate.ExperimentalJudgementCodes import ExperimentalJudgementCodes
 
 class JudgementCode(enum.Enum):
-	RSA_Parameter_Field_Not_Present = ("RSA pubkey", "parameter field not present")
-	RSA_Parameter_Field_Not_Null = ("RSA pubkey", "parameter field not NULL")
+#	RSA_Parameter_Field_Not_Present = ("RSA pubkey", "parameter field not present")
+#	RSA_Parameter_Field_Not_Null = ("RSA pubkey", "parameter field not NULL")
 #	RSA_Exponent_Is_Zero_Or_Negative = ("RSA Exponent", "e is zero or negative")
 #	RSA_Exponent_Is_0x1 = ("RSA Exponent", "e is 1")
 #	RSA_Exponent_Small = ("RSA Exponent", "e is small")
@@ -40,9 +40,9 @@ class JudgementCode(enum.Enum):
 ##	RSA_Modulus_FactorizationKnown = ("RSA Modulus", "factorization of n is public")
 ##	RSA_Modulus_BitBias = ("RSA Modulus", "n has bit bias")
 	RSA_Modulus_Length = ("RSA Modulus", "length of n")
-	RSA_PSS_Parameters_Malformed = ("RSA/PSS Encoding", "malformed parameters")
-	RSA_PSS_Parameters_TrailingData = ("RSA/PSS Encoding", "trailing garbage data")
-	RSA_PSS_Invalid_Salt_Length = ("RSA/PSS Salt", "length of salt invalid")
+#	RSA_PSS_Parameters_Malformed = ("RSA/PSS Encoding", "malformed parameters")
+#	RSA_PSS_Parameters_TrailingData = ("RSA/PSS Encoding", "trailing garbage data")
+#	RSA_PSS_Invalid_Salt_Length = ("RSA/PSS Salt", "length of salt invalid")
 	RSA_PSS_No_Salt_Used = ("RSA/PSS Salt", "no salt applied")
 	RSA_PSS_Short_Salt_Used = ("RSA/PSS Salt", "comparatively short salt value")
 	RSA_PSS_Salt_Length = ("RSA/PSS Salt", "length of salt")

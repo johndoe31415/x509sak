@@ -368,13 +368,13 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-pubkey-ecdsa-unknown-curve.pem", "ECC_UnknownNamedCurve")
 
 	def test_examine_x509test_xf_pubkey_rsa_exponent_negative(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-pubkey-rsa-exponent-negative.pem", "Crypto_AsymCryptoSys_RSA_Exponent_Negative")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-pubkey-rsa-exponent-negative.pem", "X509Cert_PublicKey_RSA_Exponent_Negative")
 
 	def test_examine_x509test_xf_pubkey_rsa_modulus_negative(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-pubkey-rsa-modulus-negative.pem", "Crypto_AsymCryptoSys_RSA_Modulus_Negative")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-pubkey-rsa-modulus-negative.pem", "X509Cert_PublicKey_RSA_Modulus_Negative")
 
 	def test_examine_x509test_xf_pubkey_rsa_param_nonnull(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-pubkey-rsa-param-nonnull.pem", "RSA_Parameter_Field_Not_Null")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-pubkey-rsa-param-nonnull.pem", "X509Cert_PublicKey_RSA_ParameterFieldNotPresent")
 
 	def test_examine_x509test_xf_serial_negative(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-serial-negative.pem", "Cert_Serial_Negative")
@@ -474,16 +474,16 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/rsa_bitbias.pem", "Crypto_AsymCryptoSys_RSA_Modulus_BitBiasPresent")
 
 	def test_constructed_rsa_modulus_prime(self):
-		self._test_examine_x509test_resultcode("certs/constructed/rsa_modulus_prime.pem", "Crypto_AsymCryptoSys_RSA_Modulus_Prime", fast_rsa = False)
+		self._test_examine_x509test_resultcode("certs/constructed/rsa_modulus_prime.pem", "X509Cert_PublicKey_RSA_Modulus_Prime", fast_rsa = False)
 
 	def test_constructed_rsa_modulus_smallfactor(self):
-		self._test_examine_x509test_resultcode("certs/constructed/rsa_modulus_smallfactor.pem", "Crypto_AsymCryptoSys_RSA_Modulus_Factorable", fast_rsa = False)
+		self._test_examine_x509test_resultcode("certs/constructed/rsa_modulus_smallfactor.pem", "X509Cert_PublicKey_RSA_Modulus_Factorable", fast_rsa = False)
 
 	def test_constructed_rsa_modulus_compromised(self):
-		self._test_examine_x509test_resultcode("certs/constructed/rsa_modulus_compromised.pem", "Crypto_AsymCryptoSys_RSA_Modulus_FactorizationKnown")
+		self._test_examine_x509test_resultcode("certs/constructed/rsa_modulus_compromised.pem", "X509Cert_PublicKey_RSA_Modulus_FactorizationKnown")
 
 	def test_constructed_rsa_exponent0(self):
-		self._test_examine_x509test_resultcode("certs/constructed/rsa_exponent0.pem", "Crypto_AsymCryptoSys_RSA_Exponent_Negative")
+		self._test_examine_x509test_resultcode("certs/constructed/rsa_exponent0.pem", "X509Cert_PublicKey_RSA_Exponent_Negative")
 
 	def test_constructed_rsa_exponent1(self):
 		self._test_examine_x509test_resultcode("certs/constructed/rsa_exponent1.pem", "Crypto_AsymCryptoSys_RSA_Exponent_One")
@@ -495,13 +495,13 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/rsa_exponent101.pem", "Crypto_AsymCryptoSys_RSA_Exponent_SmallAndUncommon")
 
 	def test_constructed_rsa_exponent65537(self):
-		self._test_examine_x509test_resultcode("certs/constructed/rsa_exponent65537.pem", "Crypto_AsymCryptoSys_RSA_Exponent_MostCommonValue")
+		self._test_examine_x509test_resultcode("certs/constructed/rsa_exponent65537.pem", "X509Cert_PublicKey_RSA_Exponent_MostCommonValue")
 
 	def test_constructed_rsa_exponent_long(self):
-		self._test_examine_x509test_resultcode("certs/constructed/rsa_exponent_long.pem", "Crypto_AsymCryptoSys_RSA_Exponent_Large")
+		self._test_examine_x509test_resultcode("certs/constructed/rsa_exponent_long.pem", "X509Cert_PublicKey_RSA_Exponent_Large")
 
 	def test_constructed_rsa_parameter_missing(self):
-		self._test_examine_x509test_resultcode("certs/constructed/rsa_parameter_missing.pem", "RSA_Parameter_Field_Not_Present")
+		self._test_examine_x509test_resultcode("certs/constructed/rsa_parameter_missing.pem", "X509Cert_PublicKey_RSA_ParameterFieldNotPresent")
 
 	def test_include_raw_data_rsa(self):
 		self._test_examine_x509test_resultcode("certs/ok/rsa_512.pem", expect_present = [ "SignatureFunction_Common", "HashFunction_Derated", "RSA_Modulus_Length", "HashFunction_Length" ], include_raw = True)
@@ -674,7 +674,7 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/unknown_maskfnc.pem", expect_present = "Cert_Unknown_MaskAlgorithm")
 
 	def test_rsa_pss_malformed1(self):
-		self._test_examine_x509test_resultcode("certs/constructed/rsapss_malformed1.pem", expect_present = "RSA_PSS_Invalid_Salt_Length")
+		self._test_examine_x509test_resultcode("certs/constructed/rsapss_malformed1.pem", expect_present = "X509Cert_PublicKey_RSA_RSAPSS_InvalidSaltLength")
 
 	def test_rsa_pss_malformed2(self):
 		self._test_examine_x509test_resultcode("certs/constructed/rsapss_malformed2.pem", expect_present = "RSA_PSS_Unknown_Trailer_Field")
@@ -683,7 +683,7 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/rsapss_malformed3.pem", expect_present = "RSA_PSS_Unknown_Trailer_Field")
 
 	def test_rsa_pss_malformed4(self):
-		self._test_examine_x509test_resultcode("certs/constructed/rsapss_malformed4.pem", expect_present = "RSA_PSS_Parameters_Malformed")
+		self._test_examine_x509test_resultcode("certs/constructed/rsapss_malformed4.pem", expect_present = "X509Cert_PublicKey_RSA_RSAPSS_Parameters_Malformed_Undecodable")
 
 	def test_rsa_pss_salt0(self):
 		self._test_examine_x509test_resultcode("certs/constructed/rsapss_salt0.pem", expect_present = "RSA_PSS_No_Salt_Used")
