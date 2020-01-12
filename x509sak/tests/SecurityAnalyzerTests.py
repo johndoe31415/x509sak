@@ -421,7 +421,7 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/long_serial.pem", "Cert_Serial_Large")
 
 	def test_constructed_pubkey_ecc_G(self):
-		self._test_examine_x509test_resultcode("certs/constructed/pubkey_ecc_G.pem", "ECC_Pubkey_Is_G")
+		self._test_examine_x509test_resultcode("certs/constructed/pubkey_ecc_G.pem", "X509Cert_PublicKey_ECC_PublicKeyPoint_IsGenerator")
 
 	def test_constructed_pubkey_ecc_curveorder(self):
 		self._test_examine_x509test_resultcode("certs/ok/ecc_secp256r1.pem", expect_present = "ECC_Pubkey_CurveOrder")
@@ -429,16 +429,16 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/ok/rsa_512.pem", expect_absent = "ECC_Pubkey_CurveOrder")
 
 	def test_constructed_pubkey_ecc_fp_non_koblitz(self):
-		self._test_examine_x509test_resultcode("certs/ok/ecc_secp256r1.pem", expect_absent = "ECC_PrimeFieldKoblitz")
+		self._test_examine_x509test_resultcode("certs/ok/ecc_secp256r1.pem", expect_absent = "X509Cert_PublicKey_ECC_DomainParameters_CurveProperty_KoblitzCurve")
 
 	def test_constructed_pubkey_ecc_fp_koblitz(self):
-		self._test_examine_x509test_resultcode("certs/ok/ecc_secp256k1.pem", "ECC_PrimeFieldKoblitz")
+		self._test_examine_x509test_resultcode("certs/ok/ecc_secp256k1.pem", "X509Cert_PublicKey_ECC_DomainParameters_CurveProperty_KoblitzCurve")
 
 	def test_constructed_pubkey_ecc_f2m_non_koblitz(self):
-		self._test_examine_x509test_resultcode("certs/ok/ecc_sect283r1.pem", "ECC_BinaryField", expect_absent = "ECC_BinaryFieldKoblitz")
+		self._test_examine_x509test_resultcode("certs/ok/ecc_sect283r1.pem", "X509Cert_PublicKey_ECC_DomainParameters_BinaryField", expect_absent = "X509Cert_PublicKey_ECC_DomainParameters_CurveProperty_KoblitzCurve")
 
 	def test_constructed_pubkey_ecc_f2m_koblitz(self):
-		self._test_examine_x509test_resultcode("certs/ok/ecc_sect283k1.pem", [ "ECC_BinaryField", "ECC_BinaryFieldKoblitz" ])
+		self._test_examine_x509test_resultcode("certs/ok/ecc_sect283k1.pem", [ "X509Cert_PublicKey_ECC_DomainParameters_BinaryField", "X509Cert_PublicKey_ECC_DomainParameters_CurveProperty_KoblitzCurve" ])
 
 	def test_constructed_ecdsa_sig_r_bitbias(self):
 		# Need the CA for this test, since the signature can only be checked
@@ -454,13 +454,13 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/ecdsa_sig_malformed.pem", "ECDSA_Signature_Malformed", parent_certname = "certs/constructed/ecdsa_sig_malformed.pem")
 
 	def test_constructed_pubkey_bitbias_x_low_hweight(self):
-		self._test_examine_x509test_resultcode("certs/constructed/ecc_pubkey_x_bitbias1.pem", "ECC_Pubkey_X_BitBias", expect_absent = "ECC_Pubkey_Y_BitBias")
+		self._test_examine_x509test_resultcode("certs/constructed/ecc_pubkey_x_bitbias1.pem", "X509Cert_PublicKey_ECC_PublicKeyPoint_X_BitBiasPresent", expect_absent = "X509Cert_PublicKey_ECC_PublicKeyPoint_Y_BitBiasPresent")
 
 	def test_constructed_pubkey_bitbias_x_high_hweight(self):
-		self._test_examine_x509test_resultcode("certs/constructed/ecc_pubkey_x_bitbias2.pem", "ECC_Pubkey_X_BitBias", expect_absent = "ECC_Pubkey_Y_BitBias")
+		self._test_examine_x509test_resultcode("certs/constructed/ecc_pubkey_x_bitbias2.pem", "X509Cert_PublicKey_ECC_PublicKeyPoint_X_BitBiasPresent", expect_absent = "X509Cert_PublicKey_ECC_PublicKeyPoint_Y_BitBiasPresent")
 
 	def test_constructed_pubkey_bitbias_y(self):
-		self._test_examine_x509test_resultcode("certs/constructed/ecc_pubkey_y_bitbias.pem", "ECC_Pubkey_Y_BitBias", expect_absent = "ECC_Pubkey_X_BitBias")
+		self._test_examine_x509test_resultcode("certs/constructed/ecc_pubkey_y_bitbias.pem", "X509Cert_PublicKey_ECC_PublicKeyPoint_Y_BitBiasPresent", expect_absent = "X509Cert_PublicKey_ECC_PublicKeyPoint_X_BitBiasPresent")
 
 	def test_hostname_ok(self):
 		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", "Cert_SAN_Match", expect_absent = "Cert_SAN_NoMatch", host_check = "mail.johannes-bauer.com")
@@ -516,25 +516,25 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/ok/pubkey_sig_ed25519.pem", expect_present = "SignatureFunction_UncommonCryptosystem", include_raw = True)
 
 	def test_explicit_prime(self):
-		self._test_examine_x509test_resultcode("certs/ok/ecc_explicit_param_prime.pem", expect_present = [ "ECC_UnusedCurveName", "ECC_ExplicitCurveEncoding" ], expect_absent = "ECC_UnknownExplicitCurve")
+		self._test_examine_x509test_resultcode("certs/ok/ecc_explicit_param_prime.pem", expect_present = [ "X509Cert_PublicKey_ECC_DomainParameters_Name_UnusedName", "X509Cert_PublicKey_ECC_DomainParameters_Name_ExplicitCurve" ], expect_absent = "X509Cert_PublicKey_ECC_DomainParameters_Name_UnknownExplicit")
 
 	def test_explicit_twofield_ppbasis(self):
-		self._test_examine_x509test_resultcode("certs/ok/ecc_explicit_param_twofield_ppbasis.pem", "ECC_ExplicitCurveEncoding", expect_absent = [ "ECC_InvalidPolynomialPower", "ECC_DuplicatePolynomialPower", "ECC_UnknownExplicitCurve" ])
+		self._test_examine_x509test_resultcode("certs/ok/ecc_explicit_param_twofield_ppbasis.pem", "X509Cert_PublicKey_ECC_DomainParameters_Name_ExplicitCurve", expect_absent = [ "X509Cert_PublicKey_ECC_DomainParameters_BinaryField_InvalidPolynomialPower", "X509Cert_PublicKey_ECC_DomainParameters_BinaryField_DuplicatePolynomialPower", "X509Cert_PublicKey_ECC_DomainParameters_Name_UnknownExplicit" ])
 
 	def test_explicit_twofield_tpbasis(self):
-		self._test_examine_x509test_resultcode("certs/ok/ecc_explicit_param_twofield_tpbasis.pem", "ECC_ExplicitCurveEncoding", expect_absent = [ "ECC_InvalidPolynomialPower", "ECC_DuplicatePolynomialPower", "ECC_UnknownExplicitCurve" ])
+		self._test_examine_x509test_resultcode("certs/ok/ecc_explicit_param_twofield_tpbasis.pem", "X509Cert_PublicKey_ECC_DomainParameters_Name_ExplicitCurve", expect_absent = [ "X509Cert_PublicKey_ECC_DomainParameters_BinaryField_InvalidPolynomialPower", "X509Cert_PublicKey_ECC_DomainParameters_BinaryField_DuplicatePolynomialPower", "X509Cert_PublicKey_ECC_DomainParameters_Name_UnknownExplicit" ])
 
 	def test_explicit_twofield_poly_invalid_power1(self):
-		self._test_examine_x509test_resultcode("certs/constructed/ecc_explicit_param_twofield_invalid_power1.pem", "ECC_InvalidPolynomialPower")
+		self._test_examine_x509test_resultcode("certs/constructed/ecc_explicit_param_twofield_invalid_power1.pem", "X509Cert_PublicKey_ECC_DomainParameters_BinaryField_InvalidPolynomialPower")
 
 	def test_explicit_twofield_poly_invalid_power2(self):
-		self._test_examine_x509test_resultcode("certs/constructed/ecc_explicit_param_twofield_invalid_power2.pem", "ECC_InvalidPolynomialPower")
+		self._test_examine_x509test_resultcode("certs/constructed/ecc_explicit_param_twofield_invalid_power2.pem", "X509Cert_PublicKey_ECC_DomainParameters_BinaryField_InvalidPolynomialPower")
 
 	def test_explicit_twofield_poly_duplicate_power(self):
-		self._test_examine_x509test_resultcode("certs/constructed/ecc_explicit_param_twofield_duplicate_power.pem", "ECC_DuplicatePolynomialPower")
+		self._test_examine_x509test_resultcode("certs/constructed/ecc_explicit_param_twofield_duplicate_power.pem", "X509Cert_PublicKey_ECC_DomainParameters_BinaryField_DuplicatePolynomialPower")
 
 	def test_explicit_unknown(self):
-		self._test_examine_x509test_resultcode("certs/ok/ecc_explicit_param_prime_custom_domain.pem", expect_present = [ "ECC_ExplicitCurveEncoding", "ECC_UnknownExplicitCurve" ], expect_absent = "ECC_UnusedCurveName")
+		self._test_examine_x509test_resultcode("certs/ok/ecc_explicit_param_prime_custom_domain.pem", expect_present = [ "X509Cert_PublicKey_ECC_DomainParameters_Name_ExplicitCurve", "X509Cert_PublicKey_ECC_DomainParameters_Name_UnknownExplicit" ], expect_absent = "X509Cert_PublicKey_ECC_DomainParameters_Name_UnusedName")
 
 	def test_san_broad_match1(self):
 		self._test_examine_x509test_resultcode("certs/constructed/san_broad_match1.pem", expect_present = "Cert_X509Ext_SubjectAltName_BadWildcardDomain_BroadMatch")

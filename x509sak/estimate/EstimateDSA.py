@@ -65,7 +65,7 @@ class DSASecurityEstimator(BaseEstimator):
 
 		if (pubkey.g <= 1) or (pubkey.g >= pubkey.p):
 			standard = LiteratureReference(quote = "g: a generator of a subgroup of order q in the multiplicative group of GF(p), such that 1 < g < p", sect = "4.1", author = "National Institute of Standards and Technology", title = "FIPS PUB 186-4: Digital Signature Standard (DSS)", year = 2013, month = 7, doi = "10.6028/NIST.FIPS.186-4")
-			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_DSA_Parameters_G_Invalid_Range, "DSA parameter g is not inside the valid range (1 < g < p).", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, bits = 0, standard = standard)
+			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_DSA_Parameters_G_InvalidRange, "DSA parameter g is not inside the valid range (1 < g < p).", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, bits = 0, standard = standard)
 
 		hweight_analysis = NumberTheory.hamming_weight_analysis(pubkey.p)
 		if not hweight_analysis.plausibly_random:
