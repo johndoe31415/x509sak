@@ -12,4 +12,12 @@ if len(sys.argv) == 3:
 	(old, new) = sys.argv[1:]
 	replace(old, new)
 else:
-	print("%s [old name] [new name]" % (sys.argv[0]))
+	print("Bulk refactor mode entered.")
+	while True:
+		line = input("Old and new: ")
+		line = line.split()
+		if len(line) == 2:
+			(old, new) = line
+			replace(old, new)
+		else:
+			print("Invalid entry.")
