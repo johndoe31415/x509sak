@@ -20,6 +20,8 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 import enum
+import re
+import collections
 import json
 import string
 import functools
@@ -57,6 +59,8 @@ class RichJudgementCode():
 		return "RichJudgementCode<%s>" % (self.code)
 
 class StructureNode():
+	_IMPORT_REGEX = re.compile("(?P<export_root_point>\*)?(?P<name>[a-zA-Z0-9_]+)(?P<import_contents>/\*)?(:(?P<flags>[a-zA-Z0-9_,]+))?")
+	_ImportStatement = collections.namedtuple("ImportStatement", [ "name", "import_contents", "export_root_point", "flags" ])
 	_LABEL_REGULAR_CHARS = set(string.ascii_lowercase + string.ascii_uppercase + string.digits)
 	_LABEL_UNDERSCORE_CHARS = set("/")
 	_ALLOWED_ATTRIBUTES = set([ "short_id", "long_id", "import", "export", "flags", "desc", "label" ])
@@ -70,6 +74,12 @@ class StructureNode():
 		if "flags" in self._attributes:
 			self._attributes["flags"] = frozenset(self._attributes["flags"])
 			assert(all(flag in self._ALLOWED_FLAGS for flag in self._attributes["flags"]))
+		if "import" in self._attributes:
+
+			if isinstance(self._attributes["import"], str):
+				self._attributes["import"] = [ self._attributes["import"] ]
+			self._attributes["import"] = tuple(self.parse_import(import_str) for import_str in self._attributes["import"])
+			print(self._attributes["import"])
 
 	def clone(self, filter_predicate = None):
 		if not self.satisfies(filter_predicate):
@@ -77,6 +87,14 @@ class StructureNode():
 		children = [ child.clone(filter_predicate = filter_predicate) for child in self.children if child.satisfies(filter_predicate) ]
 		attributes = dict(self.attrs)
 		return StructureNode(name = self.name, children = children, attributes = attributes)
+
+	@classmethod
+	def parse_import(cls, import_str):
+		result = cls._IMPORT_REGEX.fullmatch(import_str)
+		if not result:
+			raise Exception("Not a valid import: '%s'" % (import_str))
+		result = result.groupdict()
+		return cls._ImportStatement(name = result["name"], import_contents = result["import_contents"] is not None, export_root_point = result["export_root_point"] is not None, flags = frozenset(result["flags"].split(",")) if (result["flags"] is not None) else tuple())
 
 	@property
 	def name(self):
@@ -216,7 +234,8 @@ class JudgementStructure():
 		return short_ids
 
 	def _process_imports(self):
-		def do_import(target, source, import_children = False):
+		def do_import(target, source, import_statement):
+
 			filter_predicate = lambda node: node.attrs.get("export") == True
 			source_clone = source.clone(filter_predicate = filter_predicate)
 			if source_clone is None:
@@ -225,34 +244,28 @@ class JudgementStructure():
 				source_clone.purge_attribute_recursively("export")
 			source_clone.purge_attribute_recursively("short_id")
 			target.purge_attribute("import")
-			if not import_children:
+			if not import_statement.import_contents:
 				target.append_child(source_clone)
 			else:
 				target.append_children_of(source_clone)
 
 		def visit(node):
-			import_short_ids = node.attrs.get("import")
-			if import_short_ids is None:
+			import_statements = node.attrs.get("import")
+			if import_statements is None:
 				return
 
-			if isinstance(import_short_ids, str):
-				import_short_ids = [ import_short_ids ]
+			for import_statement in import_statements:
+				if import_statement.name not in self._nodes_by_short_id:
+					raise Exception("Import of '%s' requested, but no node by that short ID found." % (import_statement.name))
+				import_node = self._nodes_by_short_id[import_statement.name]
 
-			for import_short_id in import_short_ids:
-				if import_short_id.endswith("/*"):
-					import_children = True
-					import_short_id = import_short_id[:-2]
-				else:
-					import_children = False
-				if import_short_id not in self._nodes_by_short_id:
-					raise Exception("Import of '%s' requested, but no node by that short ID found." % (import_short_id))
-				import_node = self._nodes_by_short_id[import_short_id]
+#				print("%s imports %s" % (node, import_node))
 
 				# Recursively descent before importing, in case the import imports something of its own
 				visit(import_node)
 
 				# Then import
-				do_import(node, import_node, import_children = import_children)
+				do_import(node, import_node, import_statement)
 
 		self._root.walk(visit)
 
