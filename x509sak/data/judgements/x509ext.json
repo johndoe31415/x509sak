@@ -1,0 +1,14 @@
+{
+	"X.509 Extension Basic Checks": {
+		"_export": true,
+		"_short_id": "x509_ext_checks",
+		"Empty": { "_desc": "$name extension is empty", "_require": "empty" },
+		"Missing": { "_desc": "$name extension is missing", "_require": "missing" },
+		"Present": { "_desc": "$name extension is present", "_require": "present" },
+		"Critical": { "_desc": "$name extension is marked critical", "_require": "critical" },
+		"Present but not Critical": { "_label": "PresentNotCritical", "_desc": "$name extension present, but not critical", "_require": "pres_ncrit" },
+		"Present but Critical": { "_label": "PresentCritical", "_desc": "$name extension present and critical", "_require": "pres_crit" },
+		"Present and CA certificate": { "_label": "PresentAndCA", "_desc": "$name extension present, but no CA certificate", "_require": "pres_ca" },
+		"Present but not CA": { "_label": "PresentNotCA", "_desc": "$name extension present, but no CA certificate", "_require": "pres_noca" }
+	}
+}

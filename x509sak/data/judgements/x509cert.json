@@ -74,8 +74,7 @@
 					},
 					"Subject Key Identifier": {
 						"_label": "SKI",
-						"Missing": { "_desc": "SKI extension missing" },
-						"Critical": { "_desc": "SKI extension marked critical" },
+						"_import": "x509_ext_checks/*:missing,critical{name=SKI}",
 						"Hashfunction": {
 							"SHA1": { "_desc": "SKI extension has SHA-1 key ID" },
 							"Other": { "_desc": "SKI extension has hash based key ID other than SHA-1" },
@@ -84,9 +83,7 @@
 					},
 					"Authority Key Identifier": {
 						"_label": "AKI",
-						"Empty": { "_desc": "AKI extension has no key ID, CA names or serial number" },
-						"Missing": { "_desc": "AKI extension missing" },
-						"Critical": { "_desc": "AKI extension marked critical" },
+						"_import": "x509_ext_checks/*:empty,missing,critical{name=AKI}",
 						"CA name": {
 							"_import": "general_name_issues/*"
 						},
@@ -98,9 +95,7 @@
 					},
 					"Name Constraints": {
 						"_label": "NC",
-						"Empty": { "_desc": "NC extension is empty" },
-						"Present but not Critical": { "_desc": "NC extension present, but not critical" },
-						"Present but not CA": { "_desc": "NC extension present, but no CA certificate" },
+						"_import": "x509_ext_checks/*:empty,pres_crit,pres_noca{name=NC}",
 						"Subtree": {
 							"Minimum not Zero": { "_desc": "NC extension subtree minimum attribute is non-zero" },
 							"Maximum present": { "_desc": "NC extension subtree maximum attribute is present" },
