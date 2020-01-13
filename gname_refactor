@@ -14,6 +14,10 @@ prefixes = [
 	[ "Cert_X509Ext_AuthorityKeyIdentifier_CAName_", "X509Cert_Body_X509Exts_Ext_AKI_CAName_" ],
 	[ "Cert_X509Ext_IssuerAltName_", "X509Cert_Body_X509Exts_Ext_IAN_Name_" ],
 	[ "Cert_X509Ext_SubjectAltName_", "X509Cert_Body_X509Exts_Ext_SAN_Name_" ],
+	[ "Cert_X509Ext_CRLDistributionPoints_PointName_", "X509Cert_Body_X509Exts_Ext_CRLDP_PointName_" ],
+	[ "Cert_X509Ext_CRLDistributionPoints_CRLIssuer_Name_", "X509Cert_Body_X509Exts_Ext_CRLDP_CRLIssuer_" ],
+#	[ "", "" ],
+#	[ "", "" ],
 #	[ "", "" ],
 #	[ "", "" ],
 ]
@@ -27,6 +31,12 @@ suffixes = [
 	[ "BadDNSName_SingleLabel", "DNS_SingleLabel" ],
 #	[ "BadDNSName", "" ],
 	[ "BadURI", "URI_Malformed" ],
+	[ "UncommonURIScheme", "URI_UncommonURIScheme" ],
+	[ "BadWildcardDomain_NotLeftmost", "DNS_Wildcard_NotLeftmost" ],
+	[ "BadWildcardDomain_MoreThanOneWildcard", "DNS_Wildcard_MulitpleWildcards" ],
+	[ "BadWildcardDomain_InternationalLabel", "DNS_Wildcard_InternationalLabel" ],
+	[ "BadWildcardDomain_BroadMatch", "DNS_Wildcard_BroadMatch" ],
+#	[ "", "" ],
 #	[ "UncommonURIScheme", "" ],
 ]
 
