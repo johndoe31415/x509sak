@@ -21,7 +21,11 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 import x509sak.estimate.Judgement
+import x509sak.estimate.JudgementStructure
 
-rich_codes = [ code.value for code in x509sak.estimate.Judgement.ExperimentalJudgementCodes ]
-for rich_code in sorted(rich_codes):
-	print(rich_code.code)
+jcc = x509sak.estimate.JudgementStructure.create_judgement_code_class(verbose = True)
+
+
+#rich_codes = [ code.value for code in jcc ]
+#for rich_code in sorted(rich_codes):
+#	print(rich_code.code)

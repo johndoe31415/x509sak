@@ -23,7 +23,7 @@ import enum
 from x509sak.Tools import JSONTools
 from x509sak.Exceptions import LazyDeveloperException
 from x509sak.KwargsChecker import KwargsChecker
-from x509sak.estimate.ExperimentalJudgementCodes import ExperimentalJudgementCodes
+from x509sak.estimate import ExperimentalJudgementCodes
 
 class JudgementCode(enum.Enum):
 #	RSA_Parameter_Field_Not_Present = ("RSA pubkey", "parameter field not present")

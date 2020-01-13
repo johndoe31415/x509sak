@@ -1,6 +1,13 @@
 {
 	"Number Theoretical": {
 		"_export": true,
+		"Basic Checks": {
+			"_short_id": "integer_checks",
+			"Zero": { "_desc": "$name is zero", "_require": "zero" },
+			"One": { "_desc": "$name is one", "_require": "one" },
+			"Negative": { "_desc": "$name is negative", "_require": "neg" },
+			"Large": {  "_desc": "$name is large", "_require": "large" }
+		},
 		"Random": {
 			"_short_id": "random_value",
 			"Bit Bias Present": { "_desc": "bit bias present" }

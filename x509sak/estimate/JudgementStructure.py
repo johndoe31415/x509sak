@@ -25,6 +25,7 @@ import collections
 import json
 import string
 import functools
+from x509sak.Tools import JSONTools
 
 @functools.total_ordering
 class RichJudgementCode():
@@ -59,11 +60,11 @@ class RichJudgementCode():
 		return "RichJudgementCode<%s>" % (self.code)
 
 class StructureNode():
-	_IMPORT_REGEX = re.compile("(?P<export_root_point>\*)?(?P<name>[a-zA-Z0-9_]+)(?P<import_contents>/\*)?(:(?P<flags>[a-zA-Z0-9_,]+))?")
-	_ImportStatement = collections.namedtuple("ImportStatement", [ "name", "import_contents", "export_root_point", "flags" ])
+	_IMPORT_REGEX = re.compile("(?P<export_root_point>\*)?(?P<name>[a-zA-Z0-9_]+)(?P<import_contents>/\*)?(:(?P<flags>[a-zA-Z0-9_,]+))?({(?P<substitutions>[^}]+)})?")
+	_ImportStatement = collections.namedtuple("ImportStatement", [ "name", "import_contents", "export_root_point", "flags", "substitutions" ])
 	_LABEL_REGULAR_CHARS = set(string.ascii_lowercase + string.ascii_uppercase + string.digits)
 	_LABEL_UNDERSCORE_CHARS = set("/")
-	_ALLOWED_ATTRIBUTES = set([ "short_id", "long_id", "import", "export", "flags", "desc", "label" ])
+	_ALLOWED_ATTRIBUTES = set([ "short_id", "long_id", "import", "export", "flags", "desc", "label", "require" ])
 	_ALLOWED_FLAGS = set([ "datapoint" ])
 
 	def __init__(self, name, children = None, attributes = None):
@@ -75,11 +76,9 @@ class StructureNode():
 			self._attributes["flags"] = frozenset(self._attributes["flags"])
 			assert(all(flag in self._ALLOWED_FLAGS for flag in self._attributes["flags"]))
 		if "import" in self._attributes:
-
 			if isinstance(self._attributes["import"], str):
 				self._attributes["import"] = [ self._attributes["import"] ]
 			self._attributes["import"] = tuple(self.parse_import(import_str) for import_str in self._attributes["import"])
-			print(self._attributes["import"])
 
 	def clone(self, filter_predicate = None):
 		if not self.satisfies(filter_predicate):
@@ -94,7 +93,19 @@ class StructureNode():
 		if not result:
 			raise Exception("Not a valid import: '%s'" % (import_str))
 		result = result.groupdict()
-		return cls._ImportStatement(name = result["name"], import_contents = result["import_contents"] is not None, export_root_point = result["export_root_point"] is not None, flags = frozenset(result["flags"].split(",")) if (result["flags"] is not None) else tuple())
+
+		attributes = {
+			"name": result["name"],
+			"import_contents": result["import_contents"] is not None,
+			"export_root_point": result["export_root_point"] is not None,
+			"flags": frozenset(result["flags"].split(",")) if (result["flags"] is not None) else tuple(),
+			"substitutions": dict(),
+		}
+		if result["substitutions"] is not None:
+			keyvalues = result["substitutions"].split(",")
+			keyvalues = [ keyvalue.split("=", maxsplit = 1) for keyvalue in keyvalues ]
+			attributes["substitutions"] = { key: value for (key, value) in keyvalues }
+		return cls._ImportStatement(**attributes)
 
 	@property
 	def name(self):
@@ -136,6 +147,9 @@ class StructureNode():
 	@property
 	def attrs(self):
 		return self._attributes
+
+	def has_attribute(self, key):
+		return key in self._attributes
 
 	def satisfies(self, filter_predicate):
 		if filter_predicate is None:
@@ -207,10 +221,14 @@ class StructureNode():
 			child.assign_nodes_long_ids(prefix = long_id)
 
 	def __repr__(self):
-		return "Node<%s>" % (self.name)
+		if self.has_attribute("desc"):
+			return "Node<%s (%s)>" % (self.name, self.attrs["desc"])
+		else:
+			return "Node<%s>" % (self.name)
 
 class JudgementStructure():
-	def __init__(self, structure_data):
+	def __init__(self, structure_data, verbose = False):
+		self._verbose = verbose
 		self._root = StructureNode.parse(None, structure_data)
 		self._root.propagate_attribute_subtree("export")
 		self._nodes_by_short_id = self._find_nodes_by_short_id()
@@ -235,14 +253,29 @@ class JudgementStructure():
 
 	def _process_imports(self):
 		def do_import(target, source, import_statement):
+			def filter_predicate(node):
+				requirements = [
+					node.attrs.get("export") is True,
+				]
+				if node.has_attribute("require"):
+					requirements.append(node.attrs["require"] in import_statement.flags)
+				return all(requirements)
 
-			filter_predicate = lambda node: node.attrs.get("export") == True
+			def apply_substitutions(node):
+				if node.has_attribute("desc"):
+					desc = node.attrs["desc"]
+					for (search, replace) in import_statement.substitutions.items():
+						desc = desc.replace("$" + search, replace)
+					node.attrs["desc"] = desc
+
 			source_clone = source.clone(filter_predicate = filter_predicate)
 			if source_clone is None:
 				raise Exception("Cannot import node that is not exported.")
 			if not target.attrs.get("export"):
 				source_clone.purge_attribute_recursively("export")
 			source_clone.purge_attribute_recursively("short_id")
+			if len(import_statement.substitutions) > 0:
+				source_clone.walk(apply_substitutions)
 			target.purge_attribute("import")
 			if not import_statement.import_contents:
 				target.append_child(source_clone)
@@ -259,13 +292,18 @@ class JudgementStructure():
 					raise Exception("Import of '%s' requested, but no node by that short ID found." % (import_statement.name))
 				import_node = self._nodes_by_short_id[import_statement.name]
 
-#				print("%s imports %s" % (node, import_node))
+				if self._verbose:
+					print("%s imports %s" % (node, import_node))
 
 				# Recursively descent before importing, in case the import imports something of its own
 				visit(import_node)
 
 				# Then import
 				do_import(node, import_node, import_statement)
+
+				if self._verbose:
+					node.dump()
+					print()
 
 		self._root.walk(visit)
 
@@ -285,3 +323,11 @@ class JudgementStructure():
 		with open(filename) as f:
 			structure_data = json.load(f)
 		return cls(structure_data)
+
+def create_judgement_code_class(verbose = False):
+	structure_data = { }
+	for structure_json_name in [ "number_theoretic.json", "encoding.json", "cryptography.json", "x509cert.json" ]:
+		partial_data = JSONTools.load_internal("x509sak.data.judgements", structure_json_name)
+		structure_data.update(partial_data)
+	structure = JudgementStructure(structure_data, verbose = verbose)
+	return structure.create_enum_class()

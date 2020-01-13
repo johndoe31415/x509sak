@@ -52,9 +52,7 @@
 			"Subject": {
 			},
 			"Serial Number": {
-				"Zero": { "_desc": "serial number is zero" },
-				"Negative": { "_desc": "serial number is negative" },
-				"Large": {  "_desc": "serial number is too large" }
+				"_import": "integer_checks:zero,neg,large{name=serial number}"
 			},
 			"X.509 Extensions": {
 				"_label": "X509Exts",
