@@ -99,6 +99,7 @@ class JudgementCode(enum.Enum):
 	Cert_X509Ext_BasicConstraints_PresentAndCritical = ("X.509 BasicConstraints extension", "BC extension present and marked critical")
 	Cert_X509Ext_BasicConstraints_PathLenWithoutCA = ("X.509 BasicConstraints extension", "BC extension contains pathLen constraint without CA attribute")
 	Cert_X509Ext_BasicConstraints_PathLenWithoutKeyCertSign = ("X.509 BasicConstraints extension", "BC extension contains pathLen constraint without keyCertSign KU")
+
 	Cert_X509Ext_AuthorityKeyIdentifier_Malformed = ("X.509 AuthorityKeyIdentifier extension", "AKI extension malformed")
 	Cert_X509Ext_AuthorityKeyIdentifier_Empty = ("X.509 AuthorityKeyIdentifier extension", "no key ID, CA name or serial given")
 	Cert_X509Ext_AuthorityKeyIdentifier_Missing = ("X.509 AuthorityKeyIdentifier extension", "AKI extension missing")
@@ -119,14 +120,18 @@ class JudgementCode(enum.Enum):
 	Cert_X509Ext_AuthorityKeyIdentifier_NoKeyIDPresent = ("X.509 AuthorityKeyIdentifier", "no key ID present")
 	Cert_X509Ext_AuthorityKeyIdentifier_KeyIDEmpty = ("X.509 AuthorityKeyIdentifier", "key ID present, but empty")
 	Cert_X509Ext_AuthorityKeyIdentifier_KeyIDLong = ("X.509 AuthorityKeyIdentifier", "key ID very long")
+
+
 	Cert_X509Ext_AuthorityKeyIdentifier_CA_NoSKI = ("X.509 AuthorityKeyIdentifier", "CA certificate does not contain SKI")
 	Cert_X509Ext_AuthorityKeyIdentifier_CA_KeyIDMismatch = ("X.509 AuthorityKeyIdentifier", "key ID does not match CA SKI")
 	Cert_X509Ext_AuthorityKeyIdentifier_CA_SerialMismatch = ("X.509 AuthorityKeyIdentifier", "serial does not match CA serial")
+
 	Cert_X509Ext_SubjectKeyIdentifier_Missing = ("X.509 SubjectKeyIdentifier extension", "SKI extension missing")
 	Cert_X509Ext_SubjectKeyIdentifier_Critical = ("X.509 SubjectKeyIdentifier extension", "SKI extension marked critical")
 	Cert_X509Ext_SubjectKeyIdentifier_SHA1 = ("X.509 SubjectKeyIdentifier extension", "SKI matches SHA-1 hash of public key")
 	Cert_X509Ext_SubjectKeyIdentifier_OtherHash = ("X.509 SubjectKeyIdentifier extension", "SKI matches a hash of public key, but not SHA-1")
 	Cert_X509Ext_SubjectKeyIdentifier_Arbitrary = ("X.509 SubjectKeyIdentifier extension", "SKI does not appear to be hash of public key")
+
 	Cert_X509Ext_NameConstraints_Empty = ("X.509 NameConstraints extension", "NameConstraints extension is empty")
 	Cert_X509Ext_NameConstraints_PresentButNotCritical = ("X.509 NameConstraints extension", "NameConstraints extension not marked critical")
 	Cert_X509Ext_NameConstraints_PresentButNotCA = ("X.509 NameConstraints extension", "NameConstraints extension in non-CA certificate")
@@ -134,8 +139,11 @@ class JudgementCode(enum.Enum):
 	Cert_X509Ext_NameConstraints_Subtree_Name_RegisteredID = ("X.509 NameConstraints extension", "NameConstraints extension imposes restriction on RegisteredID")
 	Cert_X509Ext_NameConstraints_Subtree_MinimumNotZero = ("X.509 NameConstraints extension", "NameConstraints subtreee has non-zero minium attribute")
 	Cert_X509Ext_NameConstraints_Subtree_MaximumIsPresent = ("X.509 NameConstraints extension", "NameConstraints subtree has maximum attribute set")
+
+
 	Cert_X509Ext_NotAllowed = ("X.509 extensions", "no extensions permissible")
 	Cert_X509Ext_Malformed = ("X.509 extensions", "invalid extension encoding")
+
 	Cert_X509Ext_KeyUsage_Missing = ("X.509 KeyUsage extension", "missing extension")
 	Cert_X509Ext_KeyUsage_Empty = ("X.509 KeyUsage extension", "empty sequence")
 	Cert_X509Ext_KeyUsage_TooLong = ("X.509 KeyUsage extension", "too many items")
@@ -144,11 +152,14 @@ class JudgementCode(enum.Enum):
 	Cert_X509Ext_KeyUsage_NonCritical = ("X.509 KeyUsage extension", "extension marked non-critical")
 	Cert_X509Ext_KeyUsage_SignCertNoCA = ("X.509 KeyUsage extension", "keyCertSign flag present but not CA certificate")
 	Cert_X509Ext_KeyUsage_SignCertNoBasicConstraints = ("X.509 KeyUsage extension", "keyCertSign flag present but no BasicConstraints extension")
+
 	Cert_X509Ext_ExtKeyUsage_Empty = ("X.509 ExtendedKeyUsage extension", "empty sequence")
 	Cert_X509Ext_ExtKeyUsage_Duplicate = ("X.509 ExtendedKeyUsage extension", "duplicate OIDs present")
 	Cert_X509Ext_ExtKeyUsage_AnyUsageCritical = ("X.509 ExtendedKeyUsage extension", "AnyUsage present but extension marked as critical")
+
 	Cert_X509Ext_Unknown_Critical = ("X.509 extensions", "unrecognized critical X.509 extension present")
 	Cert_X509Ext_Unknown_NonCritical = ("X.509 extensions", "unrecognized X.509 extension present")
+
 	Cert_X509Ext_IssuerAltName_Missing = ("X.509 IssuerAlternativeName", "extension missing although header issuer empty")
 	Cert_X509Ext_IssuerAltName_Empty = ("X.509 IssuerAlternativeName", "no names given")
 	Cert_X509Ext_IssuerAltName_EmptyValue = ("X.509 IssuerAlternativeName", "no value given")
@@ -162,6 +173,7 @@ class JudgementCode(enum.Enum):
 	Cert_X509Ext_IssuerAltName_UncommonURIScheme = ("X.509 IssuerAlternativeName", "uncommon URI scheme")
 	Cert_X509Ext_IssuerAltName_UncommonIdentifier = ("X.509 IssuerAlternativeName", "uncommon identifier")
 	Cert_X509Ext_IssuerAltName_Critical = ("X.509 IssuerAlternativeName", "extension marked as critical")
+
 	Cert_X509Ext_SubjectAltName_Missing = ("X.509 SubjectAlternativeName", "extension not present")
 	Cert_X509Ext_SubjectAltName_Empty = ("X.509 SubjectAlternativeName", "no names given")
 	Cert_X509Ext_SubjectAltName_EmptyValue = ("X.509 SubjectAlternativeName", "no value given")

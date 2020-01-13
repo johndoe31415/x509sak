@@ -61,6 +61,9 @@
 				"All Unique": { "_desc": "all extensions unique" },
 				"Duplicates Present": { "_desc": "duplicate extensions present" },
 				"Empty Sequence": { "_desc": "extensions field is an empty sequence" },
+				"Not Allowed": { "_desc": "extension are not permitted in this certificate" },
+				"Malformed": { "_desc": "at least one malformed extension is present" },
+
 				"Known Extensions": {
 					"_label": "Ext",
 					"Basic Constraints": {
@@ -110,41 +113,120 @@
 						}
 					},
 					"Key Usage": {
-						"_label": "KU"
+						"_label": "KU",
+						"_import": "bitstring_issues/*",
+						"Missing": { "_desc": "KU extension missing" },
+						"Empty": { "_desc": "KU extension empty" },
+						"Too Long": { "_desc": "KU extension too long" },
+						"Not Critical": { "_desc": "KU extension is not critical" },
+						"SignCert but no CA": { "_desc": "KU extension contains signCert flag but is no CA" },
+						"SignCert but no Basic Constraints": { "_desc": "KU extension contains signCert flag but has no Basic Constraints extension" }
 					},
 					"Extended Key Usage": {
 						"_label": "EKU",
-						"_import": "bitstring_issues/*"
+						"Empty": { "_desc": "EKU extension empty" },
+						"Duplicate": { "_desc": "EKU extension contains duplicate usage OID" },
+						"Any Usage Criticial": { "_desc": "EKU extension contains anyUsage flag but extension is marked critical" }
 					},
 					"Issuer Alternative Name": {
-						"_label": "IAN"
+						"_label": "IAN",
+						"Missing": { "_desc": "IAN extension missing although certificate issue header is empty" },
+						"Critical": { "_desc": "IAN extension marked criticial" },
+						"Name": {
+							"_import": "general_name_issues/*"
+						}
 					},
 					"Subject Alternative Name": {
-						"_label": "SAN"
+						"_label": "SAN",
+						"Name": {
+							"_import": "general_name_issues/*"
+						},
+						"Empty": { "_desc": "SAN extension empty" },
+						"Missing": { "_desc": "SAN extension missing" },
+						"Critical": { "_desc": "SAN extension marked critical" },
+						"Not Critical": { "_desc": "SAN extension marked not critical" },
+						"Email Only": { "_desc": "SAN extension contains only email names" }
 					},
 					"Authority Information Access": {
-						"_label": "AIA"
+						"_label": "AIA",
+						"Empty": { "_desc": "AIA extension empty" },
+						"Critical": { "_desc": "AIA extension marked critical" }
 					},
-					"_import": "asn1_encoding_issues/*",
 					"Certificate Policies": {
-						"_label": "CP"
+						"_label": "CP",
+						"Deprecated OID": { "_desc": "CP extension OID is deprecated" },
+						"Duplicate OID": { "_desc": "CP extension contains duplicate policy OID" },
+						"More than one policy": { "_desc": "CP extension contains more than one policy" },
+						"Qualifier": {
+							"Duplicate": { "_desc": "CP extension contains duplicate qualifier OID" },
+							"Unknown": { "_desc": "CP extension contains unknown qualifier OID" },
+							"AnyPolicy with Unknown Qualifier": { "_desc": "CP extension contains anyPolicy with unknown qualifier" }
+						},
+						"User Notice": {
+							"_import": "asn1_encoding_issues/*",
+							"Empty": { "_desc": "CP extension user notice is empty" },
+							"Constraint Violation": { "_desc": "CP extension user notice violates ASN.1 constraint" },
+							"noticeRef Present": { "_desc": "CP extension user notice contains noticeRef attribute" },
+							"Explicit Text": {
+								"Invalid String Type": { "_desc": "invalid explicitText string type used" },
+								"IA5String": { "_desc": "explicitText uses IA5String instead of UTF8String" },
+								"ControlCharacter": { "_desc": "explicitText contains control character" },
+								"Absent": { "_desc": "explicitText field absent" }
+							}
+						},
+						"Certification Practice Statement": {
+							"_label": "CPS",
+							"_import": [ "asn1_encoding_issues/*", "uri_issues" ],
+							"Constraint Violation": { "_desc": "CP extension CPS violates ASN.1 constraint" }
+						}
 					},
 					"Netscape Certificate Type": {
-						"_label": "NSCT"
+						"_label": "NSCT",
+						"_import": [ "asn1_encoding_issues/*", "bitstring_issues/*" ],
+						"Empty": { "_desc": "NSCT extension has no bits set" },
+						"Unused Bit Set": { "_desc": "NSCT extension has 'unused' bit set" }
 					},
 					"CRL Distribution Points": {
-						"_label": "CRLDP"
+						"_label": "CRLDP",
+						"_import": "asn1_encoding_issues/*",
+						"Empty": { "_desc": "CRLDP extension contains completely empty point" },
+						"No Point with all reason bits": { "_desc": "CRLDP extension contains no point that has all reason bits set" },
+						"Point with only Reasons": { "_desc": "CDLDP extension contains a point that only has the 'reason' bit set" },
+						"Segmentation used": { "_desc": "CRLDP contains points that contain CRLs that are not universal" },
+						"Point Name": {
+							"_import": "general_name_issues/*",
+							"NoLDAPorHTTPURI": { "_desc": "CRLDP point contains point with no HTTP or LDAP URI" },
+							"Possibly no DER CRL served": { "_desc": "CRLDP point serves potentialla non-DER CRL" }
+						},
+						"Reasons": {
+							"_import": "bitstring_issues/*",
+							"Only int with all reason bits": { "_desc": "CRLDP contains no point that has all reason bits set" }
+						},
+						"CRL Issuer": {
+							"_import": "general_name_issues/*"
+						}
 					},
 					"Certificate Transparency Precertificate Poison": {
-						"_label": "CTPP"
+						"_label": "CTPP",
+						"_import": "asn1_encoding_issues/*",
+						"Is Precertificate": { "_desc": "CTPP extension indicates precertificate" },
+						"Not Critical": { "_desc": "CTPP extension not marked critical" },
+						"Invalid Payload": { "_desc": "CTPP extension contains invalid payload" }
 					},
 					"Certificate Transparency Signed Certificate Timestamps": {
-						"_label": "CTSCT"
+						"_label": "CTSCT",
+						"_import": "asn1_encoding_issues/*",
+						"SCT": {
+							"Unknown version": { "_desc": "CTSCTs extension contains SCT with unknown version" },
+							"Implausible timestamp": { "_desc": "CTSCTs extension contains SCT with implausible timestamp" },
+							"Invalid Signature Function": { "_desc": "CTSCTs extension contains SCT with invalid signature function" },
+							"Invalid Hash Function": { "_desc": "CTSCTs extension contains SCT with invalid hash function" }
+						}
 					}
 				},
 				"Unknown Extension": {
 					"_label": "Unknown",
-					"Present": { "_desc": "unkwown extension present" },
+					"Present": { "_desc": "unknown extension present" },
 					"Critical": { "_desc": "unknown extension marked critical" }
 				}
 			}

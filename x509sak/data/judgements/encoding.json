@@ -72,9 +72,15 @@
 						"Unexpected": { "_desc": "unexpected data type" }
 					},
 					"URI": {
+						"_short_id": "uri_issues",
 						"Unexpected": { "_desc": "unexpected data type" },
 						"Malformed": { "_desc": "URI malformed" },
-						"Uncommon URI Scheme": { "_desc": "uncommon URI scheme" }
+						"Uncommon URI Scheme": { "_desc": "uncommon URI scheme" },
+						"LDAP": {
+							"No DN": { "_desc": "no LDAP URI distinguished name present" },
+							"No hostname": { "_desc": "no LDAP URI hostname present" },
+							"No attrdesc": { "_desc": "no LDAP URI attrdesc present" }
+						}
 					},
 					"Domain Name": {
 						"_label": "DNS",
