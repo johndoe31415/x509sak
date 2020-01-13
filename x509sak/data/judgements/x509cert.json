@@ -64,20 +64,50 @@
 				"Known Extensions": {
 					"_label": "Ext",
 					"Basic Constraints": {
-						"_label": "BC"
+						"_label": "BC",
+						"Missing": { "_desc": "BC extension missing" },
+						"Present but not Critical": { "_desc": "BC extension present, but not critical" },
+						"Present and Critical": { "_desc": "BC extension present and critical" },
+						"PathLen without CA": { "_desc": "BC extension contains pathLen constraint without CA attribute" },
+						"PathLen without keyCertSign": { "_desc": "BC extension contains pathLen constraint without keyCertSign key usage" }
 					},
 					"Subject Key Identifier": {
-						"_label": "SKI"
+						"_label": "SKI",
+						"Missing": { "_desc": "SKI extension missing" },
+						"Critical": { "_desc": "SKI extension marked critical" },
+						"Hashfunction": {
+							"SHA1": { "_desc": "SKI extension has SHA-1 key ID" },
+							"Other": { "_desc": "SKI extension has hash based key ID other than SHA-1" },
+							"Arbitrary": { "_desc": "SKI extension has key ID that is not based on a known hash" }
+					  }
 					},
 					"Authority Key Identifier": {
 						"_label": "AKI",
+						"Empty": { "_desc": "AKI extension has no key ID, CA names or serial number" },
+						"Missing": { "_desc": "AKI extension missing" },
+						"Critical": { "_desc": "AKI extension marked critical" },
 						"CA name": {
-							"_import": "general_name_issues",
-							"Empty": { "_desc": "empty TODO" }
-						}
+							"_import": "general_name_issues/*"
+						},
+						"Serial without CAName": { "_desc": "AKI extension has serial without CA name" },
+						"CAname without Serial": { "_desc": "AKI extension has CA name without serial" },
+						"No Key ID": { "_desc": "AKI extension contains no key ID" },
+						"Empty Key ID": { "_desc": "AKI extension contains empty key ID" },
+						"Long Key ID": { "_desc": "AKI extension contains long key ID" }
 					},
 					"Name Constraints": {
-						"_label": "NC"
+						"_label": "NC",
+						"Empty": { "_desc": "NC extension is empty" },
+						"Present but not Critical": { "_desc": "NC extension present, but not critical" },
+						"Present but not CA": { "_desc": "NC extension present, but no CA certificate" },
+						"Subtree": {
+							"Minimum not Zero": { "_desc": "NC extension subtree minimum attribute is non-zero" },
+							"Maximum present": { "_desc": "NC extension subtree maximum attribute is present" },
+							"Name": {
+								"_import": "general_name_issues/*",
+								"Restiction on RegisteredID": { "_desc": "NC extension imposes restriction on RegisteredID" }
+							}
+						}
 					},
 					"Key Usage": {
 						"_label": "KU"
@@ -169,6 +199,11 @@
 			}
 		},
 		"CA Relationship": {
+			"Authority Key Identifier": {
+				"CA has no SKI": { "_desc": "CA certificate has no SKI extension" },
+				"CA Key ID differs": { "_desc": "CA key ID in SKI extension differs from AKI key ID" },
+				"CA Serial differs": { "_desc": "CA serial number differs from AKI serial" }
+			},
 			"Validity Periods": {
 				"Full Overlap": { "_desc": "full overlap in validity periods" },
 				"Partial Overlap": { "_desc": "partial overlap in validity periods" },
