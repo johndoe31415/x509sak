@@ -206,13 +206,13 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-constraints-neg-pathlen.pem", "Cert_X509Ext_Malformed")
 
 	def test_examine_x509test_xf_ext_constraints_noncritical(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-constraints-noncritical.pem", "Cert_X509Ext_BasicConstraints_PresentButNotCritical")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-constraints-noncritical.pem", "X509Cert_Body_X509Exts_Ext_BC_PresentButNotCritical")
 
 	def test_examine_x509test_xf_ext_constraints_path_nonca(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-constraints-path-nonca.pem", "Cert_X509Ext_BasicConstraints_PathLenWithoutCA")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-constraints-path-nonca.pem", "X509Cert_Body_X509Exts_Ext_BC_PathLenWithoutCA")
 
 	def test_examine_x509test_xf_ext_constraints_path_nosign(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-constraints-path-nosign.pem", "Cert_X509Ext_BasicConstraints_PathLenWithoutKeyCertSign")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-constraints-path-nosign.pem", "X509Cert_Body_X509Exts_Ext_BC_PathLenWithoutKeyCertSign")
 
 	def test_examine_x509test_xf_ext_crl_point_critical(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-crl-point-critical.pem", "Cert_X509Ext_CRLDistributionPoints_Critical")
@@ -831,13 +831,13 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/unknown_ext_noncritical.pem", expect_present = "Cert_X509Ext_Unknown_NonCritical")
 
 	def test_basic_constraints_missing(self):
-		self._test_examine_x509test_resultcode("certs/constructed/bc_missing.pem", expect_present = "Cert_X509Ext_BasicConstraints_Missing")
+		self._test_examine_x509test_resultcode("certs/constructed/bc_missing.pem", expect_present = "X509Cert_Body_X509Exts_Ext_BC_Missing")
 
 	def test_basic_constraints_present_critical(self):
-		self._test_examine_x509test_resultcode("certs/constructed/bc_present_critical.pem", expect_present = "Cert_X509Ext_BasicConstraints_PresentAndCritical")
+		self._test_examine_x509test_resultcode("certs/constructed/bc_present_critical.pem", expect_present = "X509Cert_Body_X509Exts_Ext_BC_PresentAndCritical")
 
 	def test_basic_constraints_present_noncritical(self):
-		self._test_examine_x509test_resultcode("certs/constructed/bc_present_noncritical.pem", expect_present = "Cert_X509Ext_BasicConstraints_PresentButNotCritical")
+		self._test_examine_x509test_resultcode("certs/constructed/bc_present_noncritical.pem", expect_present = "X509Cert_Body_X509Exts_Ext_BC_PresentButNotCritical")
 
 	def test_issuer_altname_missing(self):
 		self._test_examine_x509test_resultcode("certs/constructed/issuer_altname_missing.pem", expect_present = "Cert_X509Ext_IssuerAltName_Missing")
@@ -1241,5 +1241,5 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/ct_scts_version2.pem", expect_present = "Cert_X509Ext_CertificateTransparencySCTs_SCT_UnknownVersion")
 
 	def test_bc_pathlen_but_no_ku(self):
-		self._test_examine_x509test_resultcode("certs/constructed/bc_pathlen_but_no_ku.pem", expect_present = "Cert_X509Ext_BasicConstraints_PathLenWithoutKeyCertSign")
+		self._test_examine_x509test_resultcode("certs/constructed/bc_pathlen_but_no_ku.pem", expect_present = "X509Cert_Body_X509Exts_Ext_BC_PathLenWithoutKeyCertSign")
 

@@ -191,25 +191,25 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		bc = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("BasicConstraints"))
 		judgements = SecurityJudgements()
 		if bc is None:
-			judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_BasicConstraints_Missing, "BasicConstraints extension is missing.", commonness = Commonness.HIGHLY_UNUSUAL)
+			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_BC_Missing, "BasicConstraints extension is missing.", commonness = Commonness.HIGHLY_UNUSUAL)
 		else:
 			if not bc.critical:
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_BasicConstraints_PresentButNotCritical, "BasicConstraints extension is present, but not marked as critical.", commonness = Commonness.UNUSUAL)
+				judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_BC_PresentButNotCritical, "BasicConstraints extension is present, but not marked as critical.", commonness = Commonness.UNUSUAL)
 			else:
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_BasicConstraints_PresentAndCritical, "BasicConstraints extension is present and marked as critical.", commonness = Commonness.COMMON)
+				judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_BC_PresentAndCritical, "BasicConstraints extension is present and marked as critical.", commonness = Commonness.COMMON)
 
 			if bc.pathlen is not None:
 				if not bc.is_ca:
 					standard = RFCReference(rfcno = 5280, sect = "4.2.1.9", verb = "MUST", text = "CAs MUST NOT include the pathLenConstraint field unless the cA boolean is asserted")
-					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_BasicConstraints_PathLenWithoutCA, "BasicConstraints extension contains a pathLen constraint, but does not assert the \"CA\" attribute.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+					judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_BC_PathLenWithoutCA, "BasicConstraints extension contains a pathLen constraint, but does not assert the \"CA\" attribute.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 				ku_ext = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("KeyUsage"))
 				if ku_ext is None:
 					standard = RFCReference(rfcno = 5280, sect = "4.2.1.9", verb = "MUST", text = "CAs MUST NOT include the pathLenConstraint field unless the cA boolean is asserted and the key usage extension asserts the keyCertSign bit.")
-					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_BasicConstraints_PathLenWithoutKeyCertSign, "BasicConstraints extension contains a pathLen constraint, but does not have a key usage extension.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+					judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_BC_PathLenWithoutKeyCertSign, "BasicConstraints extension contains a pathLen constraint, but does not have a key usage extension.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 				elif "keyCertSign" not in ku_ext.flags:
 					standard = RFCReference(rfcno = 5280, sect = "4.2.1.9", verb = "MUST", text = "CAs MUST NOT include the pathLenConstraint field unless the cA boolean is asserted and the key usage extension asserts the keyCertSign bit.")
-					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_BasicConstraints_PathLenWithoutKeyCertSign, "BasicConstraints extension contains a pathLen constraint, but its key usage extension does not contain the \"keyCertsign\" bit.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+					judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_BC_PathLenWithoutKeyCertSign, "BasicConstraints extension contains a pathLen constraint, but its key usage extension does not contain the \"keyCertsign\" bit.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 		return judgements
 
