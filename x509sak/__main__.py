@@ -41,6 +41,7 @@ from x509sak.actions.ActionHashPart import ActionHashPart
 from x509sak.actions.ActionTLSClient import ActionTLSClient
 from x509sak.actions.ActionTLSParse import ActionTLSParse
 from x509sak.actions.ActionDebug import ActionDebug
+from x509sak.actions.ActionJudgementCode import ActionJudgementCode
 from x509sak.CmdLineArgs import KeyValue
 from x509sak.KeySpecification import KeySpecification
 from x509sak.Exceptions import UserErrorException, InvisibleUserErrorException, CmdExecutionFailedException
@@ -264,6 +265,11 @@ def genparser(parser):
 	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
 	parser.add_argument("crtfile", metavar = "filename", type = str, nargs = "*", help = "Certificate file that should be loaded in the console.")
 mc.register("debug", "Open an interactive Python console", genparser, aliases = [ "dbg" ], action = ActionDebug, visible = False)
+
+def genparser(parser):
+	parser.add_argument("-a", "--action", choices = [ "list", "dump" ], default = "list", help = "Specifies what information to print out, can be one of %(choices)s. Defaults to %(default)s.")
+	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
+mc.register("judgementcode", "Show information about judgement codes", genparser, aliases = [ "jc" ], action = ActionJudgementCode, visible = False)
 
 try:
 	mc.run(sys.argv[1:])

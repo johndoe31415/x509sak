@@ -34,11 +34,11 @@ class JudgementCode(enum.Enum):
 #	RSA_Exponent_SmallUnusual = ("RSA Exponent", "e is small and uncommon")
 #	RSA_Exponent_Is_0x10001 = ("RSA Exponent", "e is 0x10001")
 #	RSA_Exponent_Large = ("RSA Exponent", "e is unusually large")
-##	RSA_Modulus_Negative = ("RSA Modulus", "n is negative")
-##	RSA_Modulus_Prime = ("RSA Modulus", "n is prime")
-##	RSA_Modulus_Factorable = ("RSA Modulus", "n has small factors")
-##	RSA_Modulus_FactorizationKnown = ("RSA Modulus", "factorization of n is public")
-##	RSA_Modulus_BitBias = ("RSA Modulus", "n has bit bias")
+#	RSA_Modulus_Negative = ("RSA Modulus", "n is negative")
+#	RSA_Modulus_Prime = ("RSA Modulus", "n is prime")
+#	RSA_Modulus_Factorable = ("RSA Modulus", "n has small factors")
+#	RSA_Modulus_FactorizationKnown = ("RSA Modulus", "factorization of n is public")
+#	RSA_Modulus_BitBias = ("RSA Modulus", "n has bit bias")
 #	RSA_Modulus_Length = ("RSA Modulus", "length of n")
 #	RSA_PSS_Parameters_Malformed = ("RSA/PSS Encoding", "malformed parameters")
 #	RSA_PSS_Parameters_TrailingData = ("RSA/PSS Encoding", "trailing garbage data")
@@ -48,8 +48,8 @@ class JudgementCode(enum.Enum):
 #	RSA_PSS_Salt_Length = ("RSA/PSS Salt", "length of salt")
 #	RSA_PSS_Unknown_Trailer_Field = ("RSA/PSS Salt", "trailer field unknown")
 #	RSA_PSS_Multiple_Hash_Functions = ("RSA/PSS Salt", "multiple hash functions used")
-##	DSA_Parameter_P_BitBias = ("DSA parameters", "p has bit bias")
-##	DSA_Parameter_Q_BitBias = ("DSA parameters", "q has bit bias")
+#	DSA_Parameter_P_BitBias = ("DSA parameters", "p has bit bias")
+#	DSA_Parameter_Q_BitBias = ("DSA parameters", "q has bit bias")
 #	DSA_Parameter_P_Not_Prime = ("DSA parameters", "p is not prime")
 #	DSA_Parameter_Q_Not_Prime = ("DSA parameters", "q is not prime")
 #	DSA_Parameter_Q_No_Divisor_Of_P1 = ("DSA parameters", "q does not divide (p - 1)")
@@ -193,8 +193,10 @@ class JudgementCode(enum.Enum):
 	Cert_X509Ext_SubjectAltName_Critical = ("X.509 SubjectAlternativeName", "extension marked as critical")
 	Cert_X509Ext_SubjectAltName_NotCritical = ("X.509 SubjectAlternativeName", "extension not marked as critical")
 	Cert_X509Ext_SubjectAltName_EmailOnly = ("X.509 SubjectAlternativeName", "all names are email addresses")
+
 	Cert_X509Ext_AuthorityInformationAccess_Critical = ("X.509 AuthorityInformationAccess", "extension marked as critical")
 	Cert_X509Ext_AuthorityInformationAccess_Empty = ("X.509 AuthorityInformationAccess", "extension contains no data")
+
 	Cert_X509Ext_CertificatePolicies_DeprecatedOID = ("X.509 Certificate Policies extension", "deprectated OID used")
 	Cert_X509Ext_CertificatePolicies_DuplicateOID = ("X.509 Certificate Policies extension", "duplicate OID used")
 	Cert_X509Ext_CertificatePolicies_MoreThanOnePolicy = ("X.509 Certificate Policies extension", "more than one policy present")
@@ -212,9 +214,11 @@ class JudgementCode(enum.Enum):
 	Cert_X509Ext_CertificatePolicies_CPSMalformed = ("X.509 Certificate Policies extension", "error decoding CPS qualifier")
 	Cert_X509Ext_CertificatePolicies_CPSConstraintViolation = ("X.509 Certificate Policies extension", "CPS qualifier uses illegal type")
 	Cert_X509Ext_CertificatePolicies_CPSUnusualURIScheme = ("X.509 Certificate Policies extension", "CPS uses unusual URI scheme")
+
 	Cert_X509Ext_NetscapeCertType_UnusedBitSet = ("Netscape Certificate Type extension", "unused type bit set")
 	Cert_X509Ext_NetscapeCertType_Malformed = ("Netscape Certificate Type extension", "extension malformed")
 	Cert_X509Ext_NetscapeCertType_Empty = ("Netscape Certificate Type extension", "no bits set")
+
 	Cert_X509Ext_CRLDistributionPoints_Critical = ("CRL Distribution Points extension", "extension marked critical")
 	Cert_X509Ext_CRLDistributionPoints_Malformed = ("CRL Distribution Points extension", "extension malformed")
 	Cert_X509Ext_CRLDistributionPoints_NoPointWithAllReasonBits = ("CRL Distribution Points extension", "no distribution point with CRL for all reasons")
@@ -249,6 +253,7 @@ class JudgementCode(enum.Enum):
 	Cert_X509Ext_CRLDistributionPoints_CRLIssuer_Name_BadURI = ("CRL Distribution Points extension", "distribution point issuer contains invalid URI")
 	Cert_X509Ext_CRLDistributionPoints_CRLIssuer_Name_UncommonURIScheme = ("CRL Distribution Points extension", "distribution point issuer contains uncommon URI scheme")
 	Cert_X509Ext_CRLDistributionPoints_CRLIssuer_Name_UncommonIdentifier = ("CRL Distribution Points extension", "distribution point issuer contains uncommon identifier")
+
 	Cert_X509Ext_CertificateTransparencyPoison_IsPrecertificate = ("Certificate Transparency Precertificate Poison extension", "not a certificate, but precertificate")
 	Cert_X509Ext_CertificateTransparencyPoison_NotCritical = ("Certificate Transparency Precertificate Poison extension", "extension not marked as critical")
 	Cert_X509Ext_CertificateTransparencyPoison_MalformedPayload = ("Certificate Transparency Precertificate Poison extension", "extnValue is malformed")
@@ -260,6 +265,7 @@ class JudgementCode(enum.Enum):
 	Cert_X509Ext_CertificateTransparencySCTs_SCT_ImplausibleTimestamp = ("Certificate Transparency Signed Certificate Timestamps extension", "implausible timestamp")
 	Cert_X509Ext_CertificateTransparencySCTs_SCT_InvalidSignatureFunction = ("Certificate Transparency Signed Certificate Timestamps extension", "invalid signature function")
 	Cert_X509Ext_CertificateTransparencySCTs_SCT_InvalidHashFunction = ("Certificate Transparency Signed Certificate Timestamps extension", "invalid hash function")
+
 	SignatureFunction_UncommonPaddingScheme = ("Signature function", "uncommon padding scheme")
 	SignatureFunction_UncommonCryptosystem = ("Signature function", "uncommon cryptosystem")
 	SignatureFunction_Common = ("Signature function", "common signature function")
@@ -286,11 +292,14 @@ class JudgementCode(enum.Enum):
 	Cert_Purpose_NSCT_NoSSLServer = ("Certificate purpose", "NSCT extension does not contain sslServer flag")
 	Cert_Purpose_NSCT_NoCA = ("Certificate purpose", "NSCT extension does not contain any CA flag")
 	Cert_Purpose_NSCT_NonSSLCA = ("Certificate purpose", "NSCT extension is a CA, but not for use in SSL")
+
 	Cert_Version_Not_2 = ("Certificate version", "not v2 certificate")
 	Cert_Version_Not_3 = ("Certificate version", "not v3 certificate")
+
 	Cert_Serial_Zero = ("Certificate serial", "serial is zero")
 	Cert_Serial_Negative = ("Certificate serial", "serial is negative")
 	Cert_Serial_Large = ("Certificate serial", "serial is too large")
+
 	Cert_Signature_Algorithm_Mismatch = ("Certificate signature", "signature algorithm mismatch")
 	Cert_UniqueID_NotAllowed = ("Certificate unique ID", "subject/issuer unique ID not allowed in version 1 certificate")
 	Cert_UniqueID_NotAllowedForCA = ("Certificate unique ID", "subject/issuer unique ID not allowed in CA certificate")

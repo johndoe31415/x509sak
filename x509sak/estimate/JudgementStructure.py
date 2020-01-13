@@ -324,10 +324,13 @@ class JudgementStructure():
 			structure_data = json.load(f)
 		return cls(structure_data)
 
-def create_judgement_code_class(verbose = False):
+def create_judgement_structure(verbose = False):
 	structure_data = { }
 	for structure_json_name in [ "number_theoretic.json", "encoding.json", "cryptography.json", "x509ext.json", "x509cert.json" ]:
 		partial_data = JSONTools.load_internal("x509sak.data.judgements", structure_json_name)
 		structure_data.update(partial_data)
 	structure = JudgementStructure(structure_data, verbose = verbose)
-	return structure.create_enum_class()
+	return structure
+
+def create_judgement_code_class(verbose = False):
+	return create_judgement_structure(verbose = verbose).create_enum_class()

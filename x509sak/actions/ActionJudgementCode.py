@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
 #	Copyright (C) 2020-2020 Johannes Bauer
 #
@@ -20,12 +19,19 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-import x509sak.estimate.Judgement
+from x509sak.BaseAction import BaseAction
 import x509sak.estimate.JudgementStructure
 
-jcc = x509sak.estimate.JudgementStructure.create_judgement_code_class(verbose = True)
+class ActionJudgementCode(BaseAction):
+	def __init__(self, cmdname, args):
+		BaseAction.__init__(self, cmdname, args)
 
-
-#rich_codes = [ code.value for code in jcc ]
-#for rich_code in sorted(rich_codes):
-#	print(rich_code.code)
+		jcs = x509sak.estimate.JudgementStructure.create_judgement_structure(verbose = self._args.verbose >= 1)
+		if self._args.action == "list":
+			codes = [ jc.value for jc in jcs.create_enum_class() ]
+			for jc in sorted(codes):
+				print(jc.code)
+		elif self._args.action == "dump":
+			jcs.root.dump()
+		else:
+			raise NotImplementedError(self._args.action)
