@@ -35,14 +35,14 @@ class GeneralNameValidatorTests(BaseTest):
 		gn = self._create_general_name(name, inner)
 		errors = {
 			"empty_value":					GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_SubjectAltName_EmptyValue),
-			"email":						GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_SubjectAltName_BadEmail),
-			"ip":							GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_SubjectAltName_BadIP),
-			"ip_private":					GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_SubjectAltName_BadIP_Private),
-			"uri":							GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_SubjectAltName_BadURI),
+			"email":						GeneralNameValidator.Error(code = ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_SAN_Name_Email_Malformed),
+			"ip":							GeneralNameValidator.Error(code = ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_SAN_Name_IPAddress_Malformed),
+			"ip_private":					GeneralNameValidator.Error(code = ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_SAN_Name_IPAddress_PrivateAddressSpace),
+			"uri":							GeneralNameValidator.Error(code = ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_SAN_Name_URI_Malformed),
 			"uri_invalid_scheme":			GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_SubjectAltName_UncommonURIScheme),
 			"dnsname":						GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_SubjectAltName_BadDNSName),
-			"dnsname_space":				GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_SubjectAltName_BadDNSName_Space),
-			"dnsname_single_label":			GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_SubjectAltName_BadDNSName_SingleLabel),
+			"dnsname_space":				GeneralNameValidator.Error(code = ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_SAN_Name_DNS_OnlyWhitespace),
+			"dnsname_single_label":			GeneralNameValidator.Error(code = ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_SAN_Name_DNS_SingleLabel),
 			"dnsname_wc_notleftmost":		GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_SubjectAltName_BadWildcardDomain_NotLeftmost),
 			"dnsname_wc_morethanone":		GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_SubjectAltName_BadWildcardDomain_MoreThanOneWildcard),
 			"dnsname_wc_international":		GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_SubjectAltName_BadWildcardDomain_InternationalLabel),
@@ -61,7 +61,7 @@ class GeneralNameValidatorTests(BaseTest):
 		self._validate("rfc822Name", "foo@bar.com", assert_length = 0)
 
 	def test_email_bad(self):
-		self._validate("rfc822Name", "foo @bar.com", assert_present = JudgementCode.Cert_X509Ext_SubjectAltName_BadEmail)
+		self._validate("rfc822Name", "foo @bar.com", assert_present = ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_SAN_Name_Email_Malformed)
 
 	def test_ipv4_ok(self):
 		self._validate("iPAddress", OctetString(bytes.fromhex("aa bb cc dd")), assert_length = 0)
@@ -70,34 +70,34 @@ class GeneralNameValidatorTests(BaseTest):
 		self._validate("iPAddress", OctetString(bytes(16)), assert_length = 0)
 
 	def test_ip_bad(self):
-		self._validate("iPAddress", OctetString(bytes(2)), assert_present = JudgementCode.Cert_X509Ext_SubjectAltName_BadIP)
+		self._validate("iPAddress", OctetString(bytes(2)), assert_present = ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_SAN_Name_IPAddress_Malformed)
 
 	def test_ip_private_class_a(self):
-		self._validate("iPAddress", OctetString(bytes([ 10, 42, 117, 83 ])), assert_present = JudgementCode.Cert_X509Ext_SubjectAltName_BadIP_Private)
+		self._validate("iPAddress", OctetString(bytes([ 10, 42, 117, 83 ])), assert_present = ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_SAN_Name_IPAddress_PrivateAddressSpace)
 
 	def test_ip_private_class_b(self):
-		self._validate("iPAddress", OctetString(bytes([ 172, 31, 12, 4 ])), assert_present = JudgementCode.Cert_X509Ext_SubjectAltName_BadIP_Private)
+		self._validate("iPAddress", OctetString(bytes([ 172, 31, 12, 4 ])), assert_present = ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_SAN_Name_IPAddress_PrivateAddressSpace)
 
 	def test_ip_private_class_c(self):
-		self._validate("iPAddress", OctetString(bytes([ 192, 168, 17, 44 ])), assert_present = JudgementCode.Cert_X509Ext_SubjectAltName_BadIP_Private)
+		self._validate("iPAddress", OctetString(bytes([ 192, 168, 17, 44 ])), assert_present = ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_SAN_Name_IPAddress_PrivateAddressSpace)
 
 	def test_ip_multicast(self):
-		self._validate("iPAddress", OctetString(bytes([ 239, 255, 255, 255 ])), assert_present = JudgementCode.Cert_X509Ext_SubjectAltName_BadIP_Private)
+		self._validate("iPAddress", OctetString(bytes([ 239, 255, 255, 255 ])), assert_present = ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_SAN_Name_IPAddress_PrivateAddressSpace)
 
 	def test_ip_broadcast(self):
-		self._validate("iPAddress", OctetString(bytes([ 255, 255, 255, 255 ])), assert_present = JudgementCode.Cert_X509Ext_SubjectAltName_BadIP_Private)
+		self._validate("iPAddress", OctetString(bytes([ 255, 255, 255, 255 ])), assert_present = ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_SAN_Name_IPAddress_PrivateAddressSpace)
 
 	def test_ip_loopback(self):
-		self._validate("iPAddress", OctetString(bytes([ 127, 255, 255, 255 ])), assert_present = JudgementCode.Cert_X509Ext_SubjectAltName_BadIP_Private)
+		self._validate("iPAddress", OctetString(bytes([ 127, 255, 255, 255 ])), assert_present = ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_SAN_Name_IPAddress_PrivateAddressSpace)
 
 	def test_dnsname_ok(self):
 		self._validate("dNSName", "foobar.com", assert_length = 0)
 
 	def test_dnsname_single_label(self):
-		self._validate("dNSName", "com", assert_present = JudgementCode.Cert_X509Ext_SubjectAltName_BadDNSName_SingleLabel)
+		self._validate("dNSName", "com", assert_present = ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_SAN_Name_DNS_SingleLabel)
 
 	def test_dnsname_space(self):
-		self._validate("dNSName", " ", assert_present = JudgementCode.Cert_X509Ext_SubjectAltName_BadDNSName_Space)
+		self._validate("dNSName", " ", assert_present = ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_SAN_Name_DNS_OnlyWhitespace)
 
 	def test_dnsname_bad1(self):
 		self._validate("dNSName", "muh kuh.com", assert_present = JudgementCode.Cert_X509Ext_SubjectAltName_BadDNSName)
@@ -117,7 +117,7 @@ class GeneralNameValidatorTests(BaseTest):
 		self._validate("uniformResourceIdentifier", "http://google.com/foo.crt", assert_length = 0)
 
 	def test_uri_bad1(self):
-		self._validate("uniformResourceIdentifier", "http:/google.com/foo.crt", assert_present = JudgementCode.Cert_X509Ext_SubjectAltName_BadURI)
+		self._validate("uniformResourceIdentifier", "http:/google.com/foo.crt", assert_present = ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_SAN_Name_URI_Malformed)
 
 	def test_uri_bad2(self):
 		self._validate("uniformResourceIdentifier", "ldap://google.com/foo.crt", permissible_uri_schemes = [ "http", "https", "ldap" ], assert_length = 0)

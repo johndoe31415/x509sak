@@ -34,4 +34,4 @@ for (old_prefix, new_prefix) in prefixes:
 	for (old_suffix, new_suffix) in suffixes:
 		old = old_prefix + old_suffix
 		new = new_prefix + new_suffix
-		print(old, new)
+		replace(old, new)
