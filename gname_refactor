@@ -1,0 +1,37 @@
+#!/usr/bin/python3
+#
+import subprocess
+import sys
+
+def replace(old, new):
+	print("%s -> %s" % (old, new))
+	subprocess.check_call([ "replaceall", "-R", "-vcn", "-g", "*.py", "-s", "JudgementCode.%s" % (old), "-r", "ExperimentalJudgementCodes.%s" % (new), "x509sak" ])
+	subprocess.check_call([ "replaceall", "-R", "-vcn", "-g", "*.py", "-s", "\"%s\"" % (old), "-r", "\"%s\"" % (new), "x509sak" ])
+	subprocess.check_call([ "replaceall", "-vcn", "-s", "^([ \t]+%s = )" % (old), "-r", "#\\1", "x509sak/estimate/Judgement.py" ])
+
+
+prefixes = [
+	[ "Cert_X509Ext_AuthorityKeyIdentifier_CAName_", "X509Cert_Body_X509Exts_Ext_AKI_CAName_" ],
+	[ "Cert_X509Ext_IssuerAltName_", "X509Cert_Body_X509Exts_Ext_IAN_Name_" ],
+	[ "Cert_X509Ext_SubjectAltName_", "X509Cert_Body_X509Exts_Ext_SAN_Name_" ],
+#	[ "", "" ],
+#	[ "", "" ],
+]
+
+suffixes = [
+#	[ "EmptyValue", "" ],
+	[ "BadIP_Private", "IPAddress_PrivateAddressSpace" ],
+	[ "BadIP", "IPAddress_Malformed" ],
+	[ "BadEmail", "Email_Malformed" ],
+	[ "BadDNSName_Space", "DNS_OnlyWhitespace" ],
+	[ "BadDNSName_SingleLabel", "DNS_SingleLabel" ],
+#	[ "BadDNSName", "" ],
+	[ "BadURI", "URI_Malformed" ],
+#	[ "UncommonURIScheme", "" ],
+]
+
+for (old_prefix, new_prefix) in prefixes:
+	for (old_suffix, new_suffix) in suffixes:
+		old = old_prefix + old_suffix
+		new = new_prefix + new_suffix
+		print(old, new)
