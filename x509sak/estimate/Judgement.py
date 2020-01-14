@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2019 Johannes Bauer
+#	Copyright (C) 2018-2020 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -122,9 +122,9 @@ class JudgementCode(enum.Enum):
 #	Cert_X509Ext_AuthorityKeyIdentifier_KeyIDLong = ("X.509 AuthorityKeyIdentifier", "key ID very long")
 
 
-	Cert_X509Ext_AuthorityKeyIdentifier_CA_NoSKI = ("X.509 AuthorityKeyIdentifier", "CA certificate does not contain SKI")
-	Cert_X509Ext_AuthorityKeyIdentifier_CA_KeyIDMismatch = ("X.509 AuthorityKeyIdentifier", "key ID does not match CA SKI")
-	Cert_X509Ext_AuthorityKeyIdentifier_CA_SerialMismatch = ("X.509 AuthorityKeyIdentifier", "serial does not match CA serial")
+#	Cert_X509Ext_AuthorityKeyIdentifier_CA_NoSKI = ("X.509 AuthorityKeyIdentifier", "CA certificate does not contain SKI")
+#	Cert_X509Ext_AuthorityKeyIdentifier_CA_KeyIDMismatch = ("X.509 AuthorityKeyIdentifier", "key ID does not match CA SKI")
+#	Cert_X509Ext_AuthorityKeyIdentifier_CA_SerialMismatch = ("X.509 AuthorityKeyIdentifier", "serial does not match CA serial")
 
 #	Cert_X509Ext_SubjectKeyIdentifier_Missing = ("X.509 SubjectKeyIdentifier extension", "SKI extension missing")
 #	Cert_X509Ext_SubjectKeyIdentifier_Critical = ("X.509 SubjectKeyIdentifier extension", "SKI extension marked critical")

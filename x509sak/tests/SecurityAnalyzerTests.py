@@ -179,7 +179,7 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-keyid-invalid-issuer.pem", "X509Cert_Body_X509Exts_Ext_AKI_CAName_IPAddress_Malformed")
 
 	def test_examine_x509test_xf_ext_auth_keyid_mismatch(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-keyid-mismatch.pem", "Cert_X509Ext_AuthorityKeyIdentifier_CA_KeyIDMismatch", parent_certname = "certs/x509test/ok-ca.pem")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-keyid-mismatch.pem", "CertUsage_CARelationship_AKI_KeyID_Mismatch", parent_certname = "certs/x509test/ok-ca.pem")
 
 	def test_examine_x509test_xf_ext_auth_keyid_noid(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-keyid-noid.pem", "X509Cert_Body_X509Exts_Ext_AKI_NoKeyID")
@@ -188,7 +188,7 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-keyid-onlyserial.pem", "X509Cert_Body_X509Exts_Ext_AKI_SerialWithoutCAName")
 
 	def test_examine_x509test_xf_ext_auth_keyid_serial_mismatch(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-keyid-serial-mismatch.pem", "Cert_X509Ext_AuthorityKeyIdentifier_CA_SerialMismatch", parent_certname = "certs/x509test/ok-ca.pem")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-keyid-serial-mismatch.pem", "CertUsage_CARelationship_AKI_Serial_Mismatch", parent_certname = "certs/x509test/ok-ca.pem")
 
 	def test_examine_x509test_xf_ext_cert_policies_any_qual(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-cert-policies-any-qual.pem", "X509Cert_Body_X509Exts_Ext_CP_Qualifier_AnyPolicyWithUnknownQualifier")
@@ -795,7 +795,7 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/aki_name_without_serial.pem", expect_present = "X509Cert_Body_X509Exts_Ext_AKI_CAnameWithoutSerial")
 
 	def test_aki_ca_has_no_ski(self):
-		self._test_examine_x509test_resultcode("certs/ok/short.pem", parent_certname = "certs/constructed/ski_missing.pem", expect_present = "Cert_X509Ext_AuthorityKeyIdentifier_CA_NoSKI")
+		self._test_examine_x509test_resultcode("certs/ok/short.pem", parent_certname = "certs/constructed/ski_missing.pem", expect_present = "CertUsage_CARelationship_AKI_KeyID_Uncheckable")
 
 	def test_aki_caname_bad_domain(self):
 		self._test_examine_x509test_resultcode("certs/constructed/aki_caname_bad_domain.pem", expect_present = "X509Cert_Body_X509Exts_Ext_AKI_CAName_DNS_Malformed")
