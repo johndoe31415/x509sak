@@ -349,10 +349,10 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-gentime-nonzulu.pem", "X509Cert_Body_Validity_NotAfter_Malformed")
 
 	def test_examine_x509test_xf_issuer_mismatch_v2(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-issuer-mismatch-v2.pem", "CA_Relationship_SubjectIssuerMismatch", parent_certname = "certs/x509test/ok-ca.pem")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-issuer-mismatch-v2.pem", "CertUsage_CARelationship_Subject_Issuer_Mismatch", parent_certname = "certs/x509test/ok-ca.pem")
 
 	def test_examine_x509test_xf_issuer_mismatch1(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-issuer-mismatch1.pem", "CA_Relationship_SubjectIssuerMismatch", parent_certname = "certs/x509test/ok-ca.pem")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-issuer-mismatch1.pem", "CertUsage_CARelationship_Subject_Issuer_Mismatch", parent_certname = "certs/x509test/ok-ca.pem")
 
 	def test_examine_x509test_xf_pubkey_ecdsa_not_on_curve(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-pubkey-ecdsa-not-on-curve.pem", "X509Cert_PublicKey_ECC_PublicKeyPoint_NotOnCurve")
@@ -1038,49 +1038,49 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/ext_not_present.pem", expect_absent = "X509Cert_Body_X509Exts_EmptySequence")
 
 	def test_ca_relationship_signature_success(self):
-		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", parent_certname = "certs/ok/johannes-bauer-intermediate.pem", expect_present = [ "CA_Relationship_SubjectIssuerMatch", "CA_Relationship_SignatureVerificationSuccess" ])
+		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", parent_certname = "certs/ok/johannes-bauer-intermediate.pem", expect_present = [ "CertUsage_CARelationship_Subject_Issuer_Match", "CertUsage_CARelationship_Signature_VerificationSuccess" ])
 
 	def test_ca_relationship_signature_failure(self):
-		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", parent_certname = "certs/ok/johannes-bauer-root.pem", expect_present = [ "CA_Relationship_SubjectIssuerMismatch", "CA_Relationship_SignatureVerificationFailure" ], expect_absent = "CA_Relationship_CACertificateInvalidAsCA")
+		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", parent_certname = "certs/ok/johannes-bauer-root.pem", expect_present = [ "CertUsage_CARelationship_Subject_Issuer_Mismatch", "CertUsage_CARelationship_Signature_VerificationFailure" ], expect_absent = "CertUsage_CARelationship_CACertificateInvalidAsCA")
 
 	def test_ca_relationship_invalid_as_ca(self):
-		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", parent_certname = "certs/ok/johannes-bauer.com.pem", expect_present = [ "CA_Relationship_SubjectIssuerMismatch", "CA_Relationship_SignatureVerificationFailure", "CA_Relationship_CACertificateInvalidAsCA" ])
+		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", parent_certname = "certs/ok/johannes-bauer.com.pem", expect_present = [ "CertUsage_CARelationship_Subject_Issuer_Mismatch", "CertUsage_CARelationship_Signature_VerificationFailure", "CertUsage_CARelationship_CACertificateInvalidAsCA" ])
 
 	def test_ca_relationship_validity_full_overlap(self):
-		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", parent_certname = "certs/ok/johannes-bauer-intermediate.pem", expect_present = "CA_Relationship_Validity_FullOverlap")
+		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", parent_certname = "certs/ok/johannes-bauer-intermediate.pem", expect_present = "CertUsage_CARelationship_Validity_FullOverlap")
 
 	def test_ca_relationship_validity_partial_overlap(self):
-		self._test_examine_x509test_resultcode("certs/constructed/ca_rel_valid_firsthalf.pem", parent_certname = "certs/constructed/ca_rel_CA_y2k.pem", expect_present = "CA_Relationship_Validity_PartialOverlap")
-		self._test_examine_x509test_resultcode("certs/constructed/ca_rel_valid_secondhalf.pem", parent_certname = "certs/constructed/ca_rel_CA_y2k.pem", expect_present = "CA_Relationship_Validity_PartialOverlap")
+		self._test_examine_x509test_resultcode("certs/constructed/ca_rel_valid_firsthalf.pem", parent_certname = "certs/constructed/ca_rel_CA_y2k.pem", expect_present = "CertUsage_CARelationship_Validity_PartialOverlap")
+		self._test_examine_x509test_resultcode("certs/constructed/ca_rel_valid_secondhalf.pem", parent_certname = "certs/constructed/ca_rel_CA_y2k.pem", expect_present = "CertUsage_CARelationship_Validity_PartialOverlap")
 
 	def test_ca_relationship_validity_no_overlap(self):
-		self._test_examine_x509test_resultcode("certs/constructed/ca_rel_valid_before.pem", parent_certname = "certs/constructed/ca_rel_CA_y2k.pem", expect_present = "CA_Relationship_Validity_NoOverlap")
-		self._test_examine_x509test_resultcode("certs/constructed/ca_rel_valid_after.pem", parent_certname = "certs/constructed/ca_rel_CA_y2k.pem", expect_present = "CA_Relationship_Validity_NoOverlap")
+		self._test_examine_x509test_resultcode("certs/constructed/ca_rel_valid_before.pem", parent_certname = "certs/constructed/ca_rel_CA_y2k.pem", expect_present = "CertUsage_CARelationship_Validity_NoOverlap")
+		self._test_examine_x509test_resultcode("certs/constructed/ca_rel_valid_after.pem", parent_certname = "certs/constructed/ca_rel_CA_y2k.pem", expect_present = "CertUsage_CARelationship_Validity_NoOverlap")
 
 	def test_ca_relationship_validity_malformed(self):
-		self._test_examine_x509test_resultcode("certs/ok/short.pem", parent_certname = "certs/constructed/timestamp_malformed.pem", expect_present = "CA_Relationship_Validity_TimestampMalformed")
-		self._test_examine_x509test_resultcode("certs/constructed/timestamp_malformed.pem", parent_certname = "certs/ok/short.pem", expect_present = "CA_Relationship_Validity_TimestampMalformed")
+		self._test_examine_x509test_resultcode("certs/ok/short.pem", parent_certname = "certs/constructed/timestamp_malformed.pem", expect_present = "CertUsage_CARelationship_Validity_MalformedTimestamp")
+		self._test_examine_x509test_resultcode("certs/constructed/timestamp_malformed.pem", parent_certname = "certs/ok/short.pem", expect_present = "CertUsage_CARelationship_Validity_MalformedTimestamp")
 
 	def test_ca_relationship_aki_keyid_match(self):
-		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", parent_certname = "certs/ok/johannes-bauer-intermediate.pem", expect_present = "CA_Relationship_AKI_KeyIDMatch", expect_absent = "CA_Relationship_AKI_KeyIDMismatch")
+		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", parent_certname = "certs/ok/johannes-bauer-intermediate.pem", expect_present = "CertUsage_CARelationship_AKI_KeyID_Match", expect_absent = "CertUsage_CARelationship_AKI_KeyID_Mismatch")
 
 	def test_ca_relationship_aki_keyid_mismatch(self):
-		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", parent_certname = "certs/ok/johannes-bauer.com.pem", expect_present = "CA_Relationship_AKI_KeyIDMismatch", expect_absent = "CA_Relationship_AKI_KeyIDMatch")
+		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", parent_certname = "certs/ok/johannes-bauer.com.pem", expect_present = "CertUsage_CARelationship_AKI_KeyID_Mismatch", expect_absent = "CertUsage_CARelationship_AKI_KeyID_Match")
 
 	def test_ca_relationship_aki_keyid_uncheckable(self):
-		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", parent_certname = "certs/ok/custom_key_usage.pem", expect_present = "CA_Relationship_AKI_UncheckableNoCASKI", expect_absent = [ "CA_Relationship_AKI_KeyIDMismatch", "CA_Relationship_AKI_KeyIDMatch" ])
+		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", parent_certname = "certs/ok/custom_key_usage.pem", expect_present = "CertUsage_CARelationship_AKI_KeyID_Uncheckable", expect_absent = [ "CertUsage_CARelationship_AKI_KeyID_Mismatch", "CertUsage_CARelationship_AKI_KeyID_Match" ])
 
 	def test_ca_relationship_aki_caname_match(self):
-		self._test_examine_x509test_resultcode("certs/constructed/ca_rel_cert_caname_match.pem", parent_certname = "certs/constructed/ca_rel_CA_y2k.pem", expect_present = "CA_Relationship_AKI_CANameMatch", expect_absent = "CA_Relationship_AKI_CANameMismatch")
+		self._test_examine_x509test_resultcode("certs/constructed/ca_rel_cert_caname_match.pem", parent_certname = "certs/constructed/ca_rel_CA_y2k.pem", expect_present = "CertUsage_CARelationship_AKI_CAName_Match", expect_absent = "CertUsage_CARelationship_AKI_CAName_Mismatch")
 
 	def test_ca_relationship_aki_caname_mismatch(self):
-		self._test_examine_x509test_resultcode("certs/constructed/ca_rel_cert_caname_mismatch.pem", parent_certname = "certs/constructed/ca_rel_CA_y2k.pem", expect_present = "CA_Relationship_AKI_CANameMismatch", expect_absent = "CA_Relationship_AKI_CANameMatch")
+		self._test_examine_x509test_resultcode("certs/constructed/ca_rel_cert_caname_mismatch.pem", parent_certname = "certs/constructed/ca_rel_CA_y2k.pem", expect_present = "CertUsage_CARelationship_AKI_CAName_Mismatch", expect_absent = "CertUsage_CARelationship_AKI_CAName_Match")
 
 	def test_ca_relationship_aki_serial_match(self):
-		self._test_examine_x509test_resultcode("certs/constructed/ca_rel_cert_serial_match.pem", parent_certname = "certs/constructed/ca_rel_CA_y2k.pem", expect_present = "CA_Relationship_AKI_SerialMatch", expect_absent = "CA_Relationship_AKI_SerialMismatch")
+		self._test_examine_x509test_resultcode("certs/constructed/ca_rel_cert_serial_match.pem", parent_certname = "certs/constructed/ca_rel_CA_y2k.pem", expect_present = "CertUsage_CARelationship_AKI_Serial_Match", expect_absent = "CertUsage_CARelationship_AKI_Serial_Mismatch")
 
 	def test_ca_relationship_aki_serial_mismatch(self):
-		self._test_examine_x509test_resultcode("certs/constructed/ca_rel_cert_serial_mismatch.pem", parent_certname = "certs/constructed/ca_rel_CA_y2k.pem", expect_present = "CA_Relationship_AKI_SerialMismatch", expect_absent = "CA_Relationship_AKI_SerialMatch")
+		self._test_examine_x509test_resultcode("certs/constructed/ca_rel_cert_serial_mismatch.pem", parent_certname = "certs/constructed/ca_rel_CA_y2k.pem", expect_present = "CertUsage_CARelationship_AKI_Serial_Mismatch", expect_absent = "CertUsage_CARelationship_AKI_Serial_Match")
 
 	def test_unique_id_issuer(self):
 		# Same code point as subject unique ID, but different code path; test

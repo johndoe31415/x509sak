@@ -48,8 +48,10 @@
 				}
 			},
 			"Issuer": {
+				"_import": "*dn_issues/*{name=Certificate issuer}"
 			},
 			"Subject": {
+				"_import": "*dn_issues/*{name=Certificate subject}"
 			},
 			"Serial Number": {
 				"_import": "integer_checks:zero,neg,large{name=serial number}"
@@ -85,7 +87,7 @@
 						"_label": "AKI",
 						"_import": "x509_ext_checks/*:empty,missing,critical{name=AKI}",
 						"CA name": {
-							"_import": "general_name_issues/*"
+							"_import": "*general_name_issues/*"
 						},
 						"Serial without CAName": { "_desc": "AKI extension has serial without CA name" },
 						"CAname without Serial": { "_desc": "AKI extension has CA name without serial" },
@@ -274,15 +276,38 @@
 			}
 		},
 		"CA Relationship": {
+			"CA Certificate invalid as CA": { "_desc": "CA certificate is invalid for use as a CA" },
+			"Signature": {
+				"Verification Failure": { "_desc": "signature verification failure" },
+				"Verification Success": { "_desc": "signature verification success" }
+			},
+			"Subject / Issuer": {
+				"Match": { "_desc": "issuer of certificate equal to subject of CA certifiate" },
+				"Mismatch": { "_desc": "issuer of certificate not equal to subject of CA certifiate" }
+			},
 			"Authority Key Identifier": {
-				"CA has no SKI": { "_desc": "CA certificate has no SKI extension" },
-				"CA Key ID differs": { "_desc": "CA key ID in SKI extension differs from AKI key ID" },
-				"CA Serial differs": { "_desc": "CA serial number differs from AKI serial" }
+				"_label": "AKI",
+				"CA name": {
+					"Match": { "_desc": "CA name in AKI extension matches subject of CA certifiate" },
+					"Mismatch": { "_desc": "CA name in AKI extension does not match subject of CA certifiate" }
+				},
+				"Serial Number": {
+					"_label": "Serial",
+					"Match": { "_desc": "serial number in AKI extension matches serial of CA certifiate" },
+					"Mismatch": { "_desc": "serial number in AKI extension does not match serial of CA certifiate" }
+				},
+				"Key ID": {
+					"Match": { "_desc": "key ID in AKI extension matches key ID of CA certifiate SKI extension" },
+					"Mismatch": { "_desc": "key ID in AKI extension does not match key ID of CA certifiate SKI extension" },
+					"Uncheckable": { "_desc": "key ID in AKI extension cannot be checked against CA because CA contains no SKI extension" }
+				}
 			},
 			"Validity Periods": {
+				"_label": "Validity",
 				"Full Overlap": { "_desc": "full overlap in validity periods" },
 				"Partial Overlap": { "_desc": "partial overlap in validity periods" },
-				"No Overlap": { "_desc": "no overlap in validity periods" }
+				"No Overlap": { "_desc": "no overlap in validity periods" },
+				"Malformed Timestamp": { "_desc": "either certificate or CA certificate contains malformed timestamp which prevent assessment of validity period" }
 			}
 		}
 	}
