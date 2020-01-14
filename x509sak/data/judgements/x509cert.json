@@ -48,10 +48,10 @@
 				}
 			},
 			"Issuer": {
-				"_import": "*dn_issues/*{name=Certificate issuer}"
+				"_import": "*dn_issues/*{name=certificate issuer}"
 			},
 			"Subject": {
-				"_import": "*dn_issues/*{name=Certificate subject}"
+				"_import": "*dn_issues/*{name=certificate subject}"
 			},
 			"Serial Number": {
 				"_import": "integer_checks:zero,neg,large{name=serial number}"
