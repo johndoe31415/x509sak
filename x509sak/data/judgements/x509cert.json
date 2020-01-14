@@ -189,13 +189,12 @@
 						"Point with only Reasons": { "_desc": "CDLDP extension contains a point that only has the 'reason' bit set" },
 						"Segmentation used": { "_desc": "CRLDP contains points that contain CRLs that are not universal" },
 						"Point Name": {
-							"_import": "general_name_issues/*",
+							"_import": "general_name_issues/*:ldap_validation",
 							"NoLDAPorHTTPURI": { "_desc": "CRLDP point contains point with no HTTP or LDAP URI" },
 							"Possibly no DER CRL served": { "_desc": "CRLDP point serves potentialla non-DER CRL" }
 						},
 						"Reasons": {
-							"_import": "bitstring_issues/*",
-							"Only int with all reason bits": { "_desc": "CRLDP contains no point that has all reason bits set" }
+							"_import": "bitstring_issues/*"
 						},
 						"CRL Issuer": {
 							"_import": "general_name_issues/*"

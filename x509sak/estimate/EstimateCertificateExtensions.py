@@ -580,18 +580,18 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 					parsed_dn = DistinguishedName.from_rfc2253_str(urllib.parse.unquote(uri_path))
 					if parsed_dn.rdn_count == 0:
 						standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "MUST", text = "When the LDAP URI scheme [RFC4516] is used, the URI MUST include a <dn> field containing the distinguished name of the entry holding the CRL")
-						judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_PointName_ContainsNoLDAPDN, "CRL Distribution Points X.509 extension contains distribution point #%d (name #%d) which points to an LDAP URI which does not contain a Distinguished Name." % (pointno, nameno), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+						judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_CRLDP_PointName_URI_LDAP_NoDN, "CRL Distribution Points X.509 extension contains distribution point #%d (name #%d) which points to an LDAP URI which does not contain a Distinguished Name." % (pointno, nameno), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 				except InvalidInputException:
 					standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "MUST", text = "When the LDAP URI scheme [RFC4516] is used, the URI MUST include a <dn> field containing the distinguished name of the entry holding the CRL")
 					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_PointName_ContainsInvalidLDAPDN, "CRL Distribution Points X.509 extension contains distribution point #%d (name #%d) which points to an LDAP URI which contain an unparsable Distinguished Name (\"%s\")." % (pointno, nameno, uri.path), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 				if uri.query == "":
 					standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "MUST", text = "When the LDAP URI scheme [RFC4516] is used, the URI MUST include a <dn> field containing the distinguished name of the entry holding the CRL, MUST include a single <attrdesc> that contains an appropriate attribute description for the attribute that holds the CRL [RFC4523]")
-					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_PointName_ContainsNoLDAPAttrdesc, "CRL Distribution Points X.509 extension contains distribution point #%d (name #%d) which points to an LDAP URI which does not contain an attrdesc element describing the attribute under which the CRL can be looked up." % (pointno, nameno), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+					judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_CRLDP_PointName_URI_LDAP_NoAttrdesc, "CRL Distribution Points X.509 extension contains distribution point #%d (name #%d) which points to an LDAP URI which does not contain an attrdesc element describing the attribute under which the CRL can be looked up." % (pointno, nameno), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 				if uri.netloc == "":
 					standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "SHOULD", text = "When the LDAP URI scheme [RFC4516] is used, the URI MUST include a <dn> field containing the distinguished name of the entry holding the CRL, MUST include a single <attrdesc> that contains an appropriate attribute description for the attribute that holds the CRL [RFC4523], and SHOULD include a <host>")
-					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_PointName_ContainsNoLDAPHostname, "CRL Distribution Points X.509 extension contains distribution point #%d (name #%d) which points to an LDAP URI which does not contain a hostname." % (pointno, nameno), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+					judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_CRLDP_PointName_URI_LDAP_NoHostname, "CRL Distribution Points X.509 extension contains distribution point #%d (name #%d) which points to an LDAP URI which does not contain a hostname." % (pointno, nameno), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 		return judgements
 
@@ -655,7 +655,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 						missing_reasons = set(cdp_ext.all_used_reasons()) - point.reasons
 						if len(missing_reasons) > 0:
 							standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "RECOMMEND", text = "This profile RECOMMENDS against segmenting CRLs by reason code.")
-							judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_Reasons_SegmentationUsed, "CRL Distribution Points X.509 extension contains distribution point #%d which does not have CRLs for all possible reasons (%s are missing)." % (pointno, ", ".join(sorted(missing_reasons))), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+							judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_CRLDP_SegmentationUsed, "CRL Distribution Points X.509 extension contains distribution point #%d which does not have CRLs for all possible reasons (%s are missing)." % (pointno, ", ".join(sorted(missing_reasons))), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 						else:
 							has_all_reasons = True
 
