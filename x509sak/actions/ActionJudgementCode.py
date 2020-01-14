@@ -27,11 +27,18 @@ class ActionJudgementCode(BaseAction):
 		BaseAction.__init__(self, cmdname, args)
 
 		jcs = x509sak.estimate.JudgementStructure.create_judgement_structure(verbose = self._args.verbose >= 1)
+		eec = jcs.create_extended_enum_class()
 		if self._args.action == "list":
-			codes = [ jc.value for jc in jcs.create_enum_class() ]
+			codes = [ jc.value for jc in eec ]
 			for jc in sorted(codes):
 				print(jc.code)
 		elif self._args.action == "dump":
 			jcs.root.dump()
+		elif self._args.action == "inherit":
+			for (target_attribute, inherited_codes) in sorted(eec.inheritance.items()):
+				print("%s:" % (target_attribute))
+				for (base_name, codepoint) in sorted(inherited_codes.items()):
+					print("    %s: %s" % (base_name, codepoint.name))
+				print()
 		else:
 			raise NotImplementedError(self._args.action)

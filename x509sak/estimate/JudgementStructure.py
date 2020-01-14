@@ -64,13 +64,16 @@ class StructureNode():
 	_ImportStatement = collections.namedtuple("ImportStatement", [ "name", "import_contents", "export_root_point", "flags", "substitutions" ])
 	_LABEL_REGULAR_CHARS = set(string.ascii_lowercase + string.ascii_uppercase + string.digits)
 	_LABEL_UNDERSCORE_CHARS = set("/")
-	_ALLOWED_ATTRIBUTES = set([ "short_id", "long_id", "import", "export", "flags", "desc", "label", "require" ])
+	_ALLOWED_ATTRIBUTES = set([ "short_id", "long_id", "import", "export", "flags", "desc", "label", "require", "clone_of" ])
 	_ALLOWED_FLAGS = set([ "datapoint" ])
 
 	def __init__(self, name, children = None, attributes = None):
 		self._name = name
 		self._children = children if (children is not None) else [ ]
 		self._attributes = attributes if (attributes is not None) else { }
+		self._imported = collections.defaultdict(list)
+		assert(isinstance(self._children, list))
+		assert(isinstance(self._attributes, dict))
 		assert(all(key in self._ALLOWED_ATTRIBUTES for key in self._attributes))
 		if "flags" in self._attributes:
 			self._attributes["flags"] = frozenset(self._attributes["flags"])
@@ -80,12 +83,18 @@ class StructureNode():
 				self._attributes["import"] = [ self._attributes["import"] ]
 			self._attributes["import"] = tuple(self.parse_import(import_str) for import_str in self._attributes["import"])
 
-	def clone(self, filter_predicate = None):
+	def clone(self, filter_predicate = None, memorize_source = False):
 		if not self.satisfies(filter_predicate):
 			return None
-		children = [ child.clone(filter_predicate = filter_predicate) for child in self.children if child.satisfies(filter_predicate) ]
+		children = [ child.clone(filter_predicate = filter_predicate, memorize_source = memorize_source) for child in self.children if child.satisfies(filter_predicate) ]
 		attributes = dict(self.attrs)
+		if memorize_source:
+			attributes["clone_of"] = self.long_id
 		return StructureNode(name = self.name, children = children, attributes = attributes)
+
+	def filter(self, filter_predicate):
+		self._children = [ child.filter(filter_predicate = filter_predicate) for child in self.children if child.satisfies(filter_predicate) ]
+		return self
 
 	@classmethod
 	def parse_import(cls, import_str):
@@ -115,6 +124,22 @@ class StructureNode():
 	def children(self):
 		return iter(self._children)
 
+	@classmethod
+	def transform_label_case(cls, text):
+		next_uppercase = True
+		label = [ ]
+		for char in text:
+			if char == " ":
+				next_uppercase = True
+			elif char in cls._LABEL_REGULAR_CHARS:
+				if next_uppercase:
+					char = char.upper()
+					next_uppercase = False
+				label.append(char)
+			elif char in cls._LABEL_UNDERSCORE_CHARS:
+				label.append("_")
+		return "".join(label)
+
 	@property
 	def label_id(self):
 		if self.name is None:
@@ -125,20 +150,7 @@ class StructureNode():
 				input_name = self.name
 			else:
 				input_name = self.attrs["label"]
-
-			next_uppercase = True
-			label = [ ]
-			for char in input_name:
-				if char == " ":
-					next_uppercase = True
-				elif char in self._LABEL_REGULAR_CHARS:
-					if next_uppercase:
-						char = char.upper()
-						next_uppercase = False
-					label.append(char)
-				elif char in self._LABEL_UNDERSCORE_CHARS:
-					label.append("_")
-			return "".join(label)
+			return self.transform_label_case(input_name)
 
 	@property
 	def long_id(self):
@@ -150,6 +162,9 @@ class StructureNode():
 
 	def has_attribute(self, key):
 		return key in self._attributes
+
+	def add_import(self, import_source_name, imports):
+		self._imported[import_source_name].append(imports)
 
 	def satisfies(self, filter_predicate):
 		if filter_predicate is None:
@@ -232,8 +247,10 @@ class JudgementStructure():
 		self._root = StructureNode.parse(None, structure_data)
 		self._root.propagate_attribute_subtree("export")
 		self._nodes_by_short_id = self._find_nodes_by_short_id()
+		self._root.assign_nodes_long_ids()
+
 		self._process_imports()
-		self._root = self._root.clone(filter_predicate = lambda node: not node.attrs.get("export"))
+		self._root = self._root.filter(filter_predicate = lambda node: not node.attrs.get("export"))
 		self._root.assign_nodes_long_ids()
 
 	@property
@@ -268,7 +285,7 @@ class JudgementStructure():
 						desc = desc.replace("$" + search, replace)
 					node.attrs["desc"] = desc
 
-			source_clone = source.clone(filter_predicate = filter_predicate)
+			source_clone = source.clone(filter_predicate = filter_predicate, memorize_source = True)
 			if source_clone is None:
 				raise Exception("Cannot import node that is not exported.")
 			if not target.attrs.get("export"):
@@ -277,10 +294,17 @@ class JudgementStructure():
 			if len(import_statement.substitutions) > 0:
 				source_clone.walk(apply_substitutions)
 			target.purge_attribute("import")
-			if not import_statement.import_contents:
-				target.append_child(source_clone)
-			else:
+			if import_statement.export_root_point:
+				if import_statement.import_contents:
+					for child in source_clone.children:
+						target.add_import(source.label_id, child)
+				else:
+					target.add_import(source.label_id, source_clone)
+
+			if import_statement.import_contents:
 				target.append_children_of(source_clone)
+			else:
+				target.append_child(source_clone)
 
 		def visit(node):
 			import_statements = node.attrs.get("import")
@@ -307,7 +331,7 @@ class JudgementStructure():
 
 		self._root.walk(visit)
 
-	def create_enum_class(self):
+	def _create_enum_class(self):
 		exported_nodes = { }
 		def visit(node):
 			if node.attrs.get("desc") is not None:
@@ -317,6 +341,46 @@ class JudgementStructure():
 		exported_nodes = { name: RichJudgementCode.from_node(node) for (name, node) in exported_nodes.items() }
 		enum_class = enum.Enum("ExperimentalJudgementCodes", exported_nodes)
 		return enum_class
+
+	def _create_inheritance_dict(self):
+		inheritance_dict = { }
+
+		def create_cloned_node_dict(cloned_subtree):
+			cloned_nodes = { }
+			def visit(node):
+				orig_name = node.attrs["clone_of"]
+				node_name = node.long_id
+				cloned_nodes[orig_name] = node_name
+			cloned_subtree.walk(visit)
+			return cloned_nodes
+
+		def visit(node):
+			if len(node._imported) > 0:
+				inheritance_dict[node.long_id] = { }
+				for (import_name, cloned_subtrees) in node._imported.items():
+					for cloned_subtree in cloned_subtrees:
+						inheritance_dict[node.long_id].update(create_cloned_node_dict(cloned_subtree))
+
+		self._root.walk(visit)
+		return inheritance_dict
+
+	def create_extended_enum_class(self):
+		judgement_code_class = self._create_enum_class()
+		inheritance = self._create_inheritance_dict()
+
+		resolved_inheritance = { }
+		for (root_point, imports) in inheritance.items():
+			resolved_inheritance[root_point] = { }
+			for (general_name, inherited_name) in imports.items():
+				try:
+					resolved_inheritance[root_point][general_name] = getattr(judgement_code_class, inherited_name)
+				except AttributeError:
+					# Intermediate node with no content (e.g.,
+					# "Encoding_ASN1DER_Structures_DistinguishedName_RDN")
+					pass
+
+		judgement_code_class.inheritance = resolved_inheritance
+		return judgement_code_class
 
 	@classmethod
 	def load_from_json(cls, filename):
@@ -333,4 +397,5 @@ def create_judgement_structure(verbose = False):
 	return structure
 
 def create_judgement_code_class(verbose = False):
-	return create_judgement_structure(verbose = verbose).create_enum_class()
+	structure = create_judgement_structure(verbose = verbose)
+	return structure.create_extended_enum_class()

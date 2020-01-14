@@ -267,7 +267,7 @@ def genparser(parser):
 mc.register("debug", "Open an interactive Python console", genparser, aliases = [ "dbg" ], action = ActionDebug, visible = False)
 
 def genparser(parser):
-	parser.add_argument("-a", "--action", choices = [ "list", "dump" ], default = "list", help = "Specifies what information to print out, can be one of %(choices)s. Defaults to %(default)s.")
+	parser.add_argument("-a", "--action", choices = [ "list", "dump", "inherit" ], default = "list", help = "Specifies what information to print out, can be one of %(choices)s. Defaults to %(default)s.")
 	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
 mc.register("judgementcode", "Show information about judgement codes", genparser, aliases = [ "jc" ], action = ActionJudgementCode, visible = False)
 
