@@ -170,7 +170,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 
 		if (len(certificate.extensions) == 0) and (any(unique_id is not None for unique_id in (certificate.issuer_unique_id, certificate.subject_unique_id))) and (certificate.version != 2):
 			standard = RFCReference(rfcno = 5280, sect = "4.1.2.1", verb = "SHOULD", text = "If no extensions are present, but a UniqueIdentifier is present, the version SHOULD be 2 (value is 1); however, the version MAY be 3.")
-			judgements += SecurityJudgement(JudgementCode.Cert_Version_Not_2, "Certificate version is %d, but without X.509 extensions and a unique identifier present, it should be version 2." % (certificate.version), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_Version_Not2, "Certificate version is %d, but without X.509 extensions and a unique identifier present, it should be version 2." % (certificate.version), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 		return judgements
 
@@ -313,7 +313,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_NameConstraints_PresentButNotCritical, "NameConstraints X.509 extension present, but not marked critical.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 			if not certificate.is_ca_certificate:
 				standard = RFCReference(rfcno = 5280, sect = "4.2.1.10", verb = "MUST", text = "The name constraints extension, which MUST be used only in a CA certificate, indicates a name space within which all subject names in subsequent certificates in a certification path MUST be located.")
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_NameConstraints_PresentButNotCA, "NameConstraints X.509 extension present, but certificate is not a CA certificate.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+				judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_NC_PresentNotCA, "NameConstraints X.509 extension present, but certificate is not a CA certificate.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 		return judgements
 
@@ -367,12 +367,12 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 			number_unique_oids = len(set(eku_ext.key_usage_oids))
 			if number_oids == 0:
 				standard = RFCReference(rfcno = 5280, sect = "4.2.1.12", verb = "MUST", text = "ExtKeyUsageSyntax ::= SEQUENCE SIZE (1..MAX) OF KeyPurposeId")
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_ExtKeyUsage_Empty, "ExtendedKeyUsage extension present, but contains no OIDs.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+				judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_EKU_Empty, "ExtendedKeyUsage extension present, but contains no OIDs.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 			if number_oids != number_unique_oids:
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_ExtKeyUsage_Duplicate, "ExtendedKeyUsage extension present, but contains duplicate OIDs. There are %d OIDs present, but only %d are unique." % (number_oids, number_unique_oids), commonness = Commonness.HIGHLY_UNUSUAL)
+				judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_EKU_Duplicate, "ExtendedKeyUsage extension present, but contains duplicate OIDs. There are %d OIDs present, but only %d are unique." % (number_oids, number_unique_oids), commonness = Commonness.HIGHLY_UNUSUAL)
 			if eku_ext.any_key_usage and eku_ext.critical:
 				standard = RFCReference(rfcno = 5280, sect = "4.2.1.12", verb = "SHOULD", text = "Conforming CAs SHOULD NOT mark this extension as critical if the anyExtendedKeyUsage KeyPurposeId is present.")
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_ExtKeyUsage_AnyUsageCritical, "ExtendedKeyUsage extension contains the anyKeyUsage OID, but is also marked as critical.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+				judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_EKU_AnyUsageCriticial, "ExtendedKeyUsage extension contains the anyKeyUsage OID, but is also marked as critical.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 		return judgements
 
@@ -387,14 +387,14 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 				judgements += self._SUBJECT_ALTERNATIVE_NAME_VALIDATOR.validate(general_name)
 			if (not certificate.subject.empty) and san.critical:
 				standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "SHOULD", text = "When including the subjectAltName extension in a certificate that has a non-empty subject distinguished name, conforming CAs SHOULD mark the subjectAltName extension as non-critical.")
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_Critical, "Subject Alternative Name X.509 extension should not be critical when a subject is present.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+				judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_SAN_Critical, "Subject Alternative Name X.509 extension should not be critical when a subject is present.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 			elif certificate.subject.empty and (not san.critical):
 				standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "If the subject field contains an empty sequence, then the issuing CA MUST include a subjectAltName extension that is marked as critical.")
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_NotCritical, "Subject Alternative Name X.509 extension should be critical when no subject is present.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+				judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_SAN_NotCritical, "Subject Alternative Name X.509 extension should be critical when no subject is present.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 			if (not certificate.subject.empty) and (set(santuple.name for santuple in san) == set([ "rfc822Name" ])):
 				standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "Further, if the only subject identity included in the certificate is an alternative name form (e.g., an electronic mail address), then the subject distinguished name MUST be empty (an empty sequence), and the subjectAltName extension MUST be present.")
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_EmailOnly, "Subject Alternative Name X.509 extension only contains email addresses even though subject is non-empty.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+				judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_SAN_EmailOnly, "Subject Alternative Name X.509 extension only contains email addresses even though subject is non-empty.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 		else:
 			if not certificate.subject.empty:
 				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_Missing, "No Subject Alternative Name X.509 extension present in the certificate.", commonness = Commonness.UNUSUAL)
@@ -428,10 +428,10 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		if aia is not None:
 			if aia.critical:
 				standard = RFCReference(rfcno = 5280, sect = "4.2.2.1", verb = "MUST", text = "Conforming CAs MUST mark this extension as non-critical.")
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityInformationAccess_Critical, "Authority Information Access X.509 extension is marked critical.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+				judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_AIA_Critical, "Authority Information Access X.509 extension is marked critical.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 			if aia.method_count == 0:
 				standard = RFCReference(rfcno = 5280, sect = "4.2.2.1", verb = "MUST", text = "SEQUENCE SIZE (1..MAX) OF AccessDescription")
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityInformationAccess_Empty, "Authority Information Access X.509 extension contains no access methods.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+				judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_AIA_Empty, "Authority Information Access X.509 extension contains no access methods.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 		return judgements
 
@@ -442,7 +442,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		old_policies = certificate.extensions.get_first(old_oid)
 		if old_policies is not None:
 			standard = RFCReference(rfcno = 5280, sect = "A.2", verb = "MUST", text = "id-ce-certificatePolicies OBJECT IDENTIFIER ::=  { id-ce 32 }")
-			judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificatePolicies_DeprecatedOID, "Deprecated OID %s used to encode certificate policies." % (old_oid), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard, commonness = Commonness.HIGHLY_UNUSUAL)
+			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_CP_DeprecatedOID, "Deprecated OID %s used to encode certificate policies." % (old_oid), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard, commonness = Commonness.HIGHLY_UNUSUAL)
 
 		policies_ext = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("CertificatePolicies"))
 		if policies_ext is not None:
@@ -451,7 +451,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 			for (policy_number, policy) in enumerate(policies, 1):
 				if policy.oid in seen_oids:
 					standard = RFCReference(rfcno = 5280, sect = "4.2.1.4", verb = "MUST", text = "A certificate policy OID MUST NOT appear more than once in a certificate policies extension.")
-					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificatePolicies_DuplicateOID, "OID %s used as certificate policy #%d has already been used in policy #%d and thus is an illegal duplicate." % (policy.oid, policy_number, seen_oids[policy.oid]), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard, commonness = Commonness.HIGHLY_UNUSUAL)
+					judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_CP_DuplicateOID, "OID %s used as certificate policy #%d has already been used in policy #%d and thus is an illegal duplicate." % (policy.oid, policy_number, seen_oids[policy.oid]), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard, commonness = Commonness.HIGHLY_UNUSUAL)
 				else:
 					seen_oids[policy.oid] = policy_number
 
@@ -460,18 +460,18 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 				for qualifier in any_policy.qualifiers:
 					if qualifier.oid not in OIDDB.X509ExtensionCertificatePolicyQualifierOIDs:
 						standard = RFCReference(rfcno = 5280, sect = "4.2.1.4", verb = "MUST", text = "When qualifiers are used with the special policy anyPolicy, they MUST be limited to the qualifiers identified in this section.")
-						judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificatePolicies_AnyPolicyUnknownQualifier, "Unknown OID %s used in a qualification of an anyPolicy certificate policy." % (qualifier.oid), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard, commonness = Commonness.HIGHLY_UNUSUAL)
+						judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_CP_Qualifier_AnyPolicyWithUnknownQualifier, "Unknown OID %s used in a qualification of an anyPolicy certificate policy." % (qualifier.oid), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard, commonness = Commonness.HIGHLY_UNUSUAL)
 
 			if policies_ext.policy_count > 1:
 				standard = RFCReference(rfcno = 5280, sect = "4.2.1.4", verb = "RECOMMEND", text = "To promote interoperability, this profile RECOMMENDS that policy information terms consist of only an OID.")
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificatePolicies_MoreThanOnePolicy, "%d policies present in certificate, but only one is recommended." % (policies_ext.policy_count), compatibility = Compatibility.LIMITED_SUPPORT, standard = standard)
+				judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_CP_MoreThanOnePolicy, "%d policies present in certificate, but only one is recommended." % (policies_ext.policy_count), compatibility = Compatibility.LIMITED_SUPPORT, standard = standard)
 
 			# Check if qualifier is used twice. Not technically forbidden, but definitely weird.
 			for policy in policies:
 				seen_oids = { }
 				for (qualifier_no, qualifier) in enumerate(policy.qualifiers, 1):
 					if qualifier.oid in seen_oids:
-						judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificatePolicies_DuplicateQualifierOID, "Qualifier #%d (OID %s) has been used previously in policy %s as #%d." % (qualifier_no, qualifier.oid, policy.oid, seen_oids[qualifier.oid]), commonness = Commonness.UNUSUAL)
+						judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_CP_Qualifier_Duplicate, "Qualifier #%d (OID %s) has been used previously in policy %s as #%d." % (qualifier_no, qualifier.oid, policy.oid, seen_oids[qualifier.oid]), commonness = Commonness.UNUSUAL)
 					else:
 						seen_oids[qualifier.oid] = qualifier_no
 
@@ -483,27 +483,27 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 						# User notice field is present
 						if qualifier.decoded_qualifier is None:
 							standard = RFCReference(rfcno = 5280, sect = "4.2.1.4", verb = "MUST", text = "UserNotice ::= SEQUENCE {")
-							judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificatePolicies_UserNoticeMalformed, "Could not decode user notice qualifier in X.509 Certificate Policies extension of policy %s." % (policy.oid), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard, commonness = Commonness.HIGHLY_UNUSUAL)
+							judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_CP_UserNotice_Malformed_Undecodable, "Could not decode user notice qualifier in X.509 Certificate Policies extension of policy %s." % (policy.oid), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard, commonness = Commonness.HIGHLY_UNUSUAL)
 						else:
 							if qualifier.decoded_qualifier.constraint_violation:
 								standard = RFCReference(rfcno = 5280, sect = "4.2.1.4", verb = "MUST", text = "While the explicitText has a maximum size of 200 characters, some non-conforming CAs exceed this limit. Therefore, certificate users SHOULD gracefully handle explicitText with more than 200 characters.")
-								judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificatePolicies_UserNoticeConstraintViolation, "User notice qualifier of policy %s contains a qualifier which breaks the ASN.1 length constraint of 200 characters." % (policy.oid), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+								judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_CP_UserNotice_ConstraintViolation, "User notice qualifier of policy %s contains a qualifier which breaks the ASN.1 length constraint of 200 characters." % (policy.oid), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 							if len(qualifier.decoded_qualifier.asn1) == 0:
-								judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificatePolicies_UserNoticeEmpty, "User notice qualifier of policy %s contains empty sequence, no noticeRef or explicitText are present." % (policy.oid), commonness = Commonness.UNUSUAL)
+								judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_CP_UserNotice_Empty, "User notice qualifier of policy %s contains empty sequence, no noticeRef or explicitText are present." % (policy.oid), commonness = Commonness.UNUSUAL)
 
 							# Check if noticeRef is present
 							# TODO: Is this correct? See https://github.com/etingof/pyasn1/issues/189
 							notice_ref = qualifier.decoded_qualifier.asn1.getComponentByName("noticeRef", instantiate = False)
 							if not isinstance(notice_ref, pyasn1.type.base.NoValue):
 								standard = RFCReference(rfcno = 5280, sect = "4.2.1.4", verb = "MUST", text = "Conforming CAs SHOULD NOT use the noticeRef option.")
-								judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificatePolicies_UserNoticeRefPresent, "User notice qualifier of policy %s contains a noticeRef in the qualifier body." % (policy.oid), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+								judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_CP_UserNotice_NoticeRefPresent, "User notice qualifier of policy %s contains a noticeRef in the qualifier body." % (policy.oid), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 							# Check if encoding of explicitText is UTF8String or IA5String
 							explicit_text = qualifier.decoded_qualifier.asn1.getComponentByName("explicitText", instantiate = False)
 							if isinstance(explicit_text, pyasn1.type.base.NoValue):
 								# No explicit_text set?
-								judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificatePolicies_UserNoticeExplicitTextAbsent, "User notice qualifier of policy %s does not contain an explicitText element in the qualifier body." % (policy.oid), compatibility = Compatibility.LIMITED_SUPPORT)
+								judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_CP_UserNotice_ExplicitText_Absent, "User notice qualifier of policy %s does not contain an explicitText element in the qualifier body." % (policy.oid), compatibility = Compatibility.LIMITED_SUPPORT)
 							else:
 								explicit_text = explicit_text.getComponent()
 								if isinstance(explicit_text, pyasn1.type.char.UTF8String):
@@ -511,35 +511,35 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 									pass
 								elif isinstance(explicit_text, pyasn1.type.char.IA5String):
 									standard = RFCReference(rfcno = 5280, sect = "4.2.1.4", verb = "MAY", text = "Conforming CAs SHOULD use the UTF8String encoding for explicitText, but MAY use IA5String.")
-									judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificatePolicies_UserNoticeExplicitTextIA5String, "User notice qualifier of policy %s does not contain an explicitText element of type IA5String, although UTF8String is the preferred one." % (policy.oid), compatibility = Compatibility.LIMITED_SUPPORT, standard = standard)
+									judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_CP_UserNotice_ExplicitText_IA5String, "User notice qualifier of policy %s does not contain an explicitText element of type IA5String, although UTF8String is the preferred one." % (policy.oid), compatibility = Compatibility.LIMITED_SUPPORT, standard = standard)
 								else:
 									standard = RFCReference(rfcno = 5280, sect = "4.2.1.4", verb = "MUST", text = "Conforming CAs SHOULD use the UTF8String encoding for explicitText, but MAY use IA5String.")
-									judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificatePolicies_UserNoticeExplicitTextInvalidStringType, "User notice qualifier of policy %s does not contain an explicitText element of type %s, but only UTF8String or IA5String are permitted." % (policy.oid, type(explicit_text).__name__), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+									judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_CP_UserNotice_ExplicitText_InvalidStringType, "User notice qualifier of policy %s does not contain an explicitText element of type %s, but only UTF8String or IA5String are permitted." % (policy.oid, type(explicit_text).__name__), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 								contained_chars = set(ord(char) for char in str(explicit_text))
 								for char in sorted(contained_chars):
 									if (0 <= char <= 0x1f) or (0x7f <= char <= 0x9f):
 										standard = RFCReference(rfcno = 5280, sect = "4.2.1.4", verb = "SHOULD", text = "The explicitText string SHOULD NOT include any control characters (e.g., U+0000 to U+001F and U+007F to U+009F).")
-										judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificatePolicies_UserNoticeExplicitTextControlCharacters, "User notice qualifier of policy %s does not contains control character 0x%x in its explicitText element." % (policy.oid, char), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+										judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_CP_UserNotice_ExplicitText_ControlCharacter, "User notice qualifier of policy %s does not contains control character 0x%x in its explicitText element." % (policy.oid, char), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 										break
 
 					elif qualifier.oid == OIDDB.X509ExtensionCertificatePolicyQualifierOIDs.inverse("id-qt-cps"):
 						# CPS field is present
 						if qualifier.decoded_qualifier is None:
 							standard = RFCReference(rfcno = 5280, sect = "4.2.1.4", verb = "MUST", text = "CPSuri ::= IA5String")
-							judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificatePolicies_CPSMalformed, "Could not decode CPS qualifier in X.509 Certificate Policies extension of policy %s." % (policy.oid), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard, commonness = Commonness.HIGHLY_UNUSUAL)
+							judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_CP_CPS_Malformed_Undecodable, "Could not decode CPS qualifier in X.509 Certificate Policies extension of policy %s." % (policy.oid), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard, commonness = Commonness.HIGHLY_UNUSUAL)
 						else:
 							if qualifier.decoded_qualifier.constraint_violation:
 								standard = RFCReference(rfcno = 5280, sect = "4.2.1.4", verb = "MUST", text = "CPSuri ::= IA5String")
-								judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificatePolicies_CPSConstraintViolation, "CPS qualifier in X.509 Certificate Policies extension violates IA5String constraint, actual type is %s." % (type(qualifier.decoded_qualifier.asn1.getComponent()).__name__), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard, commonness = Commonness.HIGHLY_UNUSUAL)
+								judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_CP_CPS_ConstraintViolation, "CPS qualifier in X.509 Certificate Policies extension violates IA5String constraint, actual type is %s." % (type(qualifier.decoded_qualifier.asn1.getComponent()).__name__), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard, commonness = Commonness.HIGHLY_UNUSUAL)
 								uri = str(qualifier.decoded_qualifier.asn1.getComponent())
 							else:
 								uri = str(qualifier.decoded_qualifier.asn1)
 							if (not uri.startswith("http://")) and (not uri.startswith("https://")):
-								judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificatePolicies_CPSUnusualURIScheme, "CPS URI of policy %s does not follow http/https scheme: %s" % (policy.oid, uri), compatibility = Compatibility.LIMITED_SUPPORT, commonness = Commonness.UNUSUAL)
+								judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_CP_CPS_URI_UncommonURIScheme, "CPS URI of policy %s does not follow http/https scheme: %s" % (policy.oid, uri), compatibility = Compatibility.LIMITED_SUPPORT, commonness = Commonness.UNUSUAL)
 					else:
 						standard = RFCReference(rfcno = 5280, sect = "4.2.1.4", verb = "MUST", text = "PolicyQualifierId ::= OBJECT IDENTIFIER ( id-qt-cps | id-qt-unotice )")
-						judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificatePolicies_UnknownQualifierOID, "X.509 Certificate policy with OID %s has unknown qualifier (OID %s)." % (policy.oid, qualifier.oid), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+						judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_CP_Qualifier_Unknown, "X.509 Certificate policy with OID %s has unknown qualifier (OID %s)." % (policy.oid, qualifier.oid), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 		return judgements
 
@@ -548,13 +548,13 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		ns_ext = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("NetscapeCertificateType"))
 		if ns_ext is not None:
 			if ns_ext.asn1 is None:
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_NetscapeCertType_Malformed, "Cannot parse the Netscape Certificate Types X.509 extension, it is malformed.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION)
+				judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_NSCT_Malformed_Undecodable, "Cannot parse the Netscape Certificate Types X.509 extension, it is malformed.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION)
 			else:
 				bitlist = list(ns_ext.asn1)
 				if (len(bitlist) == 0) or (set(bitlist) == set([ 0 ])):
-					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_NetscapeCertType_Empty, "Netscape Certificate Types X.509 extension contains no set bits.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION)
+					judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_NSCT_Empty, "Netscape Certificate Types X.509 extension contains no set bits.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION)
 				elif (len(bitlist) >= 5) and (bitlist[4] == 1):
-					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_NetscapeCertType_UnusedBitSet, "Netscape Certificate Types X.509 extension has an invalid/unused bit set.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION)
+					judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_NSCT_UnusedBitSet, "Netscape Certificate Types X.509 extension has an invalid/unused bit set.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION)
 		return judgements
 
 	def _judge_crl_distribution_points_point_general_name(self, pointno, nameno, general_name):
@@ -567,10 +567,10 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 			if uri.scheme.lower() in ("http", "ftp"):
 				if uri.path.endswith("/"):
 					standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "MUST", text = "When the HTTP or FTP URI scheme is used, the URI MUST point to a single DER encoded CRL as specified in [RFC2585].")
-					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_PointName_PossiblyNoDERCRLServed, "CRL Distribution Points X.509 extension contains distribution point #%d (name #%d) which points to a HTTP or FTP URI of which the filetype cannot be deduced. The endpoint could be serving non-DER data." % (pointno, nameno), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+					judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_CRLDP_PointName_PossiblyNoDERCRLServed, "CRL Distribution Points X.509 extension contains distribution point #%d (name #%d) which points to a HTTP or FTP URI of which the filetype cannot be deduced. The endpoint could be serving non-DER data." % (pointno, nameno), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 				elif not uri.path.lower().endswith(".crl"):
 					standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "MUST", text = "When the HTTP or FTP URI scheme is used, the URI MUST point to a single DER encoded CRL as specified in [RFC2585].")
-					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_PointName_PossiblyNoDERCRLServed, "CRL Distribution Points X.509 extension contains distribution point #%d (name #%d) which points to a HTTP or FTP URI of which the filetype indicates it could be a non-DER-encoded CRL. The endpoint could be serving non-DER data." % (pointno, nameno), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+					judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_CRLDP_PointName_PossiblyNoDERCRLServed, "CRL Distribution Points X.509 extension contains distribution point #%d (name #%d) which points to a HTTP or FTP URI of which the filetype indicates it could be a non-DER-encoded CRL. The endpoint could be serving non-DER data." % (pointno, nameno), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 			elif uri.scheme.lower() == "ldap":
 				uri_path = uri.path.strip()
 				if uri_path.startswith("/"):
@@ -681,18 +681,18 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		judgements = SecurityJudgements()
 		if not isinstance(sct["sct_version"], SCTVersion):
 			standard = RFCReference(rfcno = 6962, sect = "3.2", verb = "MUST", text = "enum { v1(0), (255) } Version;")
-			judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificateTransparencySCTs_SCT_UnknownVersion, "Certificate Transparency Signed Certificate Timestamp X.509 contains timestamp #%d with unknown version %d." % (timestamp_no, sct["sct_version"]), commonness = Commonness.UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_CTSCT_SCT_UnknownVersion, "Certificate Transparency Signed Certificate Timestamp X.509 contains timestamp #%d with unknown version %d." % (timestamp_no, sct["sct_version"]), commonness = Commonness.UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 		if not (1262304000000 <= sct["timestamp"] <= 4102444799000):
-			judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificateTransparencySCTs_SCT_ImplausibleTimestamp, "Certificate Transparency Signed Certificate Timestamp X.509 contains implausible timestamp #%d that dates either before 2010 or after 2099 (time_t is %d)." % (timestamp_no, sct["timestamp"] // 1000), commonness = Commonness.UNUSUAL)
+			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_CTSCT_SCT_ImplausibleTimestamp, "Certificate Transparency Signed Certificate Timestamp X.509 contains implausible timestamp #%d that dates either before 2010 or after 2099 (time_t is %d)." % (timestamp_no, sct["timestamp"] // 1000), commonness = Commonness.UNUSUAL)
 
 		if sct["DigitalSignature"]["hash_algorithm"] not in (HashAlgorithm.sha256, ):
 			standard = RFCReference(rfcno = 6962, sect = "2.1.4", verb = "MUST", text = "A log MUST use either elliptic curve signatures using the NIST P-256 curve (Section D.1.2.3 of the Digital Signature Standard [DSS]) or RSA signatures (RSASSA-PKCS1-V1_5 with SHA-256")
-			judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificateTransparencySCTs_SCT_InvalidHashFunction, "Certificate Transparency Signed Certificate Timestamp X.509 contains timestamp #%d with disallowed hash algorithm %s." % (timestamp_no, str(sct["DigitalSignature"]["hash_algorithm"])), commonness = Commonness.UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_CTSCT_SCT_InvalidHashFunction, "Certificate Transparency Signed Certificate Timestamp X.509 contains timestamp #%d with disallowed hash algorithm %s." % (timestamp_no, str(sct["DigitalSignature"]["hash_algorithm"])), commonness = Commonness.UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 		if sct["DigitalSignature"]["sig_algorithm"] not in (SignatureAlgorithm.ECDSA, SignatureAlgorithm.RSA):
 			standard = RFCReference(rfcno = 6962, sect = "2.1.4", verb = "MUST", text = "A log MUST use either elliptic curve signatures using the NIST P-256 curve (Section D.1.2.3 of the Digital Signature Standard [DSS]) or RSA signatures (RSASSA-PKCS1-V1_5 with SHA-256")
-			judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificateTransparencySCTs_SCT_InvalidSignatureFunction, "Certificate Transparency Signed Certificate Timestamp X.509 contains timestamp #%d with disallowed signature algorithm %s." % (timestamp_no, str(sct["DigitalSignature"]["sig_algorithm"])), commonness = Commonness.UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_CTSCT_SCT_InvalidSignatureFunction, "Certificate Transparency Signed Certificate Timestamp X.509 contains timestamp #%d with disallowed signature algorithm %s." % (timestamp_no, str(sct["DigitalSignature"]["sig_algorithm"])), commonness = Commonness.UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 		return judgements
 

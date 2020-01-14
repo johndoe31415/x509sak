@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2018 Johannes Bauer
+#	Copyright (C) 2018-2020 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -23,6 +23,7 @@ from pyasn1_modules import rfc5280
 from pyasn1.type.univ import OctetString
 from x509sak.tests.BaseTest import BaseTest
 from x509sak.estimate.GeneralNameValidator import GeneralNameValidator
+from x509sak.estimate import ExperimentalJudgementCodes
 from x509sak.estimate.Judgement import JudgementCode
 
 class GeneralNameValidatorTests(BaseTest):

@@ -34,17 +34,17 @@ class CertificateEstimator(BaseEstimator):
 	def _analyze_certificate_general_issues(self, certificate):
 		judgements = SecurityJudgements()
 		if certificate.version != 3:
-			judgements += SecurityJudgement(JudgementCode.Cert_Version_Not_3, "Certificate version is v%d, usually would expect a v3 certificate." % (certificate.version), commonness = Commonness.HIGHLY_UNUSUAL)
+			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_Version_Not3, "Certificate version is v%d, usually would expect a v3 certificate." % (certificate.version), commonness = Commonness.HIGHLY_UNUSUAL)
 
 		if certificate.serial < 0:
 			standard = RFCReference(rfcno = 5280, sect = "4.1.2.2", verb = "MUST", text = "The serial number MUST be a positive integer assigned by the CA to each certificate.")
-			judgements += SecurityJudgement(JudgementCode.Cert_Serial_Negative, "Certificate serial number is a negative value.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_SerialNumber_BasicChecks_Negative, "Certificate serial number is a negative value.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 		elif certificate.serial == 0:
 			standard = RFCReference(rfcno = 5280, sect = "4.1.2.2", verb = "MUST", text = "The serial number MUST be a positive integer assigned by the CA to each certificate.")
-			judgements += SecurityJudgement(JudgementCode.Cert_Serial_Zero, "Certificate serial number is zero.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_SerialNumber_BasicChecks_Zero, "Certificate serial number is zero.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 		elif certificate.serial >= (2 ** (8 * 20)):
 			standard = RFCReference(rfcno = 5280, sect = "4.1.2.2", verb = "MUST", text = "Conforming CAs MUST NOT use serialNumber values longer than 20 octets.")
-			judgements += SecurityJudgement(JudgementCode.Cert_Serial_Large, "Certificate serial number is too large.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_SerialNumber_BasicChecks_Large, "Certificate serial number is too large.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 		try:
 			cert_reencoding = pyasn1.codec.der.encoder.encode(certificate.asn1)
