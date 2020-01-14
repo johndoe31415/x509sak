@@ -60,39 +60,41 @@
 					"_label": "GenName",
 					"_short_id": "general_name_issues",
 					"Email": {
-						"Unexpected": { "_desc": "unexpected data type" },
-						"Malformed": { "_desc": "email address is malformed" }
+						"Unexpected": { "_desc": "$name email address is an unexpected type" },
+						"Malformed": { "_desc": "$name email address is malformed" }
 					},
 					"IP Address": {
-						"Unexpected": { "_desc": "unexpected data type" },
-						"Private Address Space": { "_desc": "IP address falls in private address space" },
-						"Malformed": { "_desc": "IP address is malformed" }
+						"Unexpected": { "_desc": "$name IP address is an unexpected type" },
+						"Private Address Space": { "_desc": "$name IP address falls in private address space" },
+						"Malformed": { "_desc": "$name IP address is malformed" }
 					},
 					"Directory Address": {
-						"Unexpected": { "_desc": "unexpected data type" }
+						"Unexpected": { "_desc": "$name directory name is an unexpected type" }
 					},
 					"URI": {
 						"_short_id": "uri_issues",
-						"Unexpected": { "_desc": "unexpected data type" },
-						"Malformed": { "_desc": "URI malformed" },
-						"Uncommon URI Scheme": { "_desc": "uncommon URI scheme" },
+						"Unexpected": { "_desc": "$name URI is an unexpected type" },
+						"Malformed": { "_desc": "$name URI is malformed" },
+						"Uncommon URI Scheme": { "_desc": "$name URI uses uncommon URI scheme" },
 						"LDAP": {
-							"No DN": { "_desc": "no LDAP URI distinguished name present" },
-							"No hostname": { "_desc": "no LDAP URI hostname present" },
-							"No attrdesc": { "_desc": "no LDAP URI attrdesc present" }
+							"_require": "ldap_validation",
+							"No DN": { "_desc": "$name URI has no LDAP URI distinguished name present" },
+							"No hostname": { "_desc": "$name URI has no LDAP URI hostname present" },
+							"No attrdesc": { "_desc": "$name URI has no LDAP URI attrdesc present" }
 						}
 					},
 					"Domain Name": {
 						"_label": "DNS",
-						"Unexpected": { "_desc": "unexpected data type" },
-						"Only Whitespace": { "_desc": "domain name consists only of space character"	},
-						"Single Label": { "_desc": "domain name consists only of a single label"	},
+						"Malformed": { "_desc": "$name domain name domain name malformed" },
+						"Unexpected": { "_desc": "$name domain name unexpected data type" },
+						"Only Whitespace": { "_desc": "$name domain name domain name consists only of space character" },
+						"Single Label": { "_desc": "$name domain name domain name consists only of a single label" },
 						"Wildcard": {
-							"Not Permitted": { "_desc": "wildcard not permitted in domain name" },
-							"Not Leftmost": { "_desc": "wildcard appears not leftmost in label" },
-							"Mulitple Wildcards": { "_desc": "multiple wildcard present in label" },
-							"International Label": { "_desc": "wildcard used in international label" },
-							"Broad Match": { "_desc": "wildcard matches broadly" }
+							"Not Permitted": { "_desc": "$name domain name wildcard not permitted in domain name" },
+							"Not Leftmost": { "_desc": "$name domain name wildcard appears not leftmost in label" },
+							"Mulitple Wildcards": { "_desc": "$name domain name multiple wildcard present in label" },
+							"International Label": { "_desc": "$name domain name wildcard used in international label" },
+							"Broad Match": { "_desc": "$name domain name wildcard matches broadly" }
 						}
 					}
 				}
