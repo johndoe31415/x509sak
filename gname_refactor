@@ -29,7 +29,7 @@ suffixes = [
 	[ "BadEmail", "Email_Malformed" ],
 	[ "BadDNSName_Space", "DNS_OnlyWhitespace" ],
 	[ "BadDNSName_SingleLabel", "DNS_SingleLabel" ],
-#	[ "BadDNSName", "" ],
+	[ "BadDNSName", "DNS_Malformed" ],
 	[ "BadURI", "URI_Malformed" ],
 	[ "UncommonURIScheme", "URI_UncommonURIScheme" ],
 	[ "BadWildcardDomain_NotLeftmost", "DNS_Wildcard_NotLeftmost" ],

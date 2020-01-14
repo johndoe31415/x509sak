@@ -146,7 +146,7 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-empty2.pem", "Cert_X509Ext_SubjectAltName_EmptyValue")
 
 	def test_examine_x509test_xf_ext_altname_invalid_domain(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-invalid-domain.pem", "Cert_X509Ext_SubjectAltName_BadDNSName")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-invalid-domain.pem", "X509Cert_Body_X509Exts_Ext_SAN_Name_DNS_Malformed")
 
 	def test_examine_x509test_xf_ext_altname_invalid_email(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-invalid-email.pem", "X509Cert_Body_X509Exts_Ext_SAN_Name_Email_Malformed")
@@ -173,7 +173,7 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-info-empty.pem", "Cert_X509Ext_AuthorityInformationAccess_Empty")
 
 	def test_examine_x509test_xf_ext_auth_keyid_critical(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-keyid-critical.pem", "Cert_X509Ext_AuthorityKeyIdentifier_Critical")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-keyid-critical.pem", "X509Cert_Body_X509Exts_Ext_AKI_Critical")
 
 	def test_examine_x509test_xf_ext_auth_keyid_invalid_issuer(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-keyid-invalid-issuer.pem", "X509Cert_Body_X509Exts_Ext_AKI_CAName_IPAddress_Malformed")
@@ -182,10 +182,10 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-keyid-mismatch.pem", "Cert_X509Ext_AuthorityKeyIdentifier_CA_KeyIDMismatch", parent_certname = "certs/x509test/ok-ca.pem")
 
 	def test_examine_x509test_xf_ext_auth_keyid_noid(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-keyid-noid.pem", "Cert_X509Ext_AuthorityKeyIdentifier_NoKeyIDPresent")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-keyid-noid.pem", "X509Cert_Body_X509Exts_Ext_AKI_NoKeyID")
 
 	def test_examine_x509test_xf_ext_auth_keyid_onlyserial(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-keyid-onlyserial.pem", "Cert_X509Ext_AuthorityKeyIdentifier_SerialWithoutName")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-keyid-onlyserial.pem", "X509Cert_Body_X509Exts_Ext_AKI_SerialWithoutCAName")
 
 	def test_examine_x509test_xf_ext_auth_keyid_serial_mismatch(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-keyid-serial-mismatch.pem", "Cert_X509Ext_AuthorityKeyIdentifier_CA_SerialMismatch", parent_certname = "certs/x509test/ok-ca.pem")
@@ -254,22 +254,22 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-issuer-altname-critical.pem", "Cert_X509Ext_IssuerAltName_Critical")
 
 	def test_examine_x509test_xf_ext_key_usage_empty(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-key-usage-empty.pem", "Cert_X509Ext_KeyUsage_Empty")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-key-usage-empty.pem", "X509Cert_Body_X509Exts_Ext_KU_Empty")
 
 	def test_examine_x509test_xf_ext_key_usage_noncritical(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-key-usage-noncritical.pem", "Cert_X509Ext_KeyUsage_NonCritical")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-key-usage-noncritical.pem", "X509Cert_Body_X509Exts_Ext_KU_NotCritical")
 
 	def test_examine_x509test_xf_ext_key_usage_sign_nonca(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-key-usage-sign-nonca.pem", "Cert_X509Ext_KeyUsage_SignCertNoBasicConstraints")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-key-usage-sign-nonca.pem", "X509Cert_Body_X509Exts_Ext_KU_SignCertButNoBasicConstraints")
 
 	def test_examine_x509test_xf_ext_key_usage_too_long(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-key-usage-too-long.pem", "Cert_X509Ext_KeyUsage_TooLong")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-key-usage-too-long.pem", "X509Cert_Body_X509Exts_Ext_KU_TooLong")
 
 #	def test_examine_x509test_xf_ext_key_usage_wrong_der(self):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-key-usage-wrong-der.pem", "Cert_X509Ext_KeyUsage_InvalidDER")
 
 	def test_examine_x509test_xf_ext_keysign_nonca(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-keysign-nonca.pem", "Cert_X509Ext_KeyUsage_SignCertNoCA")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-keysign-nonca.pem", "X509Cert_Body_X509Exts_Ext_KU_SignCertButNoCA")
 
 #	def test_examine_x509test_xf_ext_name_constraints_empty(self):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-name-constraints-empty.pem", "Cert_X509Ext_NameConstraints_Empty")
@@ -334,10 +334,10 @@ class SecurityAnalyzerTests(BaseTest):
 #		self._test_examine_x509test_noparse("certs/x509test/xf-ext-subject-info-empty.pem")
 
 	def test_examine_x509test_xf_ext_subject_keyid_ca_absent(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-subject-keyid-ca-absent.pem", "Cert_X509Ext_SubjectKeyIdentifier_Missing")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-subject-keyid-ca-absent.pem", "X509Cert_Body_X509Exts_Ext_SKI_Missing")
 
 	def test_examine_x509test_xf_ext_subject_keyid_critical(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-subject-keyid-critical.pem", "Cert_X509Ext_SubjectKeyIdentifier_Critical")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-subject-keyid-critical.pem", "X509Cert_Body_X509Exts_Ext_SKI_Critical")
 
 	def test_examine_x509test_xf_gentime_fraction_secs(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-gentime-fraction-secs.pem", "X509Cert_Body_Validity_NotAfter_Malformed")
@@ -564,7 +564,7 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/san_international_label_wrong.pem", expect_present = "X509Cert_Body_X509Exts_Ext_SAN_Name_DNS_Wildcard_InternationalLabel")
 
 	def test_san_bad_domain(self):
-		self._test_examine_x509test_resultcode("certs/constructed/san_bad_domain.pem", expect_present = "Cert_X509Ext_SubjectAltName_BadDNSName")
+		self._test_examine_x509test_resultcode("certs/constructed/san_bad_domain.pem", expect_present = "X509Cert_Body_X509Exts_Ext_SAN_Name_DNS_Malformed")
 
 	def test_san_bad_domain_space(self):
 		self._test_examine_x509test_resultcode("certs/constructed/san_bad_domain_space.pem", expect_present = "X509Cert_Body_X509Exts_Ext_SAN_Name_DNS_OnlyWhitespace")
@@ -765,40 +765,40 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/dsa_g_invalid_range4.pem", expect_present = "X509Cert_PublicKey_DSA_Parameters_G_InvalidRange")
 
 	def test_ski_missing(self):
-		self._test_examine_x509test_resultcode("certs/constructed/ski_missing.pem", expect_present = "Cert_X509Ext_SubjectKeyIdentifier_Missing")
+		self._test_examine_x509test_resultcode("certs/constructed/ski_missing.pem", expect_present = "X509Cert_Body_X509Exts_Ext_SKI_Missing")
 
 	def test_ski_arbitrary(self):
-		self._test_examine_x509test_resultcode("certs/constructed/ski_arbitrary.pem", expect_present = "Cert_X509Ext_SubjectKeyIdentifier_Arbitrary")
+		self._test_examine_x509test_resultcode("certs/constructed/ski_arbitrary.pem", expect_present = "X509Cert_Body_X509Exts_Ext_SKI_Hashfunction_Arbitrary")
 
 	def test_ski_sha1(self):
-		self._test_examine_x509test_resultcode("certs/constructed/ski_sha1.pem", expect_present = "Cert_X509Ext_SubjectKeyIdentifier_SHA1")
+		self._test_examine_x509test_resultcode("certs/constructed/ski_sha1.pem", expect_present = "X509Cert_Body_X509Exts_Ext_SKI_Hashfunction_SHA1")
 
 	def test_ski_sha256(self):
-		self._test_examine_x509test_resultcode("certs/constructed/ski_sha256.pem", expect_present = "Cert_X509Ext_SubjectKeyIdentifier_OtherHash")
+		self._test_examine_x509test_resultcode("certs/constructed/ski_sha256.pem", expect_present = "X509Cert_Body_X509Exts_Ext_SKI_Hashfunction_Other")
 
 	def test_aki_missing(self):
-		self._test_examine_x509test_resultcode("certs/constructed/aki_missing.pem", expect_present = "Cert_X509Ext_AuthorityKeyIdentifier_Missing")
+		self._test_examine_x509test_resultcode("certs/constructed/aki_missing.pem", expect_present = "X509Cert_Body_X509Exts_Ext_AKI_Missing")
 
 	def test_aki_malformed(self):
 		self._test_examine_x509test_resultcode("certs/constructed/aki_malformed.pem", expect_present = "Cert_X509Ext_AuthorityKeyIdentifier_Malformed")
 
 	def test_aki_empty(self):
-		self._test_examine_x509test_resultcode("certs/constructed/aki_empty.pem", expect_present = "Cert_X509Ext_AuthorityKeyIdentifier_Empty")
+		self._test_examine_x509test_resultcode("certs/constructed/aki_empty.pem", expect_present = "X509Cert_Body_X509Exts_Ext_AKI_Empty")
 
 	def test_aki_keyid_empty(self):
-		self._test_examine_x509test_resultcode("certs/constructed/aki_keyid_empty.pem", expect_present = "Cert_X509Ext_AuthorityKeyIdentifier_KeyIDEmpty")
+		self._test_examine_x509test_resultcode("certs/constructed/aki_keyid_empty.pem", expect_present = "X509Cert_Body_X509Exts_Ext_AKI_EmptyKeyID")
 
 	def test_aki_keyid_long(self):
-		self._test_examine_x509test_resultcode("certs/constructed/aki_keyid_long.pem", expect_present = "Cert_X509Ext_AuthorityKeyIdentifier_KeyIDLong")
+		self._test_examine_x509test_resultcode("certs/constructed/aki_keyid_long.pem", expect_present = "X509Cert_Body_X509Exts_Ext_AKI_LongKeyID")
 
 	def test_aki_name_without_serial(self):
-		self._test_examine_x509test_resultcode("certs/constructed/aki_name_without_serial.pem", expect_present = "Cert_X509Ext_AuthorityKeyIdentifier_NameWithoutSerial")
+		self._test_examine_x509test_resultcode("certs/constructed/aki_name_without_serial.pem", expect_present = "X509Cert_Body_X509Exts_Ext_AKI_CAnameWithoutSerial")
 
 	def test_aki_ca_has_no_ski(self):
 		self._test_examine_x509test_resultcode("certs/ok/short.pem", parent_certname = "certs/constructed/ski_missing.pem", expect_present = "Cert_X509Ext_AuthorityKeyIdentifier_CA_NoSKI")
 
 	def test_aki_caname_bad_domain(self):
-		self._test_examine_x509test_resultcode("certs/constructed/aki_caname_bad_domain.pem", expect_present = "Cert_X509Ext_AuthorityKeyIdentifier_CAName_BadDNSName")
+		self._test_examine_x509test_resultcode("certs/constructed/aki_caname_bad_domain.pem", expect_present = "X509Cert_Body_X509Exts_Ext_AKI_CAName_DNS_Malformed")
 
 	def test_aki_caname_bad_email(self):
 		self._test_examine_x509test_resultcode("certs/constructed/aki_caname_bad_email.pem", expect_present = "X509Cert_Body_X509Exts_Ext_AKI_CAName_Email_Malformed")
@@ -852,7 +852,7 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/issuer_altname_emptyvalue.pem", expect_present = "Cert_X509Ext_IssuerAltName_EmptyValue")
 
 	def test_issuer_altname_bad_domain(self):
-		self._test_examine_x509test_resultcode("certs/constructed/issuer_altname_bad_domain.pem", expect_present = "Cert_X509Ext_IssuerAltName_BadDNSName")
+		self._test_examine_x509test_resultcode("certs/constructed/issuer_altname_bad_domain.pem", expect_present = "X509Cert_Body_X509Exts_Ext_IAN_Name_DNS_Malformed")
 
 	def test_issuer_altname_bad_domain_space(self):
 		self._test_examine_x509test_resultcode("certs/constructed/issuer_altname_bad_domain_space.pem", expect_present = "X509Cert_Body_X509Exts_Ext_IAN_Name_DNS_OnlyWhitespace")
@@ -912,18 +912,18 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/ku-missing.pem", expect_present = "Cert_Purpose_KU_MissingKeyUsage", purpose = "ca")
 
 	def test_key_usage_trailingzero(self):
-		self._test_examine_x509test_resultcode("certs/constructed/ku-trailingzero.pem", expect_present = "Cert_X509Ext_KeyUsage_TrailingZeros")
+		self._test_examine_x509test_resultcode("certs/constructed/ku-trailingzero.pem", expect_present = "X509Cert_Body_X509Exts_Ext_KU_TrailingZeros")
 
 	def test_key_usage_malformed(self):
 		self._test_examine_x509test_resultcode("certs/constructed/ku-malformed.pem", expect_present = "Cert_X509Ext_KeyUsage_Malformed")
 
 	def test_key_usage_extension_missing(self):
-		self._test_examine_x509test_resultcode("certs/ok/short.pem", expect_present = "Cert_X509Ext_KeyUsage_Missing")
+		self._test_examine_x509test_resultcode("certs/ok/short.pem", expect_present = "X509Cert_Body_X509Exts_Ext_KU_Missing")
 
 	def test_key_usage_noncritical_ca(self):
 		# Different code path when the certificate is a CA certificate, include
 		# test for coverage of both paths.
-		self._test_examine_x509test_resultcode("certs/constructed/ku_noncritical_ca.pem", expect_present = "Cert_X509Ext_KeyUsage_NonCritical", purpose = "ca")
+		self._test_examine_x509test_resultcode("certs/constructed/ku_noncritical_ca.pem", expect_present = "X509Cert_Body_X509Exts_Ext_KU_NotCritical", purpose = "ca")
 
 	def test_certpol_polcount_1(self):
 		self._test_examine_x509test_resultcode("certs/constructed/certpol_polcount_1.pem", expect_absent = "Cert_X509Ext_CertificatePolicies_MoreThanOnePolicy")
@@ -1112,7 +1112,7 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/crldp_reason_no_point_with_all.pem", expect_present = [ "Cert_X509Ext_CRLDistributionPoints_NoPointWithAllReasonBits", "Cert_X509Ext_CRLDistributionPoints_Reasons_SegmentationUsed" ])
 
 	def test_crldp_point_name_bad_dns(self):
-		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_name_bad_dns.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_PointName_BadDNSName")
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_name_bad_dns.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_PointName_DNS_Malformed")
 
 	def test_crldp_point_name_bad_dns_single_label(self):
 		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_name_bad_dns_single_label.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_PointName_DNS_SingleLabel")
