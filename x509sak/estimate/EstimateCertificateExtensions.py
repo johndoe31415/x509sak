@@ -612,10 +612,10 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 				for (pointno, point) in enumerate(cdp_ext.points, 1):
 					if (point.point_name is None) and (point.reasons is None) and (point.crl_issuer is None):
 						standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "MUST", text = "either distributionPoint or cRLIssuer MUST be present.")
-						judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_Point_Empty, "CRL Distribution Points X.509 extension contains distribution point #%d which is entirely empty." % (pointno), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+						judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_CRLDP_Empty, "CRL Distribution Points X.509 extension contains distribution point #%d which is entirely empty." % (pointno), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 					elif (point.point_name is None) and (point.reasons is not None) and (point.crl_issuer is None):
 						standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "MUST", text = "While each of these fields is optional, a DistributionPoint MUST NOT consist of only the reasons field")
-						judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_Point_ContainsOnlyReasons, "CRL Distribution Points X.509 extension contains distribution point #%d which contains only the reasons field." % (pointno), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+						judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_CRLDP_PointWithOnlyReasons, "CRL Distribution Points X.509 extension contains distribution point #%d which contains only the reasons field." % (pointno), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 					if point.crl_issuer is not None:
 						for issuer_name in point.crl_issuer:
@@ -674,7 +674,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 
 				if not has_all_reasons:
 					standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "MUST", text = "When a conforming CA includes a cRLDistributionPoints extension in a certificate, it MUST include at least one DistributionPoint that points to a CRL that covers the certificate for all reasons.")
-					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_NoPointWithAllReasonBits, "CRL Distribution Points X.509 extension contains no distribution point which asserts all reason bits.", commonness = Commonness.UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+					judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_CRLDP_NoPointWithAllReasonBits, "CRL Distribution Points X.509 extension contains no distribution point which asserts all reason bits.", commonness = Commonness.UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 		return judgements
 
 	def _judge_certificate_transparency_sct(self, timestamp_no, sct):

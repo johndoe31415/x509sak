@@ -221,9 +221,9 @@ class JudgementCode(enum.Enum):
 
 	Cert_X509Ext_CRLDistributionPoints_Critical = ("CRL Distribution Points extension", "extension marked critical")
 	Cert_X509Ext_CRLDistributionPoints_Malformed = ("CRL Distribution Points extension", "extension malformed")
-	Cert_X509Ext_CRLDistributionPoints_NoPointWithAllReasonBits = ("CRL Distribution Points extension", "no distribution point with CRL for all reasons")
-	Cert_X509Ext_CRLDistributionPoints_Point_Empty = ("CRL Distribution Points extension", "distribution point entirely empty")
-	Cert_X509Ext_CRLDistributionPoints_Point_ContainsOnlyReasons = ("CRL Distribution Points extension", "distribution point contains only reasons field")
+#	Cert_X509Ext_CRLDistributionPoints_NoPointWithAllReasonBits = ("CRL Distribution Points extension", "no distribution point with CRL for all reasons")
+#	Cert_X509Ext_CRLDistributionPoints_Point_Empty = ("CRL Distribution Points extension", "distribution point entirely empty")
+#	Cert_X509Ext_CRLDistributionPoints_Point_ContainsOnlyReasons = ("CRL Distribution Points extension", "distribution point contains only reasons field")
 	Cert_X509Ext_CRLDistributionPoints_Point_NoLDAPOrHTTPURIPresent = ("CRL Distribution Points extension", "distribution point contains no LDAP or HTTP URI")
 	Cert_X509Ext_CRLDistributionPoints_PointName_RDN_Malformed = ("CRL Distribution Points extension", "distribution point name uses malformed relative distinguished name")
 	Cert_X509Ext_CRLDistributionPoints_PointName_RDN_Used = ("CRL Distribution Points extension", "distribution point name uses relative distinguished name")

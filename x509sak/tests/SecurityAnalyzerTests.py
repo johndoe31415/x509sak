@@ -218,7 +218,7 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-crl-point-critical.pem", "Cert_X509Ext_CRLDistributionPoints_Critical")
 
 	def test_examine_x509test_xf_ext_crl_point_reasons_only(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-crl-point-reasons-only.pem", "Cert_X509Ext_CRLDistributionPoints_Point_ContainsOnlyReasons")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-crl-point-reasons-only.pem", "X509Cert_Body_X509Exts_Ext_CRLDP_PointWithOnlyReasons")
 
 	def test_examine_x509test_xf_ext_ct_poison(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-ct-poison.pem", "Cert_X509Ext_CertificateTransparencyPoison_IsPrecertificate")
@@ -1088,7 +1088,7 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/unique_id_issuer.pem", "Cert_UniqueID_NotAllowed")
 
 	def test_crldp_point_empty(self):
-		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_empty.pem", expect_present = [ "Cert_X509Ext_CRLDistributionPoints_Point_Empty" ], expect_absent = [ "Cert_X509Ext_CRLDistributionPoints_Point_ContainsOnlyReasons", "Cert_X509Ext_CRLDistributionPoints_Point_NoLDAPOrHTTPURIPresent" ])
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_empty.pem", expect_present = [ "X509Cert_Body_X509Exts_Ext_CRLDP_Empty" ], expect_absent = [ "X509Cert_Body_X509Exts_Ext_CRLDP_PointWithOnlyReasons", "Cert_X509Ext_CRLDistributionPoints_Point_NoLDAPOrHTTPURIPresent" ])
 
 	def test_crldp_point_no_http_ldap(self):
 		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_no_http_ldap.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_Point_NoLDAPOrHTTPURIPresent")
@@ -1103,13 +1103,13 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/crldp_reason_trailing_bits.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_Reasons_TrailingBits")
 
 	def test_crldp_reason_only_field(self):
-		self._test_examine_x509test_resultcode("certs/constructed/crldp_reason_only_field.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_Point_ContainsOnlyReasons")
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_reason_only_field.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_PointWithOnlyReasons")
 
 	def test_crldp_reason_not_present(self):
-		self._test_examine_x509test_resultcode("certs/constructed/crldp_reason_not_present.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_SegmentationUsed", expect_absent = "Cert_X509Ext_CRLDistributionPoints_NoPointWithAllReasonBits")
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_reason_not_present.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_SegmentationUsed", expect_absent = "X509Cert_Body_X509Exts_Ext_CRLDP_NoPointWithAllReasonBits")
 
 	def test_crldp_reason_no_point_with_all(self):
-		self._test_examine_x509test_resultcode("certs/constructed/crldp_reason_no_point_with_all.pem", expect_present = [ "Cert_X509Ext_CRLDistributionPoints_NoPointWithAllReasonBits", "X509Cert_Body_X509Exts_Ext_CRLDP_SegmentationUsed" ])
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_reason_no_point_with_all.pem", expect_present = [ "X509Cert_Body_X509Exts_Ext_CRLDP_NoPointWithAllReasonBits", "X509Cert_Body_X509Exts_Ext_CRLDP_SegmentationUsed" ])
 
 	def test_crldp_point_name_bad_dns(self):
 		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_name_bad_dns.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_PointName_DNS_Malformed")
