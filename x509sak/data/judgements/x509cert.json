@@ -53,6 +53,9 @@
 			"Subject": {
 				"_import": "*dn_issues/*{name=certificate subject}"
 			},
+			"FIXME": {
+				"_import": "*dn_issues/*{name=fixme}"
+			},
 			"Serial Number": {
 				"_import": "integer_checks:zero,neg,large{name=serial number}"
 			},
@@ -226,6 +229,11 @@
 			}
 		},
 		"Signature": {
+			"Function": {
+				"Unknown": { "_desc": "Unknown signature function used" },
+				"Deprecated OID": { "_desc": "Deprecated OID used" },
+				"Body Mismatch": { "_desc": "Signature function indicated in body of certificate does not match that indicated in signature portion" }
+			},
 			"ECDSA": {
 				"_import": [ "dsa_signature/*", "asn1_encoding_issues/*" ]
 			},
@@ -254,20 +262,44 @@
 			"_label": "Purpose",
 			"Client Certificate": {
 				"_label": "Client Cert",
+				"_import": "x509_ku_check{name=client certificate}",
+				"Is CA Cert": { "_desc": "certificate is a CA certificate" },
 				"Extended Key Usage Mismatch": {
 					"_label": "EKU Mismatch",
 					"_desc": "extended key usage does not include clientAuth"
+				},
+				"Netscape Certificate Type": {
+					"_label": "NSCT",
+					"No SSL Client": { "_desc": "NSCT extension does not contain sslClient flag" }
 				}
 			},
 			"Server Certificate": {
 				"_label": "Server Cert",
+				"_import": "x509_ku_check{name=server certificate}",
+				"Is CA Cert": { "_desc": "certificate is a CA certificate" },
+				"Subject Alternative Name": {
+					"_label": "SAN",
+					"Match": { "_desc": "SKI extension name matches given server name" },
+					"Mismatch": { "_desc": "SKI extension name does not match given server name" }
+				},
+				"Common Name": {
+					"_label": "CN",
+					"Match": { "_desc": "common name matches given server name" },
+					"Mismatch": { "_desc": "common name does not match given server name" }
+				},
 				"Extended Key Usage Mismatch": {
 					"_label": "EKU Mismatch",
 					"_desc": "extended key usage does not include serverAuth"
+				},
+				"Netscape Certificate Type": {
+					"_label": "NSCT",
+					"No SSL Server": { "_desc": "NSCT extension does not contain sslServer flag" }
 				}
 			},
 			"CA Certificate": {
 				"_label": "CA Cert",
+				"_import": "x509_ku_check{name=CA certificate}",
+				"No CA Cert": { "_desc": "certificate is not a CA certificate" },
 				"Extended Key Usage Mismatch": {
 					"_label": "EKU Mismatch",
 					"_desc": "extended key usage does not include TODO"
@@ -299,6 +331,11 @@
 					"Match": { "_desc": "key ID in AKI extension matches key ID of CA certifiate SKI extension" },
 					"Mismatch": { "_desc": "key ID in AKI extension does not match key ID of CA certifiate SKI extension" },
 					"Uncheckable": { "_desc": "key ID in AKI extension cannot be checked against CA because CA contains no SKI extension" }
+				},
+				"Netscape Certificate Type": {
+					"_label": "NSCT",
+					"No SSL CA": { "_desc": "NSCT extension does not contain sslCA flag" },
+					"No CA": { "_desc": "NSCT extension does not contain any CA flag" }
 				}
 			},
 			"Validity Periods": {

@@ -386,10 +386,10 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-soon-generalized-time.pem", "X509Cert_Body_Validity_NotBefore_InvalidType")
 
 	def test_examine_x509test_xf_subject_nonprintable(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-subject-nonprintable.pem", "DN_Contains_Illegal_Char")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-subject-nonprintable.pem", "X509Cert_Body_FIXME_IllegalCharacter")
 
 	def test_examine_x509test_xf_subject_t61(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-subject-t61.pem", "DN_Contains_Deprecated_Type")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-subject-t61.pem", "X509Cert_Body_FIXME_DeprecatedType")
 
 	def test_examine_x509test_xf_unknown_critical_ext(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-unknown-critical-ext.pem", "Cert_X509Ext_Unknown_Critical")
@@ -588,45 +588,45 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/san_good_uri.pem", expect_present = "Cert_X509Ext_SubjectAltName_UncommonIdentifier")
 
 	def test_dn_all_ok(self):
-		self._test_examine_x509test_resultcode("certs/constructed/dn_all_okay.pem", expect_absent = [ "DN_Contains_Long_RDN" ])
+		self._test_examine_x509test_resultcode("certs/constructed/dn_all_okay.pem", expect_absent = [ "X509Cert_Body_FIXME_RDN_LengthExceeded" ])
 
 	def test_dn_long_rdn_cn64(self):
 		# Still barely okay, 64 characters is limit for CN
-		self._test_examine_x509test_resultcode("certs/constructed/dn_long_rdn_cn64.pem", expect_absent = "DN_Contains_Long_RDN")
+		self._test_examine_x509test_resultcode("certs/constructed/dn_long_rdn_cn64.pem", expect_absent = "X509Cert_Body_FIXME_RDN_LengthExceeded")
 
 	def test_dn_long_rdn_cn65(self):
 		# Straw that breaks the camel's back
-		self._test_examine_x509test_resultcode("certs/constructed/dn_long_rdn_cn65.pem", expect_present = "DN_Contains_Long_RDN")
+		self._test_examine_x509test_resultcode("certs/constructed/dn_long_rdn_cn65.pem", expect_present = "X509Cert_Body_FIXME_RDN_LengthExceeded")
 
 	def test_dn_long_rdn_c(self):
-		self._test_examine_x509test_resultcode("certs/constructed/dn_long_rdn_c.pem", expect_present = "DN_Contains_Long_RDN")
+		self._test_examine_x509test_resultcode("certs/constructed/dn_long_rdn_c.pem", expect_present = "X509Cert_Body_FIXME_RDN_LengthExceeded")
 
 	def test_dn_multivalue(self):
-		self._test_examine_x509test_resultcode("certs/constructed/dn_multivalue.pem", expect_present = "DN_Contains_MultiValues")
+		self._test_examine_x509test_resultcode("certs/constructed/dn_multivalue.pem", expect_present = "X509Cert_Body_FIXME_RDN_MultiValuedRDN")
 
 	def test_dn_nonprintable(self):
-		self._test_examine_x509test_resultcode("certs/constructed/dn_nonprintable.pem", expect_present = "DN_Contains_NonPrintable")
+		self._test_examine_x509test_resultcode("certs/constructed/dn_nonprintable.pem", expect_present = "X509Cert_Body_FIXME_NonPrintable")
 
 	def test_dn_duplicate_rdns(self):
-		self._test_examine_x509test_resultcode("certs/constructed/dn_multiple_identical_rdns.pem", expect_present = "DN_Contains_DuplicateRDNs")
+		self._test_examine_x509test_resultcode("certs/constructed/dn_multiple_identical_rdns.pem", expect_present = "X509Cert_Body_FIXME_DuplicateRDNs")
 
 	def test_dn_many_rdns(self):
-		self._test_examine_x509test_resultcode("certs/constructed/dn_many_rdns.pem", expect_present = "DN_Contains_Unusually_Many_RDNs")
+		self._test_examine_x509test_resultcode("certs/constructed/dn_many_rdns.pem", expect_present = "X509Cert_Body_FIXME_UnusuallyManyRDNs")
 
 	def test_dn_no_cn(self):
-		self._test_examine_x509test_resultcode("certs/constructed/dn_no_cn.pem", expect_present = "DN_Contains_No_CN")
+		self._test_examine_x509test_resultcode("certs/constructed/dn_no_cn.pem", expect_present = "X509Cert_Body_FIXME_NoCN")
 
 	def test_dn_multiple_cns(self):
-		self._test_examine_x509test_resultcode("certs/constructed/dn_multiple_cn.pem", expect_present = "DN_Contains_Multiple_CN")
+		self._test_examine_x509test_resultcode("certs/constructed/dn_multiple_cn.pem", expect_present = "X509Cert_Body_FIXME_MultipleCN")
 
 	def test_dn_duplicate_set(self):
-		self._test_examine_x509test_resultcode("certs/constructed/dn_duplicate_set.pem", expect_present = [ "DN_Contains_Duplicate_Set", "DN_Contains_Duplicate_OID_In_Multivalued_RDN" ])
+		self._test_examine_x509test_resultcode("certs/constructed/dn_duplicate_set.pem", expect_present = [ "X509Cert_Body_FIXME_RDN_DuplicateSet", "X509Cert_Body_FIXME_TODOREMOVEMEDuplicateOIDInMultivaluedRDN" ])
 
 	def test_dn_duplicate_oid_in_mvrdn(self):
-		self._test_examine_x509test_resultcode("certs/constructed/dn_duplicate_oid_in_mvrdn.pem", expect_present = "DN_Contains_Duplicate_OID_In_Multivalued_RDN", expect_absent = "DN_Contains_Duplicate_Set")
+		self._test_examine_x509test_resultcode("certs/constructed/dn_duplicate_oid_in_mvrdn.pem", expect_present = "X509Cert_Body_FIXME_TODOREMOVEMEDuplicateOIDInMultivaluedRDN", expect_absent = "X509Cert_Body_FIXME_RDN_DuplicateSet")
 
 	def test_cn_match_fqdn_but_multivalue_rdn(self):
-		self._test_examine_x509test_resultcode("certs/constructed/dn_cn_hostname_multivalue_rdn.pem", expect_present = "Cert_CN_Match_MultiValue_RDN", expect_absent = "DN_Contains_No_CN", host_check = "multivalue.com")
+		self._test_examine_x509test_resultcode("certs/constructed/dn_cn_hostname_multivalue_rdn.pem", expect_present = "Cert_CN_Match_MultiValue_RDN", expect_absent = "X509Cert_Body_FIXME_NoCN", host_check = "multivalue.com")
 
 	def test_cn_match_fqdn(self):
 		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", expect_present = "Cert_CN_Match", expect_absent = "Cert_X509Ext_SubjectAltName_Missing", host_check = "johannes-bauer.com")

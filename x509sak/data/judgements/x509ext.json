@@ -10,5 +10,16 @@
 		"Present but Critical": { "_label": "PresentCritical", "_desc": "$name extension present and critical", "_require": "pres_crit" },
 		"Present and CA certificate": { "_label": "PresentAndCA", "_desc": "$name extension present, but no CA certificate", "_require": "pres_ca" },
 		"Present but not CA": { "_label": "PresentNotCA", "_desc": "$name extension present, but no CA certificate", "_require": "pres_noca" }
+	},
+
+	"X.509 Purpose Check": {
+		"_export": true,
+		"Key Usage": {
+			"_short_id": "x509_ku_check",
+			"_label": "KU",
+			"Missing Bits": { "_desc": "key usage extension missing bits for $purpose" },
+			"Excess Bits": { "_desc": "key usage extension contains excess bits for $purpose" },
+			"Unusual Bits": { "_desc": "key usage extension contains unusual bits for $purpose" }
+		}
 	}
 }
