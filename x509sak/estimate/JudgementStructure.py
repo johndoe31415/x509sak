@@ -33,6 +33,11 @@ class RichJudgementCode():
 		self._code = code
 		self._description = description
 		self._flags = kwargs.get("flags")
+		self._order = kwargs.get("order")
+
+	@property
+	def order(self):
+		return self._order
 
 	@property
 	def code(self):
@@ -48,13 +53,17 @@ class RichJudgementCode():
 
 	@classmethod
 	def from_node(cls, node):
-		return cls(code = node.long_id, description = node.attrs["desc"])
+		return cls(code = node.long_id, description = node.attrs["desc"], order = node.order)
+
+	@property
+	def cmptuple(self):
+		return (self.order, self.code)
 
 	def __eq__(self, other):
-		return self.code == other.code
+		return self.cmptuple == other.cmptuple
 
 	def __lt__(self, other):
-		return self.code < other.code
+		return self.cmptuple < other.cmptuple
 
 	def __repr__(self):
 		return "RichJudgementCode<%s>" % (self.code)
@@ -72,6 +81,7 @@ class StructureNode():
 		self._children = children if (children is not None) else [ ]
 		self._attributes = attributes if (attributes is not None) else { }
 		self._imported = collections.defaultdict(list)
+		self._order = None
 		assert(isinstance(self._children, list))
 		assert(isinstance(self._attributes, dict))
 		assert(all(key in self._ALLOWED_ATTRIBUTES for key in self._attributes))
@@ -121,8 +131,28 @@ class StructureNode():
 		return self._name
 
 	@property
+	def is_leaf(self):
+		return len(self._children) == 0
+
+	@property
+	def order(self):
+		return self._order
+
+	@order.setter
+	def order(self, value):
+		self._order = value
+
+	@property
 	def children(self):
 		return iter(self._children)
+
+	@property
+	def children_leaf(self):
+		return (child for child in self._children if (child.is_leaf))
+
+	@property
+	def children_nonleaf(self):
+		return (child for child in self._children if (not child.is_leaf))
 
 	@classmethod
 	def transform_label_case(cls, text):
@@ -218,6 +248,13 @@ class StructureNode():
 		for child in self.children:
 			child.dump(indent + 1)
 
+	def walk_ordered(self, callback):
+		callback(self)
+		for child in sorted(self.children_leaf, key = lambda node: node.long_id):
+			child.walk_ordered(callback)
+		for child in sorted(self.children_nonleaf, key = lambda node: node.long_id):
+			child.walk_ordered(callback)
+
 	def walk(self, callback):
 		callback(self)
 		for child in self.children:
@@ -252,6 +289,7 @@ class JudgementStructure():
 		self._process_imports()
 		self._root = self._root.filter(filter_predicate = lambda node: not node.attrs.get("export"))
 		self._root.assign_nodes_long_ids()
+		self._assign_order()
 
 	@property
 	def root(self):
@@ -330,6 +368,13 @@ class JudgementStructure():
 					print()
 
 		self._root.walk(visit)
+
+	def _assign_order(self):
+		order_no = [ 0 ]
+		def visit(node):
+			order_no[0] += 1
+			node.order = order_no[0]
+		self._root.walk_ordered(visit)
 
 	def _create_enum_class(self):
 		exported_nodes = { }

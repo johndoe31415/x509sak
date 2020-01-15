@@ -118,13 +118,13 @@ class CmdLineTestsExamine(BaseTest):
 				self.assertNotIn(code, encountered_codes)
 
 	def test_examine_x509test_xf_algo_mismatch1(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-algo-mismatch1.pem", "Cert_Signature_Algorithm_Mismatch")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-algo-mismatch1.pem", "X509Cert_Signature_Function_BodyMismatch")
 
 	def test_examine_x509test_xf_ext_auth_keyid_mismatch(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-auth-keyid-mismatch.pem", "CertUsage_CARelationship_AKI_KeyID_Mismatch", parent_certname = "certs/x509test/ok-ca.pem")
 
 	def test_hostname_ok(self):
-		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", "Cert_SAN_Match", expect_absent = "Cert_SAN_NoMatch", host_check = "mail.johannes-bauer.com")
+		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", "CertUsage_Purpose_ServerCert_SAN_Match", expect_absent = "CertUsage_Purpose_ServerCert_SAN_Mismatch", host_check = "mail.johannes-bauer.com")
 
 	def test_constructed_rsa_modulus_prime(self):
 		self._test_examine_x509test_resultcode("certs/constructed/rsa_modulus_prime.pem", "X509Cert_PublicKey_RSA_Modulus_Prime", fast_rsa = False)
@@ -133,4 +133,4 @@ class CmdLineTestsExamine(BaseTest):
 		self._test_examine_x509test_resultcode("certs/ok/ecc_sect283r1.pem", include_raw = True)
 
 	def test_check_no_ca_when_expecting_ca(self):
-		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", expect_present = "Cert_Unexpectedly_No_CA_Cert", purpose = "ca")
+		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", expect_present = "CertUsage_Purpose_CACert_NoCACert", purpose = "ca")

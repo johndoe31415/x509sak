@@ -72,7 +72,7 @@ class CertificateEstimator(BaseEstimator):
 		if oid_header != oid_sig:
 			name_header = OIDDB.SignatureAlgorithms.get(oid_header, str(oid_header))
 			name_sig = OIDDB.SignatureAlgorithms.get(oid_sig, str(oid_sig))
-			judgements += SecurityJudgement(JudgementCode.Cert_Signature_Algorithm_Mismatch, "Certificate indicates signature algorithm %s in header section and %s in signature section." % (name_header, name_sig), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Signature_Function_BodyMismatch, "Certificate indicates signature algorithm %s in header section and %s in signature section." % (name_header, name_sig), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 		else:
 			# OIDs might be same, but parameters could differ (e.g., for RSA-PSS)
 			header_hasvalue = certificate.asn1["tbsCertificate"]["signature"]["parameters"].hasValue()
@@ -82,9 +82,9 @@ class CertificateEstimator(BaseEstimator):
 				parameters_header = bytes(certificate.asn1["tbsCertificate"]["signature"]["parameters"])
 				parameters_signature = bytes(certificate.asn1["signatureAlgorithm"]["parameters"])
 				if parameters_header != parameters_signature:
-					judgements += SecurityJudgement(JudgementCode.Cert_Signature_Algorithm_Mismatch, "Certificate indicates same signature algorithm in both header section and signature section (%s), but parameterization of each differ." % (name_header), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+					judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Signature_Function_BodyMismatch, "Certificate indicates same signature algorithm in both header section and signature section (%s), but parameterization of each differ." % (name_header), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 			elif header_hasvalue != signature_hasvalue:
-				judgements += SecurityJudgement(JudgementCode.Cert_Signature_Algorithm_Mismatch, "Certificate indicates same signature algorithm in both header section and signature section, but header %s while signature section %s." % ("has parameters" if header_hasvalue else "has no parameters", "does" if signature_hasvalue else "does not"), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+				judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Signature_Function_BodyMismatch, "Certificate indicates same signature algorithm in both header section and signature section, but header %s while signature section %s." % ("has parameters" if header_hasvalue else "has no parameters", "does" if signature_hasvalue else "does not"), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 		return judgements
 

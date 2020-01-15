@@ -110,7 +110,7 @@ class SecurityAnalyzerTests(BaseTest):
 			self.assertNotIn(code, encountered_codes)
 
 	def test_examine_x509test_xf_algo_mismatch1(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-algo-mismatch1.pem", "Cert_Signature_Algorithm_Mismatch")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-algo-mismatch1.pem", "X509Cert_Signature_Function_BodyMismatch")
 
 	def test_examine_x509test_xf_der_invalid_bitstring(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-der-invalid-bitstring.pem", "Cert_Invalid_DER")
@@ -463,12 +463,12 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/ecc_pubkey_y_bitbias.pem", "X509Cert_PublicKey_ECC_PublicKeyPoint_Y_BitBiasPresent", expect_absent = "X509Cert_PublicKey_ECC_PublicKeyPoint_X_BitBiasPresent")
 
 	def test_hostname_ok(self):
-		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", "Cert_SAN_Match", expect_absent = "Cert_SAN_NoMatch", host_check = "mail.johannes-bauer.com")
-		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", "Cert_SAN_Match", expect_absent = "Cert_SAN_NoMatch", host_check = "www.johannes-bauer.com")
-		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", "Cert_SAN_Match", expect_absent = "Cert_SAN_NoMatch", host_check = "johannes-bauer.com")
+		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", "CertUsage_Purpose_ServerCert_SAN_Match", expect_absent = "CertUsage_Purpose_ServerCert_SAN_Mismatch", host_check = "mail.johannes-bauer.com")
+		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", "CertUsage_Purpose_ServerCert_SAN_Match", expect_absent = "CertUsage_Purpose_ServerCert_SAN_Mismatch", host_check = "www.johannes-bauer.com")
+		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", "CertUsage_Purpose_ServerCert_SAN_Match", expect_absent = "CertUsage_Purpose_ServerCert_SAN_Mismatch", host_check = "johannes-bauer.com")
 
 	def test_hostname_not_ok(self):
-		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", "Cert_SAN_NoMatch", expect_absent = "Cert_SAN_Match", host_check = "wwwQjohannes-bauer.com")
+		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", "CertUsage_Purpose_ServerCert_SAN_Mismatch", expect_absent = "CertUsage_Purpose_ServerCert_SAN_Match", host_check = "wwwQjohannes-bauer.com")
 
 	def test_constructed_rsa_bitbias(self):
 		self._test_examine_x509test_resultcode("certs/constructed/rsa_bitbias.pem", "X509Cert_PublicKey_RSA_Modulus_BitBiasPresent")
@@ -513,7 +513,7 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/ok/ecc_sect283r1.pem", include_raw = True)
 
 	def test_include_raw_data_ecc_twedwards(self):
-		self._test_examine_x509test_resultcode("certs/ok/pubkey_sig_ed25519.pem", expect_present = "SignatureFunction_UncommonCryptosystem", include_raw = True)
+		self._test_examine_x509test_resultcode("certs/ok/pubkey_sig_ed25519.pem", expect_present = "X509Cert_Signature_Function_UncommonCryptosystem", include_raw = True)
 
 	def test_explicit_prime(self):
 		self._test_examine_x509test_resultcode("certs/ok/ecc_explicit_param_prime.pem", expect_present = [ "X509Cert_PublicKey_ECC_DomainParameters_Name_UnusedName", "X509Cert_PublicKey_ECC_DomainParameters_Name_ExplicitCurve" ], expect_absent = "X509Cert_PublicKey_ECC_DomainParameters_Name_UnknownExplicit")
@@ -629,22 +629,22 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/dn_cn_hostname_multivalue_rdn.pem", expect_present = "Cert_CN_Match_MultiValue_RDN", expect_absent = "X509Cert_Body_FIXME_NoCN", host_check = "multivalue.com")
 
 	def test_cn_match_fqdn(self):
-		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", expect_present = "Cert_CN_Match", expect_absent = "Cert_X509Ext_SubjectAltName_Missing", host_check = "johannes-bauer.com")
+		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", expect_present = "CertUsage_Purpose_ServerCert_CN_Match", expect_absent = "Cert_X509Ext_SubjectAltName_Missing", host_check = "johannes-bauer.com")
 
 	def test_cn_no_match_fqdn(self):
-		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", expect_present = [ "Cert_CN_NoMatch", "Cert_Name_Verification_Failed" ], host_check = "pupannes-bauer.com")
+		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", expect_present = [ "CertUsage_Purpose_ServerCert_CN_Mismatch", "Cert_Name_Verification_Failed" ], host_check = "pupannes-bauer.com")
 
 	def test_check_no_ca_when_expecting_ca(self):
-		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", expect_present = "Cert_Unexpectedly_No_CA_Cert", purpose = "ca")
+		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", expect_present = "CertUsage_Purpose_CACert_NoCACert", purpose = "ca")
 
 	def test_check_ca_when_expecting_no_ca(self):
-		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer-intermediate.pem", expect_present = "Cert_Unexpectedly_CA_Cert", purpose = "tls-server")
+		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer-intermediate.pem", expect_present = "CertUsage_Purpose_ClientCert_IsCACert", purpose = "tls-server")
 
 	def test_check_version(self):
 		self._test_examine_x509test_resultcode("certs/constructed/version1.pem", expect_present = "X509Cert_Body_Version_Not3")
 
 	def test_check_algorithm_alternate_oid(self):
-		self._test_examine_x509test_resultcode("certs/constructed/algorithm_alternate_oid.pem", expect_present = "SignatureFunction_NonPreferred_OID")
+		self._test_examine_x509test_resultcode("certs/constructed/algorithm_alternate_oid.pem", expect_present = "X509Cert_Signature_Function_DeprecatedOID")
 
 	def test_validity_never_valid(self):
 		self._test_examine_x509test_resultcode("certs/constructed/validity_never_valid.pem", expect_present = "X509Cert_Body_Validity_Status_NeverValid")
@@ -662,7 +662,7 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/unknown_sigfnc.pem", expect_present = "Cert_Unknown_SignatureAlgorithm")
 
 	def test_rsa_pss_ok(self):
-		self._test_examine_x509test_resultcode("certs/ok/rsapss_defaults.pem", expect_present = "SignatureFunction_UncommonPaddingScheme")
+		self._test_examine_x509test_resultcode("certs/ok/rsapss_defaults.pem", expect_present = "X509Cert_Signature_Function_UncommonPadding")
 
 	def test_rsa_pss_unknown_hashfnc1(self):
 		self._test_examine_x509test_resultcode("certs/constructed/unknown_hashfnc1.pem", expect_present = "Cert_Unknown_HashAlgorithm")
@@ -698,22 +698,22 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/rsapss_multiple_hashes.pem", expect_present = "X509Cert_PublicKey_RSA_RSA_PSS_MultipleHashFunctions")
 
 	def test_rsa_pss_mismatch_algo1(self):
-		self._test_examine_x509test_resultcode("certs/constructed/rsapss_mismatch_algo1.pem", expect_present = "Cert_Signature_Algorithm_Mismatch")
+		self._test_examine_x509test_resultcode("certs/constructed/rsapss_mismatch_algo1.pem", expect_present = "X509Cert_Signature_Function_BodyMismatch")
 
 	def test_rsa_pss_mismatch_algo2(self):
-		self._test_examine_x509test_resultcode("certs/constructed/rsapss_mismatch_algo2.pem", expect_present = "Cert_Signature_Algorithm_Mismatch")
+		self._test_examine_x509test_resultcode("certs/constructed/rsapss_mismatch_algo2.pem", expect_present = "X509Cert_Signature_Function_BodyMismatch")
 
 	def test_rsa_pss_mismatch_algo3(self):
-		self._test_examine_x509test_resultcode("certs/constructed/rsapss_mismatch_algo3.pem", expect_present = "Cert_Signature_Algorithm_Mismatch")
+		self._test_examine_x509test_resultcode("certs/constructed/rsapss_mismatch_algo3.pem", expect_present = "X509Cert_Signature_Function_BodyMismatch")
 
 	def test_rsa_pss_mismatch_algo4(self):
-		self._test_examine_x509test_resultcode("certs/constructed/rsapss_mismatch_algo4.pem", expect_present = "Cert_Signature_Algorithm_Mismatch")
+		self._test_examine_x509test_resultcode("certs/constructed/rsapss_mismatch_algo4.pem", expect_present = "X509Cert_Signature_Function_BodyMismatch")
 
 	def test_rsa_pss_mismatch_algo5(self):
-		self._test_examine_x509test_resultcode("certs/constructed/rsapss_mismatch_algo5.pem", expect_present = "Cert_Signature_Algorithm_Mismatch")
+		self._test_examine_x509test_resultcode("certs/constructed/rsapss_mismatch_algo5.pem", expect_present = "X509Cert_Signature_Function_BodyMismatch")
 
 	def test_mismatch_header_footer_sigparams(self):
-		self._test_examine_x509test_resultcode("certs/constructed/mismatch_header_footer_sigparams.pem", expect_present = "Cert_Signature_Algorithm_Mismatch")
+		self._test_examine_x509test_resultcode("certs/constructed/mismatch_header_footer_sigparams.pem", expect_present = "X509Cert_Signature_Function_BodyMismatch")
 
 	def test_dsa_p_not_prime(self):
 		self._test_examine_x509test_resultcode("certs/constructed/dsa_p_not_prime.pem", expect_present = "X509Cert_PublicKey_DSA_Parameters_P_NotPrime")
@@ -906,10 +906,10 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/lifetime_ca_exceptionallylong.pem", expect_present = "X509Cert_Body_Validity_Length_ExceptionallyLong")
 
 	def test_key_usage_excessive(self):
-		self._test_examine_x509test_resultcode("certs/constructed/ku-xmas.pem", expect_present = [ "Cert_Purpose_KU_ExcessKeyUsage", "Cert_Purpose_KU_UnusualKeyUsage" ], purpose = "tls-server")
+		self._test_examine_x509test_resultcode("certs/constructed/ku-xmas.pem", expect_present = [ "CertUsage_Purpose_ClientCert_KU_ExcessBits", "CertUsage_Purpose_ClientCert_KU_UnusualBits" ], purpose = "tls-server")
 
 	def test_key_usage_missing(self):
-		self._test_examine_x509test_resultcode("certs/constructed/ku-missing.pem", expect_present = "Cert_Purpose_KU_MissingKeyUsage", purpose = "ca")
+		self._test_examine_x509test_resultcode("certs/constructed/ku-missing.pem", expect_present = "CertUsage_Purpose_ClientCert_KU_MissingBits", purpose = "ca")
 
 	def test_key_usage_trailingzero(self):
 		self._test_examine_x509test_resultcode("certs/constructed/ku-trailingzero.pem", expect_present = "X509Cert_Body_X509Exts_Ext_KU_TrailingZeros")
@@ -980,47 +980,47 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/ok/short.pem", expect_present = "X509Cert_Body_X509Exts_AllUnique")
 
 	def test_eku_no_client(self):
-		self._test_examine_x509test_resultcode("certs/constructed/eku_server.pem", expect_present = "Cert_Purpose_EKU_NoClientAuth", purpose = "tls-client")
+		self._test_examine_x509test_resultcode("certs/constructed/eku_server.pem", expect_present = "CertUsage_Purpose_ClientCert_EKUMismatch", purpose = "tls-client")
 
 	def test_eku_is_client(self):
-		self._test_examine_x509test_resultcode("certs/constructed/eku_client.pem", expect_absent = "Cert_Purpose_EKU_NoClientAuth", purpose = "tls-client")
+		self._test_examine_x509test_resultcode("certs/constructed/eku_client.pem", expect_absent = "CertUsage_Purpose_ClientCert_EKUMismatch", purpose = "tls-client")
 
 	def test_eku_no_server(self):
-		self._test_examine_x509test_resultcode("certs/constructed/eku_client.pem", expect_present = "Cert_Purpose_EKU_NoServerAuth", purpose = "tls-server")
+		self._test_examine_x509test_resultcode("certs/constructed/eku_client.pem", expect_present = "CertUsage_Purpose_ServerCert_EKUMismatch", purpose = "tls-server")
 
 	def test_eku_is_server(self):
-		self._test_examine_x509test_resultcode("certs/constructed/eku_server.pem", expect_absent = "Cert_Purpose_EKU_NoServerAuth", purpose = "tls-server")
+		self._test_examine_x509test_resultcode("certs/constructed/eku_server.pem", expect_absent = "CertUsage_Purpose_ServerCert_EKUMismatch", purpose = "tls-server")
 
 	def test_eku_duplicate(self):
 		self._test_examine_x509test_resultcode("certs/constructed/eku_duplicate.pem", expect_present = "X509Cert_Body_X509Exts_Ext_EKU_Duplicate")
 
 	def test_nsct_no_client(self):
-		self._test_examine_x509test_resultcode("certs/constructed/nsct_server.pem", expect_present = "Cert_Purpose_NSCT_NoSSLClient", purpose = "tls-client")
-		self._test_examine_x509test_resultcode("certs/constructed/nsct_ssl_ca.pem", expect_present = "Cert_Purpose_NSCT_NoSSLClient", purpose = "tls-client")
+		self._test_examine_x509test_resultcode("certs/constructed/nsct_server.pem", expect_present = "CertUsage_Purpose_ClientCert_NSCT_NoSSLClient", purpose = "tls-client")
+		self._test_examine_x509test_resultcode("certs/constructed/nsct_ssl_ca.pem", expect_present = "CertUsage_Purpose_ClientCert_NSCT_NoSSLClient", purpose = "tls-client")
 
 	def test_nsct_is_client(self):
-		self._test_examine_x509test_resultcode("certs/constructed/nsct_client.pem", expect_absent = "Cert_Purpose_NSCT_NoSSLClient", purpose = "tls-client")
+		self._test_examine_x509test_resultcode("certs/constructed/nsct_client.pem", expect_absent = "CertUsage_Purpose_ClientCert_NSCT_NoSSLClient", purpose = "tls-client")
 
 	def test_nsct_no_server(self):
-		self._test_examine_x509test_resultcode("certs/constructed/nsct_client.pem", expect_present = "Cert_Purpose_NSCT_NoSSLServer", purpose = "tls-server")
-		self._test_examine_x509test_resultcode("certs/constructed/nsct_ssl_ca.pem", expect_present = "Cert_Purpose_NSCT_NoSSLServer", purpose = "tls-server")
+		self._test_examine_x509test_resultcode("certs/constructed/nsct_client.pem", expect_present = "CertUsage_Purpose_ServerCert_NSCT_NoSSLServer", purpose = "tls-server")
+		self._test_examine_x509test_resultcode("certs/constructed/nsct_ssl_ca.pem", expect_present = "CertUsage_Purpose_ServerCert_NSCT_NoSSLServer", purpose = "tls-server")
 
 	def test_nsct_is_server(self):
-		self._test_examine_x509test_resultcode("certs/constructed/nsct_server.pem", expect_absent = "Cert_Purpose_NSCT_NoSSLServer", purpose = "tls-server")
+		self._test_examine_x509test_resultcode("certs/constructed/nsct_server.pem", expect_absent = "CertUsage_Purpose_ServerCert_NSCT_NoSSLServer", purpose = "tls-server")
 
 	def test_nsct_no_ca(self):
-		self._test_examine_x509test_resultcode("certs/constructed/nsct_client.pem", expect_present = "Cert_Purpose_NSCT_NoCA", purpose = "ca")
-		self._test_examine_x509test_resultcode("certs/constructed/nsct_server.pem", expect_present = "Cert_Purpose_NSCT_NoCA", purpose = "ca")
+		self._test_examine_x509test_resultcode("certs/constructed/nsct_client.pem", expect_present = "CertUsage_Purpose_CACert_NSCT_NoCA", purpose = "ca")
+		self._test_examine_x509test_resultcode("certs/constructed/nsct_server.pem", expect_present = "CertUsage_Purpose_CACert_NSCT_NoCA", purpose = "ca")
 
 	def test_nsct_is_ca(self):
-		self._test_examine_x509test_resultcode("certs/constructed/nsct_ssl_ca.pem", expect_absent = "Cert_Purpose_NSCT_NoCA", purpose = "ca")
-		self._test_examine_x509test_resultcode("certs/constructed/nsct_smime_ca.pem", expect_absent = "Cert_Purpose_NSCT_NoCA", purpose = "ca")
-		self._test_examine_x509test_resultcode("certs/constructed/nsct_objsign_ca.pem", expect_absent = "Cert_Purpose_NSCT_NoCA", purpose = "ca")
+		self._test_examine_x509test_resultcode("certs/constructed/nsct_ssl_ca.pem", expect_absent = "CertUsage_Purpose_CACert_NSCT_NoCA", purpose = "ca")
+		self._test_examine_x509test_resultcode("certs/constructed/nsct_smime_ca.pem", expect_absent = "CertUsage_Purpose_CACert_NSCT_NoCA", purpose = "ca")
+		self._test_examine_x509test_resultcode("certs/constructed/nsct_objsign_ca.pem", expect_absent = "CertUsage_Purpose_CACert_NSCT_NoCA", purpose = "ca")
 
 	def test_nsct_ssl_ca(self):
-		self._test_examine_x509test_resultcode("certs/constructed/nsct_ssl_ca.pem", expect_absent = [ "Cert_Purpose_NSCT_NonSSLCA", "Cert_Purpose_NSCT_NoCA"], purpose = "ca")
-		self._test_examine_x509test_resultcode("certs/constructed/nsct_smime_ca.pem", expect_present = "Cert_Purpose_NSCT_NonSSLCA", expect_absent = "Cert_Purpose_NSCT_NoCA", purpose = "ca")
-		self._test_examine_x509test_resultcode("certs/constructed/nsct_objsign_ca.pem", expect_present = "Cert_Purpose_NSCT_NonSSLCA", expect_absent = "Cert_Purpose_NSCT_NoCA", purpose = "ca")
+		self._test_examine_x509test_resultcode("certs/constructed/nsct_ssl_ca.pem", expect_absent = [ "CertUsage_Purpose_CACert_NSCT_NoSSLCA", "CertUsage_Purpose_CACert_NSCT_NoCA"], purpose = "ca")
+		self._test_examine_x509test_resultcode("certs/constructed/nsct_smime_ca.pem", expect_present = "CertUsage_Purpose_CACert_NSCT_NoSSLCA", expect_absent = "CertUsage_Purpose_CACert_NSCT_NoCA", purpose = "ca")
+		self._test_examine_x509test_resultcode("certs/constructed/nsct_objsign_ca.pem", expect_present = "CertUsage_Purpose_CACert_NSCT_NoSSLCA", expect_absent = "CertUsage_Purpose_CACert_NSCT_NoCA", purpose = "ca")
 
 	def test_nsct_unused(self):
 		self._test_examine_x509test_resultcode("certs/constructed/nsct_unused.pem", expect_present = "X509Cert_Body_X509Exts_Ext_NSCT_UnusedBitSet")

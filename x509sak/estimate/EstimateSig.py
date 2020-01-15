@@ -95,7 +95,7 @@ class SignatureSecurityEstimator(BaseEstimator):
 		if isinstance(signature_alg.value.oid, (tuple, list)):
 			# Have more than one OID for this
 			if signature_alg.value.oid[0] != signature_alg_oid:
-				judgements += SecurityJudgement(JudgementCode.SignatureFunction_NonPreferred_OID, "Signature algorithm uses alternate OID %s for algorithm %s. Preferred OID would be %s." % (signature_alg_oid, signature_alg.name, signature_alg.value.oid[0]), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
+				judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Signature_Function_DeprecatedOID, "Signature algorithm uses alternate OID %s for algorithm %s. Preferred OID would be %s." % (signature_alg_oid, signature_alg.name, signature_alg.value.oid[0]), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
 
 		if signature_alg.value.hash_fnc is not None:
 			# Signature algorithm already implies a concrete hash function, already done.

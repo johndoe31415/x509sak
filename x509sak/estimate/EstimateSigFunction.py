@@ -30,9 +30,9 @@ class SignatureFunctionSecurityEstimator(BaseEstimator):
 	def analyze(self, sig_fnc):
 		judgements = SecurityJudgements()
 		if sig_fnc.value.name == "rsa-ssa-pss":
-			judgements += SecurityJudgement(JudgementCode.SignatureFunction_UncommonPaddingScheme, "Not widely used padding scheme for RSA.", compatibility = Compatibility.LIMITED_SUPPORT)
+			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Signature_Function_UncommonPadding, "Not widely used padding scheme for RSA.", compatibility = Compatibility.LIMITED_SUPPORT)
 		elif sig_fnc.value.name == "eddsa":
-			judgements += SecurityJudgement(JudgementCode.SignatureFunction_UncommonCryptosystem, "Not widely used cryptosystem.", verdict = Verdict.BEST_IN_CLASS, compatibility = Compatibility.LIMITED_SUPPORT)
+			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Signature_Function_UncommonCryptosystem, "Not widely used cryptosystem.", verdict = Verdict.BEST_IN_CLASS, compatibility = Compatibility.LIMITED_SUPPORT)
 		else:
 			judgements += SecurityJudgement(JudgementCode.SignatureFunction_Common, "Commonly used signature function.", commonness = Commonness.COMMON)
 

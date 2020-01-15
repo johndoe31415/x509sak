@@ -230,9 +230,11 @@
 		},
 		"Signature": {
 			"Function": {
-				"Unknown": { "_desc": "Unknown signature function used" },
-				"Deprecated OID": { "_desc": "Deprecated OID used" },
-				"Body Mismatch": { "_desc": "Signature function indicated in body of certificate does not match that indicated in signature portion" }
+				"Unknown": { "_desc": "unknown signature function used" },
+				"Deprecated OID": { "_desc": "deprecated OID used" },
+				"Body Mismatch": { "_desc": "signature function indicated in body of certificate does not match that indicated in signature portion" },
+				"Uncommon Padding": { "_desc": "uncommon padding scheme used" },
+				"Uncommon Cryptosystem": { "_desc": "uncommon cryptosystem used" }
 			},
 			"ECDSA": {
 				"_import": [ "dsa_signature/*", "asn1_encoding_issues/*" ]
@@ -303,6 +305,11 @@
 				"Extended Key Usage Mismatch": {
 					"_label": "EKU Mismatch",
 					"_desc": "extended key usage does not include TODO"
+				},
+				"Netscape Certificate Type": {
+					"_label": "NSCT",
+					"No SSL CA": { "_desc": "NSCT extension does not contain sslCA flag" },
+					"No CA": { "_desc": "NSCT extension does not contain any CA flag" }
 				}
 			}
 		},
@@ -331,11 +338,6 @@
 					"Match": { "_desc": "key ID in AKI extension matches key ID of CA certifiate SKI extension" },
 					"Mismatch": { "_desc": "key ID in AKI extension does not match key ID of CA certifiate SKI extension" },
 					"Uncheckable": { "_desc": "key ID in AKI extension cannot be checked against CA because CA contains no SKI extension" }
-				},
-				"Netscape Certificate Type": {
-					"_label": "NSCT",
-					"No SSL CA": { "_desc": "NSCT extension does not contain sslCA flag" },
-					"No CA": { "_desc": "NSCT extension does not contain any CA flag" }
 				}
 			},
 			"Validity Periods": {
