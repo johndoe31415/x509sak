@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2018 Johannes Bauer
+#	Copyright (C) 2018-2020 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -35,9 +35,9 @@ class SecurityJudgementTests(BaseTest):
 		self.assertEqual(judgement.commonness, Commonness.HIGHLY_UNUSUAL)
 
 		result = judgement.to_dict()
-		self.assertEqual(result["code"], judgement.code.name)
-		self.assertEqual(result["topic"], judgement.code.topic)
-		self.assertEqual(result["short_text"], judgement.code.short_text)
+		self.assertEqual(result["code"], judgement.code.value.code)
+		self.assertEqual(result["topic"], judgement.code.value.topic)
+		self.assertEqual(result["short_text"], judgement.code.value.short_text)
 		self.assertEqual(result["text"], judgement.text)
 		self.assertEqual(result["bits"], judgement.bits)
 

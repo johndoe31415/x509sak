@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2019 Johannes Bauer
+#	Copyright (C) 2018-2020 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -25,7 +25,7 @@ from x509sak.tests import BaseTest, ResourceFileLoader
 from x509sak.Tools import FileLockTools
 from x509sak.CertificateAnalyzer import CertificateAnalyzer
 from x509sak.X509Certificate import X509Certificate
-from x509sak.estimate.Judgement import JudgementCode
+from x509sak.estimate import ExperimentalJudgementCodes
 
 class SecurityAnalyzerTests(BaseTest):
 	def _update_stats_file(self, certname, parent_certname, encountered_codes, checked_codes):
@@ -67,11 +67,10 @@ class SecurityAnalyzerTests(BaseTest):
 		# check the empty string because we often use that for debugging and
 		# it's *obviously* wrong.
 
-		# TODO disable while we're refatoring to ExperimentalJudgementCodes
-#		if expect_present != ("", ):
-#			self.assertTrue(all(getattr(JudgementCode, codename, None) is not None for codename in expect_present))
-#		if expect_absent != ("", ):
-#			self.assertTrue(all(getattr(JudgementCode, codename, None) is not None for codename in expect_absent))
+		if expect_present != ("", ):
+			self.assertTrue(all(getattr(ExperimentalJudgementCodes, codename, None) is not None for codename in expect_present))
+		if expect_absent != ("", ):
+			self.assertTrue(all(getattr(ExperimentalJudgementCodes, codename, None) is not None for codename in expect_absent))
 
 		if expect_parse_failure:
 			with self.assertRaises(UnexpectedFileContentException):
@@ -504,10 +503,10 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/rsa_parameter_missing.pem", "X509Cert_PublicKey_RSA_ParameterFieldNotPresent")
 
 	def test_include_raw_data_rsa(self):
-		self._test_examine_x509test_resultcode("certs/ok/rsa_512.pem", expect_present = [ "SignatureFunction_Common", "HashFunction_Derated", "X509Cert_PublicKey_RSA_Modulus_LengthInBits", "HashFunction_Length" ], include_raw = True)
+		self._test_examine_x509test_resultcode("certs/ok/rsa_512.pem", expect_present = [ "X509Cert_Signature_Function_Common", "X509Cert_Signature_HashFunction_Derated", "X509Cert_PublicKey_RSA_Modulus_LengthInBits", "X509Cert_Signature_HashFunction_DigestLengthInBits" ], include_raw = True)
 
 	def test_include_raw_data_ecc_fp(self):
-		self._test_examine_x509test_resultcode("certs/ok/ecc_secp256r1.pem", expect_present = "SignatureFunction_Common", include_raw = True)
+		self._test_examine_x509test_resultcode("certs/ok/ecc_secp256r1.pem", expect_present = "X509Cert_Signature_Function_Common", include_raw = True)
 
 	def test_include_raw_data_ecc_f2m(self):
 		self._test_examine_x509test_resultcode("certs/ok/ecc_sect283r1.pem", include_raw = True)
@@ -573,10 +572,10 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/san_bad_domain_single_label.pem", expect_present = "X509Cert_Body_X509Exts_Ext_SAN_Name_DNS_SingleLabel")
 
 	def test_san_missing(self):
-		self._test_examine_x509test_resultcode("certs/constructed/san_missing.pem", expect_present = "Cert_X509Ext_SubjectAltName_Missing")
+		self._test_examine_x509test_resultcode("certs/constructed/san_missing.pem", expect_present = "X509Cert_Body_X509Exts_Ext_SAN_Missing")
 
 	def test_san_missing_nosubject(self):
-		self._test_examine_x509test_resultcode("certs/constructed/san_missing_nosubject.pem", expect_present = "Cert_X509Ext_SubjectAltName_Missing")
+		self._test_examine_x509test_resultcode("certs/constructed/san_missing_nosubject.pem", expect_present = "X509Cert_Body_X509Exts_Ext_SAN_Missing")
 
 	def test_san_bad_uri(self):
 		self._test_examine_x509test_resultcode("certs/constructed/san_bad_uri.pem", expect_present = "X509Cert_Body_X509Exts_Ext_SAN_Name_URI_Malformed")
@@ -629,7 +628,7 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/dn_cn_hostname_multivalue_rdn.pem", expect_present = "CertUsage_Purpose_ServerCert_CN_MatchMultivalueRDN", expect_absent = "X509Cert_Body_FIXME_NoCN", host_check = "multivalue.com")
 
 	def test_cn_match_fqdn(self):
-		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", expect_present = "CertUsage_Purpose_ServerCert_CN_Match", expect_absent = "Cert_X509Ext_SubjectAltName_Missing", host_check = "johannes-bauer.com")
+		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", expect_present = "CertUsage_Purpose_ServerCert_CN_Match", expect_absent = "X509Cert_Body_X509Exts_Ext_SAN_Missing", host_check = "johannes-bauer.com")
 
 	def test_cn_no_match_fqdn(self):
 		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", expect_present = [ "CertUsage_Purpose_ServerCert_CN_Mismatch", "Cert_Name_Verification_Failed" ], host_check = "pupannes-bauer.com")
@@ -665,10 +664,10 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/ok/rsapss_defaults.pem", expect_present = "X509Cert_Signature_Function_UncommonPadding")
 
 	def test_rsa_pss_unknown_hashfnc1(self):
-		self._test_examine_x509test_resultcode("certs/constructed/unknown_hashfnc1.pem", expect_present = "Cert_Unknown_HashAlgorithm")
+		self._test_examine_x509test_resultcode("certs/constructed/unknown_hashfnc1.pem", expect_present = "X509Cert_Signature_HashFunction_Unknown")
 
 	def test_rsa_pss_unknown_hashfnc2(self):
-		self._test_examine_x509test_resultcode("certs/constructed/unknown_hashfnc2.pem", expect_present = "Cert_Unknown_HashAlgorithm")
+		self._test_examine_x509test_resultcode("certs/constructed/unknown_hashfnc2.pem", expect_present = "X509Cert_Signature_HashFunction_Unknown")
 
 	def test_rsa_pss_unknown_maskfnc(self):
 		self._test_examine_x509test_resultcode("certs/constructed/unknown_maskfnc.pem", expect_present = "Cert_Unknown_MaskAlgorithm")
@@ -744,7 +743,7 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/dsa_sig_malformed.pem", expect_present = "X509Cert_Signature_DSA_Malformed_Undecodable")
 
 	def test_dsa_typical_parameters(self):
-		self._test_examine_x509test_resultcode("certs/ok/dsa_sha1.pem", expect_present = [ "X509Cert_PublicKey_DSA_L_N_Common", "DSA_Security_Level" ], expect_absent = "X509Cert_PublicKey_DSA_L_N_Uncommon", include_raw = True)
+		self._test_examine_x509test_resultcode("certs/ok/dsa_sha1.pem", expect_present = [ "X509Cert_PublicKey_DSA_L_N_Common", "X509Cert_PublicKey_DSA_L_N" ], expect_absent = "X509Cert_PublicKey_DSA_L_N_Uncommon", include_raw = True)
 
 	def test_dsa_atypical_parameters(self):
 		self._test_examine_x509test_resultcode("certs/ok/dsa_512_160_sha256.pem", expect_present = "X509Cert_PublicKey_DSA_L_N_Uncommon", expect_absent = "X509Cert_PublicKey_DSA_L_N_Common")

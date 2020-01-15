@@ -60,7 +60,7 @@ class CertificateEstimator(BaseEstimator):
 		except pyasn1.error.PyAsn1Error:
 			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_RSA_RSAPSS_Parameters_Malformed_Undecodable, "Certificate public key uses invalid DER encoding. Re-encoding was not possible.", compatibility = Compatibility.STANDARDS_DEVIATION)
 		except NotImplementedError as e:
-			judgements += SecurityJudgement(JudgementCode.Cert_Pubkey_ReencodingCheckMissing, "Missing check due to non-implemented functionality: %s" % (str(e)), commonness = Commonness.UNUSUAL)
+			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509sakIssues_PublicKeyReencodingMissing, "Missing check due to non-implemented functionality: %s" % (str(e)), commonness = Commonness.UNUSUAL)
 		except CurveNotFoundException:
 			# We ignore this for the re-encoding, but have an explcit check for
 			# it in the EC checks that raises ECC_UnknownNamedCurve

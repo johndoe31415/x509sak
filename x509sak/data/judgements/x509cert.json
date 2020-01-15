@@ -252,7 +252,9 @@
 			}
 		},
 		"Signature": {
+			"_import": "crypto_hash{name=signature}",
 			"Function": {
+				"Common": { "_desc": "commonly used signature function" },
 				"Unknown": { "_desc": "unknown signature function used" },
 				"Deprecated OID": { "_desc": "deprecated OID used" },
 				"Body Mismatch": { "_desc": "signature function indicated in body of certificate does not match that indicated in signature portion" },

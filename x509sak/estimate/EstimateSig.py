@@ -44,13 +44,13 @@ class SignatureSecurityEstimator(BaseEstimator):
 			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_RSA_RSAPSS_Parameters_TrailingData, "RSA/PSS parameter encoding has %d bytes of trailing data." % (len(rsapss.asn1_tail)), commonness = Commonness.HIGHLY_UNUSUAL)
 
 		if rsapss.hash_algorithm is None:
-			judgements += SecurityJudgement(JudgementCode.Cert_Unknown_HashAlgorithm, "Certificate has unknown hash function for use in RSA-PSS, OID %s. Cannot make security determination for that part." % (rsapss.hash_algorithm_oid), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
+			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Signature_HashFunction_Unknown, "Certificate has unknown hash function for use in RSA-PSS, OID %s. Cannot make security determination for that part." % (rsapss.hash_algorithm_oid), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
 
 		if rsapss.mask_algorithm is None:
 			judgements += SecurityJudgement(JudgementCode.Cert_Unknown_MaskAlgorithm, "Certificate has unknown mask function for use in RSA-PSS, OID %s." % (rsapss.mask_algorithm_oid), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
 
 		if rsapss.mask_hash_algorithm is None:
-			judgements += SecurityJudgement(JudgementCode.Cert_Unknown_HashAlgorithm, "Certificate has unknown mask hash function for use in RSA-PSS, OID %s." % (rsapss.mask_hash_algorithm_oid), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
+			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Signature_HashFunction_Unknown, "Certificate has unknown mask hash function for use in RSA-PSS, OID %s." % (rsapss.mask_hash_algorithm_oid), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
 
 		if rsapss.trailer_field_value is None:
 			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_RSA_RSA_PSS_UnknownTrailerField, "Certificate has unknown trailer field for use in RSA-PSS, trailer field ID %d." % (rsapss.trailer_field), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
@@ -76,7 +76,7 @@ class SignatureSecurityEstimator(BaseEstimator):
 			(hash_fnc, new_judgements) = self._analyze_rsa_pss_signature_params(signature_alg_params)
 			judgements += new_judgements
 		else:
-			judgements += SecurityJudgement(JudgementCode.Analysis_Not_Implemented, "Cannot determine hash function for signature algorithm %s. This might be a shortcoming of x509sak; please report the certificate in question to the developers." % (signature_alg.name))
+			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509sakIssues_AnalysisNotImplemented, "Cannot determine hash function for signature algorithm %s. This might be a shortcoming of x509sak; please report the certificate in question to the developers." % (signature_alg.name))
 
 		return (hash_fnc, judgements)
 

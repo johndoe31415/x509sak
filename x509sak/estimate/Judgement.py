@@ -25,7 +25,11 @@ from x509sak.Exceptions import LazyDeveloperException
 from x509sak.KwargsChecker import KwargsChecker
 from x509sak.estimate import ExperimentalJudgementCodes
 
+
 class JudgementCode(enum.Enum):
+	pass
+
+class OLDJudgementCode(enum.Enum):
 #	RSA_Parameter_Field_Not_Present = ("RSA pubkey", "parameter field not present")
 #	RSA_Parameter_Field_Not_Null = ("RSA pubkey", "parameter field not NULL")
 #	RSA_Exponent_Is_Zero_Or_Negative = ("RSA Exponent", "e is zero or negative")
@@ -61,7 +65,7 @@ class JudgementCode(enum.Enum):
 #	DSA_Signature_S_BitBias = ("DSA signature", "S value has bit bias")
 #	DSA_Signature_Malformed = ("DSA signature", "signature is malformed")
 #	DSA_Signature_TrailingData = ("DSA signature", "signature has trailing data")
-	DSA_Security_Level = ("DSA parameters", "security estimation")
+#	DSA_Security_Level = ("DSA parameters", "security estimation")
 #	ECC_Pubkey_CurveOrder = ("ECC pubkey", "curve order")
 #	ECC_Pubkey_Not_On_Curve = ("ECC pubkey", "point not on curve")
 #	ECC_Pubkey_Is_G = ("ECC pubkey", "point is generator")
@@ -174,7 +178,7 @@ class JudgementCode(enum.Enum):
 	Cert_X509Ext_IssuerAltName_UncommonIdentifier = ("X.509 IssuerAlternativeName", "uncommon identifier")
 	Cert_X509Ext_IssuerAltName_Critical = ("X.509 IssuerAlternativeName", "extension marked as critical")
 
-	Cert_X509Ext_SubjectAltName_Missing = ("X.509 SubjectAlternativeName", "extension not present")
+#	Cert_X509Ext_SubjectAltName_Missing = ("X.509 SubjectAlternativeName", "extension not present")
 	Cert_X509Ext_SubjectAltName_Empty = ("X.509 SubjectAlternativeName", "no names given")
 	Cert_X509Ext_SubjectAltName_EmptyValue = ("X.509 SubjectAlternativeName", "no value given")
 #	Cert_X509Ext_SubjectAltName_BadIP = ("X.509 SubjectAlternativeName", "invalid IP address")
@@ -268,12 +272,12 @@ class JudgementCode(enum.Enum):
 
 #	SignatureFunction_UncommonPaddingScheme = ("Signature function", "uncommon padding scheme")
 #	SignatureFunction_UncommonCryptosystem = ("Signature function", "uncommon cryptosystem")
-	SignatureFunction_Common = ("Signature function", "common signature function")
+#	SignatureFunction_Common = ("Signature function", "common signature function")
 #	SignatureFunction_NonPreferred_OID = ("Signature function", "not preferred OID used")
-	HashFunction_Length = ("Hash function", "length of output")
-	HashFunction_Derated = ("Hash function", "derating of security level")
+#	HashFunction_Length = ("Hash function", "length of output")
+#	HashFunction_Derated = ("Hash function", "derating of security level")
 #	Cert_Invalid_DER = ("Certificate encoding", "invalid DER used")
-	Cert_Pubkey_ReencodingCheckMissing = ("Certificate encoding", "re-encoding of key not implemented")
+#	Cert_Pubkey_ReencodingCheckMissing = ("Certificate encoding", "re-encoding of key not implemented")
 #	Cert_Pubkey_Invalid_DER = ("Certificate encoding", "invalid DER used in public key")
 #	Cert_CN_Match = ("Certificate identity", "CN matches expected name")
 #	Cert_CN_Match_MultiValue_RDN = ("Certificate identity", "CN matches expected name, but is multivalue RDN")
@@ -316,7 +320,7 @@ class JudgementCode(enum.Enum):
 #	DN_Contains_Duplicate_Set = ("Distinguished name", "duplicate in set present")
 #	DN_Contains_Duplicate_OID_In_Multivalued_RDN = ("Distinguished name", "duplicate OID in multivalued RDN")
 #	Cert_Unknown_SignatureAlgorithm = ("Certificate signature", "unknown signature algorithm")
-	Cert_Unknown_HashAlgorithm = ("Certificate signature", "unknown hash function")
+#	Cert_Unknown_HashAlgorithm = ("Certificate signature", "unknown hash function")
 	Cert_Unknown_MaskAlgorithm = ("Certificate signature", "unknown mask function")
 #	CA_Relationship_CACertificateInvalidAsCA = ("Certificate Authority relationship", "CA certificate invalid as a CA")
 #	CA_Relationship_SignatureVerificationFailure = ("Certificate Authority relationship", "signature cannot be verified with CA public key")
@@ -334,7 +338,7 @@ class JudgementCode(enum.Enum):
 #	CA_Relationship_Validity_NoOverlap = ("Certificate Authority relationship", "certificate and CA certificate lifetimes do not overlap")
 #	CA_Relationship_Validity_PartialOverlap = ("Certificate Authority relationship", "certificate and CA certificate lifetimes partially overlap")
 #	CA_Relationship_Validity_FullOverlap = ("Certificate Authority relationship", "certificate and CA certificate lifetimes fully overlap")
-	Analysis_Not_Implemented = ("x509sak", "functionality not implemented")
+#	Analysis_Not_Implemented = ("x509sak", "functionality not implemented")
 
 	@property
 	def topic(self):

@@ -85,7 +85,7 @@ class DSASecurityEstimator(BaseEstimator):
 		L_strength_bits = NumberTheory.asymtotic_complexity_gnfs_bits(pubkey.p)
 		N_strength_bits = math.floor(N / 2)
 		bits_security = min(L_strength_bits, N_strength_bits)
-		judgements += self.algorithm("bits").analyze(JudgementCode.DSA_Security_Level, bits_security)
+		judgements += self.algorithm("bits").analyze(ExperimentalJudgementCodes.X509Cert_PublicKey_DSA_L_N, bits_security)
 
 		result = {
 			"cryptosystem":	"dsa",

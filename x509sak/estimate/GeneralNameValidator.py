@@ -64,7 +64,7 @@ class GeneralNameValidator():
 		error = self._errors.get(error_type)
 		error_text = "%s of type %s %s" % (self._error_prefix_str, self._gn.name, error_text)
 		if error is None:
-			self._validation += SecurityJudgement(JudgementCode.Analysis_Not_Implemented, error_text + " (%s)" % (error_type), **kwargs)
+			self._validation += SecurityJudgement(ExperimentalJudgementCodes.X509sakIssues_AnalysisNotImplemented, error_text + " (%s)" % (error_type), **kwargs)
 		else:
 			self._validation += SecurityJudgement(error.code, error_text, standard = error.standard, **kwargs)
 

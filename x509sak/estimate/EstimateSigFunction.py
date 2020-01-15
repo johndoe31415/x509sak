@@ -34,7 +34,7 @@ class SignatureFunctionSecurityEstimator(BaseEstimator):
 		elif sig_fnc.value.name == "eddsa":
 			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Signature_Function_UncommonCryptosystem, "Not widely used cryptosystem.", verdict = Verdict.BEST_IN_CLASS, compatibility = Compatibility.LIMITED_SUPPORT)
 		else:
-			judgements += SecurityJudgement(JudgementCode.SignatureFunction_Common, "Commonly used signature function.", commonness = Commonness.COMMON)
+			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Signature_Function_Common, "Commonly used signature function.", commonness = Commonness.COMMON)
 
 		return {
 			"name":			sig_fnc.name,

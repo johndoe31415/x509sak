@@ -41,6 +41,7 @@
 				},
 				"L/N": {
 					"_flags": [ "datapoint" ],
+					"_desc": "DSA security level L/N",
 					"Uncommon": { "_desc": "parameter values L/N are uncommon" },
 					"Common": { "_desc": "parameter values L/N are common" }
 				}
@@ -103,11 +104,13 @@
 		},
 		"Symmetric Cryptography": {
 			"Hash Function": {
+				"_short_id": "crypto_hash",
 				"Digest Length in Bits": {
-					"_flags": [ "datapoint" ]
-				}
-			},
-			"Encryption Algorithm": {
+					"_flags": [ "datapoint" ],
+					"_desc": "hash function digest length in bits"
+				},
+				"Unknown": { "_desc": "unknown hash function used" },
+				"Derated": { "_desc": "hash function security derated because of cryptographic weakness" }
 			}
 		}
 	}

@@ -29,5 +29,10 @@
 			"Not Allowed v1": { "_desc": "$name unique ID not allowed in version 1 certificate" },
 			"Not Allowed CA": { "_desc": "$name unique ID not allowed in CA certificate" }
 		}
+	},
+
+	"x509sak Issues": {
+		"Public Key Reencoding Missing": { "_desc": "public key re-encoding not implemented" },
+		"Analysis Not Implemented": { "_desc": "analysis not implemented" }
 	}
 }
