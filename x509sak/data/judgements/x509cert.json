@@ -1,7 +1,9 @@
 {
 	"X.509 Certificate": {
 		"_label": "X509Cert",
+		"_import": "asn1_encoding_issues/*",
 		"Public Key": {
+			"_import": "asn1_encoding_issues/*",
 			"RSA": {
 				"_import": [ "rsa_algorithm/*", "rsa_crypto/*", "rsa_pubkey_encoding_issues/*" ]
 			},
@@ -58,6 +60,15 @@
 			},
 			"Serial Number": {
 				"_import": "integer_checks:zero,neg,large{name=serial number}"
+			},
+			"FIXME Unique ID": {
+				"_import": "*unique_id_issues/*{name=FIXME}"
+			},
+			"Issuer Unique ID": {
+				"_import": "*unique_id_issues/*{name=issuer}"
+			},
+			"Subject Unique ID": {
+				"_import": "*unique_id_issues/*{name=subject}"
 			},
 			"X.509 Extensions": {
 				"_label": "X509Exts",
@@ -191,16 +202,25 @@
 						"No Point with all reason bits": { "_desc": "CRLDP extension contains no point that has all reason bits set" },
 						"Point with only Reasons": { "_desc": "CDLDP extension contains a point that only has the 'reason' bit set" },
 						"Segmentation used": { "_desc": "CRLDP contains points that contain CRLs that are not universal" },
+						"NoLDAPorHTTPURI": { "_desc": "CRLDP point contains point with no HTTP or LDAP URI" },
 						"Point Name": {
 							"_import": "general_name_issues/*:ldap_validation",
-							"NoLDAPorHTTPURI": { "_desc": "CRLDP point contains point with no HTTP or LDAP URI" },
-							"Possibly no DER CRL served": { "_desc": "CRLDP point serves potentialla non-DER CRL" }
+							"Possibly no DER CRL served": { "_desc": "CRLDP point serves potentialla non-DER CRL" },
+							"Relative Distinguished Name": {
+								"_label": "RDN",
+								"Malformed": { "_desc": "relative distinguished name is malformed" },
+								"Present": { "_desc": "relative distinguished name present" },
+								"Ambiguous": { "_desc": "relative distinguished name is ambiguous" }
+							}
 						},
 						"Reasons": {
-							"_import": "bitstring_issues/*"
+							"_import": "bitstring_issues/*",
+							"Unused Bits Asserted": { "_desc": "unused reason bits asserted" },
+							"Undefined Bits Asserted": { "_desc": "undefined reason bits asserted" }
 						},
 						"CRL Issuer": {
-							"_import": "general_name_issues/*"
+							"_import": "general_name_issues/*",
+							"Redundant": { "_desc": "redundant use of cRLIssuer field" }
 						}
 					},
 					"Certificate Transparency Precertificate Poison": {
@@ -213,6 +233,9 @@
 					"Certificate Transparency Signed Certificate Timestamps": {
 						"_label": "CTSCT",
 						"_import": "asn1_encoding_issues/*",
+						"Malformed": {
+							"Content": { "_desc": "CTSCT content malformed" }
+						},
 						"SCT": {
 							"Unknown version": { "_desc": "CTSCTs extension contains SCT with unknown version" },
 							"Implausible timestamp": { "_desc": "CTSCTs extension contains SCT with implausible timestamp" },
@@ -245,19 +268,6 @@
 		}
 	},
 
-	"Usage Checks": {
-		"Extended Key Usage": {
-			"Excess Purpose Included": { },
-			"Required Purpose Missing": { },
-			"Extension Missing": { }
-		},
-		"Key Usage": {
-			"Excess Usage Bit Included": { },
-			"Required Usage Bit Missing": { },
-			"Extension Missing": { }
-		}
-	},
-
 	"Certificate Usage": {
 		"_label": "Cert Usage",
 		"Purposes": {
@@ -287,6 +297,7 @@
 				"Common Name": {
 					"_label": "CN",
 					"Match": { "_desc": "common name matches given server name" },
+					"Match Multivalue RDN": { "_desc": "common name matches given server name, but as part of a multi-valued RDN" },
 					"Mismatch": { "_desc": "common name does not match given server name" }
 				},
 				"Extended Key Usage Mismatch": {

@@ -21,5 +21,13 @@
 			"Excess Bits": { "_desc": "key usage extension contains excess bits for $purpose" },
 			"Unusual Bits": { "_desc": "key usage extension contains unusual bits for $purpose" }
 		}
+	},
+	"X.509 Structure": {
+		"_export": true,
+		"Unique ID Issues": {
+			"_short_id": "unique_id_issues",
+			"Not Allowed v1": { "_desc": "$name unique ID not allowed in version 1 certificate" },
+			"Not Allowed CA": { "_desc": "$name unique ID not allowed in CA certificate" }
+		}
 	}
 }

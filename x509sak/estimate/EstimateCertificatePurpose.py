@@ -44,7 +44,7 @@ class PurposeEstimator(BaseEstimator):
 				if found_rdn.component_cnt == 1:
 					judgements += SecurityJudgement(ExperimentalJudgementCodes.CertUsage_Purpose_ServerCert_CN_Match, "Common name (CN) matches '%s'." % (name), commonness = Commonness.COMMON)
 				else:
-					judgements += SecurityJudgement(ExperimentalJudgementCodes.CertUsage_Purpose_ServerCert_CN_Match_MultiValue_RDN, "Common name (CN) matches '%s', but is part of a multi-valued RDN: %s" % (name, found_rdn.pretty_str), commonness = Commonness.HIGHLY_UNUSUAL)
+					judgements += SecurityJudgement(ExperimentalJudgementCodes.CertUsage_Purpose_ServerCert_CN_MatchMultivalueRDN, "Common name (CN) matches '%s', but is part of a multi-valued RDN: %s" % (name, found_rdn.pretty_str), commonness = Commonness.HIGHLY_UNUSUAL)
 			else:
 				judgements += SecurityJudgement(ExperimentalJudgementCodes.CertUsage_Purpose_ServerCert_CN_Mismatch, "No common name (CN) matches '%s'." % (name), commonness = Commonness.UNUSUAL)
 

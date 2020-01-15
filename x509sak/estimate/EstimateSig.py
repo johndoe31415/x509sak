@@ -84,7 +84,7 @@ class SignatureSecurityEstimator(BaseEstimator):
 		judgements = SecurityJudgements()
 		signature_alg = SignatureAlgorithms.lookup("oid", signature_alg_oid)
 		if signature_alg is None:
-			judgements += SecurityJudgement(JudgementCode.Cert_Unknown_SignatureAlgorithm, "Certificate has unknown signature algorithm with OID %s. Cannot make security determination." % (signature_alg_oid), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
+			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Signature_Function_Unknown, "Certificate has unknown signature algorithm with OID %s. Cannot make security determination." % (signature_alg_oid), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
 			result = {
 				"name":			str(signature_alg_oid),
 				"pretty":		str(signature_alg_oid),

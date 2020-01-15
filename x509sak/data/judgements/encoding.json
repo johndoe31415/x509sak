@@ -39,7 +39,6 @@
 				},
 				"RSA Public Key": {
 					"_short_id": "rsa_pubkey_encoding_issues",
-					"_import": [ "asn1_encoding_issues/*" ],
 					"Parameter field not present": { "_desc": "parameter field is not present" },
 					"RSA Encryption": {
 						"Parameter field not NULL": { "_desc": "parameter field is not NULL" }
@@ -53,12 +52,10 @@
 					}
 				},
 				"DSA Public Key": {
-					"_short_id": "dsa_pubkey_encoding_issues",
-					"_import": "asn1_encoding_issues/*"
+					"_short_id": "dsa_pubkey_encoding_issues"
 				},
 				"ECDSA Public Key": {
 					"_short_id": "ecdsa_pubkey_encoding_issues",
-					"_import": "asn1_encoding_issues/*",
 					"Domain Parameters": {
 						"Binary Field": {
 							"Duplicate Polynomial Power": { "_desc": "duplicate power in field polynomial" },

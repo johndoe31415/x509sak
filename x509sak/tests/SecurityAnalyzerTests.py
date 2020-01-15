@@ -113,16 +113,16 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-algo-mismatch1.pem", "X509Cert_Signature_Function_BodyMismatch")
 
 	def test_examine_x509test_xf_der_invalid_bitstring(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-der-invalid-bitstring.pem", "Cert_Invalid_DER")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-der-invalid-bitstring.pem", "X509Cert_TrailingData")
 
 	def test_examine_x509test_xf_der_invalid_nonminimal_int(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-der-invalid-nonminimal-int.pem", "Cert_Invalid_DER")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-der-invalid-nonminimal-int.pem", "X509Cert_TrailingData")
 
 	def test_examine_x509test_xf_der_invalid_uniqueid(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-der-invalid-uniqueid.pem", expect_parse_failure = True)
 
 	def test_examine_x509test_xf_der_pubkey_rsa_nonminimal_int(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-der-pubkey-rsa-nonminimal-int.pem", "Cert_Pubkey_Invalid_DER")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-der-pubkey-rsa-nonminimal-int.pem", "X509Cert_PublicKey_RSA_RSAPSS_Parameters_Malformed_Undecodable")
 
 	def test_examine_x509test_xf_duplicate_extension(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-duplicate-extension.pem", "X509Cert_Body_X509Exts_DuplicatesPresent")
@@ -221,13 +221,13 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-crl-point-reasons-only.pem", "X509Cert_Body_X509Exts_Ext_CRLDP_PointWithOnlyReasons")
 
 	def test_examine_x509test_xf_ext_ct_poison(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-ct-poison.pem", "Cert_X509Ext_CertificateTransparencyPoison_IsPrecertificate")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-ct-poison.pem", "X509Cert_Body_X509Exts_Ext_CTPP_IsPrecertificate")
 
 	def test_examine_x509test_xf_ext_ct_sct_trailing_data(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-ct-sct-trailing-data.pem", "Cert_X509Ext_CertificateTransparencySCTs_TrailingData")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-ct-sct-trailing-data.pem", "X509Cert_Body_X509Exts_Ext_CTSCT_TrailingData")
 
 	def test_examine_x509test_xf_ext_ct_sct_wrong_type(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-ct-sct-wrong-type.pem", "Cert_X509Ext_CertificateTransparencySCTs_ASN1Malformed")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-ct-sct-wrong-type.pem", "X509Cert_Body_X509Exts_Ext_CTSCT_Malformed_Undecodable")
 
 	def test_examine_x509test_xf_ext_extended_any_key_usage(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-extended-any-key-usage.pem", "X509Cert_Body_X509Exts_Ext_EKU_AnyUsageCriticial")
@@ -404,13 +404,13 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-v1-extensions.pem", "Cert_X509Ext_NotAllowed")
 
 	def test_examine_x509test_xf_v1_uniqueid(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-v1-uniqueid.pem", "Cert_UniqueID_NotAllowed")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-v1-uniqueid.pem", "X509Cert_Body_FIXMEUniqueID_NotAllowedV1")
 
 	def test_examine_x509test_xf_v2_extensions(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-v2-extensions.pem", "Cert_X509Ext_NotAllowed")
 
 	def test_examine_x509test_xf_v3_uniqueid_noexts1(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-v3-uniqueid-noexts1.pem", [ "X509Cert_Body_Version_Not2", "Cert_UniqueID_NotAllowedForCA" ])
+		self._test_examine_x509test_resultcode("certs/x509test/xf-v3-uniqueid-noexts1.pem", [ "X509Cert_Body_Version_Not2", "X509Cert_Body_FIXMEUniqueID_NotAllowedCA" ])
 
 	def test_examine_x509test_xf_v3_uniqueid_noexts2(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-v3-uniqueid-noexts2.pem", "X509Cert_Body_Version_Not2")
@@ -626,7 +626,7 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/dn_duplicate_oid_in_mvrdn.pem", expect_present = "X509Cert_Body_FIXME_TODOREMOVEMEDuplicateOIDInMultivaluedRDN", expect_absent = "X509Cert_Body_FIXME_RDN_DuplicateSet")
 
 	def test_cn_match_fqdn_but_multivalue_rdn(self):
-		self._test_examine_x509test_resultcode("certs/constructed/dn_cn_hostname_multivalue_rdn.pem", expect_present = "Cert_CN_Match_MultiValue_RDN", expect_absent = "X509Cert_Body_FIXME_NoCN", host_check = "multivalue.com")
+		self._test_examine_x509test_resultcode("certs/constructed/dn_cn_hostname_multivalue_rdn.pem", expect_present = "CertUsage_Purpose_ServerCert_CN_MatchMultivalueRDN", expect_absent = "X509Cert_Body_FIXME_NoCN", host_check = "multivalue.com")
 
 	def test_cn_match_fqdn(self):
 		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", expect_present = "CertUsage_Purpose_ServerCert_CN_Match", expect_absent = "Cert_X509Ext_SubjectAltName_Missing", host_check = "johannes-bauer.com")
@@ -659,7 +659,7 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/validity_not_yet_valid.pem", expect_present = "X509Cert_Body_Validity_Status_NotYetValid")
 
 	def test_unknown_sigfnc(self):
-		self._test_examine_x509test_resultcode("certs/constructed/unknown_sigfnc.pem", expect_present = "Cert_Unknown_SignatureAlgorithm")
+		self._test_examine_x509test_resultcode("certs/constructed/unknown_sigfnc.pem", expect_present = "X509Cert_Signature_Function_Unknown")
 
 	def test_rsa_pss_ok(self):
 		self._test_examine_x509test_resultcode("certs/ok/rsapss_defaults.pem", expect_present = "X509Cert_Signature_Function_UncommonPadding")
@@ -1085,22 +1085,22 @@ class SecurityAnalyzerTests(BaseTest):
 	def test_unique_id_issuer(self):
 		# Same code point as subject unique ID, but different code path; test
 		# both paths for full coverage
-		self._test_examine_x509test_resultcode("certs/constructed/unique_id_issuer.pem", "Cert_UniqueID_NotAllowed")
+		self._test_examine_x509test_resultcode("certs/constructed/unique_id_issuer.pem", "X509Cert_Body_FIXMEUniqueID_NotAllowedV1")
 
 	def test_crldp_point_empty(self):
-		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_empty.pem", expect_present = [ "X509Cert_Body_X509Exts_Ext_CRLDP_Empty" ], expect_absent = [ "X509Cert_Body_X509Exts_Ext_CRLDP_PointWithOnlyReasons", "Cert_X509Ext_CRLDistributionPoints_Point_NoLDAPOrHTTPURIPresent" ])
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_empty.pem", expect_present = [ "X509Cert_Body_X509Exts_Ext_CRLDP_Empty" ], expect_absent = [ "X509Cert_Body_X509Exts_Ext_CRLDP_PointWithOnlyReasons", "X509Cert_Body_X509Exts_Ext_CRLDP_NoLDAPorHTTPURI" ])
 
 	def test_crldp_point_no_http_ldap(self):
-		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_no_http_ldap.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_Point_NoLDAPOrHTTPURIPresent")
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_no_http_ldap.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_NoLDAPorHTTPURI")
 
 	def test_crldp_reason_unused_bit_set(self):
-		self._test_examine_x509test_resultcode("certs/constructed/crldp_reason_unused_bit_set.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_Reasons_UnusedBitAsserted", expect_absent = "Cert_X509Ext_CRLDistributionPoints_Reasons_UndefinedBitAsserted")
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_reason_unused_bit_set.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_Reasons_UnusedBitsAsserted", expect_absent = "X509Cert_Body_X509Exts_Ext_CRLDP_Reasons_UndefinedBitsAsserted")
 
 	def test_crldp_reason_undefined_bits_set(self):
-		self._test_examine_x509test_resultcode("certs/constructed/crldp_reason_undefined_bits_set.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_Reasons_UndefinedBitAsserted", expect_absent = "Cert_X509Ext_CRLDistributionPoints_Reasons_UnusedBitAsserted")
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_reason_undefined_bits_set.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_Reasons_UndefinedBitsAsserted", expect_absent = "X509Cert_Body_X509Exts_Ext_CRLDP_Reasons_UnusedBitsAsserted")
 
 	def test_crldp_reason_trailing_bits(self):
-		self._test_examine_x509test_resultcode("certs/constructed/crldp_reason_trailing_bits.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_Reasons_TrailingBits")
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_reason_trailing_bits.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_Reasons_TrailingZeros")
 
 	def test_crldp_reason_only_field(self):
 		self._test_examine_x509test_resultcode("certs/constructed/crldp_reason_only_field.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_PointWithOnlyReasons")
@@ -1157,16 +1157,16 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_valid_ldap_dn.pem", expect_absent = "Cert_X509Ext_CRLDistributionPoints_PointName_ContainsInvalidLDAPDN")
 
 	def test_crldp_malformed(self):
-		self._test_examine_x509test_resultcode("certs/constructed/crldp_malformed.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_Malformed")
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_malformed.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_Malformed_Undecodable")
 
 	def test_crldp_point_rdn_used(self):
-		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_rdn_used.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_PointName_RDN_Used")
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_rdn_used.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_PointName_RDN_Present")
 
 	def test_crldp_point_rdn_malformed(self):
 		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_rdn_malformed.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_PointName_RDN_Malformed")
 
 	def test_crldp_point_rdn_ambiguous(self):
-		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_rdn_ambiguous.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_PointName_RDN_Ambiguous")
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_rdn_ambiguous.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_PointName_RDN_Ambiguous")
 
 	def test_crldp_point_name_empty_value(self):
 		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_name_empty_value.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_PointName_EmptyValue")
@@ -1199,28 +1199,28 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/crldp_issuer_name_uncommon_uri_scheme.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_CRLIssuer_URI_UncommonURIScheme")
 
 	def test_crldp_issuer_redundantly_present(self):
-		self._test_examine_x509test_resultcode("certs/constructed/crldp_issuer_redundantly_present.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_CRLIssuer_RedundantlyPresent")
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_issuer_redundantly_present.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_CRLIssuer_Redundant")
 
 	def test_ct_poison_invalid_payload(self):
-		self._test_examine_x509test_resultcode("certs/constructed/ct_poison_invalid_payload.pem", expect_present = "Cert_X509Ext_CertificateTransparencyPoison_InvalidPayload")
+		self._test_examine_x509test_resultcode("certs/constructed/ct_poison_invalid_payload.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CTPP_InvalidPayload")
 
 	def test_ct_poison_malformed(self):
-		self._test_examine_x509test_resultcode("certs/constructed/ct_poison_malformed.pem", expect_present = "Cert_X509Ext_CertificateTransparencyPoison_MalformedPayload")
+		self._test_examine_x509test_resultcode("certs/constructed/ct_poison_malformed.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CTPP_Malformed_Undecodable")
 
 	def test_ct_poison_ok(self):
-		self._test_examine_x509test_resultcode("certs/constructed/ct_poison_ok.pem", expect_absent = [ "Cert_X509Ext_CertificateTransparencyPoison_MalformedPayload", "Cert_X509Ext_CertificateTransparencyPoison_InvalidPayload" ])
+		self._test_examine_x509test_resultcode("certs/constructed/ct_poison_ok.pem", expect_absent = [ "X509Cert_Body_X509Exts_Ext_CTPP_Malformed_Undecodable", "X509Cert_Body_X509Exts_Ext_CTPP_InvalidPayload" ])
 
 	def test_ct_poison_not_critical(self):
-		self._test_examine_x509test_resultcode("certs/constructed/ct_poison_not_critical.pem", expect_present = "Cert_X509Ext_CertificateTransparencyPoison_NotCritical")
+		self._test_examine_x509test_resultcode("certs/constructed/ct_poison_not_critical.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CTPP_NotCritical")
 
 	def test_ct_scts_malformed(self):
-		self._test_examine_x509test_resultcode("certs/constructed/ct_scts_malformed.pem", expect_present = "Cert_X509Ext_CertificateTransparencySCTs_ASN1Malformed")
+		self._test_examine_x509test_resultcode("certs/constructed/ct_scts_malformed.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CTSCT_Malformed_Undecodable")
 
 	def test_ct_scts_ok(self):
-		self._test_examine_x509test_resultcode("certs/constructed/ct_scts_ok.pem", expect_absent = [ "X509Cert_Body_X509Exts_Ext_CTSCT_SCT_InvalidSignatureFunction", "X509Cert_Body_X509Exts_Ext_CTSCT_SCT_InvalidHashFunction", "Cert_X509Ext_CertificateTransparencySCTs_ASN1Malformed", "Cert_X509Ext_CertificateTransparencySCTs_ContentMalformed" ])
+		self._test_examine_x509test_resultcode("certs/constructed/ct_scts_ok.pem", expect_absent = [ "X509Cert_Body_X509Exts_Ext_CTSCT_SCT_InvalidSignatureFunction", "X509Cert_Body_X509Exts_Ext_CTSCT_SCT_InvalidHashFunction", "X509Cert_Body_X509Exts_Ext_CTSCT_Malformed_Undecodable", "X509Cert_Body_X509Exts_Ext_CTSCT_Malformed_Content" ])
 
 	def test_ct_scts_content_malformed(self):
-		self._test_examine_x509test_resultcode("certs/constructed/ct_scts_content_malformed.pem", expect_present = "Cert_X509Ext_CertificateTransparencySCTs_ContentMalformed")
+		self._test_examine_x509test_resultcode("certs/constructed/ct_scts_content_malformed.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CTSCT_Malformed_Content")
 
 	def test_ct_scts_hash_sha384(self):
 		self._test_examine_x509test_resultcode("certs/constructed/ct_scts_hash_sha384.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CTSCT_SCT_InvalidHashFunction")

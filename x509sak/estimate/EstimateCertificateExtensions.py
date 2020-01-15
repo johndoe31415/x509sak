@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2019 Johannes Bauer
+#	Copyright (C) 2018-2020 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -157,16 +157,16 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		if certificate.version not in [ 2, 3 ]:
 			standard = RFCReference(rfcno = 5280, sect = "4.1.2.8", verb = "MUST", text = "These fields MUST only appear if the version is 2 or 3 (Section 4.1.2.1). These fields MUST NOT appear if the version is 1.")
 			if certificate.issuer_unique_id is not None:
-				judgements += SecurityJudgement(JudgementCode.Cert_UniqueID_NotAllowed, "Issuer unique IDs is present in v%d certificate." % (certificate.version), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+				judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_FIXMEUniqueID_NotAllowedV1, "Issuer unique IDs is present in v%d certificate." % (certificate.version), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 			if certificate.subject_unique_id is not None:
-				judgements += SecurityJudgement(JudgementCode.Cert_UniqueID_NotAllowed, "Subject unique IDs is present in v%d certificate." % (certificate.version), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+				judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_FIXMEUniqueID_NotAllowedV1, "Subject unique IDs is present in v%d certificate." % (certificate.version), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 		elif certificate.is_ca_certificate:
 			standard = RFCReference(rfcno = 5280, sect = "4.1.2.8", verb = "MUST", text = "CAs conforming to this profile MUST NOT generate certificates with unique identifiers.")
 			if certificate.issuer_unique_id is not None:
-				judgements += SecurityJudgement(JudgementCode.Cert_UniqueID_NotAllowedForCA, "Issuer unique IDs is present in CA certificate.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+				judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_FIXMEUniqueID_NotAllowedV1ForCA, "Issuer unique IDs is present in CA certificate.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 			if certificate.subject_unique_id is not None:
-				judgements += SecurityJudgement(JudgementCode.Cert_UniqueID_NotAllowedForCA, "Subject unique IDs is present in CA certificate.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+				judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_FIXMEUniqueID_NotAllowedV1ForCA, "Subject unique IDs is present in CA certificate.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 		if (len(certificate.extensions) == 0) and (any(unique_id is not None for unique_id in (certificate.issuer_unique_id, certificate.subject_unique_id))) and (certificate.version != 2):
 			standard = RFCReference(rfcno = 5280, sect = "4.1.2.1", verb = "SHOULD", text = "If no extensions are present, but a UniqueIdentifier is present, the version SHOULD be 2 (value is 1); however, the version MAY be 3.")
@@ -606,7 +606,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 
 			if cdp_ext.malformed:
 				standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "MUST", text = "CRLDistributionPoints ::= SEQUENCE SIZE (1..MAX) OF DistributionPoint")
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_Malformed, "CRL Distribution Points X.509 extension is malformed and cannot be decoded.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+				judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_CRLDP_Malformed_Undecodable, "CRL Distribution Points X.509 extension is malformed and cannot be decoded.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 			else:
 				has_all_reasons = False
 				for (pointno, point) in enumerate(cdp_ext.points, 1):
@@ -622,7 +622,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 							judgements += self._CRL_DISTRIBUTION_POINT_ISSUER_VALIDATOR.validate(issuer_name)
 						if any(certificate.issuer == crl_issuer.directory_name for crl_issuer in point.crl_issuer.filter_by_type("directoryName")):
 							standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "MUST", text = "If the certificate issuer is also the CRL issuer, then conforming CAs MUST omit the cRLIssuer field and MUST include the distributionPoint field.")
-							judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_CRLIssuer_RedundantlyPresent, "CRL Distribution Points X.509 extension contains distribution point #%d which contains only the reasons field." % (pointno), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+							judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_CRLDP_CRLIssuer_Redundant, "CRL Distribution Points X.509 extension contains distribution point #%d which contains only the reasons field." % (pointno), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 					if point.point_name is not None:
 						if isinstance(point.point_name, ASN1GeneralNamesWrapper):
@@ -634,18 +634,18 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 
 							if not any(known_scheme in point.point_name.get_contained_uri_scheme_set() for known_scheme in ("ldap", "http")):
 								standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "SHOULD", text = "When present, DistributionPointName SHOULD include at least one LDAP or HTTP URI.")
-								judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_Point_NoLDAPOrHTTPURIPresent, "CRL Distribution Points X.509 extension contains no distribution point name that contains either an LDAP or HTTP URI.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+								judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_CRLDP_NoLDAPorHTTPURI, "CRL Distribution Points X.509 extension contains no distribution point name that contains either an LDAP or HTTP URI.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 						else:
 							# DistributionPoint is a single RDN
 							standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "SHOULD", text = "Conforming CAs SHOULD NOT use nameRelativeToCRLIssuer to specify distribution point names.")
-							judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_PointName_RDN_Used, "CRL Distribution Points X.509 extension contains distribution point #%d which points to the CRL using a RDN." % (pointno), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+							judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_CRLDP_PointName_RDN_Present, "CRL Distribution Points X.509 extension contains distribution point #%d which points to the CRL using a RDN." % (pointno), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 							if point.crl_issuer is not None:
 								crl_issuer_distinguished_names = point.crl_issuer.filter_by_type("directoryName")
 								if len(crl_issuer_distinguished_names) > 1:
 									standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "MUST", text = "The DistributionPointName MUST NOT use the nameRelativeToCRLIssuer alternative when cRLIssuer contains more than one distinguished name.")
-									judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_PointName_RDN_Ambiguous, "CRL Distribution Points X.509 extension contains distribution point #%d which points to the CRL using a RDN, but the DN it is relative to is ambiguous (%d different CRL issuer DNs given)." % (pointno, len(crl_issuer_distinguished_names)), commonness = Commonness.HIGHLY_UNUSUAL)
+									judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_CRLDP_PointName_RDN_Ambiguous, "CRL Distribution Points X.509 extension contains distribution point #%d which points to the CRL using a RDN, but the DN it is relative to is ambiguous (%d different CRL issuer DNs given)." % (pointno, len(crl_issuer_distinguished_names)), commonness = Commonness.HIGHLY_UNUSUAL)
 
 					elif point.point_name_rdn_malformed:
 						standard = RFCReference(rfcno = 5280, sect = "A.1", verb = "MUST", text = "RelativeDistinguishedName ::= SET SIZE (1..MAX) OF AttributeTypeAndValue")
@@ -660,15 +660,15 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 							has_all_reasons = True
 
 						if "unused" in point.reasons:
-							judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_Reasons_UnusedBitAsserted, "CRL Distribution Points X.509 extension contains distribution point #%d which asserts an unused bit for CRL reason." % (pointno), commonness = Commonness.UNUSUAL)
+							judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_CRLDP_Reasons_UnusedBitsAsserted, "CRL Distribution Points X.509 extension contains distribution point #%d which asserts an unused bit for CRL reason." % (pointno), commonness = Commonness.UNUSUAL)
 
 						undefined_bits = [ bitno for bitno in point.reasons if isinstance(bitno, int) ]
 						if len(undefined_bits) > 0:
 							standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "MUST", text = "ReasonFlags ::= BIT STRING {")
-							judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_Reasons_UndefinedBitAsserted, "CRL Distribution Points X.509 extension contains distribution point #%d which asserts undefined bit(s) %s." % (pointno, ", ".join(str(bit) for bit in sorted(undefined_bits))), commonness = Commonness.UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+							judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_CRLDP_Reasons_UndefinedBitsAsserted, "CRL Distribution Points X.509 extension contains distribution point #%d which asserts undefined bit(s) %s." % (pointno, ", ".join(str(bit) for bit in sorted(undefined_bits))), commonness = Commonness.UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 						if point.reasons_trailing_zero:
-							judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_Reasons_TrailingBits, "CRL Distribution Points X.509 extension contains distribution point #%d which has traililng bit(s)." % (pointno), commonness = Commonness.UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+							judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_CRLDP_Reasons_TrailingZeros, "CRL Distribution Points X.509 extension contains distribution point #%d which has traililng bit(s)." % (pointno), commonness = Commonness.UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 					else:
 						has_all_reasons = True
 
@@ -703,17 +703,17 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		if scts_ext is not None:
 			if scts_ext.malformed_asn1:
 				standard = RFCReference(rfcno = 6962, sect = "3.3", verb = "MUST", text = "SignedCertificateTimestampList ::= OCTET STRING")
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificateTransparencySCTs_ASN1Malformed, "Certificate Transparency Signed Certificate Timestamp X.509 extension cannot be decoded on ASN.1 layer.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+				judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_CTSCT_Malformed_Undecodable, "Certificate Transparency Signed Certificate Timestamp X.509 extension cannot be decoded on ASN.1 layer.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 			elif scts_ext.malformed_payload:
 				standard = RFCReference(rfcno = 6962, sect = "3.2", verb = "MUST", text = "struct { ... } SignedCertificateTimestamp;")
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificateTransparencySCTs_ContentMalformed, "Certificate Transparency Signed Certificate Timestamp X.509 extension cannot be decoded on payload layer.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+				judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_CTSCT_Malformed_Content, "Certificate Transparency Signed Certificate Timestamp X.509 extension cannot be decoded on payload layer.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 			else:
 				for (timestamp_no, scts) in enumerate(scts_ext.payload["payload"], 1):
 					sct = scts["sct"]
 					judgements += self._judge_certificate_transparency_sct(timestamp_no, sct)
 
 				if len(scts_ext.not_decoded) > 0:
-					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificateTransparencySCTs_TrailingData, "Certificate Transparency Signed Certificate Timestamp X.509 extension contains %d bytes of trailing data." % (len(scts_ext.not_decoded)), commonness = Commonness.HIGHLY_UNUSUAL)
+					judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_CTSCT_TrailingData, "Certificate Transparency Signed Certificate Timestamp X.509 extension contains %d bytes of trailing data." % (len(scts_ext.not_decoded)), commonness = Commonness.HIGHLY_UNUSUAL)
 
 		return judgements
 
@@ -721,19 +721,19 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		judgements = SecurityJudgements()
 		poison_ext = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("CertificateTransparencyPrecertificatePoison"))
 		if poison_ext is not None:
-			judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificateTransparencyPoison_IsPrecertificate, "The Certificate Transparency Precertificate Poison X.509 extension is present in the certificate, making it a precertificate.", commonness = Commonness.HIGHLY_UNUSUAL, bits = 0)
+			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_CTPP_IsPrecertificate, "The Certificate Transparency Precertificate Poison X.509 extension is present in the certificate, making it a precertificate.", commonness = Commonness.HIGHLY_UNUSUAL, bits = 0)
 
 			if not poison_ext.critical:
 				standard = RFCReference(rfcno = 6962, sect = "3.1", verb = "MUST", text = "The Precertificate is constructed from the certificate to be issued by adding a special critical poison extension")
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificateTransparencyPoison_NotCritical, "The Certificate Transparency Precertificate Poison X.509 extension is not marked as critical, turning it into an invalid precertificate.", commonness = Commonness.HIGHLY_UNUSUAL)
+				judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_CTPP_NotCritical, "The Certificate Transparency Precertificate Poison X.509 extension is not marked as critical, turning it into an invalid precertificate.", commonness = Commonness.HIGHLY_UNUSUAL)
 
 			if poison_ext.malformed:
 				standard = RFCReference(rfcno = 6962, sect = "3.1", verb = "MUST", text = "whose extnValue OCTET STRING contains ASN.1 NULL data (0x05 0x00))")
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificateTransparencyPoison_MalformedPayload, "The Certificate Transparency Precertificate Poison X.509 extension needs to contain an ASN.1 NULL value, but instead is not decodable.", commonness = Commonness.HIGHLY_UNUSUAL)
+				judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_CTPP_Malformed_Undecodable, "The Certificate Transparency Precertificate Poison X.509 extension needs to contain an ASN.1 NULL value, but instead is not decodable.", commonness = Commonness.HIGHLY_UNUSUAL)
 			else:
 				if not isinstance(poison_ext.asn1, pyasn1.type.univ.Null):
 					standard = RFCReference(rfcno = 6962, sect = "3.1", verb = "MUST", text = "whose extnValue OCTET STRING contains ASN.1 NULL data (0x05 0x00))")
-					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CertificateTransparencyPoison_InvalidPayload, "The Certificate Transparency Precertificate Poison X.509 extension needs to contain an ASN.1 NULL value, but instead contains %s." % (type(poison_ext.asn1).__name__), commonness = Commonness.HIGHLY_UNUSUAL)
+					judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_CTPP_InvalidPayload, "The Certificate Transparency Precertificate Poison X.509 extension needs to contain an ASN.1 NULL value, but instead contains %s." % (type(poison_ext.asn1).__name__), commonness = Commonness.HIGHLY_UNUSUAL)
 
 		return judgements
 
