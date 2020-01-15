@@ -146,7 +146,7 @@ class OLDJudgementCode(enum.Enum):
 
 
 	Cert_X509Ext_NotAllowed = ("X.509 extensions", "no extensions permissible")
-	Cert_X509Ext_Malformed = ("X.509 extensions", "invalid extension encoding")
+#	Cert_X509Ext_Malformed = ("X.509 extensions", "invalid extension encoding")
 
 #	Cert_X509Ext_KeyUsage_Missing = ("X.509 KeyUsage extension", "missing extension")
 #	Cert_X509Ext_KeyUsage_Empty = ("X.509 KeyUsage extension", "empty sequence")
@@ -162,7 +162,7 @@ class OLDJudgementCode(enum.Enum):
 #	Cert_X509Ext_ExtKeyUsage_AnyUsageCritical = ("X.509 ExtendedKeyUsage extension", "AnyUsage present but extension marked as critical")
 
 	Cert_X509Ext_Unknown_Critical = ("X.509 extensions", "unrecognized critical X.509 extension present")
-	Cert_X509Ext_Unknown_NonCritical = ("X.509 extensions", "unrecognized X.509 extension present")
+#	Cert_X509Ext_Unknown_NonCritical = ("X.509 extensions", "unrecognized X.509 extension present")
 
 	Cert_X509Ext_IssuerAltName_Missing = ("X.509 IssuerAlternativeName", "extension missing although header issuer empty")
 	Cert_X509Ext_IssuerAltName_Empty = ("X.509 IssuerAlternativeName", "no names given")
@@ -179,7 +179,7 @@ class OLDJudgementCode(enum.Enum):
 	Cert_X509Ext_IssuerAltName_Critical = ("X.509 IssuerAlternativeName", "extension marked as critical")
 
 #	Cert_X509Ext_SubjectAltName_Missing = ("X.509 SubjectAlternativeName", "extension not present")
-	Cert_X509Ext_SubjectAltName_Empty = ("X.509 SubjectAlternativeName", "no names given")
+#	Cert_X509Ext_SubjectAltName_Empty = ("X.509 SubjectAlternativeName", "no names given")
 	Cert_X509Ext_SubjectAltName_EmptyValue = ("X.509 SubjectAlternativeName", "no value given")
 #	Cert_X509Ext_SubjectAltName_BadIP = ("X.509 SubjectAlternativeName", "invalid IP address")
 #	Cert_X509Ext_SubjectAltName_BadIP_Private = ("X.509 SubjectAlternativeName", "IP address in unusual network space")
@@ -284,7 +284,7 @@ class OLDJudgementCode(enum.Enum):
 #	Cert_CN_NoMatch = ("Certificate identity", "CN does not match expected name")
 #	Cert_SAN_Match = ("Certificate identity", "SAN matches expected name")
 #	Cert_SAN_NoMatch = ("Certificate identity", "SAN does not match expected name")
-	Cert_Name_Verification_Failed = ("Certificate identity", "name verification failed")
+#	Cert_Name_Verification_Failed = ("Certificate identity", "name verification failed")
 #	Cert_Unexpectedly_CA_Cert = ("Certificate purpose", "certificate is CA cert, but should not be")
 #	Cert_Unexpectedly_No_CA_Cert = ("Certificate purpose", "certificate is no CA cert, but should be")
 #	Cert_Purpose_EKU_NoClientAuth = ("Certificate purpose", "EKU extension does not contain clientAuth flag")

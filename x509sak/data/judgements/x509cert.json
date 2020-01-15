@@ -76,12 +76,12 @@
 				"Duplicates Present": { "_desc": "duplicate extensions present" },
 				"Empty Sequence": { "_desc": "extensions field is an empty sequence" },
 				"Not Allowed": { "_desc": "extension are not permitted in this certificate" },
-				"Malformed": { "_desc": "at least one malformed extension is present" },
 
 				"Known Extensions": {
 					"_label": "Ext",
 					"Basic Constraints": {
 						"_label": "BC",
+						"_import": "asn1_encoding_issues/*",
 						"Missing": { "_desc": "BC extension missing" },
 						"Present but not Critical": { "_desc": "BC extension present, but not critical" },
 						"Present and Critical": { "_desc": "BC extension present and critical" },
@@ -90,7 +90,7 @@
 					},
 					"Subject Key Identifier": {
 						"_label": "SKI",
-						"_import": "x509_ext_checks/*:missing,critical{name=SKI}",
+						"_import": [ "asn1_encoding_issues/*", "x509_ext_checks/*:missing,critical{name=SKI}" ],
 						"Hashfunction": {
 							"SHA1": { "_desc": "SKI extension has SHA-1 key ID" },
 							"Other": { "_desc": "SKI extension has hash based key ID other than SHA-1" },
@@ -99,7 +99,7 @@
 					},
 					"Authority Key Identifier": {
 						"_label": "AKI",
-						"_import": "x509_ext_checks/*:empty,missing,critical{name=AKI}",
+						"_import": [ "asn1_encoding_issues/*", "x509_ext_checks/*:empty,missing,critical{name=AKI}" ],
 						"CA name": {
 							"_import": "*general_name_issues/*"
 						},
@@ -111,7 +111,7 @@
 					},
 					"Name Constraints": {
 						"_label": "NC",
-						"_import": "x509_ext_checks/*:empty,pres_crit,pres_noca{name=NC}",
+						"_import": [ "asn1_encoding_issues/*", "x509_ext_checks/*:empty,pres_crit,pres_noca{name=NC}" ],
 						"Subtree": {
 							"Minimum not Zero": { "_desc": "NC extension subtree minimum attribute is non-zero" },
 							"Maximum present": { "_desc": "NC extension subtree maximum attribute is present" },
@@ -123,7 +123,7 @@
 					},
 					"Key Usage": {
 						"_label": "KU",
-						"_import": "bitstring_issues/*",
+						"_import": [ "bitstring_issues/*", "asn1_encoding_issues/*" ],
 						"Missing": { "_desc": "KU extension missing" },
 						"Empty": { "_desc": "KU extension empty" },
 						"Too Long": { "_desc": "KU extension too long" },
@@ -133,12 +133,14 @@
 					},
 					"Extended Key Usage": {
 						"_label": "EKU",
+						"_import": "asn1_encoding_issues/*",
 						"Empty": { "_desc": "EKU extension empty" },
 						"Duplicate": { "_desc": "EKU extension contains duplicate usage OID" },
 						"Any Usage Criticial": { "_desc": "EKU extension contains anyUsage flag but extension is marked critical" }
 					},
 					"Issuer Alternative Name": {
 						"_label": "IAN",
+						"_import": "asn1_encoding_issues/*",
 						"Missing": { "_desc": "IAN extension missing although certificate issue header is empty" },
 						"Critical": { "_desc": "IAN extension marked criticial" },
 						"Name": {
@@ -147,6 +149,7 @@
 					},
 					"Subject Alternative Name": {
 						"_label": "SAN",
+						"_import": "asn1_encoding_issues/*",
 						"Name": {
 							"_import": "general_name_issues/*"
 						},
@@ -158,15 +161,18 @@
 					},
 					"Authority Information Access": {
 						"_label": "AIA",
+						"_import": "asn1_encoding_issues/*",
 						"Empty": { "_desc": "AIA extension empty" },
 						"Critical": { "_desc": "AIA extension marked critical" }
 					},
 					"Certificate Policies": {
 						"_label": "CP",
+						"_import": "asn1_encoding_issues/*",
 						"Deprecated OID": { "_desc": "CP extension OID is deprecated" },
 						"Duplicate OID": { "_desc": "CP extension contains duplicate policy OID" },
 						"More than one policy": { "_desc": "CP extension contains more than one policy" },
 						"Qualifier": {
+							"_import": "asn1_encoding_issues/*",
 							"Duplicate": { "_desc": "CP extension contains duplicate qualifier OID" },
 							"Unknown": { "_desc": "CP extension contains unknown qualifier OID" },
 							"AnyPolicy with Unknown Qualifier": { "_desc": "CP extension contains anyPolicy with unknown qualifier" }
@@ -246,8 +252,10 @@
 				},
 				"Unknown Extension": {
 					"_label": "Unknown",
+					"_import": "asn1_encoding_issues/*",
 					"Present": { "_desc": "unknown extension present" },
-					"Critical": { "_desc": "unknown extension marked critical" }
+					"Critical": { "_desc": "unknown extension marked critical" },
+					"Not Critical": { "_desc": "unknown extension marked not critical" }
 				}
 			}
 		},
@@ -291,6 +299,7 @@
 				"_label": "Server Cert",
 				"_import": "x509_ku_check{name=server certificate}",
 				"Is CA Cert": { "_desc": "certificate is a CA certificate" },
+				"Name Verification Failed": { "_desc": "certificate name verification failed against given server name" },
 				"Subject Alternative Name": {
 					"_label": "SAN",
 					"Match": { "_desc": "SKI extension name matches given server name" },

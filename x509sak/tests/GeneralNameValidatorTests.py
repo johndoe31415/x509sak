@@ -35,7 +35,7 @@ class GeneralNameValidatorTests(BaseTest):
 	def _validate(self, name, inner, permissible_types = None, permissible_uri_schemes = None, assert_length = None, assert_present = None):
 		gn = self._create_general_name(name, inner)
 		errors = {
-			"empty_value":					GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_SubjectAltName_EmptyValue),
+			"empty_value":					GeneralNameValidator.Error(code = ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_SAN_EmptyValue),
 			"email":						GeneralNameValidator.Error(code = ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_SAN_Name_Email_Malformed),
 			"ip":							GeneralNameValidator.Error(code = ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_SAN_Name_IPAddress_Malformed),
 			"ip_private":					GeneralNameValidator.Error(code = ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_SAN_Name_IPAddress_PrivateAddressSpace),

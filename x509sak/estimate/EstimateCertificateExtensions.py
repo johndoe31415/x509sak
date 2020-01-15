@@ -42,7 +42,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 	_NameError = collections.namedtuple("NameError", [ "code", "standard" ])
 
 	_SUBJECT_ALTERNATIVE_NAME_VALIDATOR = GeneralNameValidator(error_prefix_str = "X.509 Subject Alternative Name Extension", permissible_types = [ "iPAddress", "dNSName" ], allow_dnsname_wildcard_matches = True, permissible_uri_schemes = [ "http", "https"], errors = {
-#		"empty_value":					GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_SubjectAltName_EmptyValue),
+#		"empty_value":					GeneralNameValidator.Error(code = ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_SAN_EmptyValue),
 		"email":						GeneralNameValidator.Error(code = ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_SAN_Name_Email_Malformed, standard = RFCReference(rfcno = 822, sect = "6.1", verb = "MUST", text = "addr-spec = local-part \"@\" domain")),
 		"ip":							GeneralNameValidator.Error(code = ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_SAN_Name_IPAddress_Malformed, standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "For IP version 4, as specified in [RFC791], the octet string MUST contain exactly four octets. For IP version 6, as specified in [RFC2460], the octet string MUST contain exactly sixteen octets.")),
 		"ip_private":					GeneralNameValidator.Error(code = ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_SAN_Name_IPAddress_PrivateAddressSpace),
@@ -141,7 +141,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 				if ext.critical:
 					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_Unknown_Critical, "X.509 extension present with OID %s. This OID is not known and marked as critical; the certificate would be rejected under normal circumstances." % (ext.oid), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
 				else:
-					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_Unknown_NonCritical, "X.509 extension present with OID %s. This OID is not known and marked as non-critical; the extension would be ignored under normal circumstances." % (ext.oid), commonness = Commonness.UNUSUAL)
+					judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Unknown_NotCritical, "X.509 extension present with OID %s. This OID is not known and marked as non-critical; the extension would be ignored under normal circumstances." % (ext.oid), commonness = Commonness.UNUSUAL)
 		return judgements
 
 	def _judge_undecodable_extensions(self, certificate):
@@ -149,7 +149,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		for ext in certificate.extensions:
 			if (ext.asn1_model is not None) and (ext.asn1 is None):
 				oid_name = OIDDB.X509Extensions.get(ext.oid)
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_Malformed, "X.509 extension %s was not decodable; it appears to be malformed." % (oid_name), compatibility = Compatibility.STANDARDS_DEVIATION, commonness = Commonness.HIGHLY_UNUSUAL)
+				judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Malformed_Undecodable, "X.509 extension %s was not decodable; it appears to be malformed." % (oid_name), compatibility = Compatibility.STANDARDS_DEVIATION, commonness = Commonness.HIGHLY_UNUSUAL)
 		return judgements
 
 	def _judge_unique_id(self, certificate):
@@ -382,7 +382,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		if san is not None:
 			if san.name_count == 0:
 				standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "If the subjectAltName extension is present, the sequence MUST contain at least one entry.")
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_SubjectAltName_Empty, "Subject Alternative Name X.509 extension with no contained names.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+				judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_SAN_Empty, "Subject Alternative Name X.509 extension with no contained names.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 			for general_name in san:
 				judgements += self._SUBJECT_ALTERNATIVE_NAME_VALIDATOR.validate(general_name)
 			if (not certificate.subject.empty) and san.critical:

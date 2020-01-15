@@ -60,7 +60,7 @@ class PurposeEstimator(BaseEstimator):
 				judgements += SecurityJudgement(ExperimentalJudgementCodes.CertUsage_Purpose_ServerCert_SAN_Mismatch, "No Subject Alternative Name X.509 extension matches '%s'." % (name), commonness = Commonness.UNUSUAL)
 
 		if (not have_valid_cn) and (not have_valid_san):
-			judgements += SecurityJudgement(JudgementCode.Cert_Name_Verification_Failed, "Found neither valid common name (CN) nor valid subject alternative name (SAN).", commonness = Commonness.HIGHLY_UNUSUAL, verdict = Verdict.NO_SECURITY)
+			judgements += SecurityJudgement(ExperimentalJudgementCodes.CertUsage_Purpose_ServerCert_NameVerificationFailed, "Found neither valid common name (CN) nor valid subject alternative name (SAN).", commonness = Commonness.HIGHLY_UNUSUAL, verdict = Verdict.NO_SECURITY)
 
 		return judgements
 

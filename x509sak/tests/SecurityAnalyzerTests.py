@@ -139,7 +139,7 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-email-only.pem", "X509Cert_Body_X509Exts_Ext_SAN_EmailOnly")
 
 	def test_examine_x509test_xf_ext_altname_empty(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-empty.pem", "Cert_X509Ext_SubjectAltName_Empty")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-empty.pem", "X509Cert_Body_X509Exts_Ext_SAN_Empty")
 
 	def test_examine_x509test_xf_ext_altname_empty2(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-empty2.pem", "Cert_X509Ext_SubjectAltName_EmptyValue")
@@ -151,7 +151,7 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-invalid-email.pem", "X509Cert_Body_X509Exts_Ext_SAN_Name_Email_Malformed")
 
 	def test_examine_x509test_xf_ext_altname_invalid_encoding(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-invalid-encoding.pem", "Cert_X509Ext_Malformed")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-invalid-encoding.pem", "X509Cert_Body_X509Exts_Malformed_Undecodable")
 
 	def test_examine_x509test_xf_ext_altname_ip_wrong(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-ip-wrong.pem", "X509Cert_Body_X509Exts_Ext_SAN_Name_IPAddress_Malformed")
@@ -202,7 +202,7 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-cert-policies-unotice-ch.pem", "X509Cert_Body_X509Exts_Ext_CP_UserNotice_ExplicitText_ControlCharacter")
 
 	def test_examine_x509test_xf_ext_constraints_neg_pathlen(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-constraints-neg-pathlen.pem", "Cert_X509Ext_Malformed")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-constraints-neg-pathlen.pem", "X509Cert_Body_X509Exts_Malformed_Undecodable")
 
 	def test_examine_x509test_xf_ext_constraints_noncritical(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-constraints-noncritical.pem", "X509Cert_Body_X509Exts_Ext_BC_PresentButNotCritical")
@@ -631,7 +631,7 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", expect_present = "CertUsage_Purpose_ServerCert_CN_Match", expect_absent = "X509Cert_Body_X509Exts_Ext_SAN_Missing", host_check = "johannes-bauer.com")
 
 	def test_cn_no_match_fqdn(self):
-		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", expect_present = [ "CertUsage_Purpose_ServerCert_CN_Mismatch", "Cert_Name_Verification_Failed" ], host_check = "pupannes-bauer.com")
+		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", expect_present = [ "CertUsage_Purpose_ServerCert_CN_Mismatch", "CertUsage_Purpose_ServerCert_NameVerificationFailed" ], host_check = "pupannes-bauer.com")
 
 	def test_check_no_ca_when_expecting_ca(self):
 		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", expect_present = "CertUsage_Purpose_CACert_NoCACert", purpose = "ca")
@@ -827,7 +827,7 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/aki_caname_uncommon_uri_scheme.pem", expect_present = "X509Cert_Body_X509Exts_Ext_AKI_CAName_URI_UncommonURIScheme")
 
 	def test_ext_unknown_noncritical(self):
-		self._test_examine_x509test_resultcode("certs/constructed/unknown_ext_noncritical.pem", expect_present = "Cert_X509Ext_Unknown_NonCritical")
+		self._test_examine_x509test_resultcode("certs/constructed/unknown_ext_noncritical.pem", expect_present = "X509Cert_Body_X509Exts_Unknown_NotCritical")
 
 	def test_basic_constraints_missing(self):
 		self._test_examine_x509test_resultcode("certs/constructed/bc_missing.pem", expect_present = "X509Cert_Body_X509Exts_Ext_BC_Missing")
@@ -878,7 +878,7 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/issuer_altname_bad_email.pem", expect_present = "X509Cert_Body_X509Exts_Ext_IAN_Name_Email_Malformed")
 
 	def test_extension_malformed(self):
-		self._test_examine_x509test_resultcode("certs/constructed/ext_malformed.pem", expect_present = "Cert_X509Ext_Malformed")
+		self._test_examine_x509test_resultcode("certs/constructed/ext_malformed.pem", expect_present = "X509Cert_Body_X509Exts_Malformed_Undecodable")
 
 	def test_certificate_lifetime_noca_conservative(self):
 		self._test_examine_x509test_resultcode("certs/constructed/lifetime_noca_conservative.pem", expect_present = "X509Cert_Body_Validity_Length_Conservative")
