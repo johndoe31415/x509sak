@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2019 Johannes Bauer
+#	Copyright (C) 2018-2020 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -284,6 +284,9 @@ class SelectiveTestRunner(object):
 				yield instanciated_testcase
 
 	def _add_testcase(self, testcase):
+		if (self._args.limit is not None) and (len(self._suite) >= self._args.limit):
+			# Ignore testcase
+			return
 		if self._args.verbose >= 2:
 			print("Testing: %s.%s" % (testcase.class_name, testcase.test_name))
 		self._suite.append(testcase)
@@ -372,6 +375,7 @@ parser.add_argument("--dot-progress", action = "store_true", help = "Show dots i
 parser.add_argument("-T", "--target-has-precedence", action = "store_true", help = "By default, when a search pattern is given on the command line but there are failed tests, the target is ignored and only the failed tests are re-run. When this option is given, the precedence is reversed and the target is always honored even in spite of failed tests.")
 parser.add_argument("-f", "--fail-fast", action = "store_true", help = "Fail fast, i.e., do not continue testing after the first test fails.")
 parser.add_argument("-p", "--parallel", metavar = "processes", type = int, default = multiprocessing.cpu_count(), help = "Split up testbench and concurrently run on multiple threads. Defaults to %(default)s.")
+parser.add_argument("-l", "--limit", metavar = "count", type = int, help = "Limit amount of run testcases to this number. Useful to tackle failing tests one-by-one.")
 parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity.")
 parser.add_argument("target", metavar = "classname", type = str, nargs = "*", help = "Target for testing; can be a regex matching the \"{classname}.{testname}\" specifiers. By default, all are included.")
 args = parser.parse_args(sys.argv[1:])

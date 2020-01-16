@@ -98,6 +98,7 @@
 						"Uncommon URI Scheme": { "_desc": "$name URI uses uncommon URI scheme" },
 						"LDAP": {
 							"_require": "ldap_validation",
+							"Malformed DN": { "_desc": "$name URI has malformed LDAP URI distinguished name" },
 							"No DN": { "_desc": "$name URI has no LDAP URI distinguished name present" },
 							"No hostname": { "_desc": "$name URI has no LDAP URI hostname present" },
 							"No attrdesc": { "_desc": "$name URI has no LDAP URI attrdesc present" }
@@ -116,6 +117,9 @@
 							"International Label": { "_desc": "$name domain name wildcard used in international label", "_require": "allow_dns_wc" },
 							"Broad Match": { "_desc": "$name domain name wildcard matches broadly", "_require": "allow_dns_wc" }
 						}
+					},
+					"Registered ID": {
+						"Unexpected": { "_desc": "$name registered ID unexpected data type", "_require": "!allow_regid" }
 					}
 				}
 			}

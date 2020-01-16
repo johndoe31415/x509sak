@@ -155,6 +155,9 @@ class GeneralNameValidator():
 			if split_url.scheme not in self._permissible_uri_schemes:
 				self._report_error("Enc_DER_Struct_GenName_URI_UncommonURIScheme", "contains invalid URI scheme \"%s\" (permitted schemes are only %s)." % (str(self._gn.str_value), ", ".join(sorted(self._permissible_uri_schemes))))
 
+	def _handle_registeredID(self):
+		self._report_error("Enc_DER_Struct_GenName_RegisteredID_Unexpected", "contains unexpected registered ID \"%s\"." % (self._gn.str_value))
+
 	def _do_validate(self):
 #		if self._gn.str_value.strip("\t \r\n") == "":
 #			self._report_error("empty_value", "has empty value or contains only of whitespace.", commonness = Commonness.HIGHLY_UNUSUAL)

@@ -47,7 +47,7 @@ class SignatureSecurityEstimator(BaseEstimator):
 			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Signature_HashFunction_Unknown, "Certificate has unknown hash function for use in RSA-PSS, OID %s. Cannot make security determination for that part." % (rsapss.hash_algorithm_oid), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
 
 		if rsapss.mask_algorithm is None:
-			judgements += SecurityJudgement(JudgementCode.Cert_Unknown_MaskAlgorithm, "Certificate has unknown mask function for use in RSA-PSS, OID %s." % (rsapss.mask_algorithm_oid), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
+			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_RSA_RSA_PSS_UnknownMaskFunction, "Certificate has unknown mask function for use in RSA-PSS, OID %s." % (rsapss.mask_algorithm_oid), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
 
 		if rsapss.mask_hash_algorithm is None:
 			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Signature_HashFunction_Unknown, "Certificate has unknown mask hash function for use in RSA-PSS, OID %s." % (rsapss.mask_hash_algorithm_oid), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)

@@ -85,6 +85,7 @@
 						"Short Salt Used": { "_desc": "short salt value used" },
 						"Multiple Hash Functions": { "_desc": "multiple hash functions used" },
 						"Unknown Trailer Field": { "_desc": "unknown trailer field specified" },
+						"Unknown Mask Function": { "_desc": "unknown mask function user specified" },
 						"Salt Length in Bytes": {
 							"_desc": "salt length in bytes",
 							"_flags": [ "datapoint" ]

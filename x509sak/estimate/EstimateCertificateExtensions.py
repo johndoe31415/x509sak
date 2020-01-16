@@ -353,7 +353,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 						judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_KU_SignCertButNoCA, "KeyUsage extension contains the keyCertSign flag, but BasicConstraints extension do not mark as a CA certificate.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 			else:
 				standard = RFCReference(rfcno = 5280, sect = "4.2.1.3", verb = "MUST", text = "KeyUsage ::= BIT STRING {")
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_KeyUsage_Malformed, "KeyUsage extension is malformed and cannot be decoded.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+				judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_KU_Malformed_Undecodable, "KeyUsage extension is malformed and cannot be decoded.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 		else:
 			if certificate.is_ca_certificate:
 				standard = RFCReference(rfcno = 5280, sect = "4.2.1.3", verb = "MUST", text = "Conforming CAs MUST include this extension in certificates that contain public keys that are used to validate digital signatures on other public key certificates or CRLs.")
@@ -419,7 +419,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_IssuerAltName_Critical, "Issuer Alternative Name X.509 extension should not be critical.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 		else:
 			if certificate.issuer.empty:
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_IssuerAltName_Missing, "Issuer Alternative Name X.509 missing although issuer in header is empty.", commonness = Commonness.HIGHLY_UNUSUAL)
+				judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_IAN_Missing, "Issuer Alternative Name X.509 missing although issuer in header is empty.", commonness = Commonness.HIGHLY_UNUSUAL)
 
 		return judgements
 
@@ -584,7 +584,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 						judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_CRLDP_PointName_URI_LDAP_NoDN, "CRL Distribution Points X.509 extension contains distribution point #%d (name #%d) which points to an LDAP URI which does not contain a Distinguished Name." % (pointno, nameno), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 				except InvalidInputException:
 					standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "MUST", text = "When the LDAP URI scheme [RFC4516] is used, the URI MUST include a <dn> field containing the distinguished name of the entry holding the CRL")
-					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_PointName_ContainsInvalidLDAPDN, "CRL Distribution Points X.509 extension contains distribution point #%d (name #%d) which points to an LDAP URI which contain an unparsable Distinguished Name (\"%s\")." % (pointno, nameno, uri.path), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+					judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_CRLDP_PointName_URI_LDAP_MalformedDN, "CRL Distribution Points X.509 extension contains distribution point #%d (name #%d) which points to an LDAP URI which contain an unparsable Distinguished Name (\"%s\")." % (pointno, nameno, uri.path), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 				if uri.query == "":
 					standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "MUST", text = "When the LDAP URI scheme [RFC4516] is used, the URI MUST include a <dn> field containing the distinguished name of the entry holding the CRL, MUST include a single <attrdesc> that contains an appropriate attribute description for the attribute that holds the CRL [RFC4523]")
