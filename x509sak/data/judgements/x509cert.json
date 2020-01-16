@@ -75,7 +75,7 @@
 				"All Unique": { "_desc": "all extensions unique" },
 				"Duplicates Present": { "_desc": "duplicate extensions present" },
 				"Empty Sequence": { "_desc": "extensions field is an empty sequence" },
-				"Not Allowed": { "_desc": "extension are not permitted in this certificate" },
+				"Disallowed": { "_desc": "extension are not permitted in this certificate" },
 
 				"Known Extensions": {
 					"_label": "Ext",
@@ -143,6 +143,7 @@
 						"_import": "asn1_encoding_issues/*",
 						"Missing": { "_desc": "IAN extension missing although certificate issue header is empty" },
 						"Critical": { "_desc": "IAN extension marked criticial" },
+						"Empty": { "_desc": "IAN extension contains no GeneralName" },
 						"Name": {
 							"_import": "*general_name_issues/*:allow_dirname"
 						}
@@ -205,6 +206,7 @@
 						"_label": "CRLDP",
 						"_import": "asn1_encoding_issues/*",
 						"Empty": { "_desc": "CRLDP extension contains completely empty point" },
+						"Critical": { "_desc": "CRLDP extension marked critical" },
 						"No Point with all reason bits": { "_desc": "CRLDP extension contains no point that has all reason bits set" },
 						"Point with only Reasons": { "_desc": "CDLDP extension contains a point that only has the 'reason' bit set" },
 						"Segmentation used": { "_desc": "CRLDP contains points that contain CRLs that are not universal" },

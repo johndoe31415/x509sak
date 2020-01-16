@@ -145,7 +145,7 @@ class OLDJudgementCode(enum.Enum):
 #	Cert_X509Ext_NameConstraints_Subtree_MaximumIsPresent = ("X.509 NameConstraints extension", "NameConstraints subtree has maximum attribute set")
 
 
-	Cert_X509Ext_NotAllowed = ("X.509 extensions", "no extensions permissible")
+#	Cert_X509Ext_NotAllowed = ("X.509 extensions", "no extensions permissible")
 #	Cert_X509Ext_Malformed = ("X.509 extensions", "invalid extension encoding")
 
 #	Cert_X509Ext_KeyUsage_Missing = ("X.509 KeyUsage extension", "missing extension")
@@ -161,11 +161,11 @@ class OLDJudgementCode(enum.Enum):
 #	Cert_X509Ext_ExtKeyUsage_Duplicate = ("X.509 ExtendedKeyUsage extension", "duplicate OIDs present")
 #	Cert_X509Ext_ExtKeyUsage_AnyUsageCritical = ("X.509 ExtendedKeyUsage extension", "AnyUsage present but extension marked as critical")
 
-	Cert_X509Ext_Unknown_Critical = ("X.509 extensions", "unrecognized critical X.509 extension present")
+#	Cert_X509Ext_Unknown_Critical = ("X.509 extensions", "unrecognized critical X.509 extension present")
 #	Cert_X509Ext_Unknown_NonCritical = ("X.509 extensions", "unrecognized X.509 extension present")
 
 #	Cert_X509Ext_IssuerAltName_Missing = ("X.509 IssuerAlternativeName", "extension missing although header issuer empty")
-	Cert_X509Ext_IssuerAltName_Empty = ("X.509 IssuerAlternativeName", "no names given")
+#	Cert_X509Ext_IssuerAltName_Empty = ("X.509 IssuerAlternativeName", "no names given")
 	Cert_X509Ext_IssuerAltName_EmptyValue = ("X.509 IssuerAlternativeName", "no value given")
 #	Cert_X509Ext_IssuerAltName_BadIP = ("X.509 IssuerAlternativeName", "invalid IP address")
 #	Cert_X509Ext_IssuerAltName_BadIP_Private = ("X.509 IssuerAlternativeName", "IP address in unusual network space")
@@ -176,7 +176,7 @@ class OLDJudgementCode(enum.Enum):
 #	Cert_X509Ext_IssuerAltName_BadURI = ("X.509 IssuerAlternativeName", "invalid URI")
 #	Cert_X509Ext_IssuerAltName_UncommonURIScheme = ("X.509 IssuerAlternativeName", "uncommon URI scheme")
 	Cert_X509Ext_IssuerAltName_UncommonIdentifier = ("X.509 IssuerAlternativeName", "uncommon identifier")
-	Cert_X509Ext_IssuerAltName_Critical = ("X.509 IssuerAlternativeName", "extension marked as critical")
+#	Cert_X509Ext_IssuerAltName_Critical = ("X.509 IssuerAlternativeName", "extension marked as critical")
 
 #	Cert_X509Ext_SubjectAltName_Missing = ("X.509 SubjectAlternativeName", "extension not present")
 #	Cert_X509Ext_SubjectAltName_Empty = ("X.509 SubjectAlternativeName", "no names given")
@@ -223,13 +223,13 @@ class OLDJudgementCode(enum.Enum):
 #	Cert_X509Ext_NetscapeCertType_Malformed = ("Netscape Certificate Type extension", "extension malformed")
 #	Cert_X509Ext_NetscapeCertType_Empty = ("Netscape Certificate Type extension", "no bits set")
 
-	Cert_X509Ext_CRLDistributionPoints_Critical = ("CRL Distribution Points extension", "extension marked critical")
+#	Cert_X509Ext_CRLDistributionPoints_Critical = ("CRL Distribution Points extension", "extension marked critical")
 #	Cert_X509Ext_CRLDistributionPoints_Malformed = ("CRL Distribution Points extension", "extension malformed")
 #	Cert_X509Ext_CRLDistributionPoints_NoPointWithAllReasonBits = ("CRL Distribution Points extension", "no distribution point with CRL for all reasons")
 #	Cert_X509Ext_CRLDistributionPoints_Point_Empty = ("CRL Distribution Points extension", "distribution point entirely empty")
 #	Cert_X509Ext_CRLDistributionPoints_Point_ContainsOnlyReasons = ("CRL Distribution Points extension", "distribution point contains only reasons field")
 #	Cert_X509Ext_CRLDistributionPoints_Point_NoLDAPOrHTTPURIPresent = ("CRL Distribution Points extension", "distribution point contains no LDAP or HTTP URI")
-	Cert_X509Ext_CRLDistributionPoints_PointName_RDN_Malformed = ("CRL Distribution Points extension", "distribution point name uses malformed relative distinguished name")
+#	Cert_X509Ext_CRLDistributionPoints_PointName_RDN_Malformed = ("CRL Distribution Points extension", "distribution point name uses malformed relative distinguished name")
 #	Cert_X509Ext_CRLDistributionPoints_PointName_RDN_Used = ("CRL Distribution Points extension", "distribution point name uses relative distinguished name")
 #	Cert_X509Ext_CRLDistributionPoints_PointName_RDN_Ambiguous = ("CRL Distribution Points extension", "distribution point name uses relative distinguished name even though multiple CRL issuer DNs present")
 	Cert_X509Ext_CRLDistributionPoints_PointName_EmptyValue = ("CRL Distribution Points extension", "distribution point name contains empty value")

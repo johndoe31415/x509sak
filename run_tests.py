@@ -103,8 +103,8 @@ class TestStats(object):
 
 	def _show_progress(self, test_case, test_result):
 		now = time.time()
-		if (self._last_progress_msg is not None) and ((now - self._last_progress_msg) < 0.1) and (self.run_count != self.test_count):
-			# Don't update every 100ms
+		if (test_result["resultcode"] == "pass") and (self._last_progress_msg is not None) and ((now - self._last_progress_msg) < 0.1) and (self.run_count != self.test_count):
+			# Don't update every 100ms if there's not been an error to report
 			return
 
 		if self._last_progress_msg is not None:

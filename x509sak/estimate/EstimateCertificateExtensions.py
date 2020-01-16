@@ -60,7 +60,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 #		"invalid_type":					GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_SubjectAltName_UncommonIdentifier),
 
 	_ISSUER_ALTERNATIVE_NAME_VALIDATOR = GeneralNameValidator.create_inherited("X509Cert_Body_X509Exts_Ext_IAN_Name", error_prefix_str = "X.509 Issuer Alternative Name Extension", permissible_types = [ "directoryName" ], permissible_uri_schemes = [ "http", "https" ])
-#		"empty_value":					GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_IssuerAltName_EmptyValue),
+#		"empty_value":					GeneralNameValidator.Error(code = ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_IAN_EmptyValue),
 #		"email":						GeneralNameValidator.Error(code = ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_IAN_Name_Email_Malformed, standard = RFCReference(rfcno = 822, sect = "6.1", verb = "MUST", text = "addr-spec = local-part \"@\" domain")),
 #		"ip":							GeneralNameValidator.Error(code = ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_IAN_Name_IPAddress_Malformed, standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "For IP version 4, as specified in [RFC791], the octet string MUST contain exactly four octets. For IP version 6, as specified in [RFC2460], the octet string MUST contain exactly sixteen octets.")),
 #		"ip_private":					GeneralNameValidator.Error(code = ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_IAN_Name_IPAddress_PrivateAddressSpace),
@@ -126,7 +126,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		judgements = SecurityJudgements()
 		if (certificate.version < 3) and len(certificate.extensions) > 0:
 			standard = RFCReference(rfcno = 5280, sect = "4.1.2.9", verb = "MUST", text = "This field MUST only appear if the version is 3 (Section 4.1.2.1).")
-			judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_NotAllowed, "X.509 extension present in v%d certificate." % (certificate.version), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Disallowed, "X.509 extension present in v%d certificate." % (certificate.version), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 		if len(certificate.extensions) == 0:
 			if certificate.asn1["tbsCertificate"]["extensions"].hasValue():
@@ -140,7 +140,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 			oid_name = OIDDB.X509Extensions.get(ext.oid)
 			if oid_name is None:
 				if ext.critical:
-					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_Unknown_Critical, "X.509 extension present with OID %s. This OID is not known and marked as critical; the certificate would be rejected under normal circumstances." % (ext.oid), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
+					judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Unknown_Critical, "X.509 extension present with OID %s. This OID is not known and marked as critical; the certificate would be rejected under normal circumstances." % (ext.oid), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
 				else:
 					judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Unknown_NotCritical, "X.509 extension present with OID %s. This OID is not known and marked as non-critical; the extension would be ignored under normal circumstances." % (ext.oid), commonness = Commonness.UNUSUAL)
 		return judgements
@@ -411,12 +411,12 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		if ian is not None:
 			if ian.name_count == 0:
 				standard = RFCReference(rfcno = 5280, sect = [ "4.2.1.7", "4.2.1.6" ], verb = "MUST", text = "If the subjectAltName extension is present, the sequence MUST contain at least one entry.")
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_IssuerAltName_Empty, "Issuer Alternative Name X.509 extension with no contained names.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+				judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_IAN_Empty, "Issuer Alternative Name X.509 extension with no contained names.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 			for general_name in ian:
 				judgements += self._ISSUER_ALTERNATIVE_NAME_VALIDATOR.validate(general_name)
 			if ian.critical:
 				standard = RFCReference(rfcno = 5280, sect = "4.2.1.7", verb = "SHOULD", text = "Where present, conforming CAs SHOULD mark this extension as non-critical.")
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_IssuerAltName_Critical, "Issuer Alternative Name X.509 extension should not be critical.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+				judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_IAN_Critical, "Issuer Alternative Name X.509 extension should not be critical.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 		else:
 			if certificate.issuer.empty:
 				judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_IAN_Missing, "Issuer Alternative Name X.509 missing although issuer in header is empty.", commonness = Commonness.HIGHLY_UNUSUAL)
@@ -603,7 +603,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		if cdp_ext is not None:
 			if cdp_ext.critical:
 				standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "SHOULD", text = "The extension SHOULD be non-critical")
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_Critical, "CRL Distribution Points X.509 extension is present, but marked critical.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+				judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_CRLDP_Critical, "CRL Distribution Points X.509 extension is present, but marked critical.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 			if cdp_ext.malformed:
 				standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "MUST", text = "CRLDistributionPoints ::= SEQUENCE SIZE (1..MAX) OF DistributionPoint")
@@ -650,7 +650,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 
 					elif point.point_name_rdn_malformed:
 						standard = RFCReference(rfcno = 5280, sect = "A.1", verb = "MUST", text = "RelativeDistinguishedName ::= SET SIZE (1..MAX) OF AttributeTypeAndValue")
-						judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_CRLDistributionPoints_PointName_RDN_Malformed, "CRL Distribution Points X.509 extension contains distribution point #%d which points to the CRL using a malformed RDN." % (pointno), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+						judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_CRLDP_PointName_RDN_Malformed, "CRL Distribution Points X.509 extension contains distribution point #%d which points to the CRL using a malformed RDN." % (pointno), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 					if point.reasons is not None:
 						missing_reasons = set(cdp_ext.all_used_reasons()) - point.reasons
