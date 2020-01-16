@@ -73,7 +73,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 #	})
 
 	_AUTHORITY_KEY_IDENTIFIER_CANAME_VALIDATOR = GeneralNameValidator.create_inherited("X509Cert_Body_X509Exts_Ext_AKI_CAName", error_prefix_str = "X.509 Authority Key Identifier Extension (CA name)", permissible_types = [ "directoryName" ], permissible_uri_schemes = [ "http", "https" ])
-#		"empty_value":					GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_CAName_EmptyValue),
+#		"empty_value":					GeneralNameValidator.Error(code = ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_AKI_CAName_EmptyValue),
 #		"email":						GeneralNameValidator.Error(code = ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_AKI_CAName_Email_Malformed, standard = RFCReference(rfcno = 822, sect = "6.1", verb = "MUST", text = "addr-spec = local-part \"@\" domain")),
 #		"ip":							GeneralNameValidator.Error(code = ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_AKI_CAName_IPAddress_Malformed, standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "For IP version 4, as specified in [RFC791], the octet string MUST contain exactly four octets. For IP version 6, as specified in [RFC2460], the octet string MUST contain exactly sixteen octets.")),
 #		"ip_private":					GeneralNameValidator.Error(code = ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_AKI_CAName_IPAddress_PrivateAddressSpace),
@@ -281,7 +281,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 			if aki.ca_names is not None:
 				if len(aki.ca_names) == 0:
 					standard = RFCReference(rfcno = 5280, sect = [ "4.2.1.1", "4.2.1.6" ], verb = "MUST", text = "GeneralNames ::= SEQUENCE SIZE (1..MAX) OF GeneralName")
-					judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_CAName_Empty, "AuthorityKeyIdentifier X.509 extension contains CA names field of length zero.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+					judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_AKI_CAName_Empty, "AuthorityKeyIdentifier X.509 extension contains CA names field of length zero.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 				for general_name in aki.ca_names:
 					judgements += self._AUTHORITY_KEY_IDENTIFIER_CANAME_VALIDATOR.validate(general_name)
 
@@ -311,7 +311,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		if nc is not None:
 			if not nc.critical:
 				standard = RFCReference(rfcno = 5280, sect = "4.2.1.10", verb = "MUST", text = "Conforming CAs MUST mark this extension as critical")
-				judgements += SecurityJudgement(JudgementCode.Cert_X509Ext_NameConstraints_PresentButNotCritical, "NameConstraints X.509 extension present, but not marked critical.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+				judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_NC_PresentCritical, "NameConstraints X.509 extension present, but not marked critical.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 			if not certificate.is_ca_certificate:
 				standard = RFCReference(rfcno = 5280, sect = "4.2.1.10", verb = "MUST", text = "The name constraints extension, which MUST be used only in a CA certificate, indicates a name space within which all subject names in subsequent certificates in a certification path MUST be located.")
 				judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_X509Exts_Ext_NC_PresentNotCA, "NameConstraints X.509 extension present, but certificate is not a CA certificate.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)

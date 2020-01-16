@@ -108,7 +108,7 @@ class OLDJudgementCode(enum.Enum):
 #	Cert_X509Ext_AuthorityKeyIdentifier_Empty = ("X.509 AuthorityKeyIdentifier extension", "no key ID, CA name or serial given")
 #	Cert_X509Ext_AuthorityKeyIdentifier_Missing = ("X.509 AuthorityKeyIdentifier extension", "AKI extension missing")
 #	Cert_X509Ext_AuthorityKeyIdentifier_Critical = ("X.509 AuthorityKeyIdentifier extension", "AKI extension marked as critical")
-	Cert_X509Ext_AuthorityKeyIdentifier_CAName_Empty = ("X.509 AuthorityKeyIdentifier CA name", "no names given")
+#	Cert_X509Ext_AuthorityKeyIdentifier_CAName_Empty = ("X.509 AuthorityKeyIdentifier CA name", "no names given")
 	Cert_X509Ext_AuthorityKeyIdentifier_CAName_EmptyValue = ("X.509 AuthorityKeyIdentifier CA name", "no value given")
 #	Cert_X509Ext_AuthorityKeyIdentifier_CAName_BadIP = ("X.509 AuthorityKeyIdentifier CA name", "invalid IP address")
 #	Cert_X509Ext_AuthorityKeyIdentifier_CAName_BadIP_Private = ("X.509 AuthorityKeyIdentifier CA name", "IP address in unusual network space")
@@ -137,7 +137,7 @@ class OLDJudgementCode(enum.Enum):
 #	Cert_X509Ext_SubjectKeyIdentifier_Arbitrary = ("X.509 SubjectKeyIdentifier extension", "SKI does not appear to be hash of public key")
 
 #	Cert_X509Ext_NameConstraints_Empty = ("X.509 NameConstraints extension", "NameConstraints extension is empty")
-	Cert_X509Ext_NameConstraints_PresentButNotCritical = ("X.509 NameConstraints extension", "NameConstraints extension not marked critical")
+#	Cert_X509Ext_NameConstraints_PresentButNotCritical = ("X.509 NameConstraints extension", "NameConstraints extension not marked critical")
 #	Cert_X509Ext_NameConstraints_PresentButNotCA = ("X.509 NameConstraints extension", "NameConstraints extension in non-CA certificate")
 #	Cert_X509Ext_NameConstraints_Subtree_Name_BadIP = ("X.509 NameConstraints extension", "NameConstraints extension has invalid IP address")
 #	Cert_X509Ext_NameConstraints_Subtree_Name_RegisteredID = ("X.509 NameConstraints extension", "NameConstraints extension imposes restriction on RegisteredID")

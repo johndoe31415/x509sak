@@ -142,7 +142,7 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-empty.pem", "X509Cert_Body_X509Exts_Ext_SAN_Empty")
 
 	def test_examine_x509test_xf_ext_altname_empty2(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-empty2.pem", "Cert_X509Ext_SubjectAltName_EmptyValue")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-empty2.pem", "X509Cert_Body_X509Exts_Ext_SAN_Name_Email_Malformed")
 
 	def test_examine_x509test_xf_ext_altname_invalid_domain(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-invalid-domain.pem", "X509Cert_Body_X509Exts_Ext_SAN_Name_DNS_Malformed")
@@ -283,7 +283,7 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-name-constraints-nonca.pem", "X509Cert_Body_X509Exts_Ext_NC_PresentNotCA")
 
 	def test_examine_x509test_xf_ext_name_constraints_noncrit(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-name-constraints-noncrit.pem", "Cert_X509Ext_NameConstraints_PresentButNotCritical")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-name-constraints-noncrit.pem", "X509Cert_Body_X509Exts_Ext_NC_PresentCritical")
 
 #	def test_examine_x509test_xf_ext_name_constraints_regid(self):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-name-constraints-regid.pem", "X509Cert_Body_X509Exts_Ext_NC_Subtree_Name_RestictionOnRegisteredID")
@@ -806,10 +806,10 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/aki_caname_bad_uri.pem", expect_present = "X509Cert_Body_X509Exts_Ext_AKI_CAName_URI_Malformed")
 
 	def test_aki_caname_empty(self):
-		self._test_examine_x509test_resultcode("certs/constructed/aki_caname_empty.pem", expect_present = "Cert_X509Ext_AuthorityKeyIdentifier_CAName_Empty")
+		self._test_examine_x509test_resultcode("certs/constructed/aki_caname_empty.pem", expect_present = "X509Cert_Body_X509Exts_Ext_AKI_CAName_Empty")
 
 	def test_aki_caname_emptyvalue(self):
-		self._test_examine_x509test_resultcode("certs/constructed/aki_caname_emptyvalue.pem", expect_present = "Cert_X509Ext_AuthorityKeyIdentifier_CAName_EmptyValue")
+		self._test_examine_x509test_resultcode("certs/constructed/aki_caname_emptyvalue.pem", expect_present = "X509Cert_Body_X509Exts_Ext_AKI_CAName_DNS_Malformed")
 
 	def test_aki_caname_bad_ip_private(self):
 		self._test_examine_x509test_resultcode("certs/constructed/aki_caname_bad_ip_private.pem", expect_present = "X509Cert_Body_X509Exts_Ext_AKI_CAName_IPAddress_PrivateAddressSpace")
@@ -848,7 +848,7 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/issuer_altname_empty.pem", expect_present = "X509Cert_Body_X509Exts_Ext_IAN_Empty")
 
 	def test_issuer_altname_emptyvalue(self):
-		self._test_examine_x509test_resultcode("certs/constructed/issuer_altname_emptyvalue.pem", expect_present = "Cert_X509Ext_IssuerAltName_EmptyValue")
+		self._test_examine_x509test_resultcode("certs/constructed/issuer_altname_emptyvalue.pem", expect_present = "X509Cert_Body_X509Exts_Ext_IAN_Name_Email_Malformed")
 
 	def test_issuer_altname_bad_domain(self):
 		self._test_examine_x509test_resultcode("certs/constructed/issuer_altname_bad_domain.pem", expect_present = "X509Cert_Body_X509Exts_Ext_IAN_Name_DNS_Malformed")
@@ -1168,7 +1168,7 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_rdn_ambiguous.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_PointName_RDN_Ambiguous")
 
 	def test_crldp_point_name_empty_value(self):
-		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_name_empty_value.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_PointName_EmptyValue")
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_name_empty_value.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_PointName_Email_Malformed")
 
 	def test_crldp_point_name_possibly_no_der_crl1(self):
 		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_name_possibly_no_der_crl1.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_PointName_PossiblyNoDERCRLServed")
@@ -1189,7 +1189,7 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/crldp_issuer_name_bad_uri.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_CRLIssuer_URI_Malformed")
 
 	def test_crldp_issuer_name_empty_value(self):
-		self._test_examine_x509test_resultcode("certs/constructed/crldp_issuer_name_empty_value.pem", expect_present = "Cert_X509Ext_CRLDistributionPoints_CRLIssuer_Name_EmptyValue")
+		self._test_examine_x509test_resultcode("certs/constructed/crldp_issuer_name_empty_value.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_CRLIssuer_Email_Malformed")
 
 	def test_crldp_issuer_name_uncommon_identifier(self):
 		self._test_examine_x509test_resultcode("certs/constructed/crldp_issuer_name_uncommon_identifier.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_CRLIssuer_RegisteredID_Unexpected")

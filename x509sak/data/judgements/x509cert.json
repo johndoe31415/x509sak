@@ -101,7 +101,8 @@
 						"_label": "AKI",
 						"_import": [ "asn1_encoding_issues/*", "x509_ext_checks/*:empty,missing,critical{name=AKI}" ],
 						"CA name": {
-							"_import": "*general_name_issues/*"
+							"_import": "*general_name_issues/*",
+							"Empty": { "_desc": "AKI CAname empty" }
 						},
 						"Serial without CAName": { "_desc": "AKI extension has serial without CA name" },
 						"CAname without Serial": { "_desc": "AKI extension has CA name without serial" },

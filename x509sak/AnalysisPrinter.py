@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2019 Johannes Bauer
+#	Copyright (C) 2018-2020 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -110,7 +110,7 @@ class AnalysisPrinterText(AnalysisPrinter):
 
 	def _fmt_security_judgement(self, judgement):
 		color = self._fmt_color(judgement)
-		text = "%s: %s" % (judgement.topic, judgement.text)
+		text = "%s: %s" % (judgement.code.topic, judgement.text)
 
 		if (judgement.compatibility == Compatibility.STANDARDS_DEVIATION) and (judgement.standard is not None):
 			if judgement.standard.deviation_type == StandardDeviationType.RECOMMENDATION:
