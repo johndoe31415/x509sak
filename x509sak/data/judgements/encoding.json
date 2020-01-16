@@ -1,7 +1,9 @@
 {
 	"Encoding": {
 		"_export": true,
+		"_label": "Enc",
 		"ASN.1 DER": {
+			"_label": "DER",
 			"Encoding Issues": {
 				"_short_id": "asn1_encoding_issues",
 				"Trailing Data": {
@@ -14,8 +16,10 @@
 				}
 			},
 			"Structures": {
+				"_label": "Struct",
 				"Distinguished Name": {
 					"_short_id": "dn_issues",
+					"_label": "DN",
 					"Illegal Character": { "_desc": "$nname distinguished name contains illegal character" },
 					"Deprecated Type": { "_desc": "$nname distinguished name contains deprecated type" },
 					"Non-Printable": { "_desc": "$nname distinguished name contains non-printable type" },
@@ -75,20 +79,21 @@
 					"_label": "GenName",
 					"_short_id": "general_name_issues",
 					"Email": {
-						"Unexpected": { "_desc": "$name email address is an unexpected type" },
+						"Unexpected": { "_desc": "$name email address is an unexpected type", "_require": "!allow_email" },
 						"Malformed": { "_desc": "$name email address is malformed" }
 					},
 					"IP Address": {
-						"Unexpected": { "_desc": "$name IP address is an unexpected type" },
+						"Unexpected": { "_desc": "$name IP address is an unexpected type", "_require": "!allow_ip" },
 						"Private Address Space": { "_desc": "$name IP address falls in private address space" },
 						"Malformed": { "_desc": "$name IP address is malformed" }
 					},
 					"Directory Address": {
-						"Unexpected": { "_desc": "$name directory name is an unexpected type" }
+						"Empty": { "_desc": "$name directory name contains no RDNs" },
+						"Unexpected": { "_desc": "$name directory name is an unexpected type", "_require": "!allow_dirname" }
 					},
 					"URI": {
 						"_short_id": "uri_issues",
-						"Unexpected": { "_desc": "$name URI is an unexpected type" },
+						"Unexpected": { "_desc": "$name URI is an unexpected type", "_require": "!allow_uri" },
 						"Malformed": { "_desc": "$name URI is malformed" },
 						"Uncommon URI Scheme": { "_desc": "$name URI uses uncommon URI scheme" },
 						"LDAP": {
@@ -101,15 +106,15 @@
 					"Domain Name": {
 						"_label": "DNS",
 						"Malformed": { "_desc": "$name domain name domain name malformed" },
-						"Unexpected": { "_desc": "$name domain name unexpected data type" },
+						"Unexpected": { "_desc": "$name domain name unexpected data type", "_require": "!allow_dns" },
 						"Only Whitespace": { "_desc": "$name domain name domain name consists only of space character" },
 						"Single Label": { "_desc": "$name domain name domain name consists only of a single label" },
 						"Wildcard": {
-							"Not Permitted": { "_desc": "$name domain name wildcard not permitted in domain name" },
-							"Not Leftmost": { "_desc": "$name domain name wildcard appears not leftmost in label" },
-							"Mulitple Wildcards": { "_desc": "$name domain name multiple wildcard present in label" },
-							"International Label": { "_desc": "$name domain name wildcard used in international label" },
-							"Broad Match": { "_desc": "$name domain name wildcard matches broadly" }
+							"Not Permitted": { "_desc": "$name domain name wildcard not permitted in domain name", "_require": "!allow_dns_wc" },
+							"Not Leftmost": { "_desc": "$name domain name wildcard appears not leftmost in label", "_require": "allow_dns_wc" },
+							"Mulitple Wildcards": { "_desc": "$name domain name multiple wildcard present in label", "_require": "allow_dns_wc" },
+							"International Label": { "_desc": "$name domain name wildcard used in international label", "_require": "allow_dns_wc" },
+							"Broad Match": { "_desc": "$name domain name wildcard matches broadly", "_require": "allow_dns_wc" }
 						}
 					}
 				}

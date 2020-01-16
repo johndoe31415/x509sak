@@ -104,7 +104,7 @@ class OLDJudgementCode(enum.Enum):
 #	Cert_X509Ext_BasicConstraints_PathLenWithoutCA = ("X.509 BasicConstraints extension", "BC extension contains pathLen constraint without CA attribute")
 #	Cert_X509Ext_BasicConstraints_PathLenWithoutKeyCertSign = ("X.509 BasicConstraints extension", "BC extension contains pathLen constraint without keyCertSign KU")
 
-	Cert_X509Ext_AuthorityKeyIdentifier_Malformed = ("X.509 AuthorityKeyIdentifier extension", "AKI extension malformed")
+#	Cert_X509Ext_AuthorityKeyIdentifier_Malformed = ("X.509 AuthorityKeyIdentifier extension", "AKI extension malformed")
 #	Cert_X509Ext_AuthorityKeyIdentifier_Empty = ("X.509 AuthorityKeyIdentifier extension", "no key ID, CA name or serial given")
 #	Cert_X509Ext_AuthorityKeyIdentifier_Missing = ("X.509 AuthorityKeyIdentifier extension", "AKI extension missing")
 #	Cert_X509Ext_AuthorityKeyIdentifier_Critical = ("X.509 AuthorityKeyIdentifier extension", "AKI extension marked as critical")
@@ -372,10 +372,8 @@ class StandardDeviationType(enum.IntEnum):
 	VIOLATION = 1
 
 class SecurityJudgement():
-	def __init__(self, code, text, bits = None, verdict = None, commonness = None, compatibility = None, prefix_topic = False, standard = None, literature = None):
-		# TODO disable check until refactoring of ExperimentalJudgementCode is finished
-		#assert((code is None) or isinstance(code, JudgementCode))
-
+	def __init__(self, code, text, bits = None, verdict = None, commonness = None, compatibility = None, prefix_topic = False, standard = None, literature = None, info_payload = None):
+		assert((code is None) or isinstance(code, ExperimentalJudgementCodes))
 		assert((bits is None) or isinstance(bits, (int, float)))
 		assert((verdict is None) or isinstance(verdict, Verdict))
 		assert((commonness is None) or isinstance(commonness, Commonness))
@@ -389,6 +387,7 @@ class SecurityJudgement():
 		self._prefix_topic = prefix_topic
 		self._standard = standard
 		self._literature = literature
+		self._info_payload = info_payload
 		if self._bits == 0:
 			if self._verdict is None:
 				self._verdict = Verdict.NO_SECURITY
@@ -396,30 +395,12 @@ class SecurityJudgement():
 				self._commonness = Commonness.HIGHLY_UNUSUAL
 
 	@property
-	def code(self):
+	def codeenum(self):
 		return self._code
 
 	@property
-	def topic(self):
-		if self.code is None:
-			return None
-		else:
-			# TODO refactor
-			if isinstance(self.code.value, tuple):
-				return self.code.value[0]
-			else:
-				return self.code.value.topic
-
-	@property
-	def short_text(self):
-		if self.code is None:
-			return None
-		else:
-			# TODO refactor
-			if isinstance(self.code.value, tuple):
-				return self.code.value[1]
-			else:
-				return self.code.value.short_text
+	def code(self):
+		return self._code.value
 
 	@property
 	def text(self):
@@ -449,12 +430,14 @@ class SecurityJudgement():
 	def literature(self):
 		return self._literature
 
+	@property
+	def info_payload(self):
+		return self._info_payload
+
 	@classmethod
 	def from_dict(cls, judgement_data):
 		if "code" in judgement_data:
-			# TODO this is broken until refactoring complete
-			#code = getattr(JudgementCode, judgement_data["code"])
-			code = None
+			code = getattr(ExperimentalJudgementCodes, judgement_data["code"])
 		else:
 			code = None
 		text = judgement_data["text"]
@@ -478,9 +461,9 @@ class SecurityJudgement():
 
 	def to_dict(self):
 		result = {
-			"code":				self.code.name if (self.code is not None) else None,
-			"topic":			self.topic,
-			"short_text":		self.short_text,
+			"code":				self.code.name,
+			"topic":			self.code.topic,
+			"short_text":		self.code.short_text,
 			"text":				self.text,
 			"bits":				self.bits,
 			"verdict":			JSONTools.translate(self.verdict) if (self.verdict is not None) else None,
@@ -514,7 +497,7 @@ class SecurityJudgements():
 
 	@property
 	def uniform_topic(self):
-		return len(set(item.topic for item in self)) in [ 0, 1 ]
+		return len(set(security_judgement.code.topic for security_judgement in self)) in [ 0, 1 ]
 
 	@property
 	def bits(self):

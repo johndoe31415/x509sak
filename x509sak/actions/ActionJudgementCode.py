@@ -26,16 +26,16 @@ class ActionJudgementCode(BaseAction):
 	def __init__(self, cmdname, args):
 		BaseAction.__init__(self, cmdname, args)
 
-		jcs = x509sak.estimate.JudgementStructure.create_judgement_structure(verbose = self._args.verbose >= 1)
-		eec = jcs.create_extended_enum_class()
+		structure = x509sak.estimate.JudgementStructure.create_judgement_structure(verbose = self._args.verbose >= 1)
+		extended_enum_class = structure.create_extended_enum_class()
 		if self._args.action == "list":
-			codes = [ jc.value for jc in eec ]
+			codes = [ enum_code.value for enum_code in extended_enum_class ]
 			for jc in sorted(codes):
-				print(jc.code)
+				print(jc.name)
 		elif self._args.action == "dump":
-			jcs.root.dump()
+			structure.root.dump()
 		elif self._args.action == "inherit":
-			for (target_attribute, inherited_codes) in sorted(eec.inheritance.items()):
+			for (target_attribute, inherited_codes) in sorted(extended_enum_class.inheritance.items()):
 				print("%s:" % (target_attribute))
 				for (base_name, codepoint) in sorted(inherited_codes.items()):
 					print("    %s: %s" % (base_name, codepoint.name))

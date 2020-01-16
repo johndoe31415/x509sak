@@ -116,7 +116,7 @@
 							"Minimum not Zero": { "_desc": "NC extension subtree minimum attribute is non-zero" },
 							"Maximum present": { "_desc": "NC extension subtree maximum attribute is present" },
 							"Name": {
-								"_import": "general_name_issues/*",
+								"_import": "*general_name_issues/*",
 								"Restiction on RegisteredID": { "_desc": "NC extension imposes restriction on RegisteredID" }
 							}
 						}
@@ -144,14 +144,14 @@
 						"Missing": { "_desc": "IAN extension missing although certificate issue header is empty" },
 						"Critical": { "_desc": "IAN extension marked criticial" },
 						"Name": {
-							"_import": "general_name_issues/*"
+							"_import": "*general_name_issues/*:allow_dirname"
 						}
 					},
 					"Subject Alternative Name": {
 						"_label": "SAN",
 						"_import": "asn1_encoding_issues/*",
 						"Name": {
-							"_import": "general_name_issues/*"
+							"_import": "*general_name_issues/*:allow_dns,allow_dns_wc,allow_ip"
 						},
 						"Empty": { "_desc": "SAN extension empty" },
 						"Missing": { "_desc": "SAN extension missing" },
@@ -210,7 +210,7 @@
 						"Segmentation used": { "_desc": "CRLDP contains points that contain CRLs that are not universal" },
 						"NoLDAPorHTTPURI": { "_desc": "CRLDP point contains point with no HTTP or LDAP URI" },
 						"Point Name": {
-							"_import": "general_name_issues/*:ldap_validation",
+							"_import": "*general_name_issues/*:ldap_validation",
 							"Possibly no DER CRL served": { "_desc": "CRLDP point serves potentialla non-DER CRL" },
 							"Relative Distinguished Name": {
 								"_label": "RDN",
@@ -225,7 +225,7 @@
 							"Undefined Bits Asserted": { "_desc": "undefined reason bits asserted" }
 						},
 						"CRL Issuer": {
-							"_import": "general_name_issues/*",
+							"_import": "*general_name_issues/*",
 							"Redundant": { "_desc": "redundant use of cRLIssuer field" }
 						}
 					},

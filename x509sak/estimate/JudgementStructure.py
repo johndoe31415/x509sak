@@ -29,8 +29,8 @@ from x509sak.Tools import JSONTools
 
 @functools.total_ordering
 class RichJudgementCode():
-	def __init__(self, code, description, **kwargs):
-		self._code = code
+	def __init__(self, name, description, **kwargs):
+		self._name = name
 		self._description = description
 		self._flags = kwargs.get("flags")
 		self._order = kwargs.get("order")
@@ -40,8 +40,8 @@ class RichJudgementCode():
 		return self._order
 
 	@property
-	def code(self):
-		return self._code
+	def name(self):
+		return self._name
 
 	@property
 	def topic(self):
@@ -53,11 +53,14 @@ class RichJudgementCode():
 
 	@classmethod
 	def from_node(cls, node):
-		return cls(code = node.long_id, description = node.attrs["desc"], order = node.order)
+		return cls(name = node.long_id, description = node.attrs["desc"], order = node.order)
 
 	@property
 	def cmptuple(self):
-		return (self.order, self.code)
+		return (self.order, self.name)
+
+	def __hash__(self):
+		return hash(self.cmptuple)
 
 	def __eq__(self, other):
 		return self.cmptuple == other.cmptuple
@@ -66,7 +69,7 @@ class RichJudgementCode():
 		return self.cmptuple < other.cmptuple
 
 	def __repr__(self):
-		return "RichJudgementCode<%s>" % (self.code)
+		return "RichJudgementCode<%s>" % (self.name)
 
 class StructureNode():
 	_IMPORT_REGEX = re.compile("(?P<export_root_point>\*)?(?P<name>[a-zA-Z0-9_]+)(?P<import_contents>/\*)?(:(?P<flags>[a-zA-Z0-9_,]+))?({(?P<substitutions>[^}]+)})?")
@@ -313,7 +316,11 @@ class JudgementStructure():
 					node.attrs.get("export") is True,
 				]
 				if node.has_attribute("require"):
-					requirements.append(node.attrs["require"] in import_statement.flags)
+					require = node.attrs["require"]
+					if not require.startswith("!"):
+						requirements.append(require in import_statement.flags)
+					else:
+						requirements.append(require[1:] not in import_statement.flags)
 				return all(requirements)
 
 			def apply_substitutions(node):
