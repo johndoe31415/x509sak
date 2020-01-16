@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2018 Johannes Bauer
+#	Copyright (C) 2018-2020 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -23,7 +23,7 @@ from x509sak.AlgorithmDB import Cryptosystems
 from x509sak.estimate.BaseEstimator import BaseEstimator
 from x509sak.Exceptions import LazyDeveloperException
 from x509sak.CurveDB import CurveNotFoundException
-from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, JudgementCode, ExperimentalJudgementCodes, Compatibility, Commonness
+from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, ExperimentalJudgementCodes, Compatibility, Commonness
 
 @BaseEstimator.register
 class PublicKeyEstimator(BaseEstimator):

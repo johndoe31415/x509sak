@@ -24,7 +24,7 @@ ExperimentalJudgementCodes = create_judgement_code_class(verbose = False)
 
 from x509sak.estimate.AnalysisOptions import AnalysisOptions
 from x509sak.estimate.BaseEstimator import BaseEstimator as SecurityEstimator
-from x509sak.estimate.Judgement import SecurityJudgement, JudgementCode, Verdict, Commonness, Compatibility, StandardDeviationType
+from x509sak.estimate.Judgement import SecurityJudgement, Verdict, Commonness, Compatibility, StandardDeviationType
 
 import x509sak.estimate.EstimateBits
 import x509sak.estimate.EstimateCertificateExtensions

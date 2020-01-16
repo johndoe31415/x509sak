@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2018 Johannes Bauer
+#	Copyright (C) 2018-2020 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -24,7 +24,7 @@ import calendar
 from pyasn1.type.useful import GeneralizedTime
 from x509sak.Tools import DateTimeTools
 from x509sak.estimate.BaseEstimator import BaseEstimator
-from x509sak.estimate import JudgementCode, ExperimentalJudgementCodes, Verdict, Commonness, Compatibility
+from x509sak.estimate import ExperimentalJudgementCodes, Verdict, Commonness, Compatibility
 from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, RFCReference
 
 @BaseEstimator.register
