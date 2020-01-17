@@ -118,48 +118,36 @@
 					},
 					"Key Usage": {
 						"_label": "KU",
-						"_import": [ "bitstring_issues/*", "asn1_encoding_issues/*" ],
-						"Missing": { "_desc": "KU extension missing" },
-						"Empty": { "_desc": "KU extension empty" },
+						"_import": [ "bitstring_issues/*", "asn1_encoding_issues/*", "x509_ext_checks/*:missing,empty,notcritical{name=KU}" ],
 						"Too Long": { "_desc": "KU extension too long" },
-						"Not Critical": { "_desc": "KU extension is not critical" },
 						"SignCert but no CA": { "_desc": "KU extension contains signCert flag but is no CA" },
 						"SignCert but no Basic Constraints": { "_desc": "KU extension contains signCert flag but has no Basic Constraints extension" }
 					},
 					"Extended Key Usage": {
 						"_label": "EKU",
-						"_import": "asn1_encoding_issues/*",
-						"Empty": { "_desc": "EKU extension empty" },
+						"_import": [ "asn1_encoding_issues/*", "x509_ext_checks/*:empty{name=EKU}" ],
 						"Duplicate": { "_desc": "EKU extension contains duplicate usage OID" },
 						"Any Usage Criticial": { "_desc": "EKU extension contains anyUsage flag but extension is marked critical" }
 					},
 					"Issuer Alternative Name": {
 						"_label": "IAN",
-						"_import": "asn1_encoding_issues/*",
+						"_import": [ "asn1_encoding_issues/*", "x509_ext_checks/*:critical,empty{name=IAN}" ],
 						"Missing": { "_desc": "IAN extension missing although certificate issue header is empty" },
-						"Critical": { "_desc": "IAN extension marked criticial" },
-						"Empty": { "_desc": "IAN extension contains no GeneralName" },
 						"Name": {
 							"_import": "*general_name_issues/*:allow_dirname"
 						}
 					},
 					"Subject Alternative Name": {
 						"_label": "SAN",
-						"_import": "asn1_encoding_issues/*",
+						"_import": [ "asn1_encoding_issues/*", "x509_ext_checks/*:empty,missing,critical,notcritical{name=SAN}" ],
 						"Name": {
 							"_import": "*general_name_issues/*:allow_dns,allow_dns_wc,allow_ip"
 						},
-						"Empty": { "_desc": "SAN extension empty" },
-						"Missing": { "_desc": "SAN extension missing" },
-						"Critical": { "_desc": "SAN extension marked critical" },
-						"Not Critical": { "_desc": "SAN extension marked not critical" },
 						"Email Only": { "_desc": "SAN extension contains only email names" }
 					},
 					"Authority Information Access": {
 						"_label": "AIA",
-						"_import": "asn1_encoding_issues/*",
-						"Empty": { "_desc": "AIA extension empty" },
-						"Critical": { "_desc": "AIA extension marked critical" }
+						"_import": [ "asn1_encoding_issues/*", "x509_ext_checks/*:empty,critical{name=AIA}" ]
 					},
 					"Certificate Policies": {
 						"_label": "CP",
@@ -199,9 +187,7 @@
 					},
 					"CRL Distribution Points": {
 						"_label": "CRLDP",
-						"_import": "asn1_encoding_issues/*",
-						"Empty": { "_desc": "CRLDP extension contains completely empty point" },
-						"Critical": { "_desc": "CRLDP extension marked critical" },
+						"_import": [ "asn1_encoding_issues/*", "x509_ext_checks/*:empty,critical{name=CRLDP}" ],
 						"No Point with all reason bits": { "_desc": "CRLDP extension contains no point that has all reason bits set" },
 						"Point with only Reasons": { "_desc": "CDLDP extension contains a point that only has the 'reason' bit set" },
 						"Segmentation used": { "_desc": "CRLDP contains points that contain CRLs that are not universal" },
@@ -228,9 +214,8 @@
 					},
 					"Certificate Transparency Precertificate Poison": {
 						"_label": "CTPP",
-						"_import": "asn1_encoding_issues/*",
+						"_import": [ "asn1_encoding_issues/*", "x509_ext_checks/*:notcritical{name=CTPP}" ],
 						"Is Precertificate": { "_desc": "CTPP extension indicates precertificate" },
-						"Not Critical": { "_desc": "CTPP extension not marked critical" },
 						"Invalid Payload": { "_desc": "CTPP extension contains invalid payload" }
 					},
 					"Certificate Transparency Signed Certificate Timestamps": {
@@ -249,10 +234,8 @@
 				},
 				"Unknown Extension": {
 					"_label": "Unknown",
-					"_import": "asn1_encoding_issues/*",
-					"Present": { "_desc": "unknown extension present" },
-					"Critical": { "_desc": "unknown extension marked critical" },
-					"Not Critical": { "_desc": "unknown extension marked not critical" }
+					"_import": [ "asn1_encoding_issues/*", "x509_ext_checks/*:critical,notcritical{name=unknown}" ],
+					"Present": { "_desc": "unknown extension present" }
 				}
 			}
 		},
