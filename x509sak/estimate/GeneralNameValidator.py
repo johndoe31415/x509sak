@@ -26,16 +26,57 @@ from x509sak.ASN1Wrapper import ASN1GeneralNameWrapper
 from x509sak.Tools import ValidationTools
 from x509sak.Exceptions import InvalidInternalDataException
 
+#		"empty_value":					GeneralNameValidator.Error(code = JudgementCode.X509Cert_Body_X509Exts_Ext_SAN_EmptyValue),
+#		"email":						GeneralNameValidator.Error(code = JudgementCode.X509Cert_Body_X509Exts_Ext_SAN_Name_Email_Malformed, standard = RFCReference(rfcno = 822, sect = "6.1", verb = "MUST", text = "addr-spec = local-part \"@\" domain")),
+#		"ip":							GeneralNameValidator.Error(code = JudgementCode.X509Cert_Body_X509Exts_Ext_SAN_Name_IPAddress_Malformed, standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "For IP version 4, as specified in [RFC791], the octet string MUST contain exactly four octets. For IP version 6, as specified in [RFC2460], the octet string MUST contain exactly sixteen octets.")),
+#		"ip_private":					GeneralNameValidator.Error(code = JudgementCode.X509Cert_Body_X509Exts_Ext_SAN_Name_IPAddress_PrivateAddressSpace),
+#		"uri":							GeneralNameValidator.Error(code = JudgementCode.X509Cert_Body_X509Exts_Ext_SAN_Name_URI_Malformed, standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "The name MUST NOT be a relative URI, and it MUST follow the URI syntax and encoding rules specified in [RFC3986]. The name MUST include both a scheme (e.g., \"http\" or \"ftp\") and a scheme-specific-part. URIs that include an authority ([RFC3986], Section 3.2) MUST include a fully qualified domain name or IP address as the host.")),
+#		"uri_invalid_scheme":			GeneralNameValidator.Error(code = JudgementCode.X509Cert_Body_X509Exts_Ext_SAN_Name_URI_UncommonURIScheme),
+#		"dnsname":						GeneralNameValidator.Error(code = JudgementCode.X509Cert_Body_X509Exts_Ext_SAN_Name_DNS_Malformed, standard = RFCReference(rfcno = 1034, sect = "3.5", verb = "MUST", text = "The following syntax will result in fewer problems with many applications that use domain names (e.g., mail, TELNET).")),
+#		"dnsname_space":				GeneralNameValidator.Error(code = JudgementCode.X509Cert_Body_X509Exts_Ext_SAN_Name_DNS_OnlyWhitespace, standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "In addition, while the string \" \" is a legal domain name, subjectAltName extensions with a dNSName of \" \" MUST NOT be used.")),
+#		"dnsname_single_label":			GeneralNameValidator.Error(code = JudgementCode.X509Cert_Body_X509Exts_Ext_SAN_Name_DNS_SingleLabel),
+#		"dnsname_wc_notleftmost":		GeneralNameValidator.Error(code = JudgementCode.X509Cert_Body_X509Exts_Ext_SAN_Name_DNS_Wildcard_NotLeftmost, standard = RFCReference(rfcno = 6125, sect = "6.4.3", verb = "SHOULD", text = "The client SHOULD NOT attempt to match a presented identifier in which the wildcard character comprises a label other than the left-most label")),
+#		"dnsname_wc_morethanone":		GeneralNameValidator.Error(code = JudgementCode.X509Cert_Body_X509Exts_Ext_SAN_Name_DNS_Wildcard_MulitpleWildcards, standard = RFCReference(rfcno = 6125, sect = "6.4.3", verb = "SHOULD", text = "If the wildcard character is the only character of the left-most label in the presented identifier, the client SHOULD NOT compare against anything but the left-most label of the reference identifier")),
+#		"dnsname_wc_international":		GeneralNameValidator.Error(code = JudgementCode.X509Cert_Body_X509Exts_Ext_SAN_Name_DNS_Wildcard_InternationalLabel, standard = RFCReference(rfcno = 6125, sect = "6.4.3", verb = "SHOULD", text = "However, the client SHOULD NOT attempt to match a presented identifier where the wildcard character is embedded within an A-label or U-label [IDNA-DEFS] of an internationalized domain name [IDNA-PROTO].")),
+#		"dnsname_wc_broad":				GeneralNameValidator.Error(code = JudgementCode.X509Cert_Body_X509Exts_Ext_SAN_Name_DNS_Wildcard_BroadMatch),
+#		"invalid_type":					GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_SubjectAltName_UncommonIdentifier),
+#		"empty_value":					GeneralNameValidator.Error(code = JudgementCode.X509Cert_Body_X509Exts_Ext_IAN_EmptyValue),
+#		"email":						GeneralNameValidator.Error(code = JudgementCode.X509Cert_Body_X509Exts_Ext_IAN_Name_Email_Malformed, standard = RFCReference(rfcno = 822, sect = "6.1", verb = "MUST", text = "addr-spec = local-part \"@\" domain")),
+#		"ip":							GeneralNameValidator.Error(code = JudgementCode.X509Cert_Body_X509Exts_Ext_IAN_Name_IPAddress_Malformed, standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "For IP version 4, as specified in [RFC791], the octet string MUST contain exactly four octets. For IP version 6, as specified in [RFC2460], the octet string MUST contain exactly sixteen octets.")),
+#		"ip_private":					GeneralNameValidator.Error(code = JudgementCode.X509Cert_Body_X509Exts_Ext_IAN_Name_IPAddress_PrivateAddressSpace),
+#		"uri":							GeneralNameValidator.Error(code = JudgementCode.X509Cert_Body_X509Exts_Ext_IAN_Name_URI_Malformed, standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "The name MUST NOT be a relative URI, and it MUST follow the URI syntax and encoding rules specified in [RFC3986]. The name MUST include both a scheme (e.g., \"http\" or \"ftp\") and a scheme-specific-part. URIs that include an authority ([RFC3986], Section 3.2) MUST include a fully qualified domain name or IP address as the host.")),
+#		"uri_invalid_scheme":			GeneralNameValidator.Error(code = JudgementCode.X509Cert_Body_X509Exts_Ext_IAN_Name_URI_UncommonURIScheme),
+#		"dnsname":						GeneralNameValidator.Error(code = JudgementCode.X509Cert_Body_X509Exts_Ext_IAN_Name_DNS_Malformed, standard = RFCReference(rfcno = 1034, sect = "3.5", verb = "MUST", text = "The following syntax will result in fewer problems with many applications that use domain names (e.g., mail, TELNET).")),
+#		"dnsname_space":				GeneralNameValidator.Error(code = JudgementCode.X509Cert_Body_X509Exts_Ext_IAN_Name_DNS_OnlyWhitespace, standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "In addition, while the string \" \" is a legal domain name, subjectAltName extensions with a dNSName of \" \" MUST NOT be used.")),
+#		"dnsname_single_label":			GeneralNameValidator.Error(code = JudgementCode.X509Cert_Body_X509Exts_Ext_IAN_Name_DNS_SingleLabel),
+#		"invalid_type":					GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_IssuerAltName_UncommonIdentifier),
+#		"empty_value":					GeneralNameValidator.Error(code = JudgementCode.X509Cert_Body_X509Exts_Ext_AKI_CAName_EmptyValue),
+#		"email":						GeneralNameValidator.Error(code = JudgementCode.X509Cert_Body_X509Exts_Ext_AKI_CAName_Email_Malformed, standard = RFCReference(rfcno = 822, sect = "6.1", verb = "MUST", text = "addr-spec = local-part \"@\" domain")),
+#		"ip":							GeneralNameValidator.Error(code = JudgementCode.X509Cert_Body_X509Exts_Ext_AKI_CAName_IPAddress_Malformed, standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "For IP version 4, as specified in [RFC791], the octet string MUST contain exactly four octets. For IP version 6, as specified in [RFC2460], the octet string MUST contain exactly sixteen octets.")),
+#		"ip_private":					GeneralNameValidator.Error(code = JudgementCode.X509Cert_Body_X509Exts_Ext_AKI_CAName_IPAddress_PrivateAddressSpace),
+#		"uri":							GeneralNameValidator.Error(code = JudgementCode.X509Cert_Body_X509Exts_Ext_AKI_CAName_URI_Malformed, standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "The name MUST NOT be a relative URI, and it MUST follow the URI syntax and encoding rules specified in [RFC3986]. The name MUST include both a scheme (e.g., \"http\" or \"ftp\") and a scheme-specific-part. URIs that include an authority ([RFC3986], Section 3.2) MUST include a fully qualified domain name or IP address as the host.")),
+#		"uri_invalid_scheme":			GeneralNameValidator.Error(code = JudgementCode.X509Cert_Body_X509Exts_Ext_AKI_CAName_URI_UncommonURIScheme),
+#		"dnsname":						GeneralNameValidator.Error(code = JudgementCode.X509Cert_Body_X509Exts_Ext_AKI_CAName_DNS_Malformed, standard = RFCReference(rfcno = 1034, sect = "3.5", verb = "MUST", text = "The following syntax will result in fewer problems with many applications that use domain names (e.g., mail, TELNET).")),
+#		"dnsname_space":				GeneralNameValidator.Error(code = JudgementCode.X509Cert_Body_X509Exts_Ext_AKI_CAName_DNS_OnlyWhitespace, standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "In addition, while the string \" \" is a legal domain name, subjectAltName extensions with a dNSName of \" \" MUST NOT be used.")),
+#		"dnsname_single_label":			GeneralNameValidator.Error(code = JudgementCode.X509Cert_Body_X509Exts_Ext_AKI_CAName_DNS_SingleLabel),
+#		"invalid_type":					GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_AuthorityKeyIdentifier_CAName_UncommonIdentifier),
+#		"empty_value":					GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_CRLDistributionPoints_PointName_EmptyValue),
+#		"email":						GeneralNameValidator.Error(code = JudgementCode.X509Cert_Body_X509Exts_Ext_CRLDP_PointName_Email_Malformed, standard = RFCReference(rfcno = 822, sect = "6.1", verb = "MUST", text = "addr-spec = local-part \"@\" domain")),
+#		"ip":							GeneralNameValidator.Error(code = JudgementCode.X509Cert_Body_X509Exts_Ext_CRLDP_PointName_IPAddress_Malformed, standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "For IP version 4, as specified in [RFC791], the octet string MUST contain exactly four octets. For IP version 6, as specified in [RFC2460], the octet string MUST contain exactly sixteen octets.")),
+#		"ip_private":					GeneralNameValidator.Error(code = JudgementCode.X509Cert_Body_X509Exts_Ext_CRLDP_PointName_IPAddress_PrivateAddressSpace),
+#		"uri":							GeneralNameValidator.Error(code = JudgementCode.X509Cert_Body_X509Exts_Ext_CRLDP_PointName_URI_Malformed, standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "The name MUST NOT be a relative URI, and it MUST follow the URI syntax and encoding rules specified in [RFC3986]. The name MUST include both a scheme (e.g., \"http\" or \"ftp\") and a scheme-specific-part. URIs that include an authority ([RFC3986], Section 3.2) MUST include a fully qualified domain name or IP address as the host.")),
+#		"uri_invalid_scheme":			GeneralNameValidator.Error(code = JudgementCode.X509Cert_Body_X509Exts_Ext_CRLDP_PointName_URI_UncommonURIScheme),
+#		"dnsname":						GeneralNameValidator.Error(code = JudgementCode.X509Cert_Body_X509Exts_Ext_CRLDP_PointName_DNS_Malformed, standard = RFCReference(rfcno = 1034, sect = "3.5", verb = "MUST", text = "The following syntax will result in fewer problems with many applications that use domain names (e.g., mail, TELNET).")),
+#		"dnsname_space":				GeneralNameValidator.Error(code = JudgementCode.X509Cert_Body_X509Exts_Ext_CRLDP_PointName_DNS_OnlyWhitespace, standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "In addition, while the string \" \" is a legal domain name, subjectAltName extensions with a dNSName of \" \" MUST NOT be used.")),
+#		"dnsname_single_label":			GeneralNameValidator.Error(code = JudgementCode.X509Cert_Body_X509Exts_Ext_CRLDP_PointName_DNS_SingleLabel),
+#		"invalid_type":					GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_CRLDistributionPoints_PointName_UncommonIdentifier),
+#		"empty_value":					GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_CRLDistributionPoints_CRLIssuer_Name_EmptyValue),
+#		"email":						GeneralNameValidator.Error(code = JudgementCode.X509Cert_Body_X509Exts_Ext_CRLDP_CRLIssuer_Email_Malformed, standard = RFCReference(rfcno = 822, sect = "6.1", verb = "MUST", text = "addr-spec = local-part \"@\" domain")),
+#		"uri":							GeneralNameValidator.Error(code = JudgementCode.X509Cert_Body_X509Exts_Ext_CRLDP_CRLIssuer_URI_Malformed, standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "The name MUST NOT be a relative URI, and it MUST follow the URI syntax and encoding rules specified in [RFC3986]. The name MUST include both a scheme (e.g., \"http\" or \"ftp\") and a scheme-specific-part. URIs that include an authority ([RFC3986], Section 3.2) MUST include a fully qualified domain name or IP address as the host.")),
+#		"uri_invalid_scheme":			GeneralNameValidator.Error(code = JudgementCode.X509Cert_Body_X509Exts_Ext_CRLDP_CRLIssuer_URI_UncommonURIScheme),
+#		"invalid_type":					GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_CRLDistributionPoints_CRLIssuer_Name_UncommonIdentifier),
+
 class GeneralNameValidator():
-	_VALID_ERROR_TYPES = set([
-		"dnsname", "dnsname_space", "dnsname_wc_notleftmost", "dnsname_wc_morethanone", "dnsname_wc_international", "dnsname_wc_broad", "dnsname_single_label",
-		"ip", "ip_private",
-		"email",
-		"uri", "uri_invalid_scheme",
-		"empty_value",
-		"invalid_type",
-		"unknown_subtype",
-	])
 	class Error():
 		def __init__(self, code = None, standard = None, info_payload = None):
 			self._code = code
@@ -54,15 +95,12 @@ class GeneralNameValidator():
 		def info_payload(self):
 			return self._info_payload
 
-	def __init__(self, error_prefix_str = None, permissible_types = None, permissible_uri_schemes = None, allow_dnsname_wildcard_matches = None, errors = None):
+	def __init__(self, error_prefix_str = None, permissible_uri_schemes = None, allow_dnsname_wildcard_matches = None, errors = None):
 		self._allow_dnsname_wildcard_matches = allow_dnsname_wildcard_matches
 		self._error_prefix_str = error_prefix_str if (error_prefix_str is not None) else "GeneralName"
 		self._errors = errors if (errors is not None) else { }
-		self._permissible_types = permissible_types
 		self._permissible_uri_schemes = permissible_uri_schemes
 		self._validation = None
-#		if len(set(self._errors) - self._VALID_ERROR_TYPES) > 0:
-#			raise InvalidInternalDataException("Unsupported error type(s) passed for handling: %s" % (", ".join(sorted(set(self._errors) - self._VALID_ERROR_TYPES))))
 
 	@classmethod
 	def create_inherited(cls, root_point_name, **kwargs):
@@ -159,18 +197,9 @@ class GeneralNameValidator():
 		self._report_error("Enc_DER_Struct_GenName_RegisteredID_Unexpected", "contains unexpected registered ID \"%s\"." % (self._gn.str_value))
 
 	def _do_validate(self):
-#		if self._gn.str_value.strip("\t \r\n") == "":
-#			self._report_error("empty_value", "has empty value or contains only of whitespace.", commonness = Commonness.HIGHLY_UNUSUAL)
-
-#		if self._permissible_types is not None:
-#			if self._gn.name not in self._permissible_types:
-#				self._report_error("invalid_type", "has type that is not common or permitted in this context (allowed are %s)." % (", ".join(sorted(self._permissible_types))), commonness = Commonness.HIGHLY_UNUSUAL)
-
 		gn_subtype_handler = getattr(self, "_handle_%s" % (str(self._gn.name)), None)
 		if gn_subtype_handler is not None:
 			gn_subtype_handler()
-#		else:
-#			self._report_error("unknown_subtype", "has no handler in %s." % (self.__class__.__name__))
 
 	def validate(self, general_name):
 		self._gn = general_name

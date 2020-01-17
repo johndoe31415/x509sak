@@ -101,7 +101,7 @@
 						"_label": "AKI",
 						"_import": [ "asn1_encoding_issues/*", "x509_ext_checks/*:empty,missing,critical{name=AKI}" ],
 						"CA name": {
-							"_import": "*general_name_issues/*",
+							"_import": "*general_name_issues/*:allow_dirname",
 							"Empty": { "_desc": "AKI CAname empty" }
 						},
 						"Serial without CAName": { "_desc": "AKI extension has serial without CA name" },
@@ -213,7 +213,7 @@
 						"Segmentation used": { "_desc": "CRLDP contains points that contain CRLs that are not universal" },
 						"NoLDAPorHTTPURI": { "_desc": "CRLDP point contains point with no HTTP or LDAP URI" },
 						"Point Name": {
-							"_import": "*general_name_issues/*:ldap_validation",
+							"_import": "*general_name_issues/*:allow_dirname,allow_uri,ldap_validation",
 							"Possibly no DER CRL served": { "_desc": "CRLDP point serves potentialla non-DER CRL" },
 							"Relative Distinguished Name": {
 								"_label": "RDN",
@@ -228,7 +228,7 @@
 							"Undefined Bits Asserted": { "_desc": "undefined reason bits asserted" }
 						},
 						"CRL Issuer": {
-							"_import": "*general_name_issues/*",
+							"_import": "*general_name_issues/*:allow_dirname",
 							"Redundant": { "_desc": "redundant use of cRLIssuer field" }
 						}
 					},

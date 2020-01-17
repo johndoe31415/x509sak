@@ -20,6 +20,7 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 from pyasn1_modules import rfc5280
+import pyasn1.codec.der.decoder
 from pyasn1.type.univ import OctetString
 from x509sak.tests.BaseTest import BaseTest
 from x509sak.estimate.GeneralNameValidator import GeneralNameValidator
@@ -28,42 +29,54 @@ from x509sak.estimate import JudgementCode
 class GeneralNameValidatorTests(BaseTest):
 	def _create_general_name(self, name, inner):
 		gn = rfc5280.GeneralName()
-		gn[name] = gn.getComponentByName(name).clone(inner)
+		if name == "directoryName":
+			gn[name] = gn.getComponentByName(name).clone()
+			gn[name]["rdnSequence"] = inner
+		else:
+			gn[name] = gn.getComponentByName(name).clone(inner)
 		return gn
 
-	def _validate(self, name, inner, permissible_types = None, permissible_uri_schemes = None, assert_length = None, assert_present = None):
+	def _validate(self, name, inner, permissible_uri_schemes = None, assert_length = None, assert_present = None, assert_absent = None, additional_errors = None):
 		gn = self._create_general_name(name, inner)
 		errors = [
 			"Enc_DER_Struct_GenName_DirectoryAddress_Empty",
-#			"Enc_DER_Struct_GenName_DirectoryAddress_Unexpected",
 			"Enc_DER_Struct_GenName_DNS_Malformed",
 			"Enc_DER_Struct_GenName_DNS_OnlyWhitespace",
 			"Enc_DER_Struct_GenName_DNS_SingleLabel",
-#			"Enc_DER_Struct_GenName_DNS_Unexpected",
 			"Enc_DER_Struct_GenName_DNS_Wildcard_BroadMatch",
 			"Enc_DER_Struct_GenName_DNS_Wildcard_InternationalLabel",
 			"Enc_DER_Struct_GenName_DNS_Wildcard_MulitpleWildcards",
 			"Enc_DER_Struct_GenName_DNS_Wildcard_NotLeftmost",
 			"Enc_DER_Struct_GenName_DNS_Wildcard_NotPermitted",
 			"Enc_DER_Struct_GenName_Email_Malformed",
-#			"Enc_DER_Struct_GenName_Email_Unexpected",
 			"Enc_DER_Struct_GenName_IPAddress_Malformed",
 			"Enc_DER_Struct_GenName_IPAddress_PrivateAddressSpace",
-#			"Enc_DER_Struct_GenName_IPAddress_Unexpected",
 			"Enc_DER_Struct_GenName_URI_LDAP_NoAttrdesc",
 			"Enc_DER_Struct_GenName_URI_LDAP_NoDN",
 			"Enc_DER_Struct_GenName_URI_LDAP_NoHostname",
 			"Enc_DER_Struct_GenName_URI_Malformed",
 			"Enc_DER_Struct_GenName_URI_UncommonURIScheme",
-#			"Enc_DER_Struct_GenName_URI_Unexpected",
 		]
+		valid_errors = set([
+			"Enc_DER_Struct_GenName_DirectoryAddress_Unexpected",
+			"Enc_DER_Struct_GenName_DNS_Unexpected",
+			"Enc_DER_Struct_GenName_Email_Unexpected",
+			"Enc_DER_Struct_GenName_IPAddress_Unexpected",
+			"Enc_DER_Struct_GenName_URI_Unexpected",
+		])
+		if additional_errors is not None:
+			self.assertTrue(all(error in valid_errors for error in additional_errors))
+			errors += additional_errors
 		errors = { name: GeneralNameValidator.Error(code = JudgementCode.X509sakIssues_AnalysisNotImplemented, info_payload = name) for name in errors }
-		result = GeneralNameValidator(errors = errors, permissible_types = permissible_types, permissible_uri_schemes = permissible_uri_schemes).validate_asn1(gn)
+		result = GeneralNameValidator(errors = errors, permissible_uri_schemes = permissible_uri_schemes).validate_asn1(gn)
 		if assert_length is not None:
 			self.assertEqual(len(result), assert_length)
 		if assert_present is not None:
 			code_set = set(judgement.info_payload for judgement in result)
 			self.assertIn(assert_present, code_set)
+		if assert_absent is not None:
+			code_set = set(judgement.info_payload for judgement in result)
+			self.assertNotIn(assert_absent, code_set)
 		return result
 
 	def test_email_ok(self):
@@ -132,4 +145,29 @@ class GeneralNameValidatorTests(BaseTest):
 		self._validate("uniformResourceIdentifier", "ldap://google.com/foo.crt", permissible_uri_schemes = [ "http", "https", "ldap" ], assert_length = 0)
 		self._validate("uniformResourceIdentifier", "ldap://google.com/foo.crt", permissible_uri_schemes = [ "http", "https" ], assert_present = "Enc_DER_Struct_GenName_URI_UncommonURIScheme")
 
-	# TODO implement tests that test "unexpected"
+	def test_uri_unexpected(self):
+		errname = "Enc_DER_Struct_GenName_URI_Unexpected"
+		self._validate("uniformResourceIdentifier", "http://foo.com", assert_absent = errname)
+		self._validate("uniformResourceIdentifier", "http://foo.com", additional_errors = [ errname ], assert_present = errname)
+
+	def test_ip_unexpected(self):
+		errname = "Enc_DER_Struct_GenName_IPAddress_Unexpected"
+		self._validate("iPAddress", OctetString(bytes([ 172, 31, 12, 4 ])), assert_absent = errname)
+		self._validate("iPAddress", OctetString(bytes([ 172, 31, 12, 4 ])), additional_errors = [ errname ], assert_present = errname)
+
+	def test_dns_unexpected(self):
+		errname = "Enc_DER_Struct_GenName_DNS_Unexpected"
+		self._validate("dNSName", "foo.bar.com", assert_absent = errname)
+		self._validate("dNSName", "foo.bar.com", additional_errors = [ errname ], assert_present = errname)
+
+	def test_email_unexpected(self):
+		errname = "Enc_DER_Struct_GenName_Email_Unexpected"
+		self._validate("rfc822Name", "foo@bar.com", assert_absent = errname)
+		self._validate("rfc822Name", "foo@bar.com", additional_errors = [ errname ], assert_present = errname)
+
+	def test_directoryaddress_unexpected(self):
+		errname = "Enc_DER_Struct_GenName_DirectoryAddress_Unexpected"
+		dirname_data = bytes.fromhex("a4 1a 30 18 31 16 30 14 06 03 55 04 03 13 0d 64 69 72 65 63 74 6f 72 79 4e 61 6d 65")
+		(dirname, _) = pyasn1.codec.der.decoder.decode(dirname_data)
+		self._validate("directoryName", dirname, assert_absent = errname)
+		self._validate("directoryName", dirname, additional_errors = [ errname ], assert_present = errname)
