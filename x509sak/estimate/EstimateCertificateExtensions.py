@@ -108,16 +108,16 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		if certificate.version not in [ 2, 3 ]:
 			standard = RFCReference(rfcno = 5280, sect = "4.1.2.8", verb = "MUST", text = "These fields MUST only appear if the version is 2 or 3 (Section 4.1.2.1). These fields MUST NOT appear if the version is 1.")
 			if certificate.issuer_unique_id is not None:
-				judgements += SecurityJudgement(JudgementCode.X509Cert_Body_FIXMEUniqueID_NotAllowedV1, "Issuer unique IDs is present in v%d certificate." % (certificate.version), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+				judgements += SecurityJudgement(JudgementCode.X509Cert_Body_IssuerUniqueID_NotAllowedV1, "Issuer unique IDs is present in v%d certificate." % (certificate.version), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 			if certificate.subject_unique_id is not None:
-				judgements += SecurityJudgement(JudgementCode.X509Cert_Body_FIXMEUniqueID_NotAllowedV1, "Subject unique IDs is present in v%d certificate." % (certificate.version), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+				judgements += SecurityJudgement(JudgementCode.X509Cert_Body_SubjectUniqueID_NotAllowedV1, "Subject unique IDs is present in v%d certificate." % (certificate.version), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
-		elif certificate.is_ca_certificate:
+		if certificate.is_ca_certificate:
 			standard = RFCReference(rfcno = 5280, sect = "4.1.2.8", verb = "MUST", text = "CAs conforming to this profile MUST NOT generate certificates with unique identifiers.")
 			if certificate.issuer_unique_id is not None:
-				judgements += SecurityJudgement(JudgementCode.X509Cert_Body_FIXMEUniqueID_NotAllowedCA, "Issuer unique IDs is present in CA certificate.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+				judgements += SecurityJudgement(JudgementCode.X509Cert_Body_IssuerUniqueID_NotAllowedCA, "Issuer unique IDs is present in CA certificate.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 			if certificate.subject_unique_id is not None:
-				judgements += SecurityJudgement(JudgementCode.X509Cert_Body_FIXMEUniqueID_NotAllowedCA, "Subject unique IDs is present in CA certificate.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+				judgements += SecurityJudgement(JudgementCode.X509Cert_Body_SubjectUniqueID_NotAllowedCA, "Subject unique IDs is present in CA certificate.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 		if (len(certificate.extensions) == 0) and (any(unique_id is not None for unique_id in (certificate.issuer_unique_id, certificate.subject_unique_id))) and (certificate.version != 2):
 			standard = RFCReference(rfcno = 5280, sect = "4.1.2.1", verb = "SHOULD", text = "If no extensions are present, but a UniqueIdentifier is present, the version SHOULD be 2 (value is 1); however, the version MAY be 3.")

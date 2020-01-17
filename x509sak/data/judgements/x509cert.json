@@ -61,9 +61,6 @@
 			"Serial Number": {
 				"_import": "integer_checks:zero,neg,large{name=serial number}"
 			},
-			"FIXME Unique ID": {
-				"_import": "*unique_id_issues/*{name=FIXME}"
-			},
 			"Issuer Unique ID": {
 				"_import": "*unique_id_issues/*{name=issuer}"
 			},

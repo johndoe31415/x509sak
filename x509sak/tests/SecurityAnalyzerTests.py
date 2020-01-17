@@ -403,13 +403,13 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-v1-extensions.pem", "X509Cert_Body_X509Exts_Disallowed")
 
 	def test_examine_x509test_xf_v1_uniqueid(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-v1-uniqueid.pem", "X509Cert_Body_FIXMEUniqueID_NotAllowedV1")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-v1-uniqueid.pem", "X509Cert_Body_SubjectUniqueID_NotAllowedV1")
 
 	def test_examine_x509test_xf_v2_extensions(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-v2-extensions.pem", "X509Cert_Body_X509Exts_Disallowed")
 
 	def test_examine_x509test_xf_v3_uniqueid_noexts1(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-v3-uniqueid-noexts1.pem", [ "X509Cert_Body_Version_Not2", "X509Cert_Body_FIXMEUniqueID_NotAllowedCA" ])
+		self._test_examine_x509test_resultcode("certs/x509test/xf-v3-uniqueid-noexts1.pem", [ "X509Cert_Body_Version_Not2", "X509Cert_Body_SubjectUniqueID_NotAllowedCA" ])
 
 	def test_examine_x509test_xf_v3_uniqueid_noexts2(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-v3-uniqueid-noexts2.pem", "X509Cert_Body_Version_Not2")
@@ -1082,9 +1082,7 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/ca_rel_cert_serial_mismatch.pem", parent_certname = "certs/constructed/ca_rel_CA_y2k.pem", expect_present = "CertUsage_CARelationship_AKI_Serial_Mismatch", expect_absent = "CertUsage_CARelationship_AKI_Serial_Match")
 
 	def test_unique_id_issuer(self):
-		# Same code point as subject unique ID, but different code path; test
-		# both paths for full coverage
-		self._test_examine_x509test_resultcode("certs/constructed/unique_id_issuer.pem", "X509Cert_Body_FIXMEUniqueID_NotAllowedV1")
+		self._test_examine_x509test_resultcode("certs/constructed/unique_id_issuer.pem", [ "X509Cert_Body_IssuerUniqueID_NotAllowedCA", "X509Cert_Body_IssuerUniqueID_NotAllowedV1" ])
 
 	def test_crldp_point_empty(self):
 		self._test_examine_x509test_resultcode("certs/constructed/crldp_point_empty.pem", expect_present = [ "X509Cert_Body_X509Exts_Ext_CRLDP_Empty" ], expect_absent = [ "X509Cert_Body_X509Exts_Ext_CRLDP_PointWithOnlyReasons", "X509Cert_Body_X509Exts_Ext_CRLDP_NoLDAPorHTTPURI" ])
