@@ -113,10 +113,7 @@ class GeneralNameValidator():
 			return
 
 		error_text = "%s of type %s %s" % (self._error_prefix_str, self._gn.name, error_text)
-		if error is None:
-			self._validation += SecurityJudgement(JudgementCode.X509sakIssues_AnalysisNotImplemented, error_text + " (%s)" % (error_type), **kwargs)
-		else:
-			self._validation += SecurityJudgement(error.code, error_text, info_payload = error.info_payload, standard = error.standard, **kwargs)
+		self._validation += SecurityJudgement(error.code, error_text, info_payload = error.info_payload, standard = error.standard, **kwargs)
 
 	def _handle_dNSName(self):
 		self._report_error("Enc_DER_Struct_GenName_DNS_Unexpected", "contains unexpected domain name \"%s\"." % (self._gn.str_value))
