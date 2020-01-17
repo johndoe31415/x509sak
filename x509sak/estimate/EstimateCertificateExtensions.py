@@ -145,9 +145,9 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 			judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_BC_Missing, "BasicConstraints extension is missing.", commonness = Commonness.HIGHLY_UNUSUAL)
 		else:
 			if not bc.critical:
-				judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_BC_PresentButNotCritical, "BasicConstraints extension is present, but not marked as critical.", commonness = Commonness.UNUSUAL)
+				judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_BC_NotCritical, "BasicConstraints extension is present, but not marked as critical.", commonness = Commonness.UNUSUAL)
 			else:
-				judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_BC_PresentAndCritical, "BasicConstraints extension is present and marked as critical.", commonness = Commonness.COMMON)
+				judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_BC_Critical, "BasicConstraints extension is present and marked as critical.", commonness = Commonness.COMMON)
 
 			if bc.pathlen is not None:
 				if not bc.is_ca:

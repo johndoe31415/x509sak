@@ -78,10 +78,7 @@
 					"_label": "Ext",
 					"Basic Constraints": {
 						"_label": "BC",
-						"_import": "asn1_encoding_issues/*",
-						"Missing": { "_desc": "BC extension missing" },
-						"Present but not Critical": { "_desc": "BC extension present, but not critical" },
-						"Present and Critical": { "_desc": "BC extension present and critical" },
+						"_import": [ "asn1_encoding_issues/*", "x509_ext_checks/*:missing,notcritical,critical{name=BC}" ],
 						"PathLen without CA": { "_desc": "BC extension contains pathLen constraint without CA attribute" },
 						"PathLen without keyCertSign": { "_desc": "BC extension contains pathLen constraint without keyCertSign key usage" }
 					},

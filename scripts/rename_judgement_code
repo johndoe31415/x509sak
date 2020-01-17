@@ -5,7 +5,7 @@ import sys
 
 def replace(old, new):
 	print("%s -> %s" % (old, new))
-	subprocess.check_call([ "replaceall", "-R", "-vcn", "-g", "*.py", "-s", "ExperimentalJudgementCodes.%s" % (old), "-r", "ExperimentalJudgementCodes.%s" % (new), "x509sak" ])
+	subprocess.check_call([ "replaceall", "-R", "-vcn", "-g", "*.py", "-s", "JudgementCode.%s" % (old), "-r", "JudgementCode.%s" % (new), "x509sak" ])
 	subprocess.check_call([ "replaceall", "-R", "-vcn", "-g", "*.py", "-s", "\"%s\"" % (old), "-r", "\"%s\"" % (new), "x509sak" ])
 
 if len(sys.argv) == 3:
