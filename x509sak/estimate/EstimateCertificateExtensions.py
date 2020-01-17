@@ -42,19 +42,19 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 	_NameError = collections.namedtuple("NameError", [ "code", "standard" ])
 
 	_SUBJECT_ALTERNATIVE_NAME_VALIDATOR = GeneralNameValidator.create_inherited("X509Cert_Body_X509Exts_Ext_SAN_Name",
-			error_prefix_str = "X.509 Subject Alternative Name Extension",
+			validation_subject = "X.509 Subject Alternative Name Extension",
 			allow_dnsname_wildcard_matches = True, permissible_uri_schemes = [ "http", "https" ])
 	_ISSUER_ALTERNATIVE_NAME_VALIDATOR = GeneralNameValidator.create_inherited("X509Cert_Body_X509Exts_Ext_IAN_Name",
-			error_prefix_str = "X.509 Issuer Alternative Name Extension",
+			validation_subject = "X.509 Issuer Alternative Name Extension",
 			permissible_uri_schemes = [ "http", "https" ])
 	_AUTHORITY_KEY_IDENTIFIER_CANAME_VALIDATOR = GeneralNameValidator.create_inherited(
 			"X509Cert_Body_X509Exts_Ext_AKI_CAName",
-			error_prefix_str = "X.509 Authority Key Identifier Extension (CA name)", permissible_uri_schemes = [ "http", "https" ])
+			validation_subject = "X.509 Authority Key Identifier Extension (CA name)", permissible_uri_schemes = [ "http", "https" ])
 	_CRL_DISTRIBUTION_POINT_NAME_VALIDATOR = GeneralNameValidator.create_inherited(
 			"X509Cert_Body_X509Exts_Ext_CRLDP_PointName",
-			error_prefix_str = "X.509 CRL Distribution Points Extension (distribution point name)", permissible_uri_schemes = [ "http", "https", "ftp", "ftps", "ldap" ])
+			validation_subject = "X.509 CRL Distribution Points Extension (distribution point name)", permissible_uri_schemes = [ "http", "https", "ftp", "ftps", "ldap" ])
 	_CRL_DISTRIBUTION_POINT_ISSUER_VALIDATOR = GeneralNameValidator.create_inherited("X509Cert_Body_X509Exts_Ext_CRLDP_CRLIssuer",
-			error_prefix_str = "X.509 CRL Distribution Points Extension (CRL issuer)", permissible_uri_schemes = [ "http", "https", "ftp", "ftps", "ldap" ])
+			validation_subject = "X.509 CRL Distribution Points Extension (CRL issuer)", permissible_uri_schemes = [ "http", "https", "ftp", "ftps", "ldap" ])
 
 	def _analyze_extension(self, extension):
 		result = {

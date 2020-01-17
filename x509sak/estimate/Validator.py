@@ -19,7 +19,8 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-from x509sak.estimate.Judgement import SecurityJudgements
+from x509sak.estimate import JudgementCode
+from x509sak.estimate.Judgement import SecurityJudgements, SecurityJudgement
 
 class BaseValidationResult():
 	def __init__(self, validator, subject):
@@ -31,11 +32,11 @@ class BaseValidationResult():
 		return "%s %s" % (self._validtator.validation_subject, message)
 
 	def _report(self, issue_name, message, **kwargs):
-		issue = self._validator.get_error(report_name)
+		issue = self._validator.get_issue(issue_name)
 		if issue is None:
 			return
 		full_message = self._get_message(issue, message)
-		self._result += SecurityJudgement(error.code, full_message, info_payload = error.info_payload, standard = error.standard, **kwargs)
+		self._result += SecurityJudgement(issue.code, full_message, info_payload = issue.info_payload, standard = issue.standard, **kwargs)
 
 	def _validate(self):
 		raise NotImplementedError(__class__.__name__)
@@ -78,12 +79,12 @@ class BaseValidator():
 
 	@classmethod
 	def create_inherited(cls, root_point_name, **kwargs):
-		issue_codes = { name: ValidationIssue(code = code) for (name, code) in JudgementCode.inheritance[root_point_name].items() }
-		return cls(issues = issue_codes, **kwargs)
+		recognized_issues = { name: ValidationIssue(code = code) for (name, code) in JudgementCode.inheritance[root_point_name].items() }
+		return cls(recognized_issues = recognized_issues, **kwargs)
 
 	def get_issue(self, issue_name):
-		return self._regonized_issues(issue_name)
+		return self._recognized_issues.get(issue_name)
 
 	def validate(self, subject):
-		validation_result = _ValidationResultClass(self, subject)
+		validation_result = self._ValidationResultClass(self, subject)
 		return validation_result.run()

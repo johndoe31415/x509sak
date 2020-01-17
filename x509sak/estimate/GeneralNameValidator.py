@@ -25,6 +25,7 @@ from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, Co
 from x509sak.ASN1Wrapper import ASN1GeneralNameWrapper
 from x509sak.Tools import ValidationTools
 from x509sak.Exceptions import InvalidInternalDataException
+from x509sak.estimate.Validator import BaseValidator, BaseValidationResult
 
 #		"empty_value":					GeneralNameValidator.Error(code = JudgementCode.X509Cert_Body_X509Exts_Ext_SAN_EmptyValue),
 #		"email":						GeneralNameValidator.Error(code = JudgementCode.X509Cert_Body_X509Exts_Ext_SAN_Name_Email_Malformed, standard = RFCReference(rfcno = 822, sect = "6.1", verb = "MUST", text = "addr-spec = local-part \"@\" domain")),
@@ -76,88 +77,54 @@ from x509sak.Exceptions import InvalidInternalDataException
 #		"uri_invalid_scheme":			GeneralNameValidator.Error(code = JudgementCode.X509Cert_Body_X509Exts_Ext_CRLDP_CRLIssuer_URI_UncommonURIScheme),
 #		"invalid_type":					GeneralNameValidator.Error(code = JudgementCode.Cert_X509Ext_CRLDistributionPoints_CRLIssuer_Name_UncommonIdentifier),
 
-class GeneralNameValidator():
-	class Error():
-		def __init__(self, code = None, standard = None, info_payload = None):
-			self._code = code
-			self._standard = standard
-			self._info_payload = info_payload
 
-		@property
-		def code(self):
-			return self._code
+class GeneralNameValidationResult(BaseValidationResult):
+	def _get_message(self, issue, message):
+		return "%s of type %s %s" % (self._validator.validation_subject, self._subject.name, message)
 
-		@property
-		def standard(self):
-			return self._standard
+	def _validate_dNSName(self):
+		self._report("Enc_DER_Struct_GenName_DNS_Unexpected", "contains unexpected domain name \"%s\"." % (self._subject.str_value))
+		if self._subject.str_value == " ":
+			return self._report("Enc_DER_Struct_GenName_DNS_OnlyWhitespace", "got invalid DNS name \" \" (space character).")
 
-		@property
-		def info_payload(self):
-			return self._info_payload
-
-	def __init__(self, error_prefix_str = None, permissible_uri_schemes = None, allow_dnsname_wildcard_matches = None, errors = None):
-		self._allow_dnsname_wildcard_matches = allow_dnsname_wildcard_matches
-		self._error_prefix_str = error_prefix_str if (error_prefix_str is not None) else "GeneralName"
-		self._errors = errors if (errors is not None) else { }
-		self._permissible_uri_schemes = permissible_uri_schemes
-		self._validation = None
-
-	@classmethod
-	def create_inherited(cls, root_point_name, **kwargs):
-		error_codes = { name: cls.Error(code = code) for (name, code) in JudgementCode.inheritance[root_point_name].items() }
-		return cls(errors = error_codes, **kwargs)
-
-	def _report_error(self, error_type, error_text, **kwargs):
-		error = self._errors.get(error_type)
-		if error is None:
-			return
-
-		error_text = "%s of type %s %s" % (self._error_prefix_str, self._gn.name, error_text)
-		self._validation += SecurityJudgement(error.code, error_text, info_payload = error.info_payload, standard = error.standard, **kwargs)
-
-	def _handle_dNSName(self):
-		self._report_error("Enc_DER_Struct_GenName_DNS_Unexpected", "contains unexpected domain name \"%s\"." % (self._gn.str_value))
-		if self._gn.str_value == " ":
-			return self._report_error("Enc_DER_Struct_GenName_DNS_OnlyWhitespace", "got invalid DNS name \" \" (space character).")
-
-		if self._allow_dnsname_wildcard_matches:
-			(result, label) = ValidationTools.validate_domainname_template(self._gn.str_value)
+		if self._validator.allow_dnsname_wildcard_matches:
+			(result, label) = ValidationTools.validate_domainname_template(self._subject.str_value)
 			if result != ValidationTools.DomainnameTemplateValidationResult.Valid:
 				if result == ValidationTools.DomainnameTemplateValidationResult.InvalidCharacter:
-					return self._report_error("Enc_DER_Struct_GenName_DNS_Malformed", "has invalid domain name \"%s\", error at label \"%s\"." % (self._gn.str_value, label))
+					return self._report("Enc_DER_Struct_GenName_DNS_Malformed", "has invalid domain name \"%s\", error at label \"%s\"." % (self._subject.str_value, label))
 				elif result == ValidationTools.DomainnameTemplateValidationResult.FullWildcardNotLeftmost:
-					return self._report_error("Enc_DER_Struct_GenName_DNS_Wildcard_NotLeftmost", "has invalid domain name \"%s\". Full-label wildcard appears not as leftmost element." % (self._gn.str_value))
+					return self._report("Enc_DER_Struct_GenName_DNS_Wildcard_NotLeftmost", "has invalid domain name \"%s\". Full-label wildcard appears not as leftmost element." % (self._subject.str_value))
 				elif result == ValidationTools.DomainnameTemplateValidationResult.MoreThanOneWildcard:
-					return self._report_error("Enc_DER_Struct_GenName_DNS_Wildcard_MulitpleWildcards", "has invalid domain name \"%s\". More than one wildcard label present." % (self._gn.str_value))
+					return self._report("Enc_DER_Struct_GenName_DNS_Wildcard_MulitpleWildcards", "has invalid domain name \"%s\". More than one wildcard label present." % (self._subject.str_value))
 				elif result == ValidationTools.DomainnameTemplateValidationResult.WildcardInInternationalDomain:
-					return self._report_error("Enc_DER_Struct_GenName_DNS_Wildcard_InternationalLabel", "has invalid domain name \"%s\". Wildcard in international domain label \"%s\"." % (self._gn.str_value, label))
+					return self._report("Enc_DER_Struct_GenName_DNS_Wildcard_InternationalLabel", "has invalid domain name \"%s\". Wildcard in international domain label \"%s\"." % (self._subject.str_value, label))
 				else:
 					raise NotImplementedError(result)
 
-			if "*" in self._gn.str_value:
+			if "*" in self._subject.str_value:
 				# Wildcard match
-				labels = self._gn.str_value.split(".")
+				labels = self._subject.str_value.split(".")
 				if len(labels) <= 2:
-					self._report_error("Enc_DER_Struct_GenName_DNS_Wildcard_BroadMatch", "has wildcard value \"%s\", which is an extremely broad domain match." % (self._gn.str_value), commonness = Commonness.HIGHLY_UNUSUAL)
+					self._report("Enc_DER_Struct_GenName_DNS_Wildcard_BroadMatch", "has wildcard value \"%s\", which is an extremely broad domain match." % (self._subject.str_value), commonness = Commonness.HIGHLY_UNUSUAL)
 
-		if not "." in self._gn.str_value:
-			self._report_error("Enc_DER_Struct_GenName_DNS_SingleLabel", "contains only single label \"%s\", which is highly unusual." % (self._gn.str_value), commonness = Commonness.HIGHLY_UNUSUAL)
+		if not "." in self._subject.str_value:
+			self._report("Enc_DER_Struct_GenName_DNS_SingleLabel", "contains only single label \"%s\", which is highly unusual." % (self._subject.str_value), commonness = Commonness.HIGHLY_UNUSUAL)
 
-		validation_name = self._gn.str_value
-		if self._allow_dnsname_wildcard_matches:
+		validation_name = self._subject.str_value
+		if self._validator.allow_dnsname_wildcard_matches:
 			validation_name = validation_name.replace("*", "a")
 		result = ValidationTools.validate_domainname(validation_name)
 		if not result:
-			self._report_error("Enc_DER_Struct_GenName_DNS_Malformed", "has invalid domain name \"%s\" (wildcard matches %s)." % (self._gn.str_value, "permitted" if self._allow_dnsname_wildcard_matches else "forbidden"))
+			self._report("Enc_DER_Struct_GenName_DNS_Malformed", "has invalid domain name \"%s\" (wildcard matches %s)." % (self._subject.str_value, "permitted" if self._validator.allow_dnsname_wildcard_matches else "forbidden"))
 
-	def _handle_iPAddress(self):
-		self._report_error("Enc_DER_Struct_GenName_IPAddress_Unexpected", "contains unexpected IP address \"%s\"." % (self._gn.str_value))
-		if len(self._gn.asn1_value) not in [ 4, 16 ]:
-			self._report_error("Enc_DER_Struct_GenName_IPAddress_Malformed", "expects either 4 or 16 bytes of data for IPv4/IPv6, but saw %d bytes." % (len(self._gn.str_value)))
+	def _validate_iPAddress(self):
+		self._report("Enc_DER_Struct_GenName_IPAddress_Unexpected", "contains unexpected IP address \"%s\"." % (self._subject.str_value))
+		if len(self._subject.asn1_value) not in [ 4, 16 ]:
+			self._report("Enc_DER_Struct_GenName_IPAddress_Malformed", "expects either 4 or 16 bytes of data for IPv4/IPv6, but saw %d bytes." % (len(self._subject.str_value)))
 		else:
-			if len(self._gn.asn1_value) == 4:
+			if len(self._subject.asn1_value) == 4:
 				# IPv4
-				ip_value = int.from_bytes(self._gn.asn1_value, byteorder = "big")
+				ip_value = int.from_bytes(self._subject.asn1_value, byteorder = "big")
 				private_networks = (
 					(0x0a000000, 0xff000000, "private class A"),
 					(0xac100000, 0xfff00000, "private class B"),
@@ -170,39 +137,50 @@ class GeneralNameValidator():
 				)
 				for (network, netmask, network_class) in private_networks:
 					if (ip_value & netmask) == network:
-						self._report_error("Enc_DER_Struct_GenName_IPAddress_PrivateAddressSpace", "has network address %s in a %s subnet." % (self._gn.str_value, network_class))
+						self._report("Enc_DER_Struct_GenName_IPAddress_PrivateAddressSpace", "has network address %s in a %s subnet." % (self._subject.str_value, network_class))
 						break
 
-	def _handle_rfc822Name(self):
-		self._report_error("Enc_DER_Struct_GenName_Email_Unexpected", "contains unexpected email address \"%s\"." % (self._gn.str_value))
-		if not ValidationTools.validate_email_address(self._gn.str_value):
-			self._report_error("Enc_DER_Struct_GenName_Email_Malformed", "contains invalid email address \"%s\"." % (self._gn.str_value))
+	def _validate_rfc822Name(self):
+		self._report("Enc_DER_Struct_GenName_Email_Unexpected", "contains unexpected email address \"%s\"." % (self._subject.str_value))
+		if not ValidationTools.validate_email_address(self._subject.str_value):
+			self._report("Enc_DER_Struct_GenName_Email_Malformed", "contains invalid email address \"%s\"." % (self._subject.str_value))
 
-	def _handle_directoryName(self):
-		self._report_error("Enc_DER_Struct_GenName_DirectoryAddress_Unexpected", "contains unexpected directory name \"%s\"." % (self._gn.str_value))
+	def _validate_directoryName(self):
+		self._report("Enc_DER_Struct_GenName_DirectoryAddress_Unexpected", "contains unexpected directory name \"%s\"." % (self._subject.str_value))
 
-	def _handle_uniformResourceIdentifier(self):
-		self._report_error("Enc_DER_Struct_GenName_URI_Unexpected", "contains unexpected URI \"%s\"." % (self._gn.str_value))
-		if not ValidationTools.validate_uri(str(self._gn.str_value)):
-			self._report_error("Enc_DER_Struct_GenName_URI_Malformed", "contains invalid URI \"%s\"." % (str(self._gn.str_value)))
-		if self._permissible_uri_schemes is not None:
-			split_url = urllib.parse.urlsplit(self._gn.str_value)
-			if split_url.scheme not in self._permissible_uri_schemes:
-				self._report_error("Enc_DER_Struct_GenName_URI_UncommonURIScheme", "contains invalid URI scheme \"%s\" (permitted schemes are only %s)." % (str(self._gn.str_value), ", ".join(sorted(self._permissible_uri_schemes))))
+	def _validate_uniformResourceIdentifier(self):
+		self._report("Enc_DER_Struct_GenName_URI_Unexpected", "contains unexpected URI \"%s\"." % (self._subject.str_value))
+		if not ValidationTools.validate_uri(str(self._subject.str_value)):
+			self._report("Enc_DER_Struct_GenName_URI_Malformed", "contains invalid URI \"%s\"." % (str(self._subject.str_value)))
+		if self._validator.permissible_uri_schemes is not None:
+			split_url = urllib.parse.urlsplit(self._subject.str_value)
+			if split_url.scheme not in self._validator.permissible_uri_schemes:
+				self._report("Enc_DER_Struct_GenName_URI_UncommonURIScheme", "contains invalid URI scheme \"%s\" (permitted schemes are only %s)." % (str(self._subject.str_value), ", ".join(sorted(self._validator.permissible_uri_schemes))))
 
-	def _handle_registeredID(self):
-		self._report_error("Enc_DER_Struct_GenName_RegisteredID_Unexpected", "contains unexpected registered ID \"%s\"." % (self._gn.str_value))
+	def _validate_registeredID(self):
+		self._report("Enc_DER_Struct_GenName_RegisteredID_Unexpected", "contains unexpected registered ID \"%s\"." % (self._subject.str_value))
 
-	def _do_validate(self):
-		gn_subtype_handler = getattr(self, "_handle_%s" % (str(self._gn.name)), None)
+	def _validate(self):
+		gn_subtype_handler = getattr(self, "_validate_%s" % (str(self._subject.name)), None)
 		if gn_subtype_handler is not None:
 			gn_subtype_handler()
 
-	def validate(self, general_name):
-		self._gn = general_name
-		self._validation = SecurityJudgements()
-		self._do_validate()
-		return self._validation
+
+class GeneralNameValidator(BaseValidator):
+	_ValidationResultClass = GeneralNameValidationResult
+
+	def __init__(self, validation_subject, recognized_issues, permissible_uri_schemes = None, allow_dnsname_wildcard_matches = None):
+		BaseValidator.__init__(self, validation_subject, recognized_issues)
+		self._permissible_uri_schemes = permissible_uri_schemes
+		self._allow_dnsname_wildcard_matches = allow_dnsname_wildcard_matches
+
+	@property
+	def permissible_uri_schemes(self):
+		return self._permissible_uri_schemes
+
+	@property
+	def allow_dnsname_wildcard_matches(self):
+		return self._allow_dnsname_wildcard_matches
 
 	def validate_asn1(self, general_name_asn1):
 		general_name = ASN1GeneralNameWrapper.from_asn1(general_name_asn1)
