@@ -23,7 +23,7 @@ import math
 from x509sak.AlgorithmDB import Cryptosystems
 from x509sak.NumberTheory import NumberTheory
 from x509sak.estimate.BaseEstimator import BaseEstimator
-from x509sak.estimate import ExperimentalJudgementCodes, Commonness, Compatibility
+from x509sak.estimate import JudgementCode, Commonness, Compatibility
 from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, LiteratureReference
 from x509sak.ECCMath import PrimeFieldEllipticCurve, BinaryFieldEllipticCurve
 from x509sak.CurveDB import CurveDB
@@ -38,19 +38,19 @@ class ECCSecurityEstimator(BaseEstimator):
 		curve_db = CurveDB()
 		known_curve = curve_db.lookup_by_params(curve)
 		if known_curve is None:
-			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_ECC_DomainParameters_Name_UnknownExplicit, "Explicit curve domain parameter encoding with domain parameters that are not present in the database. Highly suspect, convervatively rating as broken security.", commonness = Commonness.HIGHLY_UNUSUAL, bits = 0)
+			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_DomainParameters_Name_UnknownExplicit, "Explicit curve domain parameter encoding with domain parameters that are not present in the database. Highly suspect, convervatively rating as broken security.", commonness = Commonness.HIGHLY_UNUSUAL, bits = 0)
 		else:
-			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_ECC_DomainParameters_Name_UnusedName, "Explicit curve domain parameter encoding is used; curve domain parameters are equal to curve %s (OID %s). Recommend switching to that named curve." % (known_curve.name, known_curve.oid))
+			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_DomainParameters_Name_UnusedName, "Explicit curve domain parameter encoding is used; curve domain parameters are equal to curve %s (OID %s). Recommend switching to that named curve." % (known_curve.name, known_curve.oid))
 
 		if curve.curvetype == "binary":
 			if len(curve.poly) != len(set(curve.poly)):
-				judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_ECC_DomainParameters_BinaryField_DuplicatePolynomialPower, "ECC field polynomial contains duplicate powers: %s -- Conservatively rating as broken security." % (str(curve.poly)), commonness = Commonness.HIGHLY_UNUSUAL, bits = 0)
+				judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_DomainParameters_BinaryField_DuplicatePolynomialPower, "ECC field polynomial contains duplicate powers: %s -- Conservatively rating as broken security." % (str(curve.poly)), commonness = Commonness.HIGHLY_UNUSUAL, bits = 0)
 
 			for custom_coeff in curve.poly[1 : -1]:
 				if custom_coeff <= 1:
-					judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_ECC_DomainParameters_BinaryField_InvalidPolynomialPower, "ECC field polynomial contains x^%d where it would be expected to see a power of two or higher." % (custom_coeff), commonness = Commonness.HIGHLY_UNUSUAL, bits = 0)
+					judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_DomainParameters_BinaryField_InvalidPolynomialPower, "ECC field polynomial contains x^%d where it would be expected to see a power of two or higher." % (custom_coeff), commonness = Commonness.HIGHLY_UNUSUAL, bits = 0)
 				elif custom_coeff >= curve.m:
-					judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_ECC_DomainParameters_BinaryField_InvalidPolynomialPower, "ECC field polynomial contains x^%d where it would be expected to see a power of less than x^m (i.e., x^%d)." % (custom_coeff, curve.m), commonness = Commonness.HIGHLY_UNUSUAL, bits = 0)
+					judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_DomainParameters_BinaryField_InvalidPolynomialPower, "ECC field polynomial contains x^%d where it would be expected to see a power of less than x^m (i.e., x^%d)." % (custom_coeff, curve.m), commonness = Commonness.HIGHLY_UNUSUAL, bits = 0)
 
 		return judgements
 
@@ -61,11 +61,11 @@ class ECCSecurityEstimator(BaseEstimator):
 		# Check that the encoded public key point is on curve first
 		Q = curve.point(pubkey.x, pubkey.y)
 		if not Q.on_curve():
-			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_ECC_PublicKeyPoint_NotOnCurve, "Public key point Q is not on the underlying curve %s." % (pubkey.curve), bits = 0)
+			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_PublicKeyPoint_NotOnCurve, "Public key point Q is not on the underlying curve %s." % (pubkey.curve), bits = 0)
 
 		# Check that the encoded public key is not Gx
 		if Q.x == curve.Gx:
-			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_ECC_PublicKeyPoint_IsGenerator, "Public key point Q_x is equal to generator G_x on curve %s." % (pubkey.curve), bits = 0)
+			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_PublicKeyPoint_IsGenerator, "Public key point Q_x is equal to generator G_x on curve %s." % (pubkey.curve), bits = 0)
 
 		# We assume, completely out-of-the-blue and worst-case estimate, 32
 		# automorphisms that could be present for any curve (see Duursma et
@@ -84,7 +84,7 @@ class ECCSecurityEstimator(BaseEstimator):
 		if isinstance(curve, BinaryFieldEllipticCurve) and curve.is_koblitz:
 			speedup = math.sqrt(2 * curve.m)
 			bits_security -= math.log(speedup, 2)
-			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_ECC_DomainParameters_CurveProperty_KoblitzCurve, "Binary field Koblitz curves (anomalous binary curves) have more efficient attacks than their non-anomalous binary curves; in this case improving attack performance by a factor of ~%.1f." % (speedup), commonness = Commonness.UNUSUAL, literature = literature)
+			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_DomainParameters_CurveProperty_KoblitzCurve, "Binary field Koblitz curves (anomalous binary curves) have more efficient attacks than their non-anomalous binary curves; in this case improving attack performance by a factor of ~%.1f." % (speedup), commonness = Commonness.UNUSUAL, literature = literature)
 
 		if isinstance(curve, PrimeFieldEllipticCurve) and curve.is_koblitz:
 			# The math here is a bit shady. Firstly, Koblitz curves over F_p
@@ -98,10 +98,10 @@ class ECCSecurityEstimator(BaseEstimator):
 			# just take that as is, knowing full well it's just guesswork.
 			speedup = math.sqrt(6)
 			bits_security -= math.log(speedup, 2)
-			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_ECC_DomainParameters_CurveProperty_KoblitzCurve, "Prime field Koblitz curves might have more efficient attacks than non-Koblitz curves. In this case, attack performance improves roughly by a factor of ~%.1f." % (speedup), commonness = Commonness.UNUSUAL, literature = literature)
+			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_DomainParameters_CurveProperty_KoblitzCurve, "Prime field Koblitz curves might have more efficient attacks than non-Koblitz curves. In this case, attack performance improves roughly by a factor of ~%.1f." % (speedup), commonness = Commonness.UNUSUAL, literature = literature)
 
 		bits_security = math.floor(bits_security)
-		judgements += self.algorithm("bits").analyze(ExperimentalJudgementCodes.X509Cert_PublicKey_ECC_CurveOrderInBits, bits_security)
+		judgements += self.algorithm("bits").analyze(JudgementCode.X509Cert_PublicKey_ECC_CurveOrderInBits, bits_security)
 
 		# Check if the affine X/Y coordinates of the public key are about the
 		# same length as the curve order. If randomly generated, both X and Y
@@ -110,18 +110,18 @@ class ECCSecurityEstimator(BaseEstimator):
 		# order.
 		hweight_analysis = NumberTheory.hamming_weight_analysis(pubkey.x, min_bit_length = curve.field_bits)
 		if not hweight_analysis.plausibly_random:
-			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_ECC_PublicKeyPoint_X_BitBiasPresent, "Hamming weight of public key field element's X coordinate is %d at bitlength %d, but expected a weight between %d and %d when randomly chosen; this is likely not coincidential." % (hweight_analysis.hweight, hweight_analysis.bitlen, hweight_analysis.rnd_min_hweight, hweight_analysis.rnd_max_hweight), commonness = Commonness.HIGHLY_UNUSUAL)
+			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_PublicKeyPoint_X_BitBiasPresent, "Hamming weight of public key field element's X coordinate is %d at bitlength %d, but expected a weight between %d and %d when randomly chosen; this is likely not coincidential." % (hweight_analysis.hweight, hweight_analysis.bitlen, hweight_analysis.rnd_min_hweight, hweight_analysis.rnd_max_hweight), commonness = Commonness.HIGHLY_UNUSUAL)
 
 		hweight_analysis = NumberTheory.hamming_weight_analysis(pubkey.y, min_bit_length = curve.field_bits)
 		if not hweight_analysis.plausibly_random:
-			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_ECC_PublicKeyPoint_Y_BitBiasPresent, "Hamming weight of public key field element's Y coordinate is %d at bitlength %d, but expected a weight between %d and %d when randomly chosen; this is likely not coincidential." % (hweight_analysis.hweight, hweight_analysis.bitlen, hweight_analysis.rnd_min_hweight, hweight_analysis.rnd_max_hweight), commonness = Commonness.HIGHLY_UNUSUAL)
+			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_PublicKeyPoint_Y_BitBiasPresent, "Hamming weight of public key field element's Y coordinate is %d at bitlength %d, but expected a weight between %d and %d when randomly chosen; this is likely not coincidential." % (hweight_analysis.hweight, hweight_analysis.bitlen, hweight_analysis.rnd_min_hweight, hweight_analysis.rnd_max_hweight), commonness = Commonness.HIGHLY_UNUSUAL)
 
 		if isinstance(curve, BinaryFieldEllipticCurve):
 			literature = LiteratureReference(author = [ "Steven D. Galbraith", "Shishay W. Gebregiyorgis" ], title = "Summation polynomial algorithms for elliptic curves in characteristic two", year = 2014, source = "Progress in Cryptology -- INDOCRYPT 2014; LNCS 8885")
-			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_ECC_DomainParameters_BinaryField, "Binary finite field elliptic curve is used. Recent advances in cryptography show there might be efficient attacks on such curves, hence it is recommended to use prime-field curves instead.", commonness = Commonness.UNUSUAL, literature = literature)
+			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_DomainParameters_BinaryField, "Binary finite field elliptic curve is used. Recent advances in cryptography show there might be efficient attacks on such curves, hence it is recommended to use prime-field curves instead.", commonness = Commonness.UNUSUAL, literature = literature)
 
 		if not pubkey.named_curve:
-			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_ECC_DomainParameters_Name_ExplicitCurve, "Curve uses explicit encoding for domain parameters. Typically, named curves are used; explicit encoding of domain parameters is not recommended and may be rejected by implementations for simplicity reasons.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
+			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_DomainParameters_Name_ExplicitCurve, "Curve uses explicit encoding for domain parameters. Typically, named curves are used; explicit encoding of domain parameters is not recommended and may be rejected by implementations for simplicity reasons.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
 			judgements += self._check_explicit_curve_params(curve)
 
 		result = {

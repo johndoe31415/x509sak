@@ -23,7 +23,7 @@ from pyasn1_modules import rfc5280
 from pyasn1.type.univ import OctetString
 from x509sak.tests.BaseTest import BaseTest
 from x509sak.estimate.GeneralNameValidator import GeneralNameValidator
-from x509sak.estimate import ExperimentalJudgementCodes
+from x509sak.estimate import JudgementCode
 
 class GeneralNameValidatorTests(BaseTest):
 	def _create_general_name(self, name, inner):
@@ -57,7 +57,7 @@ class GeneralNameValidatorTests(BaseTest):
 			"Enc_DER_Struct_GenName_URI_UncommonURIScheme",
 #			"Enc_DER_Struct_GenName_URI_Unexpected",
 		]
-		errors = { name: GeneralNameValidator.Error(code = ExperimentalJudgementCodes.X509sakIssues_AnalysisNotImplemented, info_payload = name) for name in errors }
+		errors = { name: GeneralNameValidator.Error(code = JudgementCode.X509sakIssues_AnalysisNotImplemented, info_payload = name) for name in errors }
 		result = GeneralNameValidator(errors = errors, permissible_types = permissible_types, permissible_uri_schemes = permissible_uri_schemes).validate_asn1(gn)
 		if assert_length is not None:
 			self.assertEqual(len(result), assert_length)

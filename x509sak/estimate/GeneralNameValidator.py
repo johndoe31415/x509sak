@@ -20,7 +20,7 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 import urllib.parse
-from x509sak.estimate import ExperimentalJudgementCodes
+from x509sak.estimate import JudgementCode
 from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, Commonness
 from x509sak.ASN1Wrapper import ASN1GeneralNameWrapper
 from x509sak.Tools import ValidationTools
@@ -66,7 +66,7 @@ class GeneralNameValidator():
 
 	@classmethod
 	def create_inherited(cls, root_point_name, **kwargs):
-		error_codes = { name: cls.Error(code = code) for (name, code) in ExperimentalJudgementCodes.inheritance[root_point_name].items() }
+		error_codes = { name: cls.Error(code = code) for (name, code) in JudgementCode.inheritance[root_point_name].items() }
 		return cls(errors = error_codes, **kwargs)
 
 	def _report_error(self, error_type, error_text, **kwargs):
@@ -76,7 +76,7 @@ class GeneralNameValidator():
 
 		error_text = "%s of type %s %s" % (self._error_prefix_str, self._gn.name, error_text)
 		if error is None:
-			self._validation += SecurityJudgement(ExperimentalJudgementCodes.X509sakIssues_AnalysisNotImplemented, error_text + " (%s)" % (error_type), **kwargs)
+			self._validation += SecurityJudgement(JudgementCode.X509sakIssues_AnalysisNotImplemented, error_text + " (%s)" % (error_type), **kwargs)
 		else:
 			self._validation += SecurityJudgement(error.code, error_text, info_payload = error.info_payload, standard = error.standard, **kwargs)
 

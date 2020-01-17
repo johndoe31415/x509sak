@@ -20,7 +20,7 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 from x509sak.estimate.BaseEstimator import BaseEstimator
-from x509sak.estimate import ExperimentalJudgementCodes
+from x509sak.estimate import JudgementCode
 from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements
 
 @BaseEstimator.register
@@ -34,9 +34,9 @@ class HashFunctionSecurityEstimator(BaseEstimator):
 			bits_security = hash_fnc.value.derating.security_lvl_bits
 
 		judgements = SecurityJudgements()
-		judgements += self.algorithm("bits").analyze(ExperimentalJudgementCodes.X509Cert_Signature_HashFunction_DigestLengthInBits, bits_security)
+		judgements += self.algorithm("bits").analyze(JudgementCode.X509Cert_Signature_HashFunction_DigestLengthInBits, bits_security)
 		if hash_fnc.value.derating is not None:
-			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Signature_HashFunction_Derated, "Derated from ideal %d bits security level because of %s." % (hash_fnc.value.output_bits / 2, hash_fnc.value.derating.reason))
+			judgements += SecurityJudgement(JudgementCode.X509Cert_Signature_HashFunction_Derated, "Derated from ideal %d bits security level because of %s." % (hash_fnc.value.output_bits / 2, hash_fnc.value.derating.reason))
 
 		result = {
 			"name":			hash_fnc.value.name,

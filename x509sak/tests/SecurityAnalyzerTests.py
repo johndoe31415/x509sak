@@ -25,7 +25,7 @@ from x509sak.tests import BaseTest, ResourceFileLoader
 from x509sak.Tools import FileLockTools
 from x509sak.CertificateAnalyzer import CertificateAnalyzer
 from x509sak.X509Certificate import X509Certificate
-from x509sak.estimate import ExperimentalJudgementCodes
+from x509sak.estimate import JudgementCode
 
 class SecurityAnalyzerTests(BaseTest):
 	def _update_stats_file(self, certname, parent_certname, encountered_codes, checked_codes):
@@ -68,9 +68,9 @@ class SecurityAnalyzerTests(BaseTest):
 		# it's *obviously* wrong.
 
 		if expect_present != ("", ):
-			self.assertTrue(all(getattr(ExperimentalJudgementCodes, codename, None) is not None for codename in expect_present))
+			self.assertTrue(all(getattr(JudgementCode, codename, None) is not None for codename in expect_present))
 		if expect_absent != ("", ):
-			self.assertTrue(all(getattr(ExperimentalJudgementCodes, codename, None) is not None for codename in expect_absent))
+			self.assertTrue(all(getattr(JudgementCode, codename, None) is not None for codename in expect_absent))
 
 		if expect_parse_failure:
 			with self.assertRaises(UnexpectedFileContentException):

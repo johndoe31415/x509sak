@@ -391,7 +391,7 @@ class JudgementStructure():
 		self._root.walk(visit)
 
 		exported_nodes = { name: RichJudgementCode.from_node(node) for (name, node) in exported_nodes.items() }
-		enum_class = enum.Enum("ExperimentalJudgementCodes", exported_nodes)
+		enum_class = enum.Enum("JudgementCode", exported_nodes)
 		return enum_class
 
 	def _create_inheritance_dict(self):

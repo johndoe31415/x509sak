@@ -20,7 +20,7 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 from x509sak.estimate.BaseEstimator import BaseEstimator
-from x509sak.estimate import ExperimentalJudgementCodes, Verdict, Commonness, Compatibility
+from x509sak.estimate import JudgementCode, Verdict, Commonness, Compatibility
 from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements
 
 @BaseEstimator.register
@@ -30,11 +30,11 @@ class SignatureFunctionSecurityEstimator(BaseEstimator):
 	def analyze(self, sig_fnc):
 		judgements = SecurityJudgements()
 		if sig_fnc.value.name == "rsa-ssa-pss":
-			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Signature_Function_UncommonPadding, "Not widely used padding scheme for RSA.", compatibility = Compatibility.LIMITED_SUPPORT)
+			judgements += SecurityJudgement(JudgementCode.X509Cert_Signature_Function_UncommonPadding, "Not widely used padding scheme for RSA.", compatibility = Compatibility.LIMITED_SUPPORT)
 		elif sig_fnc.value.name == "eddsa":
-			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Signature_Function_UncommonCryptosystem, "Not widely used cryptosystem.", verdict = Verdict.BEST_IN_CLASS, compatibility = Compatibility.LIMITED_SUPPORT)
+			judgements += SecurityJudgement(JudgementCode.X509Cert_Signature_Function_UncommonCryptosystem, "Not widely used cryptosystem.", verdict = Verdict.BEST_IN_CLASS, compatibility = Compatibility.LIMITED_SUPPORT)
 		else:
-			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Signature_Function_Common, "Commonly used signature function.", commonness = Commonness.COMMON)
+			judgements += SecurityJudgement(JudgementCode.X509Cert_Signature_Function_Common, "Commonly used signature function.", commonness = Commonness.COMMON)
 
 		return {
 			"name":			sig_fnc.name,

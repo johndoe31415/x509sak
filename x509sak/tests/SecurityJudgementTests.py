@@ -20,12 +20,12 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 from x509sak.tests import BaseTest
-from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, ExperimentalJudgementCodes, Verdict, Commonness
+from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, JudgementCode, Verdict, Commonness
 
 class SecurityJudgementTests(BaseTest):
 	def test_simple(self):
-		judgement = SecurityJudgement(code = ExperimentalJudgementCodes.X509Cert_PublicKey_RSA_ParameterFieldNotPresent, text = "Foo Bar!", bits = 0)
-		self.assertEqual(judgement.codeenum, ExperimentalJudgementCodes.X509Cert_PublicKey_RSA_ParameterFieldNotPresent)
+		judgement = SecurityJudgement(code = JudgementCode.X509Cert_PublicKey_RSA_ParameterFieldNotPresent, text = "Foo Bar!", bits = 0)
+		self.assertEqual(judgement.codeenum, JudgementCode.X509Cert_PublicKey_RSA_ParameterFieldNotPresent)
 		self.assertEqual(judgement.text, "Foo Bar!")
 		self.assertEqual(judgement.bits, 0)
 		self.assertEqual(judgement.compatibility, None)
@@ -46,11 +46,11 @@ class SecurityJudgementTests(BaseTest):
 		self.assertTrue(judgements.uniform_topic)
 		self.assertEqual(len(judgements), 0)
 
-		judgements += SecurityJudgement(code = ExperimentalJudgementCodes.X509Cert_PublicKey_RSA_ParameterFieldNotPresent, text = "Foo Bar! 1", verdict = Verdict.HIGH, commonness = Commonness.UNUSUAL)
+		judgements += SecurityJudgement(code = JudgementCode.X509Cert_PublicKey_RSA_ParameterFieldNotPresent, text = "Foo Bar! 1", verdict = Verdict.HIGH, commonness = Commonness.UNUSUAL)
 		self.assertTrue(judgements.uniform_topic)
 		self.assertEqual(len(judgements), 1)
 
-		judgements += SecurityJudgement(code = ExperimentalJudgementCodes.X509Cert_PublicKey_RSA_ParameterFieldNotPresent, text = "Foo Bar! 2", verdict = Verdict.BROKEN, commonness = Commonness.COMMON)
+		judgements += SecurityJudgement(code = JudgementCode.X509Cert_PublicKey_RSA_ParameterFieldNotPresent, text = "Foo Bar! 2", verdict = Verdict.BROKEN, commonness = Commonness.COMMON)
 		self.assertTrue(judgements.uniform_topic)
 		self.assertEqual(len(judgements), 2)
 
@@ -59,7 +59,7 @@ class SecurityJudgementTests(BaseTest):
 		self.assertEqual(judgements.bits, None)
 
 	def test_serialize_judgement(self):
-		judgement = SecurityJudgement(code = ExperimentalJudgementCodes.X509Cert_PublicKey_RSA_ParameterFieldNotPresent, text = "Foo Bar!", bits = 0)
+		judgement = SecurityJudgement(code = JudgementCode.X509Cert_PublicKey_RSA_ParameterFieldNotPresent, text = "Foo Bar!", bits = 0)
 		serialized = judgement.to_dict()
 		self.assertEqual(serialized["code"], judgement.code.name)
 		self.assertEqual(serialized["verdict"]["name"], judgement.verdict.name)
@@ -67,7 +67,7 @@ class SecurityJudgementTests(BaseTest):
 		self.assertNotIn("compatibility", serialized)
 
 		judgement = SecurityJudgement.from_dict(serialized)
-		self.assertEqual(judgement.codeenum, ExperimentalJudgementCodes.X509Cert_PublicKey_RSA_ParameterFieldNotPresent)
+		self.assertEqual(judgement.codeenum, JudgementCode.X509Cert_PublicKey_RSA_ParameterFieldNotPresent)
 		self.assertEqual(judgement.text, "Foo Bar!")
 		self.assertEqual(judgement.bits, 0)
 		self.assertEqual(judgement.verdict, Verdict.NO_SECURITY)
@@ -76,8 +76,8 @@ class SecurityJudgementTests(BaseTest):
 
 	def test_serialize_judgements(self):
 		judgements = SecurityJudgements()
-		judgements += SecurityJudgement(code = ExperimentalJudgementCodes.X509Cert_PublicKey_RSA_ParameterFieldNotPresent, text = "Foo Bar! 1", verdict = Verdict.HIGH, commonness = Commonness.UNUSUAL)
-		judgements += SecurityJudgement(code = ExperimentalJudgementCodes.X509Cert_PublicKey_RSA_ParameterFieldNotPresent, text = "Foo Bar! 2", verdict = Verdict.HIGH, commonness = Commonness.UNUSUAL)
+		judgements += SecurityJudgement(code = JudgementCode.X509Cert_PublicKey_RSA_ParameterFieldNotPresent, text = "Foo Bar! 1", verdict = Verdict.HIGH, commonness = Commonness.UNUSUAL)
+		judgements += SecurityJudgement(code = JudgementCode.X509Cert_PublicKey_RSA_ParameterFieldNotPresent, text = "Foo Bar! 2", verdict = Verdict.HIGH, commonness = Commonness.UNUSUAL)
 
 		serialized = judgements.to_dict()
 		self.assertEqual(serialized["components"][0]["text"], "Foo Bar! 1")
@@ -93,12 +93,12 @@ class SecurityJudgementTests(BaseTest):
 
 		judgements += None
 		sub = SecurityJudgements()
-		sub += SecurityJudgement(code = ExperimentalJudgementCodes.X509Cert_PublicKey_RSA_ParameterFieldNotPresent, text = "Foo Bar! 1", verdict = Verdict.HIGH, commonness = Commonness.UNUSUAL)
-		sub += SecurityJudgement(code = ExperimentalJudgementCodes.X509Cert_PublicKey_RSA_ParameterFieldNotPresent, text = "Foo Bar! 2", verdict = Verdict.HIGH, commonness = Commonness.UNUSUAL)
+		sub += SecurityJudgement(code = JudgementCode.X509Cert_PublicKey_RSA_ParameterFieldNotPresent, text = "Foo Bar! 1", verdict = Verdict.HIGH, commonness = Commonness.UNUSUAL)
+		sub += SecurityJudgement(code = JudgementCode.X509Cert_PublicKey_RSA_ParameterFieldNotPresent, text = "Foo Bar! 2", verdict = Verdict.HIGH, commonness = Commonness.UNUSUAL)
 		judgements += sub
 		self.assertEqual(len(judgements), 2)
 
-		judgements += SecurityJudgement(code = ExperimentalJudgementCodes.X509Cert_PublicKey_RSA_ParameterFieldNotPresent, text = "Foo Bar! 3", verdict = Verdict.HIGH, commonness = Commonness.UNUSUAL)
+		judgements += SecurityJudgement(code = JudgementCode.X509Cert_PublicKey_RSA_ParameterFieldNotPresent, text = "Foo Bar! 3", verdict = Verdict.HIGH, commonness = Commonness.UNUSUAL)
 		self.assertEqual(len(judgements), 3)
 
 		self.assertEqual(judgements[0].text, "Foo Bar! 1")

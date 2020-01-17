@@ -23,7 +23,7 @@ import enum
 from x509sak.Tools import JSONTools
 from x509sak.Exceptions import LazyDeveloperException
 from x509sak.KwargsChecker import KwargsChecker
-from x509sak.estimate import ExperimentalJudgementCodes
+from x509sak.estimate import JudgementCode
 
 class Verdict(enum.IntEnum):
 	NO_SECURITY = 0
@@ -50,7 +50,7 @@ class StandardDeviationType(enum.IntEnum):
 
 class SecurityJudgement():
 	def __init__(self, code, text, bits = None, verdict = None, commonness = None, compatibility = None, prefix_topic = False, standard = None, literature = None, info_payload = None):
-		assert((code is None) or isinstance(code, ExperimentalJudgementCodes))
+		assert((code is None) or isinstance(code, JudgementCode))
 		assert((bits is None) or isinstance(bits, (int, float)))
 		assert((verdict is None) or isinstance(verdict, Verdict))
 		assert((commonness is None) or isinstance(commonness, Commonness))
@@ -114,7 +114,7 @@ class SecurityJudgement():
 	@classmethod
 	def from_dict(cls, judgement_data):
 		if "code" in judgement_data:
-			code = getattr(ExperimentalJudgementCodes, judgement_data["code"])
+			code = getattr(JudgementCode, judgement_data["code"])
 		else:
 			code = None
 		text = judgement_data["text"]

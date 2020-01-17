@@ -22,7 +22,7 @@
 import math
 from x509sak.NumberTheory import NumberTheory
 from x509sak.estimate.BaseEstimator import BaseEstimator
-from x509sak.estimate import ExperimentalJudgementCodes, ExperimentalJudgementCodes, Commonness, Compatibility
+from x509sak.estimate import JudgementCode, JudgementCode, Commonness, Compatibility
 from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, LiteratureReference
 
 @BaseEstimator.register
@@ -50,42 +50,42 @@ class DSASecurityEstimator(BaseEstimator):
 
 		if not NumberTheory.is_probable_prime(pubkey.p):
 			standard = LiteratureReference(quote = "p: a prime modulus", sect = "4.1", author = "National Institute of Standards and Technology", title = "FIPS PUB 186-4: Digital Signature Standard (DSS)", year = 2013, month = 7, doi = "10.6028/NIST.FIPS.186-4")
-			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_DSA_Parameters_P_NotPrime, "DSA parameter p is not prime.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, bits = 0, standard = standard)
+			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_DSA_Parameters_P_NotPrime, "DSA parameter p is not prime.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, bits = 0, standard = standard)
 
 		if not NumberTheory.is_probable_prime(pubkey.q):
 			standard = LiteratureReference(quote = "q: a prime divisor of (p - 1)", sect = "4.1", author = "National Institute of Standards and Technology", title = "FIPS PUB 186-4: Digital Signature Standard (DSS)", year = 2013, month = 7, doi = "10.6028/NIST.FIPS.186-4")
-			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_DSA_Parameters_Q_NotPrime, "DSA parameter q is not prime.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, bits = 0, standard = standard)
+			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_DSA_Parameters_Q_NotPrime, "DSA parameter q is not prime.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, bits = 0, standard = standard)
 
 		if ((pubkey.p - 1) % pubkey.q) != 0:
 			standard = LiteratureReference(quote = "q: a prime divisor of (p - 1)", sect = "4.1", author = "National Institute of Standards and Technology", title = "FIPS PUB 186-4: Digital Signature Standard (DSS)", year = 2013, month = 7, doi = "10.6028/NIST.FIPS.186-4")
-			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_DSA_Parameters_Q_NoDivisorOfP1, "DSA parameter q is not a divisor of (p - 1).", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, bits = 0, standard = standard)
+			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_DSA_Parameters_Q_NoDivisorOfP1, "DSA parameter q is not a divisor of (p - 1).", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, bits = 0, standard = standard)
 
 		if pow(pubkey.g, pubkey.q, pubkey.p) != 1:
-			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_DSA_Parameters_G_Invalid, "DSA parameter g is not valid. In particular, g^q mod p != 1.", commonness = Commonness.HIGHLY_UNUSUAL, bits = 0)
+			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_DSA_Parameters_G_Invalid, "DSA parameter g is not valid. In particular, g^q mod p != 1.", commonness = Commonness.HIGHLY_UNUSUAL, bits = 0)
 
 		if (pubkey.g <= 1) or (pubkey.g >= pubkey.p):
 			standard = LiteratureReference(quote = "g: a generator of a subgroup of order q in the multiplicative group of GF(p), such that 1 < g < p", sect = "4.1", author = "National Institute of Standards and Technology", title = "FIPS PUB 186-4: Digital Signature Standard (DSS)", year = 2013, month = 7, doi = "10.6028/NIST.FIPS.186-4")
-			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_DSA_Parameters_G_InvalidRange, "DSA parameter g is not inside the valid range (1 < g < p).", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, bits = 0, standard = standard)
+			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_DSA_Parameters_G_InvalidRange, "DSA parameter g is not inside the valid range (1 < g < p).", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, bits = 0, standard = standard)
 
 		hweight_analysis = NumberTheory.hamming_weight_analysis(pubkey.p)
 		if not hweight_analysis.plausibly_random:
-			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_DSA_Parameters_P_BitBiasPresent, "Hamming weight of DSA prime p is %d at bitlength %d, but expected a weight between %d and %d when randomly chosen; this is likely not coincidential." % (hweight_analysis.hweight, hweight_analysis.bitlen, hweight_analysis.rnd_min_hweight, hweight_analysis.rnd_max_hweight), commonness = Commonness.HIGHLY_UNUSUAL)
+			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_DSA_Parameters_P_BitBiasPresent, "Hamming weight of DSA prime p is %d at bitlength %d, but expected a weight between %d and %d when randomly chosen; this is likely not coincidential." % (hweight_analysis.hweight, hweight_analysis.bitlen, hweight_analysis.rnd_min_hweight, hweight_analysis.rnd_max_hweight), commonness = Commonness.HIGHLY_UNUSUAL)
 
 		hweight_analysis = NumberTheory.hamming_weight_analysis(pubkey.q)
 		if not hweight_analysis.plausibly_random:
-			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_DSA_Parameters_Q_BitBiasPresent, "Hamming weight of DSA prime q is %d at bitlength %d, but expected a weight between %d and %d when randomly chosen; this is likely not coincidential." % (hweight_analysis.hweight, hweight_analysis.bitlen, hweight_analysis.rnd_min_hweight, hweight_analysis.rnd_max_hweight), commonness = Commonness.HIGHLY_UNUSUAL)
+			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_DSA_Parameters_Q_BitBiasPresent, "Hamming weight of DSA prime q is %d at bitlength %d, but expected a weight between %d and %d when randomly chosen; this is likely not coincidential." % (hweight_analysis.hweight, hweight_analysis.bitlen, hweight_analysis.rnd_min_hweight, hweight_analysis.rnd_max_hweight), commonness = Commonness.HIGHLY_UNUSUAL)
 
 		if (L in self._TYPICAL_L_N_VALUES) and (N in self._TYPICAL_L_N_VALUES[L]):
 			# Typical
-			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_DSA_L_N_Common, "DSA parameter values L/N (%d/%d) are common." % (L, N), commonness = Commonness.COMMON)
+			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_DSA_L_N_Common, "DSA parameter values L/N (%d/%d) are common." % (L, N), commonness = Commonness.COMMON)
 		else:
 			# Non-typical
-			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_DSA_L_N_Uncommon, "DSA parameter values L/N (%d/%d) are uncommon." % (L, N), commonness = Commonness.UNUSUAL)
+			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_DSA_L_N_Uncommon, "DSA parameter values L/N (%d/%d) are uncommon." % (L, N), commonness = Commonness.UNUSUAL)
 
 		L_strength_bits = NumberTheory.asymtotic_complexity_gnfs_bits(pubkey.p)
 		N_strength_bits = math.floor(N / 2)
 		bits_security = min(L_strength_bits, N_strength_bits)
-		judgements += self.algorithm("bits").analyze(ExperimentalJudgementCodes.X509Cert_PublicKey_DSA_L_N, bits_security)
+		judgements += self.algorithm("bits").analyze(JudgementCode.X509Cert_PublicKey_DSA_L_N, bits_security)
 
 		result = {
 			"cryptosystem":	"dsa",

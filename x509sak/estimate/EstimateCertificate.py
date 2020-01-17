@@ -23,7 +23,7 @@ import base64
 import pyasn1
 from x509sak.OID import OID, OIDDB
 from x509sak.estimate.BaseEstimator import BaseEstimator
-from x509sak.estimate import ExperimentalJudgementCodes, Commonness, Compatibility
+from x509sak.estimate import JudgementCode, Commonness, Compatibility
 from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, RFCReference
 from x509sak.CurveDB import CurveNotFoundException
 
@@ -34,33 +34,33 @@ class CertificateEstimator(BaseEstimator):
 	def _analyze_certificate_general_issues(self, certificate):
 		judgements = SecurityJudgements()
 		if certificate.version != 3:
-			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_Version_Not3, "Certificate version is v%d, usually would expect a v3 certificate." % (certificate.version), commonness = Commonness.HIGHLY_UNUSUAL)
+			judgements += SecurityJudgement(JudgementCode.X509Cert_Body_Version_Not3, "Certificate version is v%d, usually would expect a v3 certificate." % (certificate.version), commonness = Commonness.HIGHLY_UNUSUAL)
 
 		if certificate.serial < 0:
 			standard = RFCReference(rfcno = 5280, sect = "4.1.2.2", verb = "MUST", text = "The serial number MUST be a positive integer assigned by the CA to each certificate.")
-			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_SerialNumber_BasicChecks_Negative, "Certificate serial number is a negative value.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+			judgements += SecurityJudgement(JudgementCode.X509Cert_Body_SerialNumber_BasicChecks_Negative, "Certificate serial number is a negative value.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 		elif certificate.serial == 0:
 			standard = RFCReference(rfcno = 5280, sect = "4.1.2.2", verb = "MUST", text = "The serial number MUST be a positive integer assigned by the CA to each certificate.")
-			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_SerialNumber_BasicChecks_Zero, "Certificate serial number is zero.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+			judgements += SecurityJudgement(JudgementCode.X509Cert_Body_SerialNumber_BasicChecks_Zero, "Certificate serial number is zero.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 		elif certificate.serial >= (2 ** (8 * 20)):
 			standard = RFCReference(rfcno = 5280, sect = "4.1.2.2", verb = "MUST", text = "Conforming CAs MUST NOT use serialNumber values longer than 20 octets.")
-			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Body_SerialNumber_BasicChecks_Large, "Certificate serial number is too large.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+			judgements += SecurityJudgement(JudgementCode.X509Cert_Body_SerialNumber_BasicChecks_Large, "Certificate serial number is too large.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 		try:
 			cert_reencoding = pyasn1.codec.der.encoder.encode(certificate.asn1)
 			if cert_reencoding != certificate.der_data:
-				judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_TrailingData, "Certificate uses invalid DER encoding. Decoding and re-encoding yields %d byte blob while original was %d bytes." % (len(cert_reencoding), len(certificate.der_data)), compatibility = Compatibility.STANDARDS_DEVIATION)
+				judgements += SecurityJudgement(JudgementCode.X509Cert_TrailingData, "Certificate uses invalid DER encoding. Decoding and re-encoding yields %d byte blob while original was %d bytes." % (len(cert_reencoding), len(certificate.der_data)), compatibility = Compatibility.STANDARDS_DEVIATION)
 		except pyasn1.error.PyAsn1Error:
-			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_TrailingData, "Certificate uses invalid DER encoding. Re-encoding was not possible.", compatibility = Compatibility.STANDARDS_DEVIATION)
+			judgements += SecurityJudgement(JudgementCode.X509Cert_TrailingData, "Certificate uses invalid DER encoding. Re-encoding was not possible.", compatibility = Compatibility.STANDARDS_DEVIATION)
 
 		try:
 			pubkey_reencoding = pyasn1.codec.der.encoder.encode(certificate.pubkey.recreate().asn1)
 			if pubkey_reencoding != certificate.pubkey.der_data:
-				judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_RSA_RSAPSS_Parameters_Malformed_Undecodable, "Certificate public key uses invalid DER encoding. Decoding and re-encoding yields %d byte blob while original was %d bytes." % (len(pubkey_reencoding), len(certificate.pubkey.der_data)), compatibility = Compatibility.STANDARDS_DEVIATION)
+				judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_RSA_RSAPSS_Parameters_Malformed_Undecodable, "Certificate public key uses invalid DER encoding. Decoding and re-encoding yields %d byte blob while original was %d bytes." % (len(pubkey_reencoding), len(certificate.pubkey.der_data)), compatibility = Compatibility.STANDARDS_DEVIATION)
 		except pyasn1.error.PyAsn1Error:
-			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_PublicKey_RSA_RSAPSS_Parameters_Malformed_Undecodable, "Certificate public key uses invalid DER encoding. Re-encoding was not possible.", compatibility = Compatibility.STANDARDS_DEVIATION)
+			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_RSA_RSAPSS_Parameters_Malformed_Undecodable, "Certificate public key uses invalid DER encoding. Re-encoding was not possible.", compatibility = Compatibility.STANDARDS_DEVIATION)
 		except NotImplementedError as e:
-			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509sakIssues_PublicKeyReencodingMissing, "Missing check due to non-implemented functionality: %s" % (str(e)), commonness = Commonness.UNUSUAL)
+			judgements += SecurityJudgement(JudgementCode.X509sakIssues_PublicKeyReencodingMissing, "Missing check due to non-implemented functionality: %s" % (str(e)), commonness = Commonness.UNUSUAL)
 		except CurveNotFoundException:
 			# We ignore this for the re-encoding, but have an explcit check for
 			# it in the EC checks that raises ECC_UnknownNamedCurve
@@ -72,7 +72,7 @@ class CertificateEstimator(BaseEstimator):
 		if oid_header != oid_sig:
 			name_header = OIDDB.SignatureAlgorithms.get(oid_header, str(oid_header))
 			name_sig = OIDDB.SignatureAlgorithms.get(oid_sig, str(oid_sig))
-			judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Signature_Function_BodyMismatch, "Certificate indicates signature algorithm %s in header section and %s in signature section." % (name_header, name_sig), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+			judgements += SecurityJudgement(JudgementCode.X509Cert_Signature_Function_BodyMismatch, "Certificate indicates signature algorithm %s in header section and %s in signature section." % (name_header, name_sig), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 		else:
 			# OIDs might be same, but parameters could differ (e.g., for RSA-PSS)
 			header_hasvalue = certificate.asn1["tbsCertificate"]["signature"]["parameters"].hasValue()
@@ -82,9 +82,9 @@ class CertificateEstimator(BaseEstimator):
 				parameters_header = bytes(certificate.asn1["tbsCertificate"]["signature"]["parameters"])
 				parameters_signature = bytes(certificate.asn1["signatureAlgorithm"]["parameters"])
 				if parameters_header != parameters_signature:
-					judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Signature_Function_BodyMismatch, "Certificate indicates same signature algorithm in both header section and signature section (%s), but parameterization of each differ." % (name_header), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+					judgements += SecurityJudgement(JudgementCode.X509Cert_Signature_Function_BodyMismatch, "Certificate indicates same signature algorithm in both header section and signature section (%s), but parameterization of each differ." % (name_header), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 			elif header_hasvalue != signature_hasvalue:
-				judgements += SecurityJudgement(ExperimentalJudgementCodes.X509Cert_Signature_Function_BodyMismatch, "Certificate indicates same signature algorithm in both header section and signature section, but header %s while signature section %s." % ("has parameters" if header_hasvalue else "has no parameters", "does" if signature_hasvalue else "does not"), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+				judgements += SecurityJudgement(JudgementCode.X509Cert_Signature_Function_BodyMismatch, "Certificate indicates same signature algorithm in both header section and signature section, but header %s while signature section %s." % ("has parameters" if header_hasvalue else "has no parameters", "does" if signature_hasvalue else "does not"), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 		return judgements
 
