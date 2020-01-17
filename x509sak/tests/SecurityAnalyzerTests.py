@@ -280,10 +280,10 @@ class SecurityAnalyzerTests(BaseTest):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-name-constraints-minmax.pem", expect_present = [ "X509Cert_Body_X509Exts_Ext_NC_Subtree_MinimumNotZero", "X509Cert_Body_X509Exts_Ext_NC_Subtree_MaximumPresent" ])
 
 	def test_examine_x509test_xf_ext_name_constraints_nonca(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-name-constraints-nonca.pem", "X509Cert_Body_X509Exts_Ext_NC_PresentNotCA")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-name-constraints-nonca.pem", "X509Cert_Body_X509Exts_Ext_NC_NoCA")
 
 	def test_examine_x509test_xf_ext_name_constraints_noncrit(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-name-constraints-noncrit.pem", "X509Cert_Body_X509Exts_Ext_NC_PresentCritical")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-name-constraints-noncrit.pem", "X509Cert_Body_X509Exts_Ext_NC_Critical")
 
 #	def test_examine_x509test_xf_ext_name_constraints_regid(self):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-name-constraints-regid.pem", "X509Cert_Body_X509Exts_Ext_NC_Subtree_Name_RestictionOnRegisteredID")

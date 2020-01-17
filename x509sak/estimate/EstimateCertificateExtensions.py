@@ -261,10 +261,10 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		if nc is not None:
 			if not nc.critical:
 				standard = RFCReference(rfcno = 5280, sect = "4.2.1.10", verb = "MUST", text = "Conforming CAs MUST mark this extension as critical")
-				judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_NC_PresentCritical, "NameConstraints X.509 extension present, but not marked critical.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+				judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_NC_Critical, "NameConstraints X.509 extension present, but not marked critical.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 			if not certificate.is_ca_certificate:
 				standard = RFCReference(rfcno = 5280, sect = "4.2.1.10", verb = "MUST", text = "The name constraints extension, which MUST be used only in a CA certificate, indicates a name space within which all subject names in subsequent certificates in a certification path MUST be located.")
-				judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_NC_PresentNotCA, "NameConstraints X.509 extension present, but certificate is not a CA certificate.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+				judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_NC_NoCA, "NameConstraints X.509 extension present, but certificate is not a CA certificate.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 		return judgements
 

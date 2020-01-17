@@ -7,10 +7,7 @@
 		"Present": { "_desc": "$name extension is present", "_require": "present" },
 		"Critical": { "_desc": "$name extension is marked critical", "_require": "critical" },
 		"Not Critical": { "_desc": "$name extension is not marked critical", "_require": "notcritical" },
-		"Present but not Critical": { "_label": "PresentNotCritical", "_desc": "$name extension present, but not critical", "_require": "pres_ncrit" },
-		"Present but Critical": { "_label": "PresentCritical", "_desc": "$name extension present and critical", "_require": "pres_crit" },
-		"Present and CA certificate": { "_label": "PresentAndCA", "_desc": "$name extension present, but no CA certificate", "_require": "pres_ca" },
-		"Present but not CA": { "_label": "PresentNotCA", "_desc": "$name extension present, but no CA certificate", "_require": "pres_noca" }
+		"No CA Certificate": { "_label": "NoCA", "_desc": "$name extension present, but not CA certificate", "_require": "noca" }
 	},
 
 	"X.509 Purpose Check": {

@@ -106,7 +106,7 @@
 					},
 					"Name Constraints": {
 						"_label": "NC",
-						"_import": [ "asn1_encoding_issues/*", "x509_ext_checks/*:empty,pres_crit,pres_noca{name=NC}" ],
+						"_import": [ "asn1_encoding_issues/*", "x509_ext_checks/*:empty,critical,noca{name=NC}" ],
 						"Subtree": {
 							"Minimum not Zero": { "_desc": "NC extension subtree minimum attribute is non-zero" },
 							"Maximum present": { "_desc": "NC extension subtree maximum attribute is present" },
@@ -234,8 +234,7 @@
 				},
 				"Unknown Extension": {
 					"_label": "Unknown",
-					"_import": [ "asn1_encoding_issues/*", "x509_ext_checks/*:critical,notcritical{name=unknown}" ],
-					"Present": { "_desc": "unknown extension present" }
+					"_import": [ "asn1_encoding_issues/*", "x509_ext_checks/*:critical,notcritical,present{name=unknown}" ]
 				}
 			}
 		},
