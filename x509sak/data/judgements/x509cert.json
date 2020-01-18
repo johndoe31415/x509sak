@@ -103,7 +103,7 @@
 					},
 					"Name Constraints": {
 						"_label": "NC",
-						"_import": [ "asn1_encoding_issues/*", "x509_ext_checks/*:empty,critical,noca{name=NC}" ],
+						"_import": [ "asn1_encoding_issues/*", "x509_ext_checks/*:empty,notcritical,noca{name=NC}" ],
 						"Subtree": {
 							"Minimum not Zero": { "_desc": "NC extension subtree minimum attribute is non-zero" },
 							"Maximum present": { "_desc": "NC extension subtree maximum attribute is present" },

@@ -112,7 +112,7 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-algo-mismatch1.pem", "X509Cert_Signature_Function_BodyMismatch")
 
 	def test_examine_x509test_xf_der_invalid_bitstring(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-der-invalid-bitstring.pem", "X509Cert_TrailingData")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-der-invalid-bitstring.pem", "X509Cert_Malformed_NonDEREncoding")
 
 	def test_examine_x509test_xf_der_invalid_nonminimal_int(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-der-invalid-nonminimal-int.pem", "X509Cert_Malformed_NonDEREncoding")
@@ -283,7 +283,7 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-name-constraints-nonca.pem", "X509Cert_Body_X509Exts_Ext_NC_NoCA")
 
 	def test_examine_x509test_xf_ext_name_constraints_noncrit(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-name-constraints-noncrit.pem", "X509Cert_Body_X509Exts_Ext_NC_Critical")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-name-constraints-noncrit.pem", "X509Cert_Body_X509Exts_Ext_NC_NotCritical")
 
 #	def test_examine_x509test_xf_ext_name_constraints_regid(self):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-name-constraints-regid.pem", "X509Cert_Body_X509Exts_Ext_NC_Subtree_Name_RestictionOnRegisteredID")
