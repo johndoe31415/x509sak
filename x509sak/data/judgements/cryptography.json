@@ -56,13 +56,15 @@
 					"Binary Field": { "_desc": "curve domain is over binary field" },
 					"Prime Field": { "_desc": "curve domain is over prime field" },
 					"Curve Property": {
-						"Koblitz Curve": { "_desc": "curve domain is a Koblitz curve" }
+						"Anomalous Curve": { "_desc": "curve is anomaleous, #E(F_p) = p" },
+						"Weil Descent": { "_desc": "Weil Descent attack possible, F_2^m with non-prime m" },
+						"Koblitz Curve": { "_desc": "is a Koblitz curve" }
 					}
 				},
 				"Public Key Point": {
 					"Is Generator": { "_desc": "public key point is equal to the generator of the curve" },
 					"Not on Curve": { "_desc": "public key point is not on curve" },
-					"On Quadratic Twist": { "_desc": "public key point is on quadratic twist of curve" },
+					"__On Quadratic Twist": { "_desc": "public key point is on quadratic twist of curve" },
 					"X Coordinate": {
 						"_label": "X",
 						"_import": "random_value/*"

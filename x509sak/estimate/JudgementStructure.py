@@ -240,7 +240,7 @@ class StructureNode():
 	@classmethod
 	def parse(cls, key, values):
 		children = [ cls.parse(child_key, child_values) for (child_key, child_values) in values.items() if not child_key.startswith("_") ]
-		attributes = { attribute_name[1:]: attribute_value for (attribute_name, attribute_value) in values.items() if attribute_name.startswith("_") }
+		attributes = { attribute_name[1:]: attribute_value for (attribute_name, attribute_value) in values.items() if (attribute_name.startswith("_")) and (not attribute_name.startswith("__")) }
 		return cls(name = key, children = children, attributes = attributes)
 
 	def dump(self, indent = 0):
