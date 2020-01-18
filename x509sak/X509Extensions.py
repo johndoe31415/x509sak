@@ -21,7 +21,6 @@
 
 import contextlib
 import collections
-import pyasn1.codec.der.decoder
 import pyasn1.error
 import pyasn1.type.univ
 from pyasn1.type import tag
@@ -116,7 +115,6 @@ class X509ExtensionRegistry():
 class X509Extension():
 	_HANDLER_OID = None
 	_ASN1_MODEL = None
-	_ASN1_GENERIC_DECODE = False
 
 	def __init__(self, oid, critical, data):
 		assert(isinstance(oid, OID))
@@ -125,15 +123,10 @@ class X509Extension():
 		self._oid = oid
 		self._critical = critical
 		self._data = data
-		self._asn1 = None
-		self._not_decoded = data
-		if (self._ASN1_MODEL is not None) or self._ASN1_GENERIC_DECODE:
+		self._detailed_asn1 = None
+		if self._ASN1_MODEL is not None:
 			spec = self._ASN1_MODEL() if (self._ASN1_MODEL is not None) else None
-			try:
-				(self._asn1, self._not_decoded) = pyasn1.codec.der.decoder.decode(self.data, asn1Spec = spec)
-			except pyasn1.error.PyAsn1Error as e:
-				#print("Couldn't parse ASN.1 extension: %s" % (str(e)))
-				pass
+			self._detailed_asn1 = ASN1Tools.safe_decode(self.data, asn1_spec = spec)
 		self._decode_hook()
 
 	def to_asn1(self):
@@ -142,10 +135,6 @@ class X509Extension():
 		extension["critical"] = self.critical
 		extension["extnValue"] = self.data
 		return extension
-
-	@property
-	def successfully_parsed(self):
-		return (self._ASN1_MODEL is not None) and (self._asn1 is not None)
 
 	@classmethod
 	def construct_from_asn1(cls, asn1, critical = False):
@@ -173,16 +162,12 @@ class X509Extension():
 		return self._data
 
 	@property
-	def not_decoded(self):
-		return self._not_decoded
+	def detailed_asn1(self):
+		return self._detailed_asn1
 
 	@property
 	def asn1(self):
-		return self._asn1
-
-	def raw_decode(self):
-		(asn1, tail) = pyasn1.codec.der.decoder.decode(self.data)
-		return asn1
+		return self._detailed_asn1.asn1
 
 	def _decode_hook(self):
 		pass
@@ -275,7 +260,7 @@ class X509AuthorityKeyIdentifierExtension(X509Extension):
 		return ", ".join(values)
 
 	def _decode_hook(self):
-		self._malformed = self._asn1 is None
+		self._malformed = self.asn1 is None
 
 		if not self._malformed:
 			if self.asn1.getComponentByName("keyIdentifier", None, instantiate = False) is not None:
@@ -399,11 +384,11 @@ class X509KeyUsageExtension(X509Extension):
 
 	@property
 	def has_trailing_zero(self):
-		return ASN1Tools.bitstring_has_trailing_zeros(self._asn1) if (self._asn1 is not None) else None
+		return ASN1Tools.bitstring_has_trailing_zeros(self.asn1) if (self.asn1 is not None) else None
 
 	@property
 	def highest_set_bit_value(self):
-		return ASN1Tools.bitstring_highbit(self._asn1) if (self._asn1 is not None) else None
+		return ASN1Tools.bitstring_highbit(self.asn1) if (self.asn1 is not None) else None
 
 	@property
 	def highest_permissible_bit_value(self):
@@ -411,19 +396,19 @@ class X509KeyUsageExtension(X509Extension):
 
 	@property
 	def all_bits_zero(self):
-		return ASN1Tools.bitstring_is_empty(self._asn1) if (self._asn1 is not None) else None
+		return ASN1Tools.bitstring_is_empty(self.asn1) if (self.asn1 is not None) else None
 
 	@property
 	def unknown_flags_set(self):
 		return (self.highest_set_bit_value or 0) > len(self._ASN1_MODEL.namedValues)
 
 	def _decode_hook(self):
-		if self._asn1 is None:
+		if self.asn1 is None:
 			self._flags = None
 		else:
 			self._flags = set()
 			for (name, bit) in self._ASN1_MODEL.namedValues.items():
-				if (len(self._asn1) > bit) and self._asn1[bit]:
+				if (len(self.asn1) > bit) and self.asn1[bit]:
 					self._flags.add(name)
 
 	def __repr__(self):
@@ -452,10 +437,10 @@ class X509NetscapeCertificateTypeExtension(X509Extension):
 
 	def _decode_hook(self):
 		self._flags = set()
-		if self._asn1 is None:
+		if self.asn1 is None:
 			return
 		for (name, bit) in self._ASN1_MODEL.namedValues.items():
-			if (len(self._asn1) > bit) and self._asn1[bit]:
+			if (len(self.asn1) > bit) and self.asn1[bit]:
 				self._flags.add(name)
 
 	def __repr__(self):
@@ -473,7 +458,7 @@ class X509AuthorityInformationAccessExtension(X509Extension):
 
 	def _decode_hook(self):
 		self._methods = [ ]
-		for item in self._asn1:
+		for item in self.asn1:
 			oid = OID.from_asn1(item["accessMethod"])
 			location = item["accessLocation"]
 			self._methods.append((oid, location))
@@ -527,7 +512,7 @@ class X509CertificatePoliciesExtension(X509Extension):
 
 	def _decode_hook(self):
 		self._policies = [ ]
-		for item in self._asn1:
+		for item in self.asn1:
 			policy_oid = OID.from_asn1(item["policyIdentifier"])
 			qualifiers = [ ]
 			for qualifier in item["policyQualifiers"]:
@@ -641,7 +626,7 @@ class X509CertificateTransparencySCTsExtension(X509Extension):
 		self._payload = None
 		if self.asn1 is None:
 			return
-		raw_data = bytes(self._asn1)
+		raw_data = bytes(self.asn1)
 		try:
 			self._payload = SignedCertificateTimestampList.unpack(DataBuffer(raw_data))
 		except DeserializationException:
@@ -654,7 +639,7 @@ X509ExtensionRegistry.set_handler_class(X509CertificateTransparencySCTsExtension
 
 class X509CertificateTransparencyPrecertificatePoisonExtension(X509Extension):
 	_HANDLER_OID = OIDDB.X509Extensions.inverse("CertificateTransparencyPrecertificatePoison")
-	_ASN1_GENERIC_DECODE = True
+	_ASN1_MODEL = pyasn1.type.univ.Null
 
 	@property
 	def malformed(self):

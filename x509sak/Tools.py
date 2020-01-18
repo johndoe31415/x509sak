@@ -191,7 +191,7 @@ class ASN1Tools():
 				# Can be decoded as neither a specific not generic ASN.1 blob
 				result["flags"].add("undecodable")
 
-		if (result["tail"] is not None) and len(result["tail"] > 0):
+		if (result["tail"] is not None) and (len(result["tail"]) > 0):
 			result["flags"].add("trailing_data")
 		if (result["encoded_der"] is not None) and (result["encoded_der"] != der_data):
 			result["flags"].add("non_der")

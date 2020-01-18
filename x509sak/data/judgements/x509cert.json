@@ -212,8 +212,7 @@
 					"Certificate Transparency Precertificate Poison": {
 						"_label": "CTPP",
 						"_import": [ "*asn1_encoding_issues/*", "x509_ext_checks/*:notcritical{name=CTPP}" ],
-						"Is Precertificate": { "_desc": "CTPP extension indicates precertificate" },
-						"Invalid Payload": { "_desc": "CTPP extension contains invalid payload" }
+						"Is Precertificate": { "_desc": "CTPP extension indicates precertificate" }
 					},
 					"Certificate Transparency Signed Certificate Timestamps": {
 						"_label": "CTSCT",

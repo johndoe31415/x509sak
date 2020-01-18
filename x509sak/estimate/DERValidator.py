@@ -19,19 +19,20 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
+from x509sak.estimate.Judgement import Commonness, Compatibility
 from x509sak.estimate.Validator import BaseValidationResult, BaseValidator
 
 class DERValidationResult(BaseValidationResult):
 	def _validate(self):
 		if "undecodable" in self._subject.flags:
-			self._report("Enc_DER_EncodingIssues_Malformed_Undecodable", "input cannot be decoded as valid ASN.1.")
+			self._report("Enc_DER_EncodingIssues_Malformed_Undecodable", "input cannot be decoded as valid ASN.1.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION)
 		else:
 			if "non_der" in self._subject.flags:
-				self._report("Enc_DER_EncodingIssues_Malformed_NonDEREncoding", "input can be decoded ASN.1, but does not comply with Distinguished Encoding Rules (DER).")
+				self._report("Enc_DER_EncodingIssues_Malformed_NonDEREncoding", "input can be decoded ASN.1, but does not comply with Distinguished Encoding Rules (DER).", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION)
 			if "trailing_data" in self._subject.flags:
-				self._report("Enc_DER_EncodingIssues_TrailingData", "input can de decoded as ASN.1, but has %d bytes of trailing data." % (len(self._subject.tail)))
+				self._report("Enc_DER_EncodingIssues_TrailingData", "input can de decoded as ASN.1, but has %d bytes of trailing data." % (len(self._subject.tail)), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION)
 			if "unexpected_type" in self._subject.flags:
-				self._report("Enc_DER_EncodingIssues_Malformed_UnexpectedType", "input can be decoded as ASN.1, but not under the expected schema (instead returned %s)." % (type(self._subject.generic_asn1).__name__))
+				self._report("Enc_DER_EncodingIssues_Malformed_UnexpectedType", "input can be decoded as ASN.1, but not under the expected schema (instead returned %s)." % (type(self._subject.generic_asn1).__name__), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION)
 
 class DERValidator(BaseValidator):
 	_ValidationResultClass = DERValidationResult

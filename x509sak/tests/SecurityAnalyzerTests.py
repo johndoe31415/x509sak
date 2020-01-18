@@ -202,7 +202,7 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-cert-policies-unotice-ch.pem", "X509Cert_Body_X509Exts_Ext_CP_UserNotice_ExplicitText_ControlCharacter")
 
 	def test_examine_x509test_xf_ext_constraints_neg_pathlen(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-constraints-neg-pathlen.pem", expect_absent = "X509Cert_Body_X509Exts_Unknown_Malformed_Undecodable", expect_present = "X509Cert_Body_X509Exts_Ext_BC_Malformed_Undecodable")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-constraints-neg-pathlen.pem", expect_absent = "X509Cert_Body_X509Exts_Unknown_Malformed_Undecodable", expect_present = "X509Cert_Body_X509Exts_Ext_BC_Malformed_UnexpectedType")
 
 	def test_examine_x509test_xf_ext_constraints_noncritical(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-constraints-noncritical.pem", "X509Cert_Body_X509Exts_Ext_BC_NotCritical")
@@ -884,7 +884,7 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/issuer_altname_bad_email.pem", expect_present = "X509Cert_Body_X509Exts_Ext_IAN_Name_Email_Malformed")
 
 	def test_extension_malformed(self):
-		self._test_examine_x509test_resultcode("certs/constructed/ext_malformed.pem", expect_present = "X509Cert_Body_X509Exts_Unknown_Malformed_Undecodable")
+		self._test_examine_x509test_resultcode("certs/constructed/ext_malformed.pem", expect_present = "X509Cert_Body_X509Exts_Ext_AKI_Malformed_Undecodable")
 
 	def test_certificate_lifetime_noca_conservative(self):
 		self._test_examine_x509test_resultcode("certs/constructed/lifetime_noca_conservative.pem", expect_present = "X509Cert_Body_Validity_Length_Conservative")
@@ -1207,13 +1207,13 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/crldp_issuer_redundantly_present.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_CRLIssuer_Redundant")
 
 	def test_ct_poison_invalid_payload(self):
-		self._test_examine_x509test_resultcode("certs/constructed/ct_poison_invalid_payload.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CTPP_InvalidPayload")
+		self._test_examine_x509test_resultcode("certs/constructed/ct_poison_invalid_payload.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CTPP_Malformed_UnexpectedType")
 
 	def test_ct_poison_malformed(self):
 		self._test_examine_x509test_resultcode("certs/constructed/ct_poison_malformed.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CTPP_Malformed_Undecodable")
 
 	def test_ct_poison_ok(self):
-		self._test_examine_x509test_resultcode("certs/constructed/ct_poison_ok.pem", expect_absent = [ "X509Cert_Body_X509Exts_Ext_CTPP_Malformed_Undecodable", "X509Cert_Body_X509Exts_Ext_CTPP_InvalidPayload" ])
+		self._test_examine_x509test_resultcode("certs/constructed/ct_poison_ok.pem", expect_absent = [ "X509Cert_Body_X509Exts_Ext_CTPP_Malformed_Undecodable", "X509Cert_Body_X509Exts_Ext_CTPP_Malformed_UnexpectedType" ])
 
 	def test_ct_poison_not_critical(self):
 		self._test_examine_x509test_resultcode("certs/constructed/ct_poison_not_critical.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CTPP_NotCritical")
