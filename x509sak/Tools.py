@@ -105,7 +105,7 @@ class CmdTools():
 class ASN1Tools():
 	_REGEX_UTCTime = re.compile(r"(?P<year>\d{2})(?P<month>\d{2})(?P<day>\d{2})(?P<hour>\d{2})(?P<minute>\d{2})(?P<second>\d{2})Z")
 	_REGEX_GeneralizedTime = re.compile(r"(?P<year>\d{4})(?P<month>\d{2})(?P<day>\d{2})(?P<hour>\d{2})(?P<minute>\d{2})(?P<second>\d{2})Z")
-	_DecodedASN1 = collections.namedtuple("DecodedASN1", [ "asn1", "tail", "flags", "original_der", "encoded_der" ])
+	_DecodedASN1 = collections.namedtuple("DecodedASN1", [ "asn1", "generic_asn1", "tail", "flags", "original_der", "encoded_der" ])
 
 	@classmethod
 	def parse_datetime(cls, datetime_str):
@@ -172,6 +172,7 @@ class ASN1Tools():
 	def safe_decode(cls, der_data, asn1_spec = None):
 		result = {
 			"asn1": None,
+			"generic_asn1": None,
 			"tail": None,
 			"flags": set(),
 			"original_der": der_data,
@@ -180,10 +181,21 @@ class ASN1Tools():
 		try:
 			(result["asn1"], result["tail"]) = pyasn1.codec.der.decoder.decode(der_data, asn1Spec = asn1_spec)
 			result["encoded_der"] = pyasn1.codec.der.encoder.encode(result["asn1"])
-			if result["encoded_der"] != der_data:
-				result["flags"].add("non-der")
 		except pyasn1.error.PyAsn1Error:
-			result["flags"].add("undecodable")
+			try:
+				# Cannot be decoded under the given ASN1 spec, but maybe generically?
+				(result["generic_asn1"], result["tail"]) = pyasn1.codec.der.decoder.decode(der_data)
+				result["flags"].add("unexpected_type")
+				result["encoded_der"] = pyasn1.codec.der.encoder.encode(result["generic_asn1"])
+			except pyasn1.error.PyAsn1Error:
+				# Can be decoded as neither a specific not generic ASN.1 blob
+				result["flags"].add("undecodable")
+
+		if (result["tail"] is not None) and len(result["tail"] > 0):
+			result["flags"].add("trailing_data")
+		if (result["encoded_der"] is not None) and (result["encoded_der"] != der_data):
+			result["flags"].add("non_der")
+
 		return cls._DecodedASN1(**result)
 
 class ECCTools():

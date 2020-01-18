@@ -75,13 +75,13 @@
 					"_label": "Ext",
 					"Basic Constraints": {
 						"_label": "BC",
-						"_import": [ "asn1_encoding_issues/*", "x509_ext_checks/*:missing,notcritical,critical{name=BC}" ],
+						"_import": [ "*asn1_encoding_issues/*", "x509_ext_checks/*:missing,notcritical,critical{name=BC}" ],
 						"PathLen without CA": { "_desc": "BC extension contains pathLen constraint without CA attribute" },
 						"PathLen without keyCertSign": { "_desc": "BC extension contains pathLen constraint without keyCertSign key usage" }
 					},
 					"Subject Key Identifier": {
 						"_label": "SKI",
-						"_import": [ "asn1_encoding_issues/*", "x509_ext_checks/*:missing,critical{name=SKI}" ],
+						"_import": [ "*asn1_encoding_issues/*", "x509_ext_checks/*:missing,critical{name=SKI}" ],
 						"Hashfunction": {
 							"SHA1": { "_desc": "SKI extension has SHA-1 key ID" },
 							"Other": { "_desc": "SKI extension has hash based key ID other than SHA-1" },
@@ -90,7 +90,7 @@
 					},
 					"Authority Key Identifier": {
 						"_label": "AKI",
-						"_import": [ "asn1_encoding_issues/*", "x509_ext_checks/*:empty,missing,critical{name=AKI}" ],
+						"_import": [ "*asn1_encoding_issues/*", "x509_ext_checks/*:empty,missing,critical{name=AKI}" ],
 						"CA name": {
 							"_import": "*general_name_issues/*:allow_dirname",
 							"Empty": { "_desc": "AKI CAname empty" }
@@ -103,7 +103,7 @@
 					},
 					"Name Constraints": {
 						"_label": "NC",
-						"_import": [ "asn1_encoding_issues/*", "x509_ext_checks/*:empty,notcritical,noca{name=NC}" ],
+						"_import": [ "*asn1_encoding_issues/*", "x509_ext_checks/*:empty,notcritical,noca{name=NC}" ],
 						"Subtree": {
 							"Minimum not Zero": { "_desc": "NC extension subtree minimum attribute is non-zero" },
 							"Maximum present": { "_desc": "NC extension subtree maximum attribute is present" },
@@ -115,20 +115,20 @@
 					},
 					"Key Usage": {
 						"_label": "KU",
-						"_import": [ "bitstring_issues/*", "asn1_encoding_issues/*", "x509_ext_checks/*:missing,empty,notcritical{name=KU}" ],
+						"_import": [ "bitstring_issues/*", "*asn1_encoding_issues/*", "x509_ext_checks/*:missing,empty,notcritical{name=KU}" ],
 						"Too Long": { "_desc": "KU extension too long" },
 						"SignCert but no CA": { "_desc": "KU extension contains signCert flag but is no CA" },
 						"SignCert but no Basic Constraints": { "_desc": "KU extension contains signCert flag but has no Basic Constraints extension" }
 					},
 					"Extended Key Usage": {
 						"_label": "EKU",
-						"_import": [ "asn1_encoding_issues/*", "x509_ext_checks/*:empty{name=EKU}" ],
+						"_import": [ "*asn1_encoding_issues/*", "x509_ext_checks/*:empty{name=EKU}" ],
 						"Duplicate": { "_desc": "EKU extension contains duplicate usage OID" },
 						"Any Usage Criticial": { "_desc": "EKU extension contains anyUsage flag but extension is marked critical" }
 					},
 					"Issuer Alternative Name": {
 						"_label": "IAN",
-						"_import": [ "asn1_encoding_issues/*", "x509_ext_checks/*:critical,empty{name=IAN}" ],
+						"_import": [ "*asn1_encoding_issues/*", "x509_ext_checks/*:critical,empty{name=IAN}" ],
 						"Missing": { "_desc": "IAN extension missing although certificate issue header is empty" },
 						"Name": {
 							"_import": "*general_name_issues/*:allow_dirname"
@@ -136,7 +136,7 @@
 					},
 					"Subject Alternative Name": {
 						"_label": "SAN",
-						"_import": [ "asn1_encoding_issues/*", "x509_ext_checks/*:empty,missing,critical,notcritical{name=SAN}" ],
+						"_import": [ "*asn1_encoding_issues/*", "x509_ext_checks/*:empty,missing,critical,notcritical{name=SAN}" ],
 						"Name": {
 							"_import": "*general_name_issues/*:allow_dns,allow_dns_wc,allow_ip"
 						},
@@ -144,11 +144,11 @@
 					},
 					"Authority Information Access": {
 						"_label": "AIA",
-						"_import": [ "asn1_encoding_issues/*", "x509_ext_checks/*:empty,critical{name=AIA}" ]
+						"_import": [ "*asn1_encoding_issues/*", "x509_ext_checks/*:empty,critical{name=AIA}" ]
 					},
 					"Certificate Policies": {
 						"_label": "CP",
-						"_import": "asn1_encoding_issues/*",
+						"_import": "*asn1_encoding_issues/*",
 						"Deprecated OID": { "_desc": "CP extension OID is deprecated" },
 						"Duplicate OID": { "_desc": "CP extension contains duplicate policy OID" },
 						"More than one policy": { "_desc": "CP extension contains more than one policy" },
@@ -159,7 +159,7 @@
 							"AnyPolicy with Unknown Qualifier": { "_desc": "CP extension contains anyPolicy with unknown qualifier" }
 						},
 						"User Notice": {
-							"_import": "asn1_encoding_issues/*",
+							"_import": "*asn1_encoding_issues/*",
 							"Empty": { "_desc": "CP extension user notice is empty" },
 							"Constraint Violation": { "_desc": "CP extension user notice violates ASN.1 constraint" },
 							"noticeRef Present": { "_desc": "CP extension user notice contains noticeRef attribute" },
@@ -172,19 +172,19 @@
 						},
 						"Certification Practice Statement": {
 							"_label": "CPS",
-							"_import": [ "asn1_encoding_issues/*", "uri_issues" ],
+							"_import": [ "*asn1_encoding_issues/*", "uri_issues" ],
 							"Constraint Violation": { "_desc": "CP extension CPS violates ASN.1 constraint" }
 						}
 					},
 					"Netscape Certificate Type": {
 						"_label": "NSCT",
-						"_import": [ "asn1_encoding_issues/*", "bitstring_issues/*" ],
+						"_import": [ "*asn1_encoding_issues/*", "bitstring_issues/*" ],
 						"Empty": { "_desc": "NSCT extension has no bits set" },
 						"Unused Bit Set": { "_desc": "NSCT extension has 'unused' bit set" }
 					},
 					"CRL Distribution Points": {
 						"_label": "CRLDP",
-						"_import": [ "asn1_encoding_issues/*", "x509_ext_checks/*:empty,critical{name=CRLDP}" ],
+						"_import": [ "*asn1_encoding_issues/*", "x509_ext_checks/*:empty,critical{name=CRLDP}" ],
 						"No Point with all reason bits": { "_desc": "CRLDP extension contains no point that has all reason bits set" },
 						"Point with only Reasons": { "_desc": "CDLDP extension contains a point that only has the 'reason' bit set" },
 						"Segmentation used": { "_desc": "CRLDP contains points that contain CRLs that are not universal" },
@@ -211,13 +211,13 @@
 					},
 					"Certificate Transparency Precertificate Poison": {
 						"_label": "CTPP",
-						"_import": [ "asn1_encoding_issues/*", "x509_ext_checks/*:notcritical{name=CTPP}" ],
+						"_import": [ "*asn1_encoding_issues/*", "x509_ext_checks/*:notcritical{name=CTPP}" ],
 						"Is Precertificate": { "_desc": "CTPP extension indicates precertificate" },
 						"Invalid Payload": { "_desc": "CTPP extension contains invalid payload" }
 					},
 					"Certificate Transparency Signed Certificate Timestamps": {
 						"_label": "CTSCT",
-						"_import": "asn1_encoding_issues/*",
+						"_import": "*asn1_encoding_issues/*",
 						"Malformed": {
 							"Content": { "_desc": "CTSCT content malformed" }
 						},
@@ -231,7 +231,7 @@
 				},
 				"Unknown Extension": {
 					"_label": "Unknown",
-					"_import": [ "asn1_encoding_issues/*", "x509_ext_checks/*:critical,notcritical{name=unknown}" ]
+					"_import": [ "*asn1_encoding_issues/*", "x509_ext_checks/*:critical,notcritical{name=unknown}" ]
 				}
 			}
 		},
