@@ -111,7 +111,8 @@ class StructureNode():
 
 	@classmethod
 	def parse_import(cls, import_str):
-		print(import_str)
+		if isinstance(import_str, cls._ImportStatement):
+			return import_str
 		result = cls._IMPORT_REGEX.fullmatch(import_str)
 		if not result:
 			raise Exception("Not a valid import: '%s'" % (import_str))
