@@ -25,15 +25,17 @@
 					"Non-Printable": { "_desc": "$name distinguished name contains non-printable type" },
 					"Unusually Many RDNs": { "_desc": "$name distinguished name contains an unusually high amount of RDNs" },
 					"Duplicate RDNs": { "_desc": "$name distinguished name contains duplicate RDNs" },
-					"TODO REMOVEME? Duplicate OID In Multivalued RDN": { "_desc": "$name distinguished name TODO" },
 					"No CN": { "_desc": "$name distinguished name contains no CN RDN" },
 					"Multiple CN": { "_desc": "$name distinguished name contains multiple CN RDNs" },
 					"Relative Distinguished Name": {
 						"_label": "RDN",
-						"Length exceeded": { "_desc": "$name realative distinguished name exceeds maximum length" },
 						"Malformed": { "_desc": "$name relative distinguished name is malformed" },
-						"Multi Valued RDN": { "_desc": "$name distinguished name contains multivalued RDN" },
-						"Duplicate Set": { "_desc": "$name relative distinguished name contains same OID at least twice in set" }
+						"Length exceeded": { "_desc": "$name realative distinguished name exceeds maximum character length" },
+						"Multi-Valued RDN": { "_desc": "$name distinguished name contains multivalued RDN" },
+						"Duplicate Set": {
+							"Key": { "_desc": "$name realative distinguished name contains same key OID at least twice in set" },
+							"Key/Value": { "_desc": "$name relative distinguished name contains same key OID and value at least twice in set" }
+						}
 					}
 				},
 				"Timestamp": {

@@ -38,7 +38,7 @@ class ActionJudgementCode(BaseAction):
 			for (target_attribute, inherited_codes) in sorted(extended_enum_class.inheritance.items()):
 				print("%s:" % (target_attribute))
 				for (base_name, codepoint) in sorted(inherited_codes.items()):
-					print("    %s: %s" % (base_name, codepoint.name))
+					print("    %-60s  %s" % (base_name, codepoint.name))
 				print()
 		else:
 			raise NotImplementedError(self._args.action)

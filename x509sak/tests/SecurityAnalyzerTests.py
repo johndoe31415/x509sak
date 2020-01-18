@@ -385,10 +385,10 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-soon-generalized-time.pem", "X509Cert_Body_Validity_NotBefore_InvalidType")
 
 	def test_examine_x509test_xf_subject_nonprintable(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-subject-nonprintable.pem", "X509Cert_Body_FIXME_IllegalCharacter")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-subject-nonprintable.pem", "X509Cert_Body_Subject_IllegalCharacter")
 
 	def test_examine_x509test_xf_subject_t61(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-subject-t61.pem", "X509Cert_Body_FIXME_DeprecatedType")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-subject-t61.pem", "X509Cert_Body_Subject_DeprecatedType")
 
 	def test_examine_x509test_xf_unknown_critical_ext(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-unknown-critical-ext.pem", "X509Cert_Body_X509Exts_Unknown_Critical")
@@ -587,45 +587,45 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/san_good_uri.pem", expect_present = "X509Cert_Body_X509Exts_Ext_SAN_Name_URI_Unexpected")
 
 	def test_dn_all_ok(self):
-		self._test_examine_x509test_resultcode("certs/constructed/dn_all_okay.pem", expect_absent = [ "X509Cert_Body_FIXME_RDN_LengthExceeded" ])
+		self._test_examine_x509test_resultcode("certs/constructed/dn_all_okay.pem", expect_absent = [ "X509Cert_Body_Subject_RDN_LengthExceeded" ])
 
 	def test_dn_long_rdn_cn64(self):
 		# Still barely okay, 64 characters is limit for CN
-		self._test_examine_x509test_resultcode("certs/constructed/dn_long_rdn_cn64.pem", expect_absent = "X509Cert_Body_FIXME_RDN_LengthExceeded")
+		self._test_examine_x509test_resultcode("certs/constructed/dn_long_rdn_cn64.pem", expect_absent = "X509Cert_Body_Subject_RDN_LengthExceeded")
 
 	def test_dn_long_rdn_cn65(self):
 		# Straw that breaks the camel's back
-		self._test_examine_x509test_resultcode("certs/constructed/dn_long_rdn_cn65.pem", expect_present = "X509Cert_Body_FIXME_RDN_LengthExceeded")
+		self._test_examine_x509test_resultcode("certs/constructed/dn_long_rdn_cn65.pem", expect_present = "X509Cert_Body_Subject_RDN_LengthExceeded")
 
 	def test_dn_long_rdn_c(self):
-		self._test_examine_x509test_resultcode("certs/constructed/dn_long_rdn_c.pem", expect_present = "X509Cert_Body_FIXME_RDN_LengthExceeded")
+		self._test_examine_x509test_resultcode("certs/constructed/dn_long_rdn_c.pem", expect_present = "X509Cert_Body_Subject_RDN_LengthExceeded")
 
 	def test_dn_multivalue(self):
-		self._test_examine_x509test_resultcode("certs/constructed/dn_multivalue.pem", expect_present = "X509Cert_Body_FIXME_RDN_MultiValuedRDN")
+		self._test_examine_x509test_resultcode("certs/constructed/dn_multivalue.pem", expect_present = "X509Cert_Body_Subject_RDN_MultiValuedRDN")
 
 	def test_dn_nonprintable(self):
-		self._test_examine_x509test_resultcode("certs/constructed/dn_nonprintable.pem", expect_present = "X509Cert_Body_FIXME_NonPrintable")
+		self._test_examine_x509test_resultcode("certs/constructed/dn_nonprintable.pem", expect_present = "X509Cert_Body_Subject_NonPrintable")
 
 	def test_dn_duplicate_rdns(self):
-		self._test_examine_x509test_resultcode("certs/constructed/dn_multiple_identical_rdns.pem", expect_present = "X509Cert_Body_FIXME_DuplicateRDNs")
+		self._test_examine_x509test_resultcode("certs/constructed/dn_multiple_identical_rdns.pem", expect_present = "X509Cert_Body_Subject_DuplicateRDNs")
 
 	def test_dn_many_rdns(self):
-		self._test_examine_x509test_resultcode("certs/constructed/dn_many_rdns.pem", expect_present = "X509Cert_Body_FIXME_UnusuallyManyRDNs")
+		self._test_examine_x509test_resultcode("certs/constructed/dn_many_rdns.pem", expect_present = "X509Cert_Body_Subject_UnusuallyManyRDNs")
 
 	def test_dn_no_cn(self):
-		self._test_examine_x509test_resultcode("certs/constructed/dn_no_cn.pem", expect_present = "X509Cert_Body_FIXME_NoCN")
+		self._test_examine_x509test_resultcode("certs/constructed/dn_no_cn.pem", expect_present = "X509Cert_Body_Subject_NoCN")
 
 	def test_dn_multiple_cns(self):
-		self._test_examine_x509test_resultcode("certs/constructed/dn_multiple_cn.pem", expect_present = "X509Cert_Body_FIXME_MultipleCN")
+		self._test_examine_x509test_resultcode("certs/constructed/dn_multiple_cn.pem", expect_present = "X509Cert_Body_Subject_MultipleCN")
 
 	def test_dn_duplicate_set(self):
-		self._test_examine_x509test_resultcode("certs/constructed/dn_duplicate_set.pem", expect_present = [ "X509Cert_Body_FIXME_RDN_DuplicateSet", "X509Cert_Body_FIXME_TODOREMOVEMEDuplicateOIDInMultivaluedRDN" ])
+		self._test_examine_x509test_resultcode("certs/constructed/dn_duplicate_set.pem", expect_present = [ "X509Cert_Body_Subject_RDN_DuplicateSet_Key", "X509Cert_Body_Subject_RDN_DuplicateSet_Key_Value" ])
 
 	def test_dn_duplicate_oid_in_mvrdn(self):
-		self._test_examine_x509test_resultcode("certs/constructed/dn_duplicate_oid_in_mvrdn.pem", expect_present = "X509Cert_Body_FIXME_TODOREMOVEMEDuplicateOIDInMultivaluedRDN", expect_absent = "X509Cert_Body_FIXME_RDN_DuplicateSet")
+		self._test_examine_x509test_resultcode("certs/constructed/dn_duplicate_oid_in_mvrdn.pem", expect_present = "X509Cert_Body_Subject_RDN_DuplicateSet_Key", expect_absent = "X509Cert_Body_Subject_RDN_DuplicateSet_Key_Value")
 
 	def test_cn_match_fqdn_but_multivalue_rdn(self):
-		self._test_examine_x509test_resultcode("certs/constructed/dn_cn_hostname_multivalue_rdn.pem", expect_present = "CertUsage_Purpose_ServerCert_CN_MatchMultivalueRDN", expect_absent = "X509Cert_Body_FIXME_NoCN", host_check = "multivalue.com")
+		self._test_examine_x509test_resultcode("certs/constructed/dn_cn_hostname_multivalue_rdn.pem", expect_present = "CertUsage_Purpose_ServerCert_CN_MatchMultivalueRDN", expect_absent = "X509Cert_Body_Subject_NoCN", host_check = "multivalue.com")
 
 	def test_cn_match_fqdn(self):
 		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", expect_present = "CertUsage_Purpose_ServerCert_CN_Match", expect_absent = "X509Cert_Body_X509Exts_Ext_SAN_Missing", host_check = "johannes-bauer.com")

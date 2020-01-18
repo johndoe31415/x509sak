@@ -23,11 +23,14 @@ from x509sak.OID import OIDDB
 from x509sak.estimate.BaseEstimator import BaseEstimator
 from x509sak.estimate import JudgementCode, Compatibility
 from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, Commonness, Verdict, RFCReference
+from x509sak.estimate.DistinguishedNameValidator import DistinguishedNameValidator
 from x509sak.Tools import TextTools
 
 @BaseEstimator.register
 class CARelationshipSecurityEstimator(BaseEstimator):
 	_ALG_NAME = "ca"
+	_DN_VALIDATOR_CA_SUBJECT = DistinguishedNameValidator.create_inherited("X509Cert_Body_Subject", validation_subject = "CA subject")
+	_DN_VALIDATOR_CA_ISSUER = DistinguishedNameValidator.create_inherited("X509Cert_Body_Issuer", validation_subject = "CA issuer")
 
 	def _judge_validity_timestamps(self, certificate, ca_certificate):
 		judgements = SecurityJudgements()
@@ -104,7 +107,7 @@ class CARelationshipSecurityEstimator(BaseEstimator):
 		judgements += self._judge_signature(certificate, ca_certificate)
 
 		return {
-			"ca_subject":	self.algorithm("dn").analyze(ca_certificate.subject),
-			"ca_issuer":	self.algorithm("dn").analyze(ca_certificate.issuer),
+			"ca_subject":	self.algorithm("dn").analyze(ca_certificate.subject, self._DN_VALIDATOR_CA_SUBJECT),
+			"ca_issuer":	self.algorithm("dn").analyze(ca_certificate.issuer, self._DN_VALIDATOR_CA_ISSUER),
 			"security":		judgements,
 		}

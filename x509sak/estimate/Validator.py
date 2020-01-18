@@ -29,14 +29,18 @@ class BaseValidationResult():
 		self._result = SecurityJudgements()
 
 	def _get_message(self, issue, message):
-		return "%s %s" % (self._validtator.validation_subject, message)
+		return "%s %s" % (self._validator.validation_subject, message)
 
 	def _report(self, issue_name, message, **kwargs):
 		issue = self._validator.get_issue(issue_name)
 		if issue is None:
 			return
 		full_message = self._get_message(issue, message)
-		self._result += SecurityJudgement(issue.code, full_message, info_payload = issue.info_payload, standard = issue.standard, **kwargs)
+		if "standard" not in kwargs:
+			kwargs["standard"] = issue.standard
+		if "info_payload" not in kwargs:
+			kwargs["info_payload"] = issue.info_payload
+		self._result += SecurityJudgement(issue.code, full_message, **kwargs)
 
 	def _validate(self):
 		raise NotImplementedError(__class__.__name__)

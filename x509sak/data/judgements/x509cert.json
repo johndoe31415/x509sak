@@ -55,9 +55,6 @@
 			"Subject": {
 				"_import": "*dn_issues/*{name=certificate subject}"
 			},
-			"FIXME": {
-				"_import": "*dn_issues/*{name=fixme}"
-			},
 			"Serial Number": {
 				"_import": "integer_checks:zero,neg,large{name=serial number}"
 			},

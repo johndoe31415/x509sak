@@ -26,10 +26,13 @@ from x509sak.estimate.BaseEstimator import BaseEstimator
 from x509sak.estimate import JudgementCode, Commonness, Compatibility
 from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, RFCReference
 from x509sak.CurveDB import CurveNotFoundException
+from x509sak.estimate.DistinguishedNameValidator import DistinguishedNameValidator
 
 @BaseEstimator.register
 class CertificateEstimator(BaseEstimator):
 	_ALG_NAME = "certificate"
+	_DN_VALIDATOR_SUBJECT = DistinguishedNameValidator.create_inherited("X509Cert_Body_Subject", validation_subject = "Subject")
+	_DN_VALIDATOR_ISSUER = DistinguishedNameValidator.create_inherited("X509Cert_Body_Issuer", validation_subject = "Issuer")
 
 	def _analyze_certificate_general_issues(self, certificate):
 		judgements = SecurityJudgements()
@@ -90,8 +93,8 @@ class CertificateEstimator(BaseEstimator):
 
 	def analyze(self, cert, root_cert = None):
 		result = {
-			"subject":		self.algorithm("dn").analyze(cert.subject),
-			"issuer":		self.algorithm("dn").analyze(cert.issuer),
+			"subject":		self.algorithm("dn").analyze(cert.subject, self._DN_VALIDATOR_SUBJECT),
+			"issuer":		self.algorithm("dn").analyze(cert.issuer, self._DN_VALIDATOR_ISSUER),
 			"validity":		self.algorithm("crt_validity").analyze(cert),
 			"pubkey":		self.algorithm("pubkey").analyze(cert),
 			"extensions":	self.algorithm("crt_exts").analyze(cert, root_cert),
