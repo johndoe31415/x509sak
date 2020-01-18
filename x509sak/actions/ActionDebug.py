@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2018 Johannes Bauer
+#	Copyright (C) 2018-2020 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -86,9 +86,9 @@ class ActionDebug(BaseAction):
 
 	def _read_certificate(self, filename):
 		if not self._args.der:
-			return X509Certificate.read_pemfile(self._args.crtfile)
+			return X509Certificate.read_pemfile(filename)
 		else:
-			return [ X509Certificate.read_derfile(self._args.crtfile) ]
+			return [ X509Certificate.read_derfile(filename) ]
 
 	def _read_certificates(self, filenames):
 		certificates = [ ]

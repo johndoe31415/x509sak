@@ -52,16 +52,16 @@ class CertificateEstimator(BaseEstimator):
 		try:
 			cert_reencoding = pyasn1.codec.der.encoder.encode(certificate.asn1)
 			if cert_reencoding != certificate.der_data:
-				judgements += SecurityJudgement(JudgementCode.X509Cert_TrailingData, "Certificate uses invalid DER encoding. Decoding and re-encoding yields %d byte blob while original was %d bytes." % (len(cert_reencoding), len(certificate.der_data)), compatibility = Compatibility.STANDARDS_DEVIATION)
+				judgements += SecurityJudgement(JudgementCode.X509Cert_Malformed_NonDEREncoding, "Certificate uses invalid DER encoding. Decoding and re-encoding yields %d byte blob while original was %d bytes." % (len(cert_reencoding), len(certificate.der_data)), compatibility = Compatibility.STANDARDS_DEVIATION)
 		except pyasn1.error.PyAsn1Error:
-			judgements += SecurityJudgement(JudgementCode.X509Cert_TrailingData, "Certificate uses invalid DER encoding. Re-encoding was not possible.", compatibility = Compatibility.STANDARDS_DEVIATION)
+			judgements += SecurityJudgement(JudgementCode.X509Cert_Malformed_Undecodable, "Certificate uses invalid DER encoding. Re-encoding was not possible.", compatibility = Compatibility.STANDARDS_DEVIATION)
 
 		try:
 			pubkey_reencoding = pyasn1.codec.der.encoder.encode(certificate.pubkey.recreate().asn1)
 			if pubkey_reencoding != certificate.pubkey.der_data:
-				judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_RSA_RSAPSS_Parameters_Malformed_Undecodable, "Certificate public key uses invalid DER encoding. Decoding and re-encoding yields %d byte blob while original was %d bytes." % (len(pubkey_reencoding), len(certificate.pubkey.der_data)), compatibility = Compatibility.STANDARDS_DEVIATION)
+				judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_Malformed_NonDEREncoding, "Certificate public key uses invalid DER encoding. Decoding and re-encoding yields %d byte blob while original was %d bytes." % (len(pubkey_reencoding), len(certificate.pubkey.der_data)), compatibility = Compatibility.STANDARDS_DEVIATION)
 		except pyasn1.error.PyAsn1Error:
-			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_RSA_RSAPSS_Parameters_Malformed_Undecodable, "Certificate public key uses invalid DER encoding. Re-encoding was not possible.", compatibility = Compatibility.STANDARDS_DEVIATION)
+			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_Malformed_Undecodable, "Certificate public key uses invalid DER encoding. Re-encoding was not possible.", compatibility = Compatibility.STANDARDS_DEVIATION)
 		except NotImplementedError as e:
 			judgements += SecurityJudgement(JudgementCode.X509sakIssues_PublicKeyReencodingMissing, "Missing check due to non-implemented functionality: %s" % (str(e)), commonness = Commonness.UNUSUAL)
 		except CurveNotFoundException:

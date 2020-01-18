@@ -90,9 +90,9 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 			oid_name = OIDDB.X509Extensions.get(ext.oid)
 			if oid_name is None:
 				if ext.critical:
-					judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Unknown_Critical, "X.509 extension present with OID %s. This OID is not known and marked as critical; the certificate would be rejected under normal circumstances." % (ext.oid), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
+					judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Unknown_Critical, "X.509 extension present with OID %s. This OID is unknown and the extension is marked as critical; the certificate would be rejected under normal circumstances." % (ext.oid), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
 				else:
-					judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Unknown_NotCritical, "X.509 extension present with OID %s. This OID is not known and marked as non-critical; the extension would be ignored under normal circumstances." % (ext.oid), commonness = Commonness.UNUSUAL)
+					judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Unknown_NotCritical, "X.509 extension present with OID %s. This OID is unknown and the extension is marked as non-critical; the extension would be ignored under normal circumstances." % (ext.oid), commonness = Commonness.UNUSUAL)
 		return judgements
 
 	def _judge_undecodable_extensions(self, certificate):

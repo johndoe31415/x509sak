@@ -115,13 +115,13 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-der-invalid-bitstring.pem", "X509Cert_TrailingData")
 
 	def test_examine_x509test_xf_der_invalid_nonminimal_int(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-der-invalid-nonminimal-int.pem", "X509Cert_TrailingData")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-der-invalid-nonminimal-int.pem", "X509Cert_Malformed_NonDEREncoding")
 
 	def test_examine_x509test_xf_der_invalid_uniqueid(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-der-invalid-uniqueid.pem", expect_parse_failure = True)
 
 	def test_examine_x509test_xf_der_pubkey_rsa_nonminimal_int(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-der-pubkey-rsa-nonminimal-int.pem", "X509Cert_PublicKey_RSA_RSAPSS_Parameters_Malformed_Undecodable")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-der-pubkey-rsa-nonminimal-int.pem", "X509Cert_PublicKey_Malformed_NonDEREncoding")
 
 	def test_examine_x509test_xf_duplicate_extension(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-duplicate-extension.pem", "X509Cert_Body_X509Exts_DuplicatesPresent")

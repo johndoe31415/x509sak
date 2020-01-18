@@ -231,7 +231,7 @@
 				},
 				"Unknown Extension": {
 					"_label": "Unknown",
-					"_import": [ "asn1_encoding_issues/*", "x509_ext_checks/*:critical,notcritical,present{name=unknown}" ]
+					"_import": [ "asn1_encoding_issues/*", "x509_ext_checks/*:critical,notcritical{name=unknown}" ]
 				}
 			}
 		},

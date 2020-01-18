@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2019 Johannes Bauer
+#	Copyright (C) 2018-2020 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -30,6 +30,7 @@ import time
 import textwrap
 import datetime
 import pprint
+import collections
 import urllib.parse
 import pyasn1.type.univ
 import pyasn1.codec.der.encoder
@@ -104,6 +105,7 @@ class CmdTools():
 class ASN1Tools():
 	_REGEX_UTCTime = re.compile(r"(?P<year>\d{2})(?P<month>\d{2})(?P<day>\d{2})(?P<hour>\d{2})(?P<minute>\d{2})(?P<second>\d{2})Z")
 	_REGEX_GeneralizedTime = re.compile(r"(?P<year>\d{4})(?P<month>\d{2})(?P<day>\d{2})(?P<hour>\d{2})(?P<minute>\d{2})(?P<second>\d{2})Z")
+	_DecodedASN1 = collections.namedtuple("DecodedASN1", [ "asn1", "tail", "flags", "original_der", "encoded_der" ])
 
 	@classmethod
 	def parse_datetime(cls, datetime_str):
@@ -165,6 +167,24 @@ class ASN1Tools():
 	def redecode(cls, asn1, asn1_spec):
 		encoded_asn1 = pyasn1.codec.der.encoder.encode(asn1)
 		return pyasn1.codec.der.decoder.decode(encoded_asn1, asn1Spec = asn1_spec)
+
+	@classmethod
+	def safe_decode(cls, der_data, asn1_spec = None):
+		result = {
+			"asn1": None,
+			"tail": None,
+			"flags": set(),
+			"original_der": der_data,
+			"encoded_der": None,
+		}
+		try:
+			(result["asn1"], result["tail"]) = pyasn1.codec.der.decoder.decode(der_data, asn1Spec = asn1_spec)
+			result["encoded_der"] = pyasn1.codec.der.encoder.encode(result["asn1"])
+			if result["encoded_der"] != der_data:
+				result["flags"].add("non-der")
+		except pyasn1.error.PyAsn1Error:
+			result["flags"].add("undecodable")
+		return self._DecodedASN1(**result)
 
 class ECCTools():
 	@classmethod
