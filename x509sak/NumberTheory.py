@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2019 Johannes Bauer
+#	Copyright (C) 2018-2020 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -245,6 +245,8 @@ class NumberTheory():
 		"""Determines if a value is plausibly random with an error probability
 		of around 0.01%."""
 		bitlen = value.bit_length()
+		if bitlen < 1:
+			return None
 		if min_bit_length is not None:
 			bitlen = max(min_bit_length, bitlen)
 		margin = cls.hamming_weight_margin(bitlen)
@@ -258,6 +260,8 @@ class NumberTheory():
 	def asymtotic_complexity_gnfs_bits(cls, n):
 		"""Return for a given value n the approximate equivalent strength in
 		bits to factor using GNFS."""
+		if n < 3:
+			return 0
 		log2_n = n.bit_length()
 		log_n = log2_n * math.log(2)
 		bits_security = 2.5596 * (log_n ** (1/3)) * (math.log(log_n) ** (2/3))

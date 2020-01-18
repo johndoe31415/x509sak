@@ -151,7 +151,7 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-invalid-email.pem", "X509Cert_Body_X509Exts_Ext_SAN_Name_Email_Malformed")
 
 	def test_examine_x509test_xf_ext_altname_invalid_encoding(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-invalid-encoding.pem", "X509Cert_Body_X509Exts_Unknown_Malformed_Undecodable")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-invalid-encoding.pem", expect_absent = "X509Cert_Body_X509Exts_Unknown_Malformed_Undecodable", expect_present = "X509Cert_Body_X509Exts_Ext_SAN_Malformed_Undecodable")
 
 	def test_examine_x509test_xf_ext_altname_ip_wrong(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-altname-ip-wrong.pem", "X509Cert_Body_X509Exts_Ext_SAN_Name_IPAddress_Malformed")
@@ -202,7 +202,7 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-cert-policies-unotice-ch.pem", "X509Cert_Body_X509Exts_Ext_CP_UserNotice_ExplicitText_ControlCharacter")
 
 	def test_examine_x509test_xf_ext_constraints_neg_pathlen(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-constraints-neg-pathlen.pem", "X509Cert_Body_X509Exts_Unknown_Malformed_Undecodable")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-constraints-neg-pathlen.pem", expect_absent = "X509Cert_Body_X509Exts_Unknown_Malformed_Undecodable", expect_present = "X509Cert_Body_X509Exts_Ext_BC_Malformed_Undecodable")
 
 	def test_examine_x509test_xf_ext_constraints_noncritical(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-constraints-noncritical.pem", "X509Cert_Body_X509Exts_Ext_BC_NotCritical")
@@ -226,7 +226,7 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-ct-sct-trailing-data.pem", "X509Cert_Body_X509Exts_Ext_CTSCT_TrailingData")
 
 	def test_examine_x509test_xf_ext_ct_sct_wrong_type(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-ct-sct-wrong-type.pem", "X509Cert_Body_X509Exts_Ext_CTSCT_Malformed_Undecodable")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-ct-sct-wrong-type.pem", "X509Cert_Body_X509Exts_Ext_CTSCT_Malformed_UnexpectedType")
 
 	def test_examine_x509test_xf_ext_extended_any_key_usage(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-extended-any-key-usage.pem", "X509Cert_Body_X509Exts_Ext_EKU_AnyUsageCriticial")
@@ -373,7 +373,7 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-pubkey-rsa-modulus-negative.pem", "X509Cert_PublicKey_RSA_Modulus_Negative")
 
 	def test_examine_x509test_xf_pubkey_rsa_param_nonnull(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-pubkey-rsa-param-nonnull.pem", "X509Cert_PublicKey_RSA_ParameterFieldNotPresent")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-pubkey-rsa-param-nonnull.pem", "X509Cert_PublicKey_RSA_RSAEncryption_ParameterFieldNotNULL")
 
 	def test_examine_x509test_xf_serial_negative(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-serial-negative.pem", "X509Cert_Body_SerialNumber_BasicChecks_Negative")
@@ -471,6 +471,12 @@ class SecurityAnalyzerTests(BaseTest):
 
 	def test_constructed_rsa_bitbias(self):
 		self._test_examine_x509test_resultcode("certs/constructed/rsa_bitbias.pem", "X509Cert_PublicKey_RSA_Modulus_BitBiasPresent")
+
+	def test_constructed_rsa_modulus_0(self):
+		self._test_examine_x509test_resultcode("certs/constructed/rsa_modulus_0.pem", "X509Cert_PublicKey_RSA_Modulus_Zero")
+
+	def test_constructed_rsa_modulus_1(self):
+		self._test_examine_x509test_resultcode("certs/constructed/rsa_modulus_1.pem", "X509Cert_PublicKey_RSA_Modulus_One")
 
 	def test_constructed_rsa_modulus_prime(self):
 		self._test_examine_x509test_resultcode("certs/constructed/rsa_modulus_prime.pem", "X509Cert_PublicKey_RSA_Modulus_Prime", fast_rsa = False)
@@ -637,7 +643,7 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", expect_present = "CertUsage_Purpose_CACert_NoCACert", purpose = "ca")
 
 	def test_check_ca_when_expecting_no_ca(self):
-		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer-intermediate.pem", expect_present = "CertUsage_Purpose_ClientCert_IsCACert", purpose = "tls-server")
+		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer-intermediate.pem", expect_absent = "CertUsage_Purpose_ClientCert_IsCACert", expect_present = "CertUsage_Purpose_ServerCert_IsCACert", purpose = "tls-server")
 
 	def test_check_version(self):
 		self._test_examine_x509test_resultcode("certs/constructed/version1.pem", expect_present = "X509Cert_Body_Version_Not3")
@@ -905,10 +911,10 @@ class SecurityAnalyzerTests(BaseTest):
 		self._test_examine_x509test_resultcode("certs/constructed/lifetime_ca_exceptionallylong.pem", expect_present = "X509Cert_Body_Validity_Length_ExceptionallyLong")
 
 	def test_key_usage_excessive(self):
-		self._test_examine_x509test_resultcode("certs/constructed/ku-xmas.pem", expect_present = [ "CertUsage_Purpose_ClientCert_KU_ExcessBits", "CertUsage_Purpose_ClientCert_KU_UnusualBits" ], purpose = "tls-server")
+		self._test_examine_x509test_resultcode("certs/constructed/ku-xmas.pem", expect_absent = [ "CertUsage_Purpose_ClientCert_KU_ExcessBits", "CertUsage_Purpose_ClientCert_KU_UnusualBits" ], expect_present = [ "CertUsage_Purpose_ServerCert_KU_ExcessBits", "CertUsage_Purpose_ServerCert_KU_UnusualBits" ], purpose = "tls-server")
 
 	def test_key_usage_missing(self):
-		self._test_examine_x509test_resultcode("certs/constructed/ku-missing.pem", expect_present = "CertUsage_Purpose_ClientCert_KU_MissingBits", purpose = "ca")
+		self._test_examine_x509test_resultcode("certs/constructed/ku-missing.pem", expect_absent = "CertUsage_Purpose_ClientCert_KU_MissingBits", expect_present = "CertUsage_Purpose_CACert_KU_MissingBits", purpose = "ca")
 
 	def test_key_usage_trailingzero(self):
 		self._test_examine_x509test_resultcode("certs/constructed/ku-trailingzero.pem", expect_present = "X509Cert_Body_X509Exts_Ext_KU_TrailingZeros")
@@ -1048,6 +1054,8 @@ class SecurityAnalyzerTests(BaseTest):
 	def test_ca_relationship_validity_full_overlap(self):
 		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", parent_certname = "certs/ok/johannes-bauer-intermediate.pem", expect_present = "CertUsage_CARelationship_Validity_FullOverlap")
 
+
+######### TODO FIXME CODE REVIEW UNTIL HERE
 	def test_ca_relationship_validity_partial_overlap(self):
 		self._test_examine_x509test_resultcode("certs/constructed/ca_rel_valid_firsthalf.pem", parent_certname = "certs/constructed/ca_rel_CA_y2k.pem", expect_present = "CertUsage_CARelationship_Validity_PartialOverlap")
 		self._test_examine_x509test_resultcode("certs/constructed/ca_rel_valid_secondhalf.pem", parent_certname = "certs/constructed/ca_rel_CA_y2k.pem", expect_present = "CertUsage_CARelationship_Validity_PartialOverlap")

@@ -70,6 +70,10 @@ class RSASecurityEstimator(BaseEstimator):
 			bitlen = (n.bit_length() + 7) // 8 * 8
 			mask = (1 << bitlen) - 1
 			n = n & mask
+		elif n == 0:
+			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_RSA_Modulus_Zero, "Modulus is zero, this is definitely a broken RSA public key.", bits = 0, commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION)
+		elif n == 1:
+			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_RSA_Modulus_One, "Modulus is one, this is definitely a broken RSA public key.", bits = 0, commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION)
 
 		if self._test_probable_prime:
 			if NumberTheory.is_probable_prime(n):
@@ -85,7 +89,7 @@ class RSASecurityEstimator(BaseEstimator):
 			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_RSA_Modulus_FactorizationKnown, "Modulus is known to be compromised: %s" % (match.text), bits = 0)
 
 		hweight_analysis = NumberTheory.hamming_weight_analysis(n)
-		if not hweight_analysis.plausibly_random:
+		if (hweight_analysis is not None) and (not hweight_analysis.plausibly_random):
 			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_RSA_Modulus_BitBiasPresent, "Modulus does not appear to be random. Expected a Hamming weight between %d and %d for a %d bit modulus, but found Hamming weight %d." % (hweight_analysis.rnd_min_hweight, hweight_analysis.rnd_max_hweight, hweight_analysis.bitlen, hweight_analysis.hweight), commonness = Commonness.HIGHLY_UNUSUAL)
 
 		# We estimate the complexity of factoring the modulus by the asymptotic
@@ -119,7 +123,7 @@ class RSASecurityEstimator(BaseEstimator):
 			(asn1_params, tail) = pyasn1.codec.der.decoder.decode(bytes(pubkey.params))
 			if not isinstance(asn1_params, pyasn1.type.univ.Null):
 				standard = RFCReference(rfcno = 3279, sect = "2.2.1", verb = "MUST", text = "When any of these three OIDs appears within the ASN.1 type AlgorithmIdentifier, the parameters component of that type SHALL be the ASN.1 type NULL.")
-				judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_RSA_ParameterFieldNotPresent, "RSA parameter field should be present and should be of Null type, but has different ASN.1 type %s." % (type(asn1_params).__name__), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+				judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_RSA_RSAEncryption_ParameterFieldNotNULL, "RSA parameter field should be present and should be of Null type, but has different ASN.1 type %s." % (type(asn1_params).__name__), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 		judgements += result["specific"]["n"]["security"]
 		judgements += result["specific"]["e"]["security"]
