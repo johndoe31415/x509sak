@@ -28,8 +28,10 @@ from x509sak.HexDump import HexDump
 
 class OtherModelsTests(BaseTest):
 	def test_serialize_sctl(self):
-
-		ts = round(datetime.datetime(2020, 1, 1, 12, 34, 56).timestamp() * 1000)
+		# We cannot use .timestamp() here because it depends on the locale and
+		# we always want UTC.
+		#ts = round(datetime.datetime(2020, 1, 1, 12, 34, 56).timestamp() * 1000)
+		ts = 0x16f611a1180
 
 		sstl = {
 			"payload": [
@@ -55,7 +57,7 @@ class OtherModelsTests(BaseTest):
 				006f
 					00
 					000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f
-					00 00 01 6f 60 e3 23 00
+					00 00 01 6f 61 1a 11 80
 					0000
 
 					04
@@ -63,6 +65,4 @@ class OtherModelsTests(BaseTest):
 					0040
 						000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f
 		""".replace("\n", "").replace("\t", "").replace(" ", ""))
-		HexDump().dump(expect_payload)
-		HexDump().dump(serialized_data)
 		self.assertEqual(expect_payload, serialized_data)
