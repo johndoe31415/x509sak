@@ -70,9 +70,11 @@ class PurposeEstimator(BaseEstimator):
 		eku_ext = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("ExtendedKeyUsage"))
 		ns_ext = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("NetscapeCertificateType"))
 
-		if purpose in [ AnalysisOptions.CertificatePurpose.TLSServerCertificate, AnalysisOptions.CertificatePurpose.TLSClientCertificate ]:
-			if certificate.is_ca_certificate:
-				judgements += SecurityJudgement(JudgementCode.CertUsage_Purpose_ClientCert_IsCACert, "Certificate is a valid CA certificate even though it's supposed to be a TLS client/server.", commonness = Commonness.HIGHLY_UNUSUAL, verdict = Verdict.NO_SECURITY)
+		if certificate.is_ca_certificate:
+			if purpose == AnalysisOptions.CertificatePurpose.TLSServerCertificate:
+				judgements += SecurityJudgement(JudgementCode.CertUsage_Purpose_ServerCert_IsCACert, "Certificate is a valid CA certificate even though it's supposed to be a TLS server.", commonness = Commonness.HIGHLY_UNUSUAL, verdict = Verdict.NO_SECURITY)
+			elif purpose == AnalysisOptions.CertificatePurpose.TLSClientCertificate:
+				judgements += SecurityJudgement(JudgementCode.CertUsage_Purpose_ClientCert_IsCACert, "Certificate is a valid CA certificate even though it's supposed to be a TLS client.", commonness = Commonness.HIGHLY_UNUSUAL, verdict = Verdict.NO_SECURITY)
 
 		if ku_ext is not None:
 			if purpose == AnalysisOptions.CertificatePurpose.CACertificate:
@@ -86,18 +88,36 @@ class PurposeEstimator(BaseEstimator):
 			else:
 				raise NotImplementedError(purpose)
 
+			jcode = {
+				"missing": {
+					AnalysisOptions.CertificatePurpose.CACertificate: JudgementCode.CertUsage_Purpose_CACert_KU_MissingBits,
+					AnalysisOptions.CertificatePurpose.TLSClientCertificate: JudgementCode.CertUsage_Purpose_ClientCert_KU_MissingBits,
+					AnalysisOptions.CertificatePurpose.TLSServerCertificate: JudgementCode.CertUsage_Purpose_ServerCert_KU_MissingBits,
+				}[purpose],
+				"unusual": {
+					AnalysisOptions.CertificatePurpose.CACertificate: JudgementCode.CertUsage_Purpose_CACert_KU_UnusualBits,
+					AnalysisOptions.CertificatePurpose.TLSClientCertificate: JudgementCode.CertUsage_Purpose_ClientCert_KU_UnusualBits,
+					AnalysisOptions.CertificatePurpose.TLSServerCertificate: JudgementCode.CertUsage_Purpose_ServerCert_KU_UnusualBits,
+				}[purpose],
+				"excess": {
+					AnalysisOptions.CertificatePurpose.CACertificate: JudgementCode.CertUsage_Purpose_CACert_KU_ExcessBits,
+					AnalysisOptions.CertificatePurpose.TLSClientCertificate: JudgementCode.CertUsage_Purpose_ClientCert_KU_ExcessBits,
+					AnalysisOptions.CertificatePurpose.TLSServerCertificate: JudgementCode.CertUsage_Purpose_ServerCert_KU_ExcessBits,
+				}[purpose],
+			}
+
 			present_flags = ku_ext.flags
 			missing_must_haves = must_have - present_flags
 			if len(missing_must_haves) > 0:
-				judgements += SecurityJudgement(JudgementCode.CertUsage_Purpose_ClientCert_KU_MissingBits, "Certificate with purpose %s should have at least KeyUsage %s, but %s is missing." % (purpose.name, ", ".join(sorted(must_have)), ", ".join(sorted(missing_must_haves))), commonness = Commonness.HIGHLY_UNUSUAL)
+				judgements += SecurityJudgement(jcode["missing"], "Certificate with purpose %s should have at least KeyUsage %s, but %s is missing." % (purpose.name, ", ".join(sorted(must_have)), ", ".join(sorted(missing_must_haves))), commonness = Commonness.HIGHLY_UNUSUAL)
 
 			excess_flags = present_flags - must_have - may_have - may_not_have
 			if len(excess_flags) > 0:
-				judgements += SecurityJudgement(JudgementCode.CertUsage_Purpose_ClientCert_KU_UnusualBits, "For certificate with purpose %s it is uncommon to have KeyUsage %s." % (purpose.name, ", ".join(sorted(excess_flags))), commonness = Commonness.UNUSUAL)
+				judgements += SecurityJudgement(jcode["unusual"], "For certificate with purpose %s it is uncommon to have KeyUsage %s." % (purpose.name, ", ".join(sorted(excess_flags))), commonness = Commonness.UNUSUAL)
 
 			present_may_not_haves = present_flags & may_not_have
 			if len(present_may_not_haves) > 0:
-				judgements += SecurityJudgement(JudgementCode.CertUsage_Purpose_ClientCert_KU_ExcessBits, "Certificate with purpose %s must not have any KeyUsage %s. This certificate has %s." % (purpose.name, ", ".join(sorted(may_not_have)), ", ".join(sorted(present_may_not_haves))), commonness = Commonness.HIGHLY_UNUSUAL)
+				judgements += SecurityJudgement(jcode["excess"], "Certificate with purpose %s must not have any KeyUsage %s. This certificate has %s." % (purpose.name, ", ".join(sorted(may_not_have)), ", ".join(sorted(present_may_not_haves))), commonness = Commonness.HIGHLY_UNUSUAL)
 
 
 		if eku_ext is not None:
