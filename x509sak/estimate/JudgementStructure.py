@@ -72,7 +72,7 @@ class RichJudgementCode():
 		return "RichJudgementCode<%s>" % (self.name)
 
 class StructureNode():
-	_IMPORT_REGEX = re.compile("(?P<export_root_point>\*)?(?P<name>[a-zA-Z0-9_]+)(?P<import_contents>/\*)?(:(?P<flags>[a-zA-Z0-9_,]+))?({(?P<substitutions>[^}]+)})?")
+	_IMPORT_REGEX = re.compile(r"(?P<export_root_point>\*)?(?P<name>[a-zA-Z0-9_]+)(?P<import_contents>/\*)?(:(?P<flags>[a-zA-Z0-9_,]+))?({(?P<substitutions>[^}]+)})?")
 	_ImportStatement = collections.namedtuple("ImportStatement", [ "name", "import_contents", "export_root_point", "flags", "substitutions" ])
 	_LABEL_REGULAR_CHARS = set(string.ascii_lowercase + string.ascii_uppercase + string.digits)
 	_LABEL_UNDERSCORE_CHARS = set("/")
@@ -128,7 +128,7 @@ class StructureNode():
 		if result["substitutions"] is not None:
 			keyvalues = result["substitutions"].split(",")
 			keyvalues = [ keyvalue.split("=", maxsplit = 1) for keyvalue in keyvalues ]
-			attributes["substitutions"] = { key: value for (key, value) in keyvalues }
+			attributes["substitutions"] = dict(keyvalues)
 		return cls._ImportStatement(**attributes)
 
 	@property

@@ -20,11 +20,9 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 import urllib.parse
-from x509sak.estimate import JudgementCode
-from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, Commonness
+from x509sak.estimate.Judgement import Commonness
 from x509sak.ASN1Wrapper import ASN1GeneralNameWrapper
 from x509sak.Tools import ValidationTools
-from x509sak.Exceptions import InvalidInternalDataException
 from x509sak.estimate.Validator import BaseValidator, BaseValidationResult
 
 #		"empty_value":					GeneralNameValidator.Error(code = JudgementCode.X509Cert_Body_X509Exts_Ext_SAN_EmptyValue),

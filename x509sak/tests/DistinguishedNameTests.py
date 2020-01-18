@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2018 Johannes Bauer
+#	Copyright (C) 2018-2020 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -110,10 +110,10 @@ class DistinguishedNameTests(BaseTest):
 
 	def test_string_parse_fail(self):
 		with self.assertRaises(InvalidInputException):
-			dn = DistinguishedName.from_rfc2253_str("/")
+			DistinguishedName.from_rfc2253_str("/")
 
 		with self.assertRaises(InvalidInputException):
-			dn = DistinguishedName.from_rfc2253_str("CN,OU=bar")
+			DistinguishedName.from_rfc2253_str("CN,OU=bar")
 
 		with self.assertRaises(InvalidInputException):
-			dn = DistinguishedName.from_rfc2253_str("MUH=KUH")
+			DistinguishedName.from_rfc2253_str("MUH=KUH")

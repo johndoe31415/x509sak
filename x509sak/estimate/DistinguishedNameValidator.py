@@ -22,7 +22,7 @@
 import pyasn1.type.char
 from x509sak.OID import OIDDB
 from x509sak.estimate import Compatibility
-from x509sak.estimate.Judgement import SecurityJudgement, Commonness, RFCReference, LiteratureReference
+from x509sak.estimate.Judgement import Commonness, RFCReference, LiteratureReference
 from x509sak.estimate.Validator import BaseValidationResult, BaseValidator
 
 class DistinguishedNameValidationResult(BaseValidationResult):

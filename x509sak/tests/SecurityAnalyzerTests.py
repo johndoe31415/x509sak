@@ -1239,4 +1239,3 @@ class SecurityAnalyzerTests(BaseTest):
 
 	def test_bc_pathlen_but_no_ku(self):
 		self._test_examine_x509test_resultcode("certs/constructed/bc_pathlen_but_no_ku.pem", expect_present = "X509Cert_Body_X509Exts_Ext_BC_PathLenWithoutKeyCertSign")
-

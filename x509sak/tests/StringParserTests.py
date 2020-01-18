@@ -19,7 +19,6 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-import enum
 from x509sak.tests import BaseTest
 from x509sak.StringParser import StringParser, StringParseException
 

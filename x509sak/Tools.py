@@ -184,7 +184,7 @@ class ASN1Tools():
 				result["flags"].add("non-der")
 		except pyasn1.error.PyAsn1Error:
 			result["flags"].add("undecodable")
-		return self._DecodedASN1(**result)
+		return cls._DecodedASN1(**result)
 
 class ECCTools():
 	@classmethod

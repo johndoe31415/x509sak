@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2019 Johannes Bauer
+#	Copyright (C) 2018-2020 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -29,7 +29,7 @@ from pyasn1_modules import rfc2459, rfc5280
 from x509sak.OID import OID, OIDDB
 from x509sak import ASN1Models
 from x509sak.ASN1Wrapper import ASN1GeneralNameWrapper, ASN1GeneralNamesWrapper
-from x509sak.Tools import ASN1Tools, DebugTools
+from x509sak.Tools import ASN1Tools
 from x509sak.OtherModels import SignedCertificateTimestampList
 from x509sak.tls.DataBuffer import DataBuffer
 from x509sak.tls.Structure import DeserializationException

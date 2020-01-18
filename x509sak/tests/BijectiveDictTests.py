@@ -33,7 +33,7 @@ class BijectiveDictTests(BaseTest):
 		self.assertEqual(bijd["b"], "2")
 		self.assertEqual(bijd["c"], "3")
 		with self.assertRaises(KeyError):
-			bijd["B"]
+			_ = bijd["B"]
 
 		self.assertEqual(bijd.inverse("3"), "c")
 		self.assertEqual(bijd.inverse("2"), "b")
@@ -60,9 +60,8 @@ class BijectiveDictTests(BaseTest):
 
 	def test_key_predicate_nonbijective(self):
 		with self.assertRaises(Exception):
-			bijd = BijectiveDict({
+			BijectiveDict({
 				"a":	"1",
 				"A":	"2",
 				"c":	"2",
 			}, key_predicate = lambda key: key.lower())
-
