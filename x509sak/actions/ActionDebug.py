@@ -30,7 +30,7 @@ import pyasn1.codec.der.encoder
 import x509sak
 from x509sak import X509Certificate
 from x509sak.BaseAction import BaseAction
-from x509sak.Tools import PaddingTools
+from x509sak.Tools import PaddingTools, ASN1Tools
 from x509sak.HexDump import HexDump
 
 class DebugConsole(code.InteractiveConsole):
@@ -73,6 +73,7 @@ class ActionDebug(BaseAction):
 			"hd":		self._hd.dump,
 			"ap":		self._asn1parse,
 			"write_py":	self._write_py,
+			"safedec":	ASN1Tools.safe_decode,
 		}
 
 		console = DebugConsole(local_vars = local_vars)

@@ -178,22 +178,24 @@ class ASN1Tools():
 			"original_der": der_data,
 			"encoded_der": None,
 		}
+		encoded_der = None
 		try:
 			(result["asn1"], result["tail"]) = pyasn1.codec.der.decoder.decode(der_data, asn1Spec = asn1_spec)
-			result["encoded_der"] = pyasn1.codec.der.encoder.encode(result["asn1"])
+			encoded_der = pyasn1.codec.der.encoder.encode(result["asn1"])
 		except pyasn1.error.PyAsn1Error:
 			try:
 				# Cannot be decoded under the given ASN1 spec, but maybe generically?
 				(result["generic_asn1"], result["tail"]) = pyasn1.codec.der.decoder.decode(der_data)
 				result["flags"].add("unexpected_type")
-				result["encoded_der"] = pyasn1.codec.der.encoder.encode(result["generic_asn1"])
+				encoded_der = pyasn1.codec.der.encoder.encode(result["generic_asn1"])
 			except pyasn1.error.PyAsn1Error:
 				# Can be decoded as neither a specific not generic ASN.1 blob
 				result["flags"].add("undecodable")
 
 		if (result["tail"] is not None) and (len(result["tail"]) > 0):
 			result["flags"].add("trailing_data")
-		if (result["encoded_der"] is not None) and (result["encoded_der"] != der_data):
+		if (encoded_der is not None) and (encoded_der != der_data):
+			result["encoded_der"] = encoded_der
 			result["flags"].add("non_der")
 
 		return cls._DecodedASN1(**result)

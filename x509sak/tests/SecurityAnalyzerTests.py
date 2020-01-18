@@ -999,6 +999,15 @@ class SecurityAnalyzerTests(BaseTest):
 	def test_eku_duplicate(self):
 		self._test_examine_x509test_resultcode("certs/constructed/eku_duplicate.pem", expect_present = "X509Cert_Body_X509Exts_Ext_EKU_Duplicate")
 
+	def test_eku_malformed(self):
+		self._test_examine_x509test_resultcode("certs/constructed/eku_malformed.pem", expect_present = "X509Cert_Body_X509Exts_Ext_EKU_Malformed_Undecodable")
+
+	def test_eku_malformed_nonder(self):
+		self._test_examine_x509test_resultcode("certs/constructed/eku_malformed_nonder.pem", expect_present = "X509Cert_Body_X509Exts_Ext_EKU_Malformed_NonDEREncoding")
+
+	def test_eku_malformed_type(self):
+		self._test_examine_x509test_resultcode("certs/constructed/eku_malformed_type.pem", expect_present = "X509Cert_Body_X509Exts_Ext_EKU_Malformed_UnexpectedType")
+
 	def test_nsct_no_client(self):
 		self._test_examine_x509test_resultcode("certs/constructed/nsct_server.pem", expect_present = "CertUsage_Purpose_ClientCert_NSCT_NoSSLClient", purpose = "tls-client")
 		self._test_examine_x509test_resultcode("certs/constructed/nsct_ssl_ca.pem", expect_present = "CertUsage_Purpose_ClientCert_NSCT_NoSSLClient", purpose = "tls-client")
