@@ -24,6 +24,7 @@ from x509sak.tests import BaseTest
 
 from x509sak.OtherModels import SignedCertificateTimestampList, SCTVersion
 from x509sak.tls.Enums import SignatureAlgorithm, HashAlgorithm
+from x509sak.HexDump import HexDump
 
 class OtherModelsTests(BaseTest):
 	def test_serialize_sctl(self):
@@ -62,4 +63,6 @@ class OtherModelsTests(BaseTest):
 					0040
 						000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f
 		""".replace("\n", "").replace("\t", "").replace(" ", ""))
+		HexDump().dump(expect_payload)
+		HexDump().dump(serialized_data)
 		self.assertEqual(expect_payload, serialized_data)
