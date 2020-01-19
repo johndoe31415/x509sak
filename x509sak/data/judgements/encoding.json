@@ -88,7 +88,8 @@
 						"Unexpected": { "_desc": "$name IP address is an unexpected type", "_require": "!allow_ip" },
 						"Private Address Space": { "_desc": "$name IP address falls in private address space" },
 						"Malformed": { "_desc": "$name IP address is malformed" },
-						"Malformed Subnet": { "_desc": "$name IP subnet is malformed", "_require": "allow_ip_subnet" }
+						"Malformed Subnet": { "_desc": "$name IP subnet is malformed", "_require": "allow_ip_subnet" },
+						"Non-CIDR Block": { "_desc": "$name IP subnet is not a CIDR block", "_require": "allow_ip_subnet" }
 					},
 					"Directory Address": {
 						"Empty": { "_desc": "$name directory name contains no RDNs" },

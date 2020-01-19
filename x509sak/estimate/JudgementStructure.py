@@ -244,7 +244,9 @@ class StructureNode():
 		attributes = { attribute_name[1:]: attribute_value for (attribute_name, attribute_value) in values.items() if (attribute_name.startswith("_")) and (not attribute_name.startswith("__")) }
 		return cls(name = key, children = children, attributes = attributes)
 
-	def dump(self, indent = 0):
+	def dump(self, text = None, indent = 0):
+		if text is not None:
+			print(("=" * 60) + " " + text + " " + ("=" * 60))
 		indent_str = ("   " * indent)
 		if len(self._attributes) == 0:
 			attrstr = ""
@@ -252,7 +254,10 @@ class StructureNode():
 			attrstr = " %s" % (str(self.attrs))
 		print("%s%s%s" % (indent_str, self.name, attrstr))
 		for child in self.children:
-			child.dump(indent + 1)
+			child.dump(indent = indent + 1)
+		if text is not None:
+			print("~" * 120)
+			print()
 
 	def walk_ordered(self, callback):
 		callback(self)
@@ -291,6 +296,7 @@ class JudgementStructure():
 		self._root.propagate_attribute_subtree("export")
 		self._nodes_by_short_id = self._find_nodes_by_short_id()
 		self._root.assign_nodes_long_ids()
+
 
 		self._process_imports()
 		self._root = self._root.filter(filter_predicate = lambda node: not node.attrs.get("export"))
@@ -340,6 +346,7 @@ class JudgementStructure():
 			if not target.attrs.get("export"):
 				source_clone.purge_attribute_recursively("export")
 			source_clone.purge_attribute_recursively("short_id")
+			source_clone.purge_attribute_recursively("require")
 			if len(import_statement.substitutions) > 0:
 				source_clone.walk(apply_substitutions)
 			target.purge_attribute("import")

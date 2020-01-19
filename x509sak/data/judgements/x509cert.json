@@ -115,7 +115,7 @@
 						"_label": "NC",
 						"_import": [ "*asn1_encoding_issues/*", "x509_ext_checks/*:empty,notcritical,noca{name=NC}" ],
 						"_topic": "X.509 Name Constraints Extension",
-						"Subtree": {
+						"Subtree Template": {
 							"_export": true,
 							"_short_id": "ext_nc_subtree",
 							"Minimum not Zero": { "_desc": "$name minimum attribute is non-zero" },
