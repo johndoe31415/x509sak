@@ -24,10 +24,17 @@ import sys
 import contextlib
 import itertools
 import subprocess
+import collections
 from x509sak.BaseAction import BaseAction
+from x509sak.X509Certificate import X509Certificate
+from x509sak.OID import OID
+from x509sak.estimate import JudgementCode
 from x509sak.certgen.CertGenerator import CertGenerator
 
 class ActionTestcaseGen(BaseAction):
+	_EXPECT_PRESENT_CODEPOINT_OID = OID.from_str("1.13.99.127.41")
+	_TCDefinition = collections.namedtuple("TCDefinition", [ "full_name", "filename", "expect_present" ])
+
 	def __init__(self, cmdname, args):
 		BaseAction.__init__(self, cmdname, args)
 
@@ -55,6 +62,7 @@ class ActionTestcaseGen(BaseAction):
 		template_parameters = list(template_parameters.items())
 		keys = [ key for (key, values) in template_parameters ]
 		values = [ values for (key, values) in template_parameters ]
+		self._tcs = [ ]
 		for concrete_values in itertools.product(*values):
 			concrete_values = dict(zip(keys, concrete_values))
 			try:
@@ -62,11 +70,48 @@ class ActionTestcaseGen(BaseAction):
 			except subprocess.CalledProcessError as e:
 				print("Failed: %s (%s)" % (str(concrete_values), str(e)))
 
+		self._tcs.sort()
+		self._print_tcs()
+
+	@staticmethod
+	def testcase_codepoint_string(codepoints):
+		if len(codepoints) == 1:
+			return "\"%s\"" % (codepoints[0])
+		else:
+			return "[ " + ", ".join("\"%s\"" % (codepoint) for codepoint in codepoints)  + " ]"
+
+	def _print_tcs(self):
+		with open(self._args.output_dir + "/tcs.txt", "w") as f:
+			for tc in self._tcs:
+				print("\tdef %s(self):" % (tc.full_name), file = f)
+				print("\t\tself._test_examine_x509test_resultcode(\"%s\", expect_present = %s)" % (tc.filename, self.testcase_codepoint_string(tc.expect_present)), file = f)
+				print(file = f)
+
+	def _analyze_pemfile(self, pem_filename):
+		x509cert = X509Certificate.read_pemfile(pem_filename)[0]
+		subject = x509cert.subject
+		present_codepoints = [ rdn.get_value(self._EXPECT_PRESENT_CODEPOINT_OID).printable_value for rdn in subject.get_all(self._EXPECT_PRESENT_CODEPOINT_OID) ]
+
+		file_prefix = os.path.basename(pem_filename)[:-4]
+
+		for codepoint_name in present_codepoints:
+			try:
+				codepoint = getattr(JudgementCode, codepoint_name)
+			except AttributeError:
+				print("No such codepoint: %s (in %s)" % (codepoint_name, pem_filename))
+				return
+
+		tc_filename = "certs/generated/" + os.path.basename(pem_filename)
+		tc = self._TCDefinition(full_name = "test_generated_%s" % (file_prefix), filename = tc_filename, expect_present = present_codepoints)
+		self._tcs.append(tc)
+
 	def _render(self, concrete_values):
 		if self._args.verbose >= 1:
 			print(concrete_values)
 		render_result = self._cg.render(concrete_values)
-		self._store(render_result)
+		pem_filename = self._store(render_result)
+		if pem_filename is not None:
+			self._analyze_pemfile(pem_filename)
 
 	def _store(self, render_result):
 		(basename, ascii_der) = render_result
@@ -76,6 +121,7 @@ class ActionTestcaseGen(BaseAction):
 			with open(outfile, "w") as f:
 				f.write(ascii_der)
 			print(ascii_der)
+			return None
 		else:
 			outfile = self._args.output_dir + "/" + basename + ".pem"
 			der_data = subprocess.check_output("ascii2der", input = ascii_der.encode())
@@ -84,3 +130,4 @@ class ActionTestcaseGen(BaseAction):
 			cert_data = [ line.rstrip("\t ") for line in cert_data.split("\n") ]
 			with open(outfile, "w") as f:
 				f.write("\n".join(cert_data))
+			return outfile

@@ -121,7 +121,16 @@
 						}
 					},
 					"Registered ID": {
-						"Unexpected": { "_desc": "$name registered ID unexpected data type", "_require": "!allow_regid" }
+						"Unexpected": { "_desc": "$name unexpected data type \"registeredID\"", "_require": "!allow_regid" }
+					},
+					"Other Name": {
+						"Unexpected": { "_desc": "$name unexpected data type \"otherName\"", "_require": "!allow_othername" }
+					},
+					"X.400 Address": {
+						"Unexpected": { "_desc": "$name unexpected data type X.400 address", "_require": "!allow_x400address" }
+					},
+					"EDI Party Name": {
+						"Unexpected": { "_desc": "$name unexpected data type \"EDI Party Name\"", "_require": "!allow_edipartyname" }
 					}
 				}
 			}

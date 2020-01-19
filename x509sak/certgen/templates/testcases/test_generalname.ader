@@ -13,16 +13,37 @@
 		"AKI_caname":	"X509Cert_Body_X509Exts_Ext_AKI_CAName_",
 	}.get(field, "?")
 	errcode += {
-		"othername_ok":		"OtherName_Unexpected",
-		"email_ok":			"Email_Unexpected",
-		"email_malformed":	"Email_Malformed",
+		"dirname_empty":			"DirectoryAddress_Empty",
+		"dirname_ok":				"DirectoryAddress_Unexpected",
+		"dns_malformed":			"DNS_Malformed",
+		"dns_whitespace":			"DNS_OnlyWhitespace",
+		"dns_single_label":			"DNS_SingleLabel",
+		"dns_ok":					"DNS_Unexpected",
+		"dns_wc_broad":				"DNS_Wildcard_BroadMatch",
+		"dns_wc_international":		"DNS_Wildcard_InternationalLabel",
+		"dns_wc_multiple":			"DNS_Wildcard_MulitpleWildcards",
+		"dns_wc_notleftmost":		"DNS_Wildcard_NotLeftmost",
+		"dns_wc_ok":				"DNS_Wildcard_NotPermitted",
+		"email_malformed":			"Email_Malformed",
+		"email_ok":					"Email_Unexpected",
+		"ip_malformed":				"IPAddress_Malformed",
+		"ip_private":				"IPAddress_PrivateAddressSpace",
+		"ip_ok":					"IPAddress_Unexpected",
+		"registeredid_ok":			"RegisteredID_Unexpected",
+		"uri_malformed":			"URI_Malformed",
+		"uri_uncommon_scheme":		"URI_UncommonURIScheme",
+		"uri_ok":					"URI_Unexpected",
+		"othername_ok":				"OtherName_Unexpected",
+		"edipartyname_empty":		"EDIPartyName_Unexpected",
+		"x400name_empty":			"X400Name_Unexpected",
 	}.get(mode, "?")
+	if "?" in errcode:
+		error(errcode, field, mode)
 	export_var("errcode", errcode)
 %>
 
 <%block name="issuer">
-	<% errcode = import_vars("errcode") %>
-	${create_dn_cn("X.509 GeneralName " + str(p("field")) + " with mode: " + str(p("mode")), errcode = errcode)}
+	${create_dn_cn("X.509 GeneralName " + str(p("field")) + " with mode: " + str(p("mode")))}
 </%block>
 <%block name="subject">
 	<% errcode = import_vars("errcode") %>
@@ -60,6 +81,12 @@
 	[2 PRIMITIVE] { "xn--fobar-*jua.foobar.com" }
 %elif name_type == "dns_wc_broad":
 	[2 PRIMITIVE] { "*" }
+%elif name_type == "x400name_empty":
+	[3] {
+		SEQUENCE {
+			SEQUENCE {}
+		}
+	}
 %elif name_type == "dirname_ok":
 	[4] {
 		SEQUENCE {
@@ -76,6 +103,10 @@
 		SEQUENCE {
 		}
 	}
+%elif name_type == "edipartyname_ok":
+[5] {
+	UTF8String { "This is a directory string" }
+}
 %elif name_type == "uri_ok":
 	[6 PRIMITIVE] { "http://foobar.com" }
 %elif name_type == "uri_malformed":
@@ -120,7 +151,7 @@ SEQUENCE {
 				}
 			}
 		}
-	}010203
+	}
 %elif p("field") == "AKI_caname":
 	OBJECT_IDENTIFIER { 2.5.29.35 }	# AKI
 	OCTET_STRING {
