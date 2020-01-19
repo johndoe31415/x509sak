@@ -702,10 +702,10 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		judgements = SecurityJudgements()
 		for extension in certificate.extensions:
 			if extension.asn1_model is None:
-				# Not an ASN.1 extension
-				continue
-			ext_class_name = extension.__class__.__name__
-			validator = self._EXTENSION_ENCODING_VALIDATORS.get(ext_class_name, self._UNKNOWN_EXTENSION_ENCODING_VALIDATOR)
+				validator = self._UNKNOWN_EXTENSION_ENCODING_VALIDATOR
+			else:
+				ext_class_name = extension.__class__.__name__
+				validator = self._EXTENSION_ENCODING_VALIDATORS[ext_class_name]
 			judgements += validator.validate(extension.detailed_asn1)
 		return judgements
 

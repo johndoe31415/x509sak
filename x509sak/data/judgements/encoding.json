@@ -12,7 +12,7 @@
 				"Malformed": {
 					"Undecodable": { "_desc": "no valid DER encoding" },
 					"Non-DER Encoding": { "_desc": "decodable, but no valid DER" },
-					"Unexpected Type": { "_desc": "decoding resulted in unexpected type" }
+					"Unexpected Type": { "_desc": "decoding resulted in unexpected type", "_require": "!notype" }
 				}
 			},
 			"Structures": {

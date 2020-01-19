@@ -124,9 +124,8 @@ class X509Extension():
 		self._critical = critical
 		self._data = data
 		self._detailed_asn1 = None
-		if self._ASN1_MODEL is not None:
-			spec = self._ASN1_MODEL() if (self._ASN1_MODEL is not None) else None
-			self._detailed_asn1 = ASN1Tools.safe_decode(self.data, asn1_spec = spec)
+		spec = self._ASN1_MODEL() if (self._ASN1_MODEL is not None) else None
+		self._detailed_asn1 = ASN1Tools.safe_decode(self.data, asn1_spec = spec)
 		self._decode_hook()
 
 	def to_asn1(self):

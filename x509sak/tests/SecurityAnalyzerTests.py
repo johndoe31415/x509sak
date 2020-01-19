@@ -1388,3 +1388,12 @@ class SecurityAnalyzerTests(BaseTest):
 
 	def test_generated_extension_SKI_trailing_data(self):
 		self._test_examine_x509test_resultcode("certs/generated/ext_SKI_trailing_data.pem", expect_present = "X509Cert_Body_X509Exts_Ext_SKI_TrailingData")
+
+	def test_extension_unknown_malformed(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ext_unknown_malformed.pem", expect_present = "X509Cert_Body_X509Exts_Unknown_Malformed_Undecodable")
+
+	def test_extension_unknown_non_der(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ext_unknown_non_der.pem", expect_present = "X509Cert_Body_X509Exts_Unknown_Malformed_NonDEREncoding")
+
+	def test_extension_unknown_trailing_data(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ext_unknown_trailing_data.pem", expect_present = "X509Cert_Body_X509Exts_Unknown_TrailingData")

@@ -58,7 +58,8 @@
 					"Curve Property": {
 						"Anomalous Curve": { "_desc": "curve is anomaleous, #E(F_p) = p" },
 						"Weil Descent": { "_desc": "Weil Descent attack possible, F_2^m with non-prime m" },
-						"Koblitz Curve": { "_desc": "is a Koblitz curve" }
+						"Koblitz Curve": { "_desc": "is a Koblitz curve" },
+						"Supersingular Curve": { "_desc": "curve is supersingular, #E(F_p^m) = 1 mod p" }
 					}
 				},
 				"Public Key Point": {
