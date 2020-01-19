@@ -1,0 +1,9 @@
+<%def name="create_dn_cn(common_name)">
+SET {
+	SEQUENCE {
+		# commonName
+		OBJECT_IDENTIFIER { 2.5.4.3 }
+		UTF8String { "${common_name}" }
+	}
+}
+</%def>

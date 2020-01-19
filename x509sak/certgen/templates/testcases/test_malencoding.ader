@@ -1,0 +1,33 @@
+<%inherit file="x509certificate.ader" />
+<%namespace file="dn.ader" import="*" />
+
+<%
+	declare_parameter("failure_mode", [ "non_der", "trailing_data", "wrong_type", "malformed" ])
+	declare_parameter("extension_oid", h.known_extension_oids())
+	filename("ext_" + str(h.extension_oid_abbreviation(p("extension_oid"))) + "_" + str(p("failure_mode")))
+%>
+
+<%block name="issuer">
+	${create_dn_cn("X.509 Extension " + str(h.extension_oid_abbreviation(p("extension_oid"))) + " with error: " + str(p("failure_mode")))}
+</%block>
+<%block name="subject">
+	${create_dn_cn("X.509 Extension " + str(h.extension_oid_abbreviation(p("extension_oid"))) + " with error: " + str(p("failure_mode")))}
+</%block>
+
+<%block name="extensions">
+SEQUENCE {
+	OBJECT_IDENTIFIER { ${p("extension_oid")} }
+	OCTET_STRING {
+		%if p("failure_mode") == "non_der":
+		BIT_STRING { `04ff` }
+		%elif p("failure_mode") == "trailing_data":
+		NULL { }
+		`aabbcc`
+		%elif p("failure_mode") == "wrong_type":
+		NULL { }
+		%elif p("failure_mode") == "malformed":
+		`aabbcc`
+		%endif
+	}
+}
+</%block>

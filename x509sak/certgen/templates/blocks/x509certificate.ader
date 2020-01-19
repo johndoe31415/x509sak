@@ -1,0 +1,110 @@
+${self.body()}
+SEQUENCE {
+	SEQUENCE {
+		[0] {
+			<%block name="version">
+			INTEGER { 2 }
+			</%block>
+		}
+		<%block name="serial">
+		INTEGER { `281ad6fdb490533f2d1de63f3949dbe9c82b3aaa` }
+		</%block>
+		SEQUENCE {
+			# ecdsa-with-SHA256
+			<%block name="header_sigalg">
+			OBJECT_IDENTIFIER { 1.2.840.10045.4.3.2 }
+			</%block>
+		}
+		SEQUENCE {
+			<%block name="issuer">
+			SET {
+				SEQUENCE {
+					# commonName
+					OBJECT_IDENTIFIER { 2.5.4.3 }
+					UTF8String { "TODO" }
+				}
+			}
+			</%block>
+		}
+		SEQUENCE {
+			<%block name="validity">
+			UTCTime { "200104094446Z" }
+			GeneralizedTime { "21191211094446Z" }
+			</%block>
+		}
+		SEQUENCE {
+			<%block name="subject">
+			SET {
+				SEQUENCE {
+					# commonName
+					OBJECT_IDENTIFIER { 2.5.4.3 }
+					UTF8String { "TODO" }
+				}
+			}
+			</%block>
+		}
+		SEQUENCE {
+			<%block name="pubkey">
+			SEQUENCE {
+				# ecPublicKey
+				OBJECT_IDENTIFIER { 1.2.840.10045.2.1 }
+				OBJECT_IDENTIFIER { 1.3.132.0.6 }
+			}
+			BIT_STRING { `00` `042fd7edb48b0e82400607c5c4ab25d727d35405a19bf0512308feaf96` }
+			</%block>
+		}
+		[3] {
+			SEQUENCE {
+				<%block name="extensions">
+					<%block name="extension_ski">
+					SEQUENCE {
+						# subjectKeyIdentifier
+						OBJECT_IDENTIFIER { 2.5.29.14 }
+						OCTET_STRING {
+							OCTET_STRING { `05824602e9306e6a83857c4307a7692f24b4b317` }
+						}
+					}
+					</%block>
+					<%block name="extension_aki">
+					SEQUENCE {
+						# authorityKeyIdentifier
+						OBJECT_IDENTIFIER { 2.5.29.35 }
+						OCTET_STRING {
+							SEQUENCE {
+								[0 PRIMITIVE] { `05824602e9306e6a83857c4307a7692f24b4b317` }
+							}
+						}
+					}
+					</%block>
+					<%block name="extension_bc">
+					SEQUENCE {
+						# basicConstraints
+						OBJECT_IDENTIFIER { 2.5.29.19 }
+						BOOLEAN { TRUE }
+						OCTET_STRING {
+							SEQUENCE {
+								BOOLEAN { TRUE }
+							}
+						}
+					}
+					</%block>
+				</%block>
+			}
+		}
+	}
+	SEQUENCE {
+		<%block name="footer_sigalg">
+		# ecdsa-with-SHA256
+		OBJECT_IDENTIFIER { 1.2.840.10045.4.3.2 }
+		</%block>
+	}
+	<%block name="signature">
+	BIT_STRING {
+		`00`
+		SEQUENCE {
+			INTEGER { `0097792982f3dc338a4abbe6fc7e4f` }
+			INTEGER { `7e769beb2c8263ab5f106d9510bb` }
+		}
+	}
+	</%block>
+}

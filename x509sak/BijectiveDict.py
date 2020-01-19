@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2019 Johannes Bauer
+#	Copyright (C) 2018-2020 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -34,6 +34,9 @@ class BijectiveDict():
 
 		if len(values) != len(self._lookup_revdict):
 			raise BijectiveDictException("Dictionary not bijective.")
+
+	def keys(self):
+		return self._lookup_dict.keys()
 
 	def inverse(self, value):
 		value = self._value_predicate(value)
