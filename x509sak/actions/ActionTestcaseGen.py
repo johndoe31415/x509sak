@@ -31,9 +31,9 @@ class ActionTestcaseGen(BaseAction):
 	def __init__(self, cmdname, args):
 		BaseAction.__init__(self, cmdname, args)
 
-		cg = CertGenerator.instantiate(self._args.tcname + ".ader")
+		self._cg = CertGenerator.instantiate(self._args.tcname + ".ader")
 		if self._args.list_parameters:
-			for (name, values) in sorted(cg.parameters):
+			for (name, values) in sorted(self._cg.parameters):
 				print("%-30s %s" % (name, ", ".join(sorted(values))))
 			sys.exit(0)
 
@@ -41,11 +41,11 @@ class ActionTestcaseGen(BaseAction):
 		for parameter in self._args.parameter:
 			(key, value) = parameter.split("=", maxsplit = 1)
 			if value == "*":
-				template_parameters[key] = cg.get_choices(key)
+				template_parameters[key] = self._cg.get_choices(key)
 			else:
 				template_parameters[key] = [ value ]
 
-		for (name, values) in cg.parameters:
+		for (name, values) in self._cg.parameters:
 			if name not in template_parameters:
 				template_parameters[name] = values
 
@@ -57,15 +57,25 @@ class ActionTestcaseGen(BaseAction):
 		values = [ values for (key, values) in template_parameters ]
 		for concrete_values in itertools.product(*values):
 			concrete_values = dict(zip(keys, concrete_values))
-			render_result = cg.render(concrete_values)
-			self._store(render_result)
+			try:
+				self._render(concrete_values)
+			except subprocess.CalledProcessError as e:
+				print("Failed: %s (%s)" % (str(concrete_values), str(e)))
+
+	def _render(self, concrete_values):
+		if self._args.verbose >= 1:
+			print(concrete_values)
+		render_result = self._cg.render(concrete_values)
+		self._store(render_result)
 
 	def _store(self, render_result):
 		(basename, ascii_der) = render_result
-		if False:
+
+		if self._args.no_pem:
 			outfile = self._args.output_dir + "/" + basename + ".ader"
 			with open(outfile, "w") as f:
 				f.write(ascii_der)
+			print(ascii_der)
 		else:
 			outfile = self._args.output_dir + "/" + basename + ".pem"
 			der_data = subprocess.check_output("ascii2der", input = ascii_der.encode())

@@ -1,0 +1,137 @@
+<%inherit file="x509certificate.ader" />
+<%namespace file="dn.ader" import="*" />
+
+<%
+	declare_parameter("field", [ "CRLDP_point", "CRLDP_issuer", "AKI_caname" ])
+	declare_parameter("mode", [ "othername_ok", "email_ok", "email_malformed", "ip_ok", "ip_private", "ip_malformed", "dirname_ok", "dirname_empty", "uri_ok", "uri_malformed", "uri_uncommon_scheme", "dns_ok", "dns_malformed", "dns_whitespace", "dns_single_label", "dns_wc_ok", "dns_wc_notleftmost", "dns_wc_multiple", "dns_wc_international", "dns_wc_broad", "registeredid_ok" ])
+	(field, mode) = (str(p("field")), str(p("mode")))
+	export_var("filename", "ext_" + field + "_" + mode)
+
+	errcode = {
+		"CRLDP_point":	"X509Cert_Body_X509Exts_Ext_CRLDP_PointName_",
+		"CRLDP_issuer":	"X509Cert_Body_X509Exts_Ext_CRLDP_CRLIssuer_",
+		"AKI_caname":	"X509Cert_Body_X509Exts_Ext_AKI_CAName_",
+	}.get(field, "?")
+	errcode += {
+		"othername_ok":		"OtherName_Unexpected",
+		"email_ok":			"Email_Unexpected",
+		"email_malformed":	"Email_Malformed",
+	}.get(mode, "?")
+	export_var("errcode", errcode)
+%>
+
+<%block name="issuer">
+	<% errcode = import_vars("errcode") %>
+	${create_dn_cn("X.509 GeneralName " + str(p("field")) + " with mode: " + str(p("mode")), errcode = errcode)}
+</%block>
+<%block name="subject">
+	<% errcode = import_vars("errcode") %>
+	${create_dn_cn("X.509 GeneralName " + str(p("field")) + " with mode: " + str(p("mode")), errcode = errcode)}
+</%block>
+
+<%def name="render_general_name(name_type)">
+# General Name
+%if name_type == "othername_ok":
+	[0] { 
+		OBJECT_IDENTIFIER { 1.2.3.4 }
+		OCTET_STRING {
+			UTF8String { "Other!" }
+		} 
+	}
+%elif name_type == "email_ok":
+	[1 PRIMITIVE] { "foo@bar.com" }
+%elif name_type == "email_malformed":
+	[1 PRIMITIVE] { "foo@$bar.com" }
+%elif name_type == "dns_ok":
+	[2 PRIMITIVE] { "foobar.com" }
+%elif name_type == "dns_malformed":
+	[2 PRIMITIVE] { "fooba$r.com" }
+%elif name_type == "dns_whitespace":
+	[2 PRIMITIVE] { " " }
+%elif name_type == "dns_single_label":
+	[2 PRIMITIVE] { "single-label" }
+%elif name_type == "dns_wc_ok":
+	[2 PRIMITIVE] { "*.foobar.com" }
+%elif name_type == "dns_wc_notleftmost":
+	[2 PRIMITIVE] { "bah*foo.foobar.com" }
+%elif name_type == "dns_wc_multiple":
+	[2 PRIMITIVE] { "*foo*.foobar.com" }
+%elif name_type == "dns_wc_international":
+	[2 PRIMITIVE] { "xn--fobar-*jua.foobar.com" }
+%elif name_type == "dns_wc_broad":
+	[2 PRIMITIVE] { "*" }
+%elif name_type == "dirname_ok":
+	[4] {
+		SEQUENCE {
+			SET {
+				SEQUENCE {
+					OBJECT_IDENTIFIER { 2.5.4.3 }
+					PrintableString { "directoryName" }
+				}
+			}
+		}
+	}
+%elif name_type == "dirname_empty":
+	[4] {
+		SEQUENCE {
+		}
+	}
+%elif name_type == "uri_ok":
+	[6 PRIMITIVE] { "http://foobar.com" }
+%elif name_type == "uri_malformed":
+	[6 PRIMITIVE] { "http:/malformed.com" }
+%elif name_type == "uri_uncommon_scheme":
+	[6 PRIMITIVE] { "murks://foobar.com" }
+%elif name_type == "ip_ok":
+	[7] { OCTET_STRING { `aabbccdd` } }
+%elif name_type == "ip_malformed":
+	[7] { OCTET_STRING { `aabbcc` } }
+%elif name_type == "ip_private":
+	[7] { OCTET_STRING { `c8a87b7b` } }
+%elif name_type == "registeredid_ok":
+	[8 PRIMITIVE] { 1.2.3.4.5 }
+%else:
+${error("Unknown general name", name_type)}
+%endif
+</%def>
+
+<%block name="extensions">
+SEQUENCE {
+%if p("field") == "CRLDP_point":
+	OBJECT_IDENTIFIER { 2.5.29.31 }	# CRLDP
+	OCTET_STRING {
+		SEQUENCE {
+			SEQUENCE {
+				[0] {
+					[0] {
+						${render_general_name(p("mode"))}
+					}
+				}
+			}
+		}
+	}
+%elif p("field") == "CRLDP_issuer":
+	OBJECT_IDENTIFIER { 2.5.29.31 }	# CRLDP
+	OCTET_STRING {
+		SEQUENCE {
+			SEQUENCE {
+				[2] {
+					${render_general_name(p("mode"))}
+				}
+			}
+		}
+	}010203
+%elif p("field") == "AKI_caname":
+	OBJECT_IDENTIFIER { 2.5.29.35 }	# AKI
+	OCTET_STRING {
+            SEQUENCE {
+              [1] {
+				${render_general_name(p("mode"))}
+              }
+            }
+	}
+%else:
+${error("Unsupported mode", p("mode"))}
+%endif
+}
+</%block>

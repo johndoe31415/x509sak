@@ -1,4 +1,4 @@
-<%def name="create_dn_cn(common_name)">
+<%def name="create_dn_cn(common_name, errcode = None)">
 SET {
 	SEQUENCE {
 		# commonName
@@ -6,4 +6,12 @@ SET {
 		UTF8String { "${common_name}" }
 	}
 }
+%if errcode is not None:
+SET {
+	SEQUENCE {
+		OBJECT_IDENTIFIER { 1.13.99.127.41 }
+		UTF8String { "${errcode}" }
+	}
+}
+%endif
 </%def>

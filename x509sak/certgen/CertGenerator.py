@@ -58,7 +58,9 @@ class CertGenerator():
 			"p":						lambda name: None,
 			"h":						CertGeneratorHelper,
 			"declare_parameter":		self._declare_parameter,
-			"filename":					lambda x: None,
+			"export_var":				lambda x, y: None,
+			"import_vars":				lambda *x: None,
+			"error":					lambda *x: None,
 		})
 
 	@classmethod
@@ -86,14 +88,25 @@ class CertGenerator():
 		if len(missing_keys) > 0:
 			raise Exception("Need to supply: %s" % (", ".join(sorted(missing_keys))))
 
-		rendered_filename = [ None ]
-		def set_filename(filename):
-			rendered_filename[0] = filename
+		exported_vars = { }
+		def export_var(varname, value):
+			exported_vars[varname] = value
+
+		def import_vars(*names):
+			if len(names) == 1:
+				return exported_vars[names[0]]
+			else:
+				return [ exported_vars[name] for name in names ]
+
+		def error(*args):
+			raise Exception(*args)
 
 		result = self._template.render(**{
 			"p":						lambda name: parameters.get(name),
 			"h":						CertGeneratorHelper,
 			"declare_parameter":		lambda x, y: None,
-			"filename":					set_filename,
+			"export_var":				export_var,
+			"import_vars":				import_vars,
+			"error":					error,
 		})
-		return (rendered_filename[0], result)
+		return (exported_vars["filename"], result)

@@ -278,6 +278,7 @@ mc.register("judgementcode", "Show information about judgement codes", genparser
 if ActionTestcaseGen is not None:
 	def genparser(parser):
 		parser.add_argument("-l", "--list-parameters", action = "store_true", help = "List possible parameters and values from the template.")
+		parser.add_argument("-n", "--no-pem", action = "store_true", help = "Do not generate PEM data, just print the asciider")
 		parser.add_argument("-o", "--output-dir", metavar = "path", type = str, default = "gen_tcs", help = "Output directory to store testcases in. Defaults to %(default)s.")
 		parser.add_argument("-p", "--parameter", metavar = "key=value", type = str, action = "append", default = [ ], help = "Give a key/value parameter.")
 		parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
