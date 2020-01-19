@@ -42,7 +42,10 @@ from x509sak.actions.ActionTLSClient import ActionTLSClient
 from x509sak.actions.ActionTLSParse import ActionTLSParse
 from x509sak.actions.ActionDebug import ActionDebug
 from x509sak.actions.ActionJudgementCode import ActionJudgementCode
-from x509sak.actions.ActionTestcaseGen import ActionTestcaseGen
+try:
+	from x509sak.actions.ActionTestcaseGen import ActionTestcaseGen
+except ImportError:
+	ActionTestcaseGen = None
 from x509sak.CmdLineArgs import KeyValue
 from x509sak.KeySpecification import KeySpecification
 from x509sak.Exceptions import UserErrorException, InvisibleUserErrorException, CmdExecutionFailedException
@@ -272,13 +275,14 @@ def genparser(parser):
 	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
 mc.register("judgementcode", "Show information about judgement codes", genparser, aliases = [ "jc" ], action = ActionJudgementCode, visible = False)
 
-def genparser(parser):
-	parser.add_argument("-l", "--list-parameters", action = "store_true", help = "List possible parameters and values from the template.")
-	parser.add_argument("-o", "--output-dir", metavar = "path", type = str, default = "gen_tcs", help = "Output directory to store testcases in. Defaults to %(default)s.")
-	parser.add_argument("-p", "--parameter", metavar = "key=value", type = str, action = "append", default = [ ], help = "Give a key/value parameter.")
-	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
-	parser.add_argument("tcname", metavar = "basename", type = str, help = "Testcase name to render.")
-mc.register("testcasegen", "Generate testcase certificates", genparser, aliases = [ "tcgen" ], action = ActionTestcaseGen, visible = False)
+if ActionTestcaseGen is not None:
+	def genparser(parser):
+		parser.add_argument("-l", "--list-parameters", action = "store_true", help = "List possible parameters and values from the template.")
+		parser.add_argument("-o", "--output-dir", metavar = "path", type = str, default = "gen_tcs", help = "Output directory to store testcases in. Defaults to %(default)s.")
+		parser.add_argument("-p", "--parameter", metavar = "key=value", type = str, action = "append", default = [ ], help = "Give a key/value parameter.")
+		parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
+		parser.add_argument("tcname", metavar = "basename", type = str, help = "Testcase name to render.")
+	mc.register("testcasegen", "Generate testcase certificates", genparser, aliases = [ "tcgen" ], action = ActionTestcaseGen, visible = False)
 
 try:
 	mc.run(sys.argv[1:])
