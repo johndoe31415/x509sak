@@ -30,6 +30,7 @@ from x509sak.estimate.BaseEstimator import BaseEstimator
 from x509sak.estimate import JudgementCode, Commonness, Compatibility
 from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, RFCReference
 from x509sak.estimate.GeneralNameValidator import GeneralNameValidator
+from x509sak.estimate.NameConstraintsSubtreeValidator import NameConstraintsSubtreeValidator
 from x509sak.estimate.DERValidator import DERValidator
 from x509sak.ASN1Wrapper import ASN1GeneralNamesWrapper
 from x509sak.OtherModels import SCTVersion
@@ -56,6 +57,10 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 			validation_subject = "X.509 CRL Distribution Points Extension (distribution point name)", permissible_uri_schemes = [ "http", "https", "ftp", "ftps", "ldap" ])
 	_CRL_DISTRIBUTION_POINT_ISSUER_VALIDATOR = GeneralNameValidator.create_inherited("X509Cert_Body_X509Exts_Ext_CRLDP_CRLIssuer",
 			validation_subject = "X.509 CRL Distribution Points Extension (CRL issuer)", permissible_uri_schemes = [ "http", "https", "ftp", "ftps", "ldap" ])
+	_NAME_CONSTRAINTS_PERMITTED_SUBTREE_VALIDATOR = NameConstraintsSubtreeValidator.create_inherited("X509Cert_Body_X509Exts_Ext_NC_PermittedSubtree",
+			validation_subject = "X.509 Name Constraints Permitted Subtree")
+	_NAME_CONSTRAINTS_EXCLUDED_SUBTREE_VALIDATOR = NameConstraintsSubtreeValidator.create_inherited("X509Cert_Body_X509Exts_Ext_NC_ExcludedSubtree",
+			validation_subject = "X.509 Name Constraints Excluded Subtree")
 
 	_UNKNOWN_EXTENSION_ENCODING_VALIDATOR = DERValidator.create_inherited("X509Cert_Body_X509Exts_Unknown", validation_subject = "Unknown X.509 extension")
 	_EXTENSION_ENCODING_VALIDATORS = {
@@ -277,6 +282,10 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 			if not certificate.is_ca_certificate:
 				standard = RFCReference(rfcno = 5280, sect = "4.2.1.10", verb = "MUST", text = "The name constraints extension, which MUST be used only in a CA certificate, indicates a name space within which all subject names in subsequent certificates in a certification path MUST be located.")
 				judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_NC_NoCA, "NameConstraints X.509 extension present, but certificate is not a CA certificate.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+
+			if nc.asn1 is not None:
+				judgements += self._NAME_CONSTRAINTS_PERMITTED_SUBTREE_VALIDATOR.validate(nc.permitted_subtrees)
+				judgements += self._NAME_CONSTRAINTS_EXCLUDED_SUBTREE_VALIDATOR.validate(nc.excluded_subtrees)
 
 		return judgements
 

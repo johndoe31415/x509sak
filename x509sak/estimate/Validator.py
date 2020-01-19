@@ -42,6 +42,10 @@ class BaseValidationResult():
 			kwargs["info_payload"] = issue.info_payload
 		self._result += SecurityJudgement(issue.code, full_message, **kwargs)
 
+	def _delegate(self, subordinate_validator, subordinate_subject):
+		validation_result = subordinate_validator.validate(subordinate_subject)
+		self._result += validation_result
+
 	def _validate(self):
 		raise NotImplementedError(__class__.__name__)
 

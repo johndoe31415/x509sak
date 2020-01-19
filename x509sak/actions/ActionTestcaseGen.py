@@ -82,10 +82,12 @@ class ActionTestcaseGen(BaseAction):
 
 	def _print_tcs(self):
 		with open(self._args.output_dir + "/tcs.txt", "w") as f:
+			print("# " + ("=" * 70) + " Begin of %s " % (self._args.tcname) + ("=" * 70), file = f)
 			for tc in self._tcs:
 				print("\tdef %s(self):" % (tc.full_name), file = f)
 				print("\t\tself._test_examine_x509test_resultcode(\"%s\", expect_present = %s)" % (tc.filename, self.testcase_codepoint_string(tc.expect_present)), file = f)
 				print(file = f)
+			print("# " + ("=" * 70) + " End of %s " % (self._args.tcname) + ("=" * 70), file = f)
 
 	def _analyze_pemfile(self, pem_filename):
 		x509cert = X509Certificate.read_pemfile(pem_filename)[0]
@@ -101,8 +103,8 @@ class ActionTestcaseGen(BaseAction):
 				print("No such codepoint: %s (in %s)" % (codepoint_name, pem_filename))
 				return
 
-		tc_filename = "certs/generated/" + os.path.basename(pem_filename)
-		tc = self._TCDefinition(full_name = "test_generated_%s" % (file_prefix), filename = tc_filename, expect_present = present_codepoints)
+		tc_filename = "certs/generated/%s/%s" % (self._args.tcname, os.path.basename(pem_filename))
+		tc = self._TCDefinition(full_name = "test_generated_%s_%s" % (self._args.tcname, file_prefix), filename = tc_filename, expect_present = present_codepoints)
 		self._tcs.append(tc)
 
 	def _render(self, concrete_values):

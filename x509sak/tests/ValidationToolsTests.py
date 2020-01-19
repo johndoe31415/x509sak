@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2018 Johannes Bauer
+#	Copyright (C) 2018-2020 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -109,8 +109,10 @@ class ValidationToolsTests(BaseTest):
 		self.assertEqual(ValidationTools.validate_domainname_template("*.xn--foo.co.uk")[0], ValidationTools.DomainnameTemplateValidationResult.Valid)
 
 	def test_domainname_template_invalid(self):
-		self.assertEqual(ValidationTools.validate_domainname_template("*foo*.foo.co.uk")[0], ValidationTools.DomainnameTemplateValidationResult.InvalidCharacter)
-		self.assertEqual(ValidationTools.validate_domainname_template("**.foo.co.uk")[0], ValidationTools.DomainnameTemplateValidationResult.InvalidCharacter)
+		self.assertEqual(ValidationTools.validate_domainname_template("*foo*.foo.co.uk")[0], ValidationTools.DomainnameTemplateValidationResult.Valid)
+		self.assertEqual(ValidationTools.validate_domainname_template("**.foo.co.uk")[0], ValidationTools.DomainnameTemplateValidationResult.Valid)
+		self.assertEqual(ValidationTools.validate_domainname_template("f$oo.foo.co.uk")[0], ValidationTools.DomainnameTemplateValidationResult.InvalidCharacter)
+		self.assertEqual(ValidationTools.validate_domainname_template("f*$oo.foo.co.uk")[0], ValidationTools.DomainnameTemplateValidationResult.InvalidCharacter)
 		self.assertEqual(ValidationTools.validate_domainname_template("foo.*.co.uk")[0], ValidationTools.DomainnameTemplateValidationResult.FullWildcardNotLeftmost)
 		self.assertEqual(ValidationTools.validate_domainname_template("foo.co.uk.*")[0], ValidationTools.DomainnameTemplateValidationResult.FullWildcardNotLeftmost)
 		self.assertEqual(ValidationTools.validate_domainname_template("foo*.co*.uk")[0], ValidationTools.DomainnameTemplateValidationResult.MoreThanOneWildcard)

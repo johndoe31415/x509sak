@@ -121,15 +121,15 @@
 							"Minimum not Zero": { "_desc": "$name minimum attribute is non-zero" },
 							"Maximum present": { "_desc": "$name maximum attribute is present" },
 							"Name": {
-								"_import": "+general_name_issues/*:allow_dirname,allow_dns,allow_dns_wc,allow_ip,allow_ip_subnet",
+								"_import": "general_name_issues/*:allow_dirname,allow_dns,allow_dns_wc,allow_ip,allow_ip_subnet",
 								"Restiction on RegisteredID": { "_desc": "$name restriction on RegisteredID" }
 							}
 						},
 						"Permitted Subtree": {
-							"_import": "ext_nc_subtree/*{name=NC extension permitted subtree}"
+							"_import": "+ext_nc_subtree/*{name=NC extension permitted subtree}"
 						},
 						"Excluded Subtree": {
-							"_import": "ext_nc_subtree/*{name=NC extension excluded subtree}"
+							"_import": "+ext_nc_subtree/*{name=NC extension excluded subtree}"
 						}
 					},
 					"Key Usage": {

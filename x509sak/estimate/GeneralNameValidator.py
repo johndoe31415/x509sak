@@ -147,6 +147,13 @@ class GeneralNameValidationResult(BaseValidationResult):
 						self._report("Enc_DER_Struct_GenName_IPAddress_PrivateAddressSpace", "has network address %s in a %s subnet." % (self._subject.str_value, network_class))
 						break
 
+		if self._validator.ip_addresses_are_subnets and (address_length in [ 8, 32 ]):
+			if self._subject.ip.overlap:
+				self._report("Enc_DER_Struct_GenName_IPAddress_MalformedSubnet", "has network address bits set which are masked by subnet: %s" % (self._subject.ip))
+
+			if not self._subject.ip.is_cidr:
+				self._report("Enc_DER_Struct_GenName_IPAddress_NonCIDRBlock", "has subnet %s that cannot be expressed as CIDR block" % (self._subject.ip))
+
 	def _validate_rfc822Name(self):
 		self._report("Enc_DER_Struct_GenName_Email_Unexpected", "contains unexpected email address \"%s\"." % (self._subject.str_value))
 		if not ValidationTools.validate_email_address(self._subject.str_value):

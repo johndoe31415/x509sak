@@ -321,7 +321,7 @@ class ValidationTools():
 	_DOMAIN_NAME_RE = re.compile(r"([-a-zA-Z0-9]+\.)*[-a-zA-Z0-9]+")
 	_EMAIL_ADDRESS_RE = re.compile(r"(?P<mailbox>[-a-zA-Z0-9.!#$%&'*+/=?^_`{|}~]+)@(?P<domainname>.*)")
 	_URI_RE = re.compile(r"(?P<scheme>[a-z]+):(?P<authority>/*[-a-zA-Z0-9+%_.:,=;@\[\]]+)?(?P<path>/[-a-zA-Z0-9+%_.:,=;@/]+)?(?P<query>\?[-a-zA-Z0-9+%_.:,=;@/?#]*)?")
-	_LABEL_RE = re.compile(r"(?P<left>[-a-zA-Z0-9]*)(?P<wildcard>\*)?(?P<right>[-a-zA-Z0-9]*)")
+	_LABEL_RE = re.compile(r"(?P<left>[-a-zA-Z0-9]*)(?P<wildcard>\*)?(?P<right>[-a-zA-Z0-9*]*)")
 
 	class DomainnameTemplateValidationResult(enum.IntEnum):
 		Valid = 0

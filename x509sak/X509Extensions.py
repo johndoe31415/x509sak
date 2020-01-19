@@ -660,7 +660,39 @@ X509ExtensionRegistry.set_handler_class(X509CertificateTransparencyPrecertificat
 class X509NameConstraintsExtension(X509Extension):
 	_HANDLER_OID = OIDDB.X509Extensions.inverse("NameConstraints")
 	_ASN1_MODEL = rfc5280.NameConstraints
+	_NameConstraintsSubtree = collections.namedtuple("NameConstraintSubtree", [ "minimum", "maximum", "base" ])
+
+	@property
+	def permitted_subtrees(self):
+		return self._permitted_subtrees
+
+	@property
+	def excluded_subtrees(self):
+		return self._excluded_subtrees
+
+	def _parse_subtree(self, subtree):
+		minimum = int(subtree["minimum"])
+		maximum = int(subtree["maximum"]) if (subtree["maximum"].isValue) else None
+		base = ASN1GeneralNameWrapper.from_asn1(subtree["base"])
+		return self._NameConstraintsSubtree(minimum = minimum, maximum = maximum, base = base)
+
+	def _parse_subtrees(self, subtrees):
+		parsed_subtrees = [ ]
+		for subtree in subtrees:
+			parsed_subtree = self._parse_subtree(subtree)
+			parsed_subtrees.append(parsed_subtree)
+		return parsed_subtrees
+
+
+	def _decode_hook(self):
+		if self.asn1 is None:
+			self._permitted_subtrees = None
+			self._excluded_subtrees = None
+			return
+		self._permitted_subtrees = self._parse_subtrees(self.asn1["permittedSubtrees"])
+		self._excluded_subtrees = self._parse_subtrees(self.asn1["excludedSubtrees"])
+		print(self)
 
 	def __repr__(self):
-		return "%s<%s>" % (self.__class__.__name__, "malformed" if self.malformed else "OK")
+		return "%s<permitted = %s, excluded = %s>" % (self.__class__.__name__, self.permitted_subtrees, self.excluded_subtrees)
 X509ExtensionRegistry.set_handler_class(X509NameConstraintsExtension)

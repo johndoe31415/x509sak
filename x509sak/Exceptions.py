@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2018 Johannes Bauer
+#	Copyright (C) 2018-2020 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -38,6 +38,7 @@ class UnexpectedFileContentException(UserErrorException): pass
 class UnsupportedEncodingException(UserErrorException): pass
 class KeyCorruptException(UserErrorException): pass
 class InvalidUseException(UserErrorException): pass
+class InvalidIPAddressException(UserErrorException): pass
 
 class CmdExecutionFailedException(InvisibleUserErrorException):
 	def __init__(self, msg, execution_result):

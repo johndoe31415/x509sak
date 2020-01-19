@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2019 Johannes Bauer
+#	Copyright (C) 2018-2020 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -23,6 +23,7 @@ import urllib.parse
 import pyasn1.codec.der.encoder
 from pyasn1_modules import rfc5280
 from x509sak.DistinguishedName import DistinguishedName
+from x509sak.IPAddress import IPAddressSubnet
 
 class ASN1GeneralNameWrapper():
 	KNOWN_TYPE_NAMES = set([ "otherName", "rfc822Name", "dNSName", "x400Address", "directoryName", "ediPartyName", "uniformResourceIdentifier", "iPAddress", "registeredID" ])
@@ -57,13 +58,18 @@ class ASN1GeneralNameWrapper():
 		return self._cached
 
 	@property
+	def ip(self):
+		assert(self.name == "iPAddress")
+		if self._cached is None:
+			self._cached = IPAddressSubnet.from_bytes(self.asn1_value, allow_ip_only = True)
+		return self._cached
+
+	@property
 	def str_value(self):
 		if self.name in [ "dNSName", "rfc822Name", "uniformResourceIdentifier" ]:
 			result = str(self.asn1_value)
-		elif (self.name == "iPAddress") and (len(self.asn1_value) == 4):
-			result = ".".join(str(v) for v in self.asn1_value)
-		elif (self.name == "iPAddress") and (len(self.asn1_value) == 16):
-			result = ":".join("%02x" % (v) for v in self.asn1_value)
+		elif (self.name == "iPAddress") and (len(self.asn1_value) in [ 4, 8, 16, 32 ]):
+			result = str(self.ip)
 		elif self.name == "otherName":
 			oid = self.asn1_value["type-id"]
 			inner_value = bytes(self.asn1_value["value"])
