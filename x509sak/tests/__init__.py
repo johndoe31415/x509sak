@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2018 Johannes Bauer
+#	Copyright (C) 2018-2020 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -22,6 +22,7 @@
 import pkgutil
 import importlib
 from .BaseTest import BaseTest, ResourceFileLoader
+from .BaseAnalyzerTest import BaseAnalyzerTest
 
 def __discover_testcases():
 	for (module_info_module_finder, module_info_name, module_info_ispkg) in pkgutil.iter_modules([ "x509sak/tests" ]):
