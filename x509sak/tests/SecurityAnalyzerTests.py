@@ -1256,3 +1256,135 @@ class SecurityAnalyzerTests(BaseTest):
 
 	def test_bc_pathlen_but_no_ku(self):
 		self._test_examine_x509test_resultcode("certs/constructed/bc_pathlen_but_no_ku.pem", expect_present = "X509Cert_Body_X509Exts_Ext_BC_PathLenWithoutKeyCertSign")
+
+	def test_generated_extension_AKI_malformed(self):
+		self._test_examine_x509test_resultcode("certs/generated/ext_AKI_malformed.pem", expect_present = "X509Cert_Body_X509Exts_Ext_AKI_Malformed_Undecodable")
+
+	def test_generated_extension_AKI_wrong_type(self):
+		self._test_examine_x509test_resultcode("certs/generated/ext_AKI_wrong_type.pem", expect_present = "X509Cert_Body_X509Exts_Ext_AKI_Malformed_UnexpectedType")
+
+	def test_generated_extension_AKI_non_der(self):
+		self._test_examine_x509test_resultcode("certs/generated/ext_AKI_non_der.pem", expect_present = "X509Cert_Body_X509Exts_Ext_AKI_Malformed_NonDEREncoding")
+
+	def test_generated_extension_AKI_trailing_data(self):
+		self._test_examine_x509test_resultcode("certs/generated/ext_AKI_trailing_data.pem", expect_present = "X509Cert_Body_X509Exts_Ext_AKI_TrailingData")
+
+	def test_generated_extension_BC_malformed(self):
+		self._test_examine_x509test_resultcode("certs/generated/ext_BC_malformed.pem", expect_present = "X509Cert_Body_X509Exts_Ext_BC_Malformed_Undecodable")
+
+	def test_generated_extension_BC_wrong_type(self):
+		self._test_examine_x509test_resultcode("certs/generated/ext_BC_wrong_type.pem", expect_present = "X509Cert_Body_X509Exts_Ext_BC_Malformed_UnexpectedType")
+
+	def test_generated_extension_BC_non_der(self):
+		self._test_examine_x509test_resultcode("certs/generated/ext_BC_non_der.pem", expect_present = "X509Cert_Body_X509Exts_Ext_BC_Malformed_NonDEREncoding")
+
+	def test_generated_extension_BC_trailing_data(self):
+		self._test_examine_x509test_resultcode("certs/generated/ext_BC_trailing_data.pem", expect_present = "X509Cert_Body_X509Exts_Ext_BC_TrailingData")
+
+	def test_generated_extension_CP_malformed(self):
+		self._test_examine_x509test_resultcode("certs/generated/ext_CP_malformed.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CP_Malformed_Undecodable")
+
+	def test_generated_extension_CP_wrong_type(self):
+		self._test_examine_x509test_resultcode("certs/generated/ext_CP_wrong_type.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CP_Malformed_UnexpectedType")
+
+	def test_generated_extension_CP_non_der(self):
+		self._test_examine_x509test_resultcode("certs/generated/ext_CP_non_der.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CP_Malformed_NonDEREncoding")
+
+	def test_generated_extension_CP_trailing_data(self):
+		self._test_examine_x509test_resultcode("certs/generated/ext_CP_trailing_data.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CP_TrailingData")
+
+	def test_generated_extension_CRLDP_malformed(self):
+		self._test_examine_x509test_resultcode("certs/generated/ext_CRLDP_malformed.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_Malformed_Undecodable")
+
+	def test_generated_extension_CRLDP_wrong_type(self):
+		self._test_examine_x509test_resultcode("certs/generated/ext_CRLDP_wrong_type.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_Malformed_UnexpectedType")
+
+	def test_generated_extension_CRLDP_non_der(self):
+		self._test_examine_x509test_resultcode("certs/generated/ext_CRLDP_non_der.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_Malformed_NonDEREncoding")
+
+	def test_generated_extension_CRLDP_trailing_data(self):
+		self._test_examine_x509test_resultcode("certs/generated/ext_CRLDP_trailing_data.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_TrailingData")
+
+	def test_generated_extension_EKU_malformed(self):
+		self._test_examine_x509test_resultcode("certs/generated/ext_EKU_malformed.pem", expect_present = "X509Cert_Body_X509Exts_Ext_EKU_Malformed_Undecodable")
+
+	def test_generated_extension_EKU_wrong_type(self):
+		self._test_examine_x509test_resultcode("certs/generated/ext_EKU_wrong_type.pem", expect_present = "X509Cert_Body_X509Exts_Ext_EKU_Malformed_UnexpectedType")
+
+	def test_generated_extension_EKU_non_der(self):
+		self._test_examine_x509test_resultcode("certs/generated/ext_EKU_non_der.pem", expect_present = "X509Cert_Body_X509Exts_Ext_EKU_Malformed_NonDEREncoding")
+
+	def test_generated_extension_EKU_trailing_data(self):
+		self._test_examine_x509test_resultcode("certs/generated/ext_EKU_trailing_data.pem", expect_present = "X509Cert_Body_X509Exts_Ext_EKU_TrailingData")
+
+	def test_generated_extension_IAN_malformed(self):
+		self._test_examine_x509test_resultcode("certs/generated/ext_IAN_malformed.pem", expect_present = "X509Cert_Body_X509Exts_Ext_IAN_Malformed_Undecodable")
+
+	def test_generated_extension_IAN_wrong_type(self):
+		self._test_examine_x509test_resultcode("certs/generated/ext_IAN_wrong_type.pem", expect_present = "X509Cert_Body_X509Exts_Ext_IAN_Malformed_UnexpectedType")
+
+	def test_generated_extension_IAN_non_der(self):
+		self._test_examine_x509test_resultcode("certs/generated/ext_IAN_non_der.pem", expect_present = "X509Cert_Body_X509Exts_Ext_IAN_Malformed_NonDEREncoding")
+
+	def test_generated_extension_IAN_trailing_data(self):
+		self._test_examine_x509test_resultcode("certs/generated/ext_IAN_trailing_data.pem", expect_present = "X509Cert_Body_X509Exts_Ext_IAN_TrailingData")
+
+	def test_generated_extension_KU_malformed(self):
+		self._test_examine_x509test_resultcode("certs/generated/ext_KU_malformed.pem", expect_present = "X509Cert_Body_X509Exts_Ext_KU_Malformed_Undecodable")
+
+	def test_generated_extension_KU_wrong_type(self):
+		self._test_examine_x509test_resultcode("certs/generated/ext_KU_wrong_type.pem", expect_present = "X509Cert_Body_X509Exts_Ext_KU_Malformed_UnexpectedType")
+
+	def test_generated_extension_KU_non_der(self):
+		self._test_examine_x509test_resultcode("certs/generated/ext_KU_non_der.pem", expect_present = "X509Cert_Body_X509Exts_Ext_KU_Malformed_NonDEREncoding")
+
+	def test_generated_extension_KU_trailing_data(self):
+		self._test_examine_x509test_resultcode("certs/generated/ext_KU_trailing_data.pem", expect_present = "X509Cert_Body_X509Exts_Ext_KU_TrailingData")
+
+	def test_generated_extension_NC_malformed(self):
+		self._test_examine_x509test_resultcode("certs/generated/ext_NC_malformed.pem", expect_present = "X509Cert_Body_X509Exts_Ext_NC_Malformed_Undecodable")
+
+	def test_generated_extension_NC_wrong_type(self):
+		self._test_examine_x509test_resultcode("certs/generated/ext_NC_wrong_type.pem", expect_present = "X509Cert_Body_X509Exts_Ext_NC_Malformed_UnexpectedType")
+
+	def test_generated_extension_NC_non_der(self):
+		self._test_examine_x509test_resultcode("certs/generated/ext_NC_non_der.pem", expect_present = "X509Cert_Body_X509Exts_Ext_NC_Malformed_NonDEREncoding")
+
+	def test_generated_extension_NC_trailing_data(self):
+		self._test_examine_x509test_resultcode("certs/generated/ext_NC_trailing_data.pem", expect_present = "X509Cert_Body_X509Exts_Ext_NC_TrailingData")
+
+	def test_generated_extension_NSCT_malformed(self):
+		self._test_examine_x509test_resultcode("certs/generated/ext_NSCT_malformed.pem", expect_present = "X509Cert_Body_X509Exts_Ext_NSCT_Malformed_Undecodable")
+
+	def test_generated_extension_NSCT_wrong_type(self):
+		self._test_examine_x509test_resultcode("certs/generated/ext_NSCT_wrong_type.pem", expect_present = "X509Cert_Body_X509Exts_Ext_NSCT_Malformed_UnexpectedType")
+
+	def test_generated_extension_NSCT_non_der(self):
+		self._test_examine_x509test_resultcode("certs/generated/ext_NSCT_non_der.pem", expect_present = "X509Cert_Body_X509Exts_Ext_NSCT_Malformed_NonDEREncoding")
+
+	def test_generated_extension_NSCT_trailing_data(self):
+		self._test_examine_x509test_resultcode("certs/generated/ext_NSCT_trailing_data.pem", expect_present = "X509Cert_Body_X509Exts_Ext_NSCT_TrailingData")
+
+	def test_generated_extension_SAN_malformed(self):
+		self._test_examine_x509test_resultcode("certs/generated/ext_SAN_malformed.pem", expect_present = "X509Cert_Body_X509Exts_Ext_SAN_Malformed_Undecodable")
+
+	def test_generated_extension_SAN_wrong_type(self):
+		self._test_examine_x509test_resultcode("certs/generated/ext_SAN_wrong_type.pem", expect_present = "X509Cert_Body_X509Exts_Ext_SAN_Malformed_UnexpectedType")
+
+	def test_generated_extension_SAN_non_der(self):
+		self._test_examine_x509test_resultcode("certs/generated/ext_SAN_non_der.pem", expect_present = "X509Cert_Body_X509Exts_Ext_SAN_Malformed_NonDEREncoding")
+
+	def test_generated_extension_SAN_trailing_data(self):
+		self._test_examine_x509test_resultcode("certs/generated/ext_SAN_trailing_data.pem", expect_present = "X509Cert_Body_X509Exts_Ext_SAN_TrailingData")
+
+	def test_generated_extension_SKI_malformed(self):
+		self._test_examine_x509test_resultcode("certs/generated/ext_SKI_malformed.pem", expect_present = "X509Cert_Body_X509Exts_Ext_SKI_Malformed_Undecodable")
+
+	def test_generated_extension_SKI_wrong_type(self):
+		self._test_examine_x509test_resultcode("certs/generated/ext_SKI_wrong_type.pem", expect_present = "X509Cert_Body_X509Exts_Ext_SKI_Malformed_UnexpectedType")
+
+	def test_generated_extension_SKI_non_der(self):
+		self._test_examine_x509test_resultcode("certs/generated/ext_SKI_non_der.pem", expect_present = "X509Cert_Body_X509Exts_Ext_SKI_Malformed_NonDEREncoding")
+
+	def test_generated_extension_SKI_trailing_data(self):
+		self._test_examine_x509test_resultcode("certs/generated/ext_SKI_trailing_data.pem", expect_present = "X509Cert_Body_X509Exts_Ext_SKI_TrailingData")

@@ -72,6 +72,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		"X509NetscapeCertificateTypeExtension": DERValidator.create_inherited("X509Cert_Body_X509Exts_Ext_NSCT", validation_subject = "X.509 Netscape Certificate Type extension"),
 		"X509SubjectAlternativeNameExtension": DERValidator.create_inherited("X509Cert_Body_X509Exts_Ext_SAN", validation_subject = "X.509 Subject Alternative Name extension"),
 		"X509SubjectKeyIdentifierExtension": DERValidator.create_inherited("X509Cert_Body_X509Exts_Ext_SKI", validation_subject = "X.509 Subject Key Identifier extension"),
+		"X509NameConstraintsExtension": DERValidator.create_inherited("X509Cert_Body_X509Exts_Ext_NC", validation_subject = "X.509 Name Constraints extension"),
 	}
 
 	def _analyze_extension(self, extension):
@@ -205,7 +206,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 					pass
 			else:
 				if not certificate.is_ca_certificate:
-					judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_SKI_Hashfunction_Arbitrary, "SubjectKeyIdentifier key ID (%s) does not match any tested cryptographic hash function (%s) over the contained public key." % (ski.keyid.hex(), ", ".join(hashfnc.value.pretty_name for hashfnc in tried_hashfncs)), commonness = Commonness.HIGHLY_UNUSUAL)
+					judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_SKI_Hashfunction_Arbitrary, "SubjectKeyIdentifier key ID (%s) does not match any tested cryptographic hash function (%s) over the contained public key." % (ski.format_value, ", ".join(hashfnc.value.pretty_name for hashfnc in tried_hashfncs)), commonness = Commonness.HIGHLY_UNUSUAL)
 				else:
 					standard = RFCReference(rfcno = 5280, sect = "4.2.1.2", verb = "SHOULD", text = "For CA certificates, subject key identifiers SHOULD be derived from the public key or a method that generates unique values. ")
 					judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_SKI_Hashfunction_Arbitrary, "SubjectKeyIdentifier key ID (%s) does not match any tested cryptographic hash function (%s) over the contained public key." % (ski.keyid.hex(), ", ".join(hashfnc.value.pretty_name for hashfnc in tried_hashfncs)), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)

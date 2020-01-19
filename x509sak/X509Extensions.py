@@ -211,13 +211,19 @@ class X509SubjectKeyIdentifierExtension(X509Extension):
 
 	@property
 	def format_value(self):
-		return "KeyID %s" % (self.keyid.hex())
+		if self.keyid is not None:
+			return "KeyID %s" % (self.keyid.hex())
+		else:
+			return "Invalid KeyID"
 
 	def __eq__(self, other):
 		return self.keyid == other.keyid
 
 	def _decode_hook(self):
-		self._keyid = bytes(self.asn1)
+		if self.asn1 is not None:
+			self._keyid = bytes(self.asn1)
+		else:
+			self._keyid = None
 X509ExtensionRegistry.set_handler_class(X509SubjectKeyIdentifierExtension)
 
 class X509AuthorityKeyIdentifierExtension(X509Extension):
@@ -512,6 +518,8 @@ class X509CertificatePoliciesExtension(X509Extension):
 
 	def _decode_hook(self):
 		self._policies = [ ]
+		if self.asn1 is None:
+			return
 		for item in self.asn1:
 			policy_oid = OID.from_asn1(item["policyIdentifier"])
 			qualifiers = [ ]
@@ -648,3 +656,12 @@ class X509CertificateTransparencyPrecertificatePoisonExtension(X509Extension):
 	def __repr__(self):
 		return "%s<%s>" % (self.__class__.__name__, "malformed" if self.malformed else "OK")
 X509ExtensionRegistry.set_handler_class(X509CertificateTransparencyPrecertificatePoisonExtension)
+
+
+class X509NameConstraintsExtension(X509Extension):
+	_HANDLER_OID = OIDDB.X509Extensions.inverse("NameConstraints")
+	_ASN1_MODEL = rfc5280.NameConstraints
+
+	def __repr__(self):
+		return "%s<%s>" % (self.__class__.__name__, "malformed" if self.malformed else "OK")
+X509ExtensionRegistry.set_handler_class(X509NameConstraintsExtension)
