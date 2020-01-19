@@ -37,7 +37,7 @@ class SecurityJudgementTests(BaseTest):
 		result = judgement.to_dict()
 		self.assertEqual(result["code"], judgement.code.name)
 		self.assertEqual(result["topic"], judgement.code.topic)
-		self.assertEqual(result["short_text"], judgement.code.short_text)
+		self.assertEqual(result["short_text"], judgement.code.description)
 		self.assertEqual(result["text"], judgement.text)
 		self.assertEqual(result["bits"], judgement.bits)
 

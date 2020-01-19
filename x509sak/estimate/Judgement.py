@@ -140,7 +140,7 @@ class SecurityJudgement():
 		result = {
 			"code":				self.code.name,
 			"topic":			self.code.topic,
-			"short_text":		self.code.short_text,
+			"short_text":		self.code.description,
 			"text":				self.text,
 			"bits":				self.bits,
 			"verdict":			JSONTools.translate(self.verdict) if (self.verdict is not None) else None,

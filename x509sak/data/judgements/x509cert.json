@@ -4,6 +4,7 @@
 		"_import": "asn1_encoding_issues/*",
 		"Public Key": {
 			"_import": "asn1_encoding_issues/*",
+			"_topic": "Certificate Public Key",
 			"RSA": {
 				"_import": [ "rsa_algorithm/*", "rsa_crypto/*", "rsa_pubkey_encoding_issues/*" ]
 			},
@@ -25,11 +26,13 @@
 		},
 		"Metadata": {
 			"_label": "Body",
+			"_topic": "Certificate Body",
 			"Version": {
 				"Not 2": { "_desc": "certificate version is not v2" },
 				"Not 3": { "_desc": "certificate version is not v3" }
 			},
 			"Validity": {
+				"_topic": "Certificate Validity",
 				"Status": {
 					"Never valid": { "_desc": "certificate can never be valid" },
 					"Not yet valid": { "_desc": "certificate is not yet valid" },
@@ -50,12 +53,15 @@
 				}
 			},
 			"Issuer": {
+				"_topic": "Certificate Issuer",
 				"_import": "*dn_issues/*{name=certificate issuer}"
 			},
 			"Subject": {
+				"_topic": "Certificate Subject",
 				"_import": "*dn_issues/*{name=certificate subject}"
 			},
 			"Serial Number": {
+				"_topic": "Certificate Serial Number",
 				"_import": "integer_checks:zero,neg,large{name=serial number}"
 			},
 			"Issuer Unique ID": {
@@ -66,6 +72,7 @@
 			},
 			"X.509 Extensions": {
 				"_label": "X509Exts",
+				"_topic": "Certificate Extensions",
 				"All Unique": { "_desc": "all extensions unique" },
 				"Duplicates Present": { "_desc": "duplicate extensions present" },
 				"Empty Sequence": { "_desc": "extensions field is an empty sequence" },
@@ -76,12 +83,14 @@
 					"Basic Constraints": {
 						"_label": "BC",
 						"_import": [ "*asn1_encoding_issues/*", "x509_ext_checks/*:missing,notcritical,critical{name=BC}" ],
+						"_topic": "X.509 Basic Constraints Extension",
 						"PathLen without CA": { "_desc": "BC extension contains pathLen constraint without CA attribute" },
 						"PathLen without keyCertSign": { "_desc": "BC extension contains pathLen constraint without keyCertSign key usage" }
 					},
 					"Subject Key Identifier": {
 						"_label": "SKI",
 						"_import": [ "*asn1_encoding_issues/*", "x509_ext_checks/*:missing,critical{name=SKI}" ],
+						"_topic": "X.509 Subject Key Identifier Extension",
 						"Hashfunction": {
 							"SHA1": { "_desc": "SKI extension has SHA-1 key ID" },
 							"Other": { "_desc": "SKI extension has hash based key ID other than SHA-1" },
@@ -91,6 +100,7 @@
 					"Authority Key Identifier": {
 						"_label": "AKI",
 						"_import": [ "*asn1_encoding_issues/*", "x509_ext_checks/*:empty,missing,critical{name=AKI}" ],
+						"_topic": "X.509 Authority Key Identifier Extension",
 						"CA name": {
 							"_import": "*general_name_issues/*:allow_dirname",
 							"Empty": { "_desc": "AKI CAname empty" }
@@ -104,6 +114,7 @@
 					"Name Constraints": {
 						"_label": "NC",
 						"_import": [ "*asn1_encoding_issues/*", "x509_ext_checks/*:empty,notcritical,noca{name=NC}" ],
+						"_topic": "X.509 Name Constraints Extension",
 						"Subtree": {
 							"Minimum not Zero": { "_desc": "NC extension subtree minimum attribute is non-zero" },
 							"Maximum present": { "_desc": "NC extension subtree maximum attribute is present" },
@@ -116,6 +127,7 @@
 					"Key Usage": {
 						"_label": "KU",
 						"_import": [ "bitstring_issues/*", "*asn1_encoding_issues/*", "x509_ext_checks/*:missing,empty,notcritical{name=KU}" ],
+						"_topic": "X.509 Key Usage Extension",
 						"Too Long": { "_desc": "KU extension too long" },
 						"SignCert but no CA": { "_desc": "KU extension contains signCert flag but is no CA" },
 						"SignCert but no Basic Constraints": { "_desc": "KU extension contains signCert flag but has no Basic Constraints extension" }
@@ -123,12 +135,14 @@
 					"Extended Key Usage": {
 						"_label": "EKU",
 						"_import": [ "*asn1_encoding_issues/*", "x509_ext_checks/*:empty{name=EKU}" ],
+						"_topic": "X.509 Extended Key Usage Extension",
 						"Duplicate": { "_desc": "EKU extension contains duplicate usage OID" },
 						"Any Usage Criticial": { "_desc": "EKU extension contains anyUsage flag but extension is marked critical" }
 					},
 					"Issuer Alternative Name": {
 						"_label": "IAN",
 						"_import": [ "*asn1_encoding_issues/*", "x509_ext_checks/*:critical,empty{name=IAN}" ],
+						"_topic": "X.509 Issuer Alternative Name Extension",
 						"Missing": { "_desc": "IAN extension missing although certificate issue header is empty" },
 						"Name": {
 							"_import": "*general_name_issues/*:allow_dirname"
@@ -137,6 +151,7 @@
 					"Subject Alternative Name": {
 						"_label": "SAN",
 						"_import": [ "*asn1_encoding_issues/*", "x509_ext_checks/*:empty,missing,critical,notcritical{name=SAN}" ],
+						"_topic": "X.509 Subject Alternative Name Extension",
 						"Name": {
 							"_import": "*general_name_issues/*:allow_dns,allow_dns_wc,allow_ip"
 						},
@@ -144,11 +159,13 @@
 					},
 					"Authority Information Access": {
 						"_label": "AIA",
-						"_import": [ "*asn1_encoding_issues/*", "x509_ext_checks/*:empty,critical{name=AIA}" ]
+						"_import": [ "*asn1_encoding_issues/*", "x509_ext_checks/*:empty,critical{name=AIA}" ],
+						"_topic": "X.509 Authority Information Access Extension"
 					},
 					"Certificate Policies": {
 						"_label": "CP",
 						"_import": "*asn1_encoding_issues/*",
+						"_topic": "X.509 Certificate Policies Extension",
 						"Deprecated OID": { "_desc": "CP extension OID is deprecated" },
 						"Duplicate OID": { "_desc": "CP extension contains duplicate policy OID" },
 						"More than one policy": { "_desc": "CP extension contains more than one policy" },
@@ -179,12 +196,14 @@
 					"Netscape Certificate Type": {
 						"_label": "NSCT",
 						"_import": [ "*asn1_encoding_issues/*", "bitstring_issues/*" ],
+						"_topic": "X.509 Netscape Certificate Type Extension",
 						"Empty": { "_desc": "NSCT extension has no bits set" },
 						"Unused Bit Set": { "_desc": "NSCT extension has 'unused' bit set" }
 					},
 					"CRL Distribution Points": {
 						"_label": "CRLDP",
 						"_import": [ "*asn1_encoding_issues/*", "x509_ext_checks/*:empty,critical{name=CRLDP}" ],
+						"_topic": "X.509 CRL Distribution Points Extension",
 						"No Point with all reason bits": { "_desc": "CRLDP extension contains no point that has all reason bits set" },
 						"Point with only Reasons": { "_desc": "CDLDP extension contains a point that only has the 'reason' bit set" },
 						"Segmentation used": { "_desc": "CRLDP contains points that contain CRLs that are not universal" },
@@ -212,11 +231,13 @@
 					"Certificate Transparency Precertificate Poison": {
 						"_label": "CTPP",
 						"_import": [ "*asn1_encoding_issues/*", "x509_ext_checks/*:notcritical{name=CTPP}" ],
+						"_topic": "X.509 Certificate Transparency Precertificate Poison Extension",
 						"Is Precertificate": { "_desc": "CTPP extension indicates precertificate" }
 					},
 					"Certificate Transparency Signed Certificate Timestamps": {
 						"_label": "CTSCT",
 						"_import": "*asn1_encoding_issues/*",
+						"_topic": "X.509 Certificate Transparency Signed Certificate Timestamps Extension",
 						"Malformed": {
 							"Content": { "_desc": "CTSCT content malformed" }
 						},
@@ -230,12 +251,14 @@
 				},
 				"Unknown Extension": {
 					"_label": "Unknown",
+					"_topic": "Unknown X.509 Extension",
 					"_import": [ "*asn1_encoding_issues/*:notype", "x509_ext_checks/*:critical,notcritical{name=unknown}" ]
 				}
 			}
 		},
 		"Signature": {
 			"_import": "crypto_hash{name=signature}",
+			"_topic": "Certificate Signature",
 			"Function": {
 				"Common": { "_desc": "commonly used signature function" },
 				"Unknown": { "_desc": "unknown signature function used" },
@@ -257,6 +280,7 @@
 		"_label": "Cert Usage",
 		"Purposes": {
 			"_label": "Purpose",
+			"_topic": "Certificate Purpose",
 			"Client Certificate": {
 				"_label": "Client Cert",
 				"_import": "x509_ku_check{name=client certificate}",
@@ -311,6 +335,7 @@
 			}
 		},
 		"CA Relationship": {
+			"_topic": "Certificate/CA Relationship",
 			"CA Certificate invalid as CA": { "_desc": "CA certificate is invalid for use as a CA" },
 			"Signature": {
 				"Verification Failure": { "_desc": "signature verification failure" },

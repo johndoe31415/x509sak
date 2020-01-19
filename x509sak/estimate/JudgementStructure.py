@@ -32,6 +32,7 @@ class RichJudgementCode():
 	def __init__(self, name, description, **kwargs):
 		self._name = name
 		self._description = description
+		self._topic = kwargs.get("topic")
 		self._flags = kwargs.get("flags")
 		self._order = kwargs.get("order")
 
@@ -44,16 +45,16 @@ class RichJudgementCode():
 		return self._name
 
 	@property
-	def topic(self):
-		return "TODO TOPIC"
+	def description(self):
+		return self._description
 
 	@property
-	def short_text(self):
-		return "TODO SHORT TEXT"
+	def topic(self):
+		return self._topic
 
 	@classmethod
 	def from_node(cls, node):
-		return cls(name = node.long_id, description = node.attrs["desc"], order = node.order)
+		return cls(name = node.long_id, description = node.attrs["desc"], topic = node.attrs.get("topic"), order = node.order)
 
 	@property
 	def cmptuple(self):
@@ -76,7 +77,7 @@ class StructureNode():
 	_ImportStatement = collections.namedtuple("ImportStatement", [ "name", "import_contents", "export_root_point", "flags", "substitutions" ])
 	_LABEL_REGULAR_CHARS = set(string.ascii_lowercase + string.ascii_uppercase + string.digits)
 	_LABEL_UNDERSCORE_CHARS = set("/")
-	_ALLOWED_ATTRIBUTES = set([ "short_id", "long_id", "import", "export", "flags", "desc", "label", "require", "clone_of" ])
+	_ALLOWED_ATTRIBUTES = set([ "short_id", "long_id", "import", "export", "flags", "desc", "label", "require", "topic", "clone_of" ])
 	_ALLOWED_FLAGS = set([ "datapoint" ])
 
 	def __init__(self, name, children = None, attributes = None):
@@ -294,6 +295,7 @@ class JudgementStructure():
 		self._process_imports()
 		self._root = self._root.filter(filter_predicate = lambda node: not node.attrs.get("export"))
 		self._root.assign_nodes_long_ids()
+		self._root.propagate_attribute_subtree("topic")
 		self._assign_order()
 
 	@property
