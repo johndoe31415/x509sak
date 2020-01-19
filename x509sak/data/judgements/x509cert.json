@@ -116,12 +116,20 @@
 						"_import": [ "*asn1_encoding_issues/*", "x509_ext_checks/*:empty,notcritical,noca{name=NC}" ],
 						"_topic": "X.509 Name Constraints Extension",
 						"Subtree": {
-							"Minimum not Zero": { "_desc": "NC extension subtree minimum attribute is non-zero" },
-							"Maximum present": { "_desc": "NC extension subtree maximum attribute is present" },
+							"_export": true,
+							"_short_id": "ext_nc_subtree",
+							"Minimum not Zero": { "_desc": "$name minimum attribute is non-zero" },
+							"Maximum present": { "_desc": "$name maximum attribute is present" },
 							"Name": {
-								"_import": "*general_name_issues/*",
-								"Restiction on RegisteredID": { "_desc": "NC extension imposes restriction on RegisteredID" }
+								"_import": "*general_name_issues/*:allow_dirname,allow_dns,allow_dns_wc,allow_ip,allow_ip_subnet",
+								"Restiction on RegisteredID": { "_desc": "$name restriction on RegisteredID" }
 							}
+						},
+						"Permitted Subtree": {
+							"_import": "ext_nc_subtree/*{name=NC extension permitted subtree}"
+						},
+						"Excluded Subtree": {
+							"_import": "ext_nc_subtree/*{name=NC extension excluded subtree}"
 						}
 					},
 					"Key Usage": {

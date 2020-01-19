@@ -122,11 +122,15 @@ class GeneralNameValidationResult(BaseValidationResult):
 
 	def _validate_iPAddress(self):
 		self._report("Enc_DER_Struct_GenName_IPAddress_Unexpected", "contains unexpected IP address \"%s\"." % (self._subject.str_value))
-		if len(self._subject.asn1_value) not in [ 4, 16 ]:
+
+		address_length = len(self._subject.asn1_value)
+		if (not self._validator.ip_addresses_are_subnets) and (address_length not in [ 4, 16 ]):
 			self._report("Enc_DER_Struct_GenName_IPAddress_Malformed", "expects either 4 or 16 bytes of data for IPv4/IPv6, but saw %d bytes." % (len(self._subject.str_value)))
+		elif self._validator.ip_addresses_are_subnets and (address_length not in [ 8, 32 ]):
+			self._report("Enc_DER_Struct_GenName_IPAddress_Malformed", "expects either 8 or 32 bytes of data for IPv4/IPv6 subnet, but saw %d bytes." % (len(self._subject.str_value)))
 		else:
 			if len(self._subject.asn1_value) == 4:
-				# IPv4
+				# IPv4 single address
 				ip_value = int.from_bytes(self._subject.asn1_value, byteorder = "big")
 				private_networks = (
 					(0x0a000000, 0xff000000, "private class A"),
@@ -185,10 +189,11 @@ class GeneralNameValidationResult(BaseValidationResult):
 class GeneralNameValidator(BaseValidator):
 	_ValidationResultClass = GeneralNameValidationResult
 
-	def __init__(self, validation_subject, recognized_issues, permissible_uri_schemes = None, allow_dnsname_wildcard_matches = None):
+	def __init__(self, validation_subject, recognized_issues, permissible_uri_schemes = None, allow_dnsname_wildcard_matches = False, ip_addresses_are_subnets = False):
 		BaseValidator.__init__(self, validation_subject, recognized_issues)
 		self._permissible_uri_schemes = permissible_uri_schemes
 		self._allow_dnsname_wildcard_matches = allow_dnsname_wildcard_matches
+		self._ip_addresses_are_subnets = ip_addresses_are_subnets
 
 	@property
 	def permissible_uri_schemes(self):
@@ -197,6 +202,10 @@ class GeneralNameValidator(BaseValidator):
 	@property
 	def allow_dnsname_wildcard_matches(self):
 		return self._allow_dnsname_wildcard_matches
+
+	@property
+	def ip_addresses_are_subnets(self):
+		return self._ip_addresses_are_subnets
 
 	def validate_asn1(self, general_name_asn1):
 		general_name = ASN1GeneralNameWrapper.from_asn1(general_name_asn1)
