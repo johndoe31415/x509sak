@@ -1416,9 +1416,6 @@ class SecurityAnalyzerTests(BaseTest):
 	def test_generated_ext_AKI_caname_dns_whitespace(self):
 		self._test_examine_x509test_resultcode("certs/generated/ext_AKI_caname_dns_whitespace.pem", expect_present = "X509Cert_Body_X509Exts_Ext_AKI_CAName_DNS_OnlyWhitespace")
 
-	def test_generated_ext_AKI_caname_edipartyname_empty(self):
-		self._test_examine_x509test_resultcode("certs/generated/ext_AKI_caname_edipartyname_empty.pem", expect_present = "X509Cert_Body_X509Exts_Ext_AKI_CAName_EDIPartyName_Unexpected")
-
 	def test_generated_ext_AKI_caname_edipartyname_ok(self):
 		self._test_examine_x509test_resultcode("certs/generated/ext_AKI_caname_edipartyname_ok.pem", expect_present = "X509Cert_Body_X509Exts_Ext_AKI_CAName_EDIPartyName_Unexpected")
 
@@ -1455,6 +1452,9 @@ class SecurityAnalyzerTests(BaseTest):
 	def test_generated_ext_AKI_caname_x400address_empty(self):
 		self._test_examine_x509test_resultcode("certs/generated/ext_AKI_caname_x400address_empty.pem", expect_present = "X509Cert_Body_X509Exts_Ext_AKI_CAName_X400Address_Unexpected")
 
+	def test_generated_ext_AKI_caname_x400address_ok(self):
+		self._test_examine_x509test_resultcode("certs/generated/ext_AKI_caname_x400address_ok.pem", expect_present = "X509Cert_Body_X509Exts_Ext_AKI_CAName_X400Address_Unexpected")
+
 	def test_generated_ext_CRLDP_issuer_dirname_empty(self):
 		self._test_examine_x509test_resultcode("certs/generated/ext_CRLDP_issuer_dirname_empty.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_CRLIssuer_DirectoryAddress_Empty")
 
@@ -1472,9 +1472,6 @@ class SecurityAnalyzerTests(BaseTest):
 
 	def test_generated_ext_CRLDP_issuer_dns_whitespace(self):
 		self._test_examine_x509test_resultcode("certs/generated/ext_CRLDP_issuer_dns_whitespace.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_CRLIssuer_DNS_OnlyWhitespace")
-
-	def test_generated_ext_CRLDP_issuer_edipartyname_empty(self):
-		self._test_examine_x509test_resultcode("certs/generated/ext_CRLDP_issuer_edipartyname_empty.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_CRLIssuer_EDIPartyName_Unexpected")
 
 	def test_generated_ext_CRLDP_issuer_edipartyname_ok(self):
 		self._test_examine_x509test_resultcode("certs/generated/ext_CRLDP_issuer_edipartyname_ok.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_CRLIssuer_EDIPartyName_Unexpected")
@@ -1512,6 +1509,9 @@ class SecurityAnalyzerTests(BaseTest):
 	def test_generated_ext_CRLDP_issuer_x400address_empty(self):
 		self._test_examine_x509test_resultcode("certs/generated/ext_CRLDP_issuer_x400address_empty.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_CRLIssuer_X400Address_Unexpected")
 
+	def test_generated_ext_CRLDP_issuer_x400address_ok(self):
+		self._test_examine_x509test_resultcode("certs/generated/ext_CRLDP_issuer_x400address_ok.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_CRLIssuer_X400Address_Unexpected")
+
 	def test_generated_ext_CRLDP_point_dirname_empty(self):
 		self._test_examine_x509test_resultcode("certs/generated/ext_CRLDP_point_dirname_empty.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_PointName_DirectoryAddress_Empty")
 
@@ -1529,9 +1529,6 @@ class SecurityAnalyzerTests(BaseTest):
 
 	def test_generated_ext_CRLDP_point_dns_whitespace(self):
 		self._test_examine_x509test_resultcode("certs/generated/ext_CRLDP_point_dns_whitespace.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_PointName_DNS_OnlyWhitespace")
-
-	def test_generated_ext_CRLDP_point_edipartyname_empty(self):
-		self._test_examine_x509test_resultcode("certs/generated/ext_CRLDP_point_edipartyname_empty.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_PointName_EDIPartyName_Unexpected")
 
 	def test_generated_ext_CRLDP_point_edipartyname_ok(self):
 		self._test_examine_x509test_resultcode("certs/generated/ext_CRLDP_point_edipartyname_ok.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_PointName_EDIPartyName_Unexpected")
@@ -1565,3 +1562,6 @@ class SecurityAnalyzerTests(BaseTest):
 
 	def test_generated_ext_CRLDP_point_x400address_empty(self):
 		self._test_examine_x509test_resultcode("certs/generated/ext_CRLDP_point_x400address_empty.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_PointName_X400Address_Unexpected")
+
+	def test_generated_ext_CRLDP_point_x400address_ok(self):
+		self._test_examine_x509test_resultcode("certs/generated/ext_CRLDP_point_x400address_ok.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_PointName_X400Address_Unexpected")

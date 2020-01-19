@@ -105,6 +105,11 @@ class GeneralNameValidationResult(BaseValidationResult):
 				if len(labels) <= 2:
 					self._report("Enc_DER_Struct_GenName_DNS_Wildcard_BroadMatch", "has wildcard value \"%s\", which is an extremely broad domain match." % (self._subject.str_value), commonness = Commonness.HIGHLY_UNUSUAL)
 
+		else:
+			if "*" in self._subject.str_value:
+				# Not permitted but wildcard present
+				self._report("Enc_DER_Struct_GenName_DNS_Wildcard_NotPermitted", "has wildcard value \"%s\", which is not permitted for this type." % (self._subject.str_value), commonness = Commonness.HIGHLY_UNUSUAL)
+
 		if not "." in self._subject.str_value:
 			self._report("Enc_DER_Struct_GenName_DNS_SingleLabel", "contains only single label \"%s\", which is highly unusual." % (self._subject.str_value), commonness = Commonness.HIGHLY_UNUSUAL)
 
@@ -145,6 +150,8 @@ class GeneralNameValidationResult(BaseValidationResult):
 
 	def _validate_directoryName(self):
 		self._report("Enc_DER_Struct_GenName_DirectoryAddress_Unexpected", "contains unexpected directory name \"%s\"." % (self._subject.str_value))
+		if self._subject.directory_name.rdn_count == 0:
+			self._report("Enc_DER_Struct_GenName_DirectoryAddress_Empty", "contains empty directory name \"%s\"." % (self._subject.str_value))
 
 	def _validate_uniformResourceIdentifier(self):
 		self._report("Enc_DER_Struct_GenName_URI_Unexpected", "contains unexpected URI \"%s\"." % (self._subject.str_value))
@@ -158,11 +165,22 @@ class GeneralNameValidationResult(BaseValidationResult):
 	def _validate_registeredID(self):
 		self._report("Enc_DER_Struct_GenName_RegisteredID_Unexpected", "contains unexpected registered ID \"%s\"." % (self._subject.str_value))
 
+	def _validate_otherName(self):
+		self._report("Enc_DER_Struct_GenName_OtherName_Unexpected", "contains unexpected other name \"%s\"." % (self._subject.str_value))
+
+	def _validate_x400Address(self):
+		self._report("Enc_DER_Struct_GenName_X400Address_Unexpected", "contains unexpected X.400 address \"%s\"." % (self._subject.str_value))
+
+	def _validate_ediPartyName(self):
+		self._report("Enc_DER_Struct_GenName_EDIPartyName_Unexpected", "contains unexpected EDI party name \"%s\"." % (self._subject.str_value))
+
 	def _validate(self):
-		gn_subtype_handler = getattr(self, "_validate_%s" % (str(self._subject.name)), None)
+		method_name = "_validate_%s" % (str(self._subject.name))
+		gn_subtype_handler = getattr(self, method_name, None)
 		if gn_subtype_handler is not None:
 			gn_subtype_handler()
-
+		else:
+			print(method_name)
 
 class GeneralNameValidator(BaseValidator):
 	_ValidationResultClass = GeneralNameValidationResult

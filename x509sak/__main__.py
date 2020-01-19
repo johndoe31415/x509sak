@@ -283,7 +283,7 @@ if ActionTestcaseGen is not None:
 		parser.add_argument("-p", "--parameter", metavar = "key=value", type = str, action = "append", default = [ ], help = "Give a key/value parameter.")
 		parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
 		parser.add_argument("tcname", metavar = "basename", type = str, help = "Testcase name to render.")
-	mc.register("testcasegen", "Generate testcase certificates", genparser, aliases = [ "tcgen" ], action = ActionTestcaseGen, visible = False)
+	mc.register("testcasegen", "Generate testcase certificates", genparser, aliases = [ "gentc", "tcgen" ], action = ActionTestcaseGen, visible = False)
 
 try:
 	mc.run(sys.argv[1:])

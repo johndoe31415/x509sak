@@ -3,7 +3,7 @@
 
 <%
 	declare_parameter("field", [ "CRLDP_point", "CRLDP_issuer", "AKI_caname" ])
-	declare_parameter("mode", [ "dirname_empty", "dirname_ok", "dns_malformed", "dns_ok", "dns_single_label", "dns_wc_broad", "dns_wc_international", "dns_wc_multiple", "dns_wc_notleftmost", "dns_wc_ok", "dns_whitespace", "edipartyname_empty", "edipartyname_ok", "email_malformed", "email_ok", "ip_malformed", "ip_ok", "ip_private", "othername_ok", "registeredid_ok", "uri_malformed", "uri_ok", "uri_uncommon_scheme", "x400address_empty" ])
+	declare_parameter("mode", [ "dirname_empty", "dirname_ok", "dns_malformed", "dns_ok", "dns_single_label", "dns_wc_broad", "dns_wc_international", "dns_wc_multiple", "dns_wc_notleftmost", "dns_wc_ok", "dns_whitespace", "edipartyname_ok", "email_malformed", "email_ok", "ip_malformed", "ip_ok", "ip_private", "othername_ok", "registeredid_ok", "uri_malformed", "uri_ok", "uri_uncommon_scheme", "x400address_empty", "x400address_ok" ])
 	(field, mode) = (str(p("field")), str(p("mode")))
 	export_var("filename", "ext_" + field + "_" + mode)
 
@@ -36,6 +36,7 @@
 		"othername_ok":				"OtherName_Unexpected",
 		"edipartyname_empty":		"EDIPartyName_Unexpected",
 		"edipartyname_ok":			"EDIPartyName_Unexpected",
+		"x400address_ok":			"X400Address_Unexpected",
 		"x400address_empty":		"X400Address_Unexpected",
 	}.get(mode, "?")
 	if "?" in errcode:
@@ -82,11 +83,17 @@
 	[2 PRIMITIVE] { "xn--fobar-*jua.foobar.com" }
 %elif name_type == "dns_wc_broad":
 	[2 PRIMITIVE] { "*" }
-%elif name_type == "x400address_empty":
+%elif name_type == "x400address_ok":
 	[3] {
 		SEQUENCE {
-			SEQUENCE {}
+			[APPLICATION 1] {
+				PrintableString { "DE" }
+			}
 		}
+	}
+%elif name_type == "x400address_empty":
+	[3] {
+		SEQUENCE {}
 	}
 %elif name_type == "dirname_ok":
 	[4] {
@@ -106,11 +113,9 @@
 	}
 %elif name_type == "edipartyname_ok":
 [5] {
-	UTF8String { "This is a directory string" }
-}
-%elif name_type == "edipartyname_empty":
-[5] {
-	UTF8String { "" }
+	[1] {
+		UTF8String { "This is a directory string" }
+	}
 }
 %elif name_type == "uri_ok":
 	[6 PRIMITIVE] { "http://foobar.com" }
@@ -123,7 +128,7 @@
 %elif name_type == "ip_malformed":
 	[7] { OCTET_STRING { `aabbcc` } }
 %elif name_type == "ip_private":
-	[7] { OCTET_STRING { `c8a87b7b` } }
+	[7] { OCTET_STRING { `c0a87b7b` } }
 %elif name_type == "registeredid_ok":
 	[8 PRIMITIVE] { 1.2.3.4.5 }
 %else:
