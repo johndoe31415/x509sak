@@ -3,7 +3,7 @@
 
 <%
 	declare_parameter("field", [ "CRLDP_point", "CRLDP_issuer", "AKI_caname" ])
-	declare_parameter("mode", [ "othername_ok", "email_ok", "email_malformed", "ip_ok", "ip_private", "ip_malformed", "dirname_ok", "dirname_empty", "uri_ok", "uri_malformed", "uri_uncommon_scheme", "dns_ok", "dns_malformed", "dns_whitespace", "dns_single_label", "dns_wc_ok", "dns_wc_notleftmost", "dns_wc_multiple", "dns_wc_international", "dns_wc_broad", "registeredid_ok" ])
+	declare_parameter("mode", [ "dirname_empty", "dirname_ok", "dns_malformed", "dns_ok", "dns_single_label", "dns_wc_broad", "dns_wc_international", "dns_wc_multiple", "dns_wc_notleftmost", "dns_wc_ok", "dns_whitespace", "edipartyname_empty", "edipartyname_ok", "email_malformed", "email_ok", "ip_malformed", "ip_ok", "ip_private", "othername_ok", "registeredid_ok", "uri_malformed", "uri_ok", "uri_uncommon_scheme", "x400address_empty" ])
 	(field, mode) = (str(p("field")), str(p("mode")))
 	export_var("filename", "ext_" + field + "_" + mode)
 
@@ -35,7 +35,8 @@
 		"uri_ok":					"URI_Unexpected",
 		"othername_ok":				"OtherName_Unexpected",
 		"edipartyname_empty":		"EDIPartyName_Unexpected",
-		"x400name_empty":			"X400Name_Unexpected",
+		"edipartyname_ok":			"EDIPartyName_Unexpected",
+		"x400address_empty":		"X400Address_Unexpected",
 	}.get(mode, "?")
 	if "?" in errcode:
 		error(errcode, field, mode)
@@ -81,7 +82,7 @@
 	[2 PRIMITIVE] { "xn--fobar-*jua.foobar.com" }
 %elif name_type == "dns_wc_broad":
 	[2 PRIMITIVE] { "*" }
-%elif name_type == "x400name_empty":
+%elif name_type == "x400address_empty":
 	[3] {
 		SEQUENCE {
 			SEQUENCE {}
@@ -106,6 +107,10 @@
 %elif name_type == "edipartyname_ok":
 [5] {
 	UTF8String { "This is a directory string" }
+}
+%elif name_type == "edipartyname_empty":
+[5] {
+	UTF8String { "" }
 }
 %elif name_type == "uri_ok":
 	[6 PRIMITIVE] { "http://foobar.com" }
