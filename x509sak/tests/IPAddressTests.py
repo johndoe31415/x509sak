@@ -106,3 +106,9 @@ class IPAddressTests(BaseTest):
 		self.assertEqual(str(IPAddress.create_cidr_subnet(8)), "255.0.0.0")
 		self.assertEqual(str(IPAddress.create_cidr_subnet(1)), "128.0.0.0")
 		self.assertEqual(str(IPAddress.create_cidr_subnet(0)), "0.0.0.0")
+
+	def test_cidr_contained(self):
+		self.assertTrue(IPAddressSubnet.from_str("192.168.1.0/24").ip_in_subnet(IPAddress.from_str("192.168.1.123")))
+		self.assertTrue(IPAddressSubnet.from_str("192.168.1.0/24").ip_in_subnet(IPAddress.from_str("192.168.1.0")))
+		self.assertTrue(IPAddressSubnet.from_str("192.168.1.0/24").ip_in_subnet(IPAddress.from_str("192.168.1.255")))
+		self.assertFalse(IPAddressSubnet.from_str("192.168.1.0/24").ip_in_subnet(IPAddress.from_str("192.168.2.255")))

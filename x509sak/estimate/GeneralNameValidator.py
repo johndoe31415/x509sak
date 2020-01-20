@@ -24,6 +24,7 @@ from x509sak.estimate.Judgement import Commonness
 from x509sak.ASN1Wrapper import ASN1GeneralNameWrapper
 from x509sak.Tools import ValidationTools
 from x509sak.estimate.Validator import BaseValidator, BaseValidationResult
+from x509sak.IPAddress import IPAddressSubnet
 
 #		"empty_value":					GeneralNameValidator.Error(code = JudgementCode.X509Cert_Body_X509Exts_Ext_SAN_EmptyValue),
 #		"email":						GeneralNameValidator.Error(code = JudgementCode.X509Cert_Body_X509Exts_Ext_SAN_Name_Email_Malformed, standard = RFCReference(rfcno = 822, sect = "6.1", verb = "MUST", text = "addr-spec = local-part \"@\" domain")),
@@ -77,6 +78,29 @@ from x509sak.estimate.Validator import BaseValidator, BaseValidationResult
 
 
 class GeneralNameValidationResult(BaseValidationResult):
+	_PRIVATE_SUBNETS_IPV4 = (
+		("current network",			IPAddressSubnet.from_str("0.0.0.0/8")),
+		("private class A",			IPAddressSubnet.from_str("10.0.0.0/8")),
+		("private class B",			IPAddressSubnet.from_str("172.16.0.0/12")),
+		("private class C",			IPAddressSubnet.from_str("192.168.0.0/16")),
+		("carrier-grade NAT",		IPAddressSubnet.from_str("100.64.0.0/10")),
+		("loopback",				IPAddressSubnet.from_str("127.0.0.0/8")),
+		("link-local address",		IPAddressSubnet.from_str("169.254.0.0/16")),
+		("benchmarking subnet",		IPAddressSubnet.from_str("198.18.0.0/15")),
+		("IP multicast",			IPAddressSubnet.from_str("224.0.0.0/4")),
+		("reserved",				IPAddressSubnet.from_str("240.0.0.0/4")),
+		("limited broadcast",		IPAddressSubnet.from_str("255.255.255.255/32")),
+	)
+
+#	_PRIVATE_SUBNETS_IPV6 = (
+#		("loopback",				IPAddressSubnet.from_str("::1/128")),
+#		("discard",					IPAddressSubnet.from_str("100::/64")),
+#		("deprecated 6to4 scheme",	IPAddressSubnet.from_str("2002::/16")),
+#		("link-local address",		IPAddressSubnet.from_str("fc00::/7")),
+#		("link-local address",		IPAddressSubnet.from_str("fe80::/8")),
+#		("multicast address",		IPAddressSubnet.from_str("ff00::/8")),
+#	)
+
 	def _get_message(self, issue, message):
 		return "%s of type %s %s" % (self._validator.validation_subject, self._subject.name, message)
 
@@ -132,18 +156,8 @@ class GeneralNameValidationResult(BaseValidationResult):
 			if len(self._subject.asn1_value) == 4:
 				# IPv4 single address
 				ip_value = int.from_bytes(self._subject.asn1_value, byteorder = "big")
-				private_networks = (
-					(0x0a000000, 0xff000000, "private class A"),
-					(0xac100000, 0xfff00000, "private class B"),
-					(0xc0a80000, 0xffff0000, "private class C"),
-					(0x64400000, 0xffc00000, "carrier-grade NAT"),
-					(0xe0000000, 0xf0000000, "IP multicast"),
-					(0xf0000000, 0xf0000000, "reserved"),
-					(0x7f000000, 0xff000000, "loopback"),
-					(0xffffffff, 0xffffffff, "limited broadcast"),
-				)
-				for (network, netmask, network_class) in private_networks:
-					if (ip_value & netmask) == network:
+				for (network_class, subnet) in self._PRIVATE_SUBNETS_IPV4:
+					if subnet.ip_in_subnet(self._subject.ip):
 						self._report("Enc_DER_Struct_GenName_IPAddress_PrivateAddressSpace", "has network address %s in a %s subnet." % (self._subject.str_value, network_class))
 						break
 

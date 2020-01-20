@@ -117,6 +117,10 @@ class IPAddressSubnet():
 			return None
 
 	@property
+	def is_ipv4(self):
+		return self.ip.is_ipv4
+
+	@property
 	def ip(self):
 		return self._ip
 
@@ -157,6 +161,13 @@ class IPAddressSubnet():
 		ip = ip_subnet_data[:mid]
 		subnet = ip_subnet_data[mid:]
 		return cls(ip = IPAddress(ip), subnet = IPAddress(subnet))
+
+	def ip_in_subnet(self, ip):
+		if ip.is_ipv4 != self.is_ipv4:
+			return False
+		self_network = int(self.ip) & int(self.subnet)
+		ip_network = int(ip) & int(self.subnet)
+		return self_network == ip_network
 
 	def __str__(self):
 		cidr = self.cidr
