@@ -35,6 +35,23 @@ class IPAddress():
 	def ipv6_chunks(self):
 		return (((self._data[i] << 8) | self._data[i + 1]) for i in range(0, 16, 2))
 
+	@classmethod
+	def from_str(cls, ip_str):
+		return cls(bytes(int(x) for x in ip_str.split(".")))
+
+	@classmethod
+	def create_cidr_subnet(cls, network_bits, is_ipv4 = True):
+		bits_total = 32 if is_ipv4 else 128
+		assert(0 <= network_bits <= bits_total)
+		all_bits = (1 << bits_total) - 1
+		variable_mask = (1 << (32 - network_bits)) - 1
+		cidr_mask = all_bits & (~variable_mask)
+		cidr_data = int.to_bytes(cidr_mask, length = bits_total // 8, byteorder = "big")
+		return cls(cidr_data)
+
+	def __bytes__(self):
+		return self._data
+
 	def __int__(self):
 		return int.from_bytes(self._data, byteorder = "big")
 
@@ -118,6 +135,17 @@ class IPAddressSubnet():
 	@property
 	def overlap(self):
 		return self._overlap
+
+	@classmethod
+	def from_str(cls, ip_subnet_str):
+		ip_subnet = ip_subnet_str.split("/")
+		ip  = IPAddress.from_str(ip_subnet[0])
+		try:
+			network_bits = int(ip_subnet[1])
+			subnet = IPAddress.create_cidr_subnet(network_bits, is_ipv4 = ip.is_ipv4)
+		except ValueError:
+			subnet = IPAddress.from_str(ip_subnet[1])
+		return cls(ip, subnet)
 
 	@classmethod
 	def from_bytes(cls, ip_subnet_data, allow_ip_only = False):

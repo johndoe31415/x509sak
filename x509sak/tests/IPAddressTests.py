@@ -89,3 +89,20 @@ class IPAddressTests(BaseTest):
 	def test_subnet_malformed(self):
 		with self.assertRaises(InvalidIPAddressException):
 			IPAddressSubnet(IPAddress(range(4)), IPAddress(range(16)))
+
+	def test_subnet_parse(self):
+		subnet = IPAddressSubnet.from_str("192.168.1.0/24")
+		self.assertEqual(str(subnet.ip), "192.168.1.0")
+		self.assertEqual(str(subnet.subnet), "255.255.255.0")
+
+		subnet = IPAddressSubnet.from_str("192.168.1.0/255.255.255.0")
+		self.assertEqual(str(subnet), "192.168.1.0/24")
+
+	def test_cidr_create_ipv4(self):
+		self.assertEqual(str(IPAddress.create_cidr_subnet(32)), "255.255.255.255")
+		self.assertEqual(str(IPAddress.create_cidr_subnet(24)), "255.255.255.0")
+		self.assertEqual(str(IPAddress.create_cidr_subnet(16)), "255.255.0.0")
+		self.assertEqual(str(IPAddress.create_cidr_subnet(10)), "255.192.0.0")
+		self.assertEqual(str(IPAddress.create_cidr_subnet(8)), "255.0.0.0")
+		self.assertEqual(str(IPAddress.create_cidr_subnet(1)), "128.0.0.0")
+		self.assertEqual(str(IPAddress.create_cidr_subnet(0)), "0.0.0.0")
