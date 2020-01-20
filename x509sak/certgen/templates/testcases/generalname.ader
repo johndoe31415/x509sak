@@ -48,7 +48,7 @@
 			"ip_private":				"IPAddress_Malformed",
 			"ip_ok":					"IPAddress_Malformed",
 			"subnet_ok":				"IPAddress_Unexpected",
-			"subnet_malformed":			"IPAddress_SubnetMalformed",
+			"subnet_malformed":			"IPAddress_MalformedSubnet",
 			"subnet_noncidr":			"IPAddress_NonCIDRBlock",
 		})
 	else:

@@ -464,6 +464,9 @@ class GeneratedSecurityAnalyzerTests(BaseAnalyzerTest):
 	def test_generated_generalname_ext_NC_excluded_registeredid_ok(self):
 		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_NC_excluded_registeredid_ok.pem", expect_present = "X509Cert_Body_X509Exts_Ext_NC_ExcludedSubtree_Name_RegisteredID_Unexpected")
 
+	def test_generated_generalname_ext_NC_excluded_subnet_malformed(self):
+		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_NC_excluded_subnet_malformed.pem", expect_present = "X509Cert_Body_X509Exts_Ext_NC_ExcludedSubtree_Name_IPAddress_MalformedSubnet")
+
 	def test_generated_generalname_ext_NC_excluded_subnet_noncidr(self):
 		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_NC_excluded_subnet_noncidr.pem", expect_present = "X509Cert_Body_X509Exts_Ext_NC_ExcludedSubtree_Name_IPAddress_NonCIDRBlock")
 
@@ -529,6 +532,9 @@ class GeneratedSecurityAnalyzerTests(BaseAnalyzerTest):
 
 	def test_generated_generalname_ext_NC_permitted_registeredid_ok(self):
 		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_NC_permitted_registeredid_ok.pem", expect_present = "X509Cert_Body_X509Exts_Ext_NC_PermittedSubtree_Name_RegisteredID_Unexpected")
+
+	def test_generated_generalname_ext_NC_permitted_subnet_malformed(self):
+		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_NC_permitted_subnet_malformed.pem", expect_present = "X509Cert_Body_X509Exts_Ext_NC_PermittedSubtree_Name_IPAddress_MalformedSubnet")
 
 	def test_generated_generalname_ext_NC_permitted_subnet_noncidr(self):
 		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_NC_permitted_subnet_noncidr.pem", expect_present = "X509Cert_Body_X509Exts_Ext_NC_PermittedSubtree_Name_IPAddress_NonCIDRBlock")
