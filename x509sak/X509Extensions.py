@@ -691,7 +691,6 @@ class X509NameConstraintsExtension(X509Extension):
 			return
 		self._permitted_subtrees = self._parse_subtrees(self.asn1["permittedSubtrees"])
 		self._excluded_subtrees = self._parse_subtrees(self.asn1["excludedSubtrees"])
-		print(self)
 
 	def __repr__(self):
 		return "%s<permitted = %s, excluded = %s>" % (self.__class__.__name__, self.permitted_subtrees, self.excluded_subtrees)

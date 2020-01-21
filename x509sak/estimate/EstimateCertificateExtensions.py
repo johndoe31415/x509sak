@@ -284,6 +284,10 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 				judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_NC_NoCA, "NameConstraints X.509 extension present, but certificate is not a CA certificate.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 			if nc.asn1 is not None:
+				if (len(nc.permitted_subtrees) == 0) and (len(nc.excluded_subtrees) == 0):
+					standard = RFCReference(rfcno = 5280, sect = "4.2.1.10", verb = "MUST", text = "Conforming CAs MUST NOT issue certificates where name constraints is an empty sequence. That is, either the permittedSubtrees field or the excludedSubtrees MUST be present.")
+					judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_NC_Empty, "NameConstraints X.509 extension present, but contains neither excluded nor permitted subtrees.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+
 				judgements += self._NAME_CONSTRAINTS_PERMITTED_SUBTREE_VALIDATOR.validate(nc.permitted_subtrees)
 				judgements += self._NAME_CONSTRAINTS_EXCLUDED_SUBTREE_VALIDATOR.validate(nc.excluded_subtrees)
 

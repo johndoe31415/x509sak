@@ -1179,3 +1179,18 @@ class SecurityAnalyzerTests(BaseAnalyzerTest):
 
 	def test_extension_unknown_trailing_data(self):
 		self._test_examine_x509test_resultcode("certs/constructed/ext_unknown_trailing_data.pem", expect_present = "X509Cert_Body_X509Exts_Unknown_TrailingData")
+
+	def test_ext_nc_empty(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ext_nc_empty.pem", expect_present = "X509Cert_Body_X509Exts_Ext_NC_Empty")
+
+	def test_ext_nc_excluded_minimum(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ext_nc_excluded_minimum.pem", expect_present = "X509Cert_Body_X509Exts_Ext_NC_ExcludedSubtree_MinimumNotZero")
+
+	def test_ext_nc_excluded_maximum(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ext_nc_excluded_maximum.pem", expect_present = "X509Cert_Body_X509Exts_Ext_NC_ExcludedSubtree_MaximumPresent")
+
+	def test_ext_nc_permitted_minimum(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ext_nc_permitted_minimum.pem", expect_present = "X509Cert_Body_X509Exts_Ext_NC_PermittedSubtree_MinimumNotZero")
+
+	def test_ext_nc_permitted_maximum(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ext_nc_permitted_maximum.pem", expect_present = "X509Cert_Body_X509Exts_Ext_NC_PermittedSubtree_MaximumPresent")
