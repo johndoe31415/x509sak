@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2018 Johannes Bauer
+#	Copyright (C) 2018-2020 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -43,14 +43,14 @@ class EDPrivateKey(PEMDERObject):
 	_ASN1_MODEL = _EDPrivateKey
 
 	def _post_decode_hook(self):
-		if self._asn1["privateKeyAlgorithm"]["algorithm"] is None:
+		if self.asn1["privateKeyAlgorithm"]["algorithm"] is None:
 			raise InvalidInputException("EdDSA private key does not contain curve OID. Cannot proceed.")
 
-		curve_oid = OID.from_asn1(self._asn1["privateKeyAlgorithm"]["algorithm"])
+		curve_oid = OID.from_asn1(self.asn1["privateKeyAlgorithm"]["algorithm"])
 		pk_alg = PublicKeyAlgorithms.lookup("oid", curve_oid)
 		self._curve = CurveDB().instantiate(oid = curve_oid)
 		self._prehash = pk_alg.value.fixed_params["prehash"]
-		private_key = bytes(self._asn1["privateKey"])
+		private_key = bytes(self.asn1["privateKey"])
 		if (private_key[0] != 0x04) or (private_key[1] != self.curve.element_octet_cnt):
 			raise InvalidInputException("EdDSA private key does start with 04 %02x, but with %02x %02x." % (self.curve.element_octet_cnt, private_key[0], private_key[1]))
 		if len(private_key) != self.curve.element_octet_cnt + 2:

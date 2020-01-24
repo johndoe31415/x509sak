@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2018 Johannes Bauer
+#	Copyright (C) 2018-2020 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -73,35 +73,35 @@ class RSAPrivateKey(PEMDERObject):
 
 	@property
 	def p(self):
-		return int(self._asn1["prime1"])
+		return int(self.asn1["prime1"])
 
 	@property
 	def q(self):
-		return int(self._asn1["prime2"])
+		return int(self.asn1["prime2"])
 
 	@property
 	def n(self):
-		return int(self._asn1["modulus"])
+		return int(self.asn1["modulus"])
 
 	@property
 	def e(self):
-		return int(self._asn1["publicExponent"])
+		return int(self.asn1["publicExponent"])
 
 	@property
 	def d(self):
-		return int(self._asn1["privateExponent"])
+		return int(self.asn1["privateExponent"])
 
 	@property
 	def dmp1(self):
-		return int(self._asn1["exponent1"])
+		return int(self.asn1["exponent1"])
 
 	@property
 	def dmq1(self):
-		return int(self._asn1["exponent2"])
+		return int(self.asn1["exponent2"])
 
 	@property
 	def iqmp(self):
-		return int(self._asn1["coefficient"])
+		return int(self.asn1["coefficient"])
 
 	@property
 	def phi_n(self):

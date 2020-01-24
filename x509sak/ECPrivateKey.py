@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2018 Johannes Bauer
+#	Copyright (C) 2018-2020 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -43,16 +43,16 @@ class ECPrivateKey(PEMDERObject):
 	_ASN1_MODEL = _ECPrivateKey
 
 	def _post_decode_hook(self):
-		if self._asn1["parameters"] is None:
+		if self.asn1["parameters"] is None:
 			raise InvalidInputException("ECC private key does not contain curve OID. Cannot proceed.")
-		if self._asn1["publicKey"] is None:
+		if self.asn1["publicKey"] is None:
 			raise InvalidInputException("ECC private key does not contain public key. Cannot proceed.")
 
-		curve_oid = OID.from_asn1(self._asn1["parameters"])
+		curve_oid = OID.from_asn1(self.asn1["parameters"])
 		self._curve = CurveDB().instantiate(oid = curve_oid)
 
-		self._d = int.from_bytes(self._asn1["privateKey"], byteorder = "big")
-		(self._x, self._y) = ECCTools.decode_enc_pubkey(ASN1Tools.bitstring2bytes(self._asn1["publicKey"]))
+		self._d = int.from_bytes(self.asn1["privateKey"], byteorder = "big")
+		(self._x, self._y) = ECCTools.decode_enc_pubkey(ASN1Tools.bitstring2bytes(self.asn1["publicKey"]))
 
 	@property
 	def cryptosystem(self):

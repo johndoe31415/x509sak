@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2018 Johannes Bauer
+#	Copyright (C) 2018-2020 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -29,15 +29,15 @@ class CertificateRevocationList(PEMDERObject):
 
 	@property
 	def this_update(self):
-		return ASN1Tools.parse_datetime(str(self._asn1["tbsCertList"]["thisUpdate"].getComponent()))
+		return ASN1Tools.parse_datetime(str(self.asn1["tbsCertList"]["thisUpdate"].getComponent()))
 
 	@property
 	def next_update(self):
-		return ASN1Tools.parse_datetime(str(self._asn1["tbsCertList"]["nextUpdate"].getComponent()))
+		return ASN1Tools.parse_datetime(str(self.asn1["tbsCertList"]["nextUpdate"].getComponent()))
 
 	@property
 	def crt_count(self):
-		return len(self._asn1["tbsCertList"]["revokedCertificates"])
+		return len(self.asn1["tbsCertList"]["revokedCertificates"])
 
 	def __str__(self):
 		return "CRL<%d entries, nextUpdate = %s UTC>" % (self.crt_count, self.next_update.strftime("%Y-%m-%d %H:%M:%S"))

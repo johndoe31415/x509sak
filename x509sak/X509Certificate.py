@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2018 Johannes Bauer
+#	Copyright (C) 2018-2020 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -56,11 +56,11 @@ class X509Certificate(PEMDERObject):
 
 	@property
 	def signed_payload(self):
-		return pyasn1.codec.der.encoder.encode(self._asn1["tbsCertificate"])
+		return pyasn1.codec.der.encoder.encode(self.asn1["tbsCertificate"])
 
 	@property
 	def signature_algorithm(self):
-		algorithm_oid = OID.from_asn1(self._asn1["signatureAlgorithm"]["algorithm"])
+		algorithm_oid = OID.from_asn1(self.asn1["signatureAlgorithm"]["algorithm"])
 		sig_alg = SignatureAlgorithms.lookup("oid", algorithm_oid)
 		if sig_alg is None:
 			raise UnknownAlgorithmException("Unknown signature OID %s." % (algorithm_oid))
@@ -68,56 +68,56 @@ class X509Certificate(PEMDERObject):
 
 	@property
 	def version(self):
-		return int(self._asn1["tbsCertificate"]["version"]) + 1
+		return int(self.asn1["tbsCertificate"]["version"]) + 1
 
 	@property
 	def serial(self):
-		return int(self._asn1["tbsCertificate"]["serialNumber"])
+		return int(self.asn1["tbsCertificate"]["serialNumber"])
 
 	@property
 	def pubkey(self):
-		pubkey_asn1 = self._asn1["tbsCertificate"]["subjectPublicKeyInfo"]
+		pubkey_asn1 = self.asn1["tbsCertificate"]["subjectPublicKeyInfo"]
 		return PublicKey.from_asn1(pubkey_asn1)
 
 	@property
 	def subject(self):
-		return DistinguishedName.from_asn1(self._asn1["tbsCertificate"]["subject"])
+		return DistinguishedName.from_asn1(self.asn1["tbsCertificate"]["subject"])
 
 	@property
 	def issuer(self):
-		return DistinguishedName.from_asn1(self._asn1["tbsCertificate"]["issuer"])
+		return DistinguishedName.from_asn1(self.asn1["tbsCertificate"]["issuer"])
 
 	@property
 	def valid_not_before(self):
-		return ASN1Tools.parse_datetime(str(self._asn1["tbsCertificate"]["validity"]["notBefore"].getComponent()))
+		return ASN1Tools.parse_datetime(str(self.asn1["tbsCertificate"]["validity"]["notBefore"].getComponent()))
 
 	@property
 	def valid_not_after(self):
-		return ASN1Tools.parse_datetime(str(self._asn1["tbsCertificate"]["validity"]["notAfter"].getComponent()))
+		return ASN1Tools.parse_datetime(str(self.asn1["tbsCertificate"]["validity"]["notAfter"].getComponent()))
 
 	@property
 	def subject_unique_id(self):
-		return self._asn1["tbsCertificate"]["subjectUniqueID"].asInteger() if self._asn1["tbsCertificate"]["subjectUniqueID"].hasValue() else None
+		return self.asn1["tbsCertificate"]["subjectUniqueID"].asInteger() if self.asn1["tbsCertificate"]["subjectUniqueID"].hasValue() else None
 
 	@property
 	def issuer_unique_id(self):
-		return self._asn1["tbsCertificate"]["issuerUniqueID"].asInteger() if self._asn1["tbsCertificate"]["issuerUniqueID"].hasValue() else None
+		return self.asn1["tbsCertificate"]["issuerUniqueID"].asInteger() if self.asn1["tbsCertificate"]["issuerUniqueID"].hasValue() else None
 
 	@property
 	def signature_alg_oid(self):
-		signature_alg_oid = OID.from_str(str(self._asn1["signatureAlgorithm"]["algorithm"]))
+		signature_alg_oid = OID.from_str(str(self.asn1["signatureAlgorithm"]["algorithm"]))
 		return signature_alg_oid
 
 	@property
 	def signature_alg_params(self):
-		if self._asn1["signatureAlgorithm"]["parameters"].hasValue():
-			return bytes(self._asn1["signatureAlgorithm"]["parameters"])
+		if self.asn1["signatureAlgorithm"]["parameters"].hasValue():
+			return bytes(self.asn1["signatureAlgorithm"]["parameters"])
 		else:
 			return None
 
 	@property
 	def signature(self):
-		signature = ASN1Tools.bitstring2bytes(self._asn1["signatureValue"])
+		signature = ASN1Tools.bitstring2bytes(self.asn1["signatureValue"])
 		return signature
 
 	@property
@@ -138,8 +138,8 @@ class X509Certificate(PEMDERObject):
 
 	def _get_extensions(self):
 		result = [ ]
-		if self._asn1["tbsCertificate"]["extensions"] is not None:
-			for extension in self._asn1["tbsCertificate"]["extensions"]:
+		if self.asn1["tbsCertificate"]["extensions"] is not None:
+			for extension in self.asn1["tbsCertificate"]["extensions"]:
 				oid = OID.from_asn1(extension["extnID"])
 				critical = bool(extension["critical"])
 				value = bytes(extension["extnValue"])
