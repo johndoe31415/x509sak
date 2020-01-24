@@ -1194,3 +1194,9 @@ class SecurityAnalyzerTests(BaseAnalyzerTest):
 
 	def test_ext_nc_permitted_maximum(self):
 		self._test_examine_x509test_resultcode("certs/constructed/ext_nc_permitted_maximum.pem", expect_present = "X509Cert_Body_X509Exts_Ext_NC_PermittedSubtree_MaximumPresent")
+
+	def test_cert_trailing_data(self):
+		self._test_examine_x509test_resultcode("certs/constructed/cert_trailing_data.pem", expect_present = "X509Cert_TrailingData")
+
+	def test_cert_non_der_encoding(self):
+		self._test_examine_x509test_resultcode("certs/constructed/cert_non_der_encoding.pem", expect_present = "X509Cert_Malformed_NonDEREncoding")

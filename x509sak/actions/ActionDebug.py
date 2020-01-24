@@ -27,6 +27,7 @@ import hashlib
 import subprocess
 import pyasn1.codec.der.decoder
 import pyasn1.codec.der.encoder
+import pyasn1.codec.ber.encoder
 import x509sak
 from x509sak import X509Certificate
 from x509sak.BaseAction import BaseAction
@@ -60,6 +61,7 @@ class ActionDebug(BaseAction):
 			"x509sak":	x509sak,
 			"derdec":	lambda data: pyasn1.codec.der.decoder.decode(data)[0],
 			"derenc":	pyasn1.codec.der.encoder.encode,
+			"berenc":	pyasn1.codec.ber.encoder.encode,
 			"crts":		crts,
 			"c":		crts[0] if (len(crts) > 0) else None,
 			"a":		crts[0].asn1 if (len(crts) > 0) else None,
