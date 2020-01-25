@@ -476,6 +476,9 @@ class SecurityAnalyzerTests(BaseAnalyzerTest):
 	def test_explicit_twofield_poly_duplicate_power(self):
 		self._test_examine_x509test_resultcode("certs/constructed/ecc_explicit_param_twofield_duplicate_power.pem", "X509Cert_PublicKey_ECC_DomainParameters_BinaryField_DuplicatePolynomialPower")
 
+	def test_explicit_twofield_weil_descent(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ecc_explicit_param_twofield_weil_descent.pem", "X509Cert_PublicKey_ECC_DomainParameters_CurveProperty_WeilDescent")
+
 	def test_explicit_unknown(self):
 		self._test_examine_x509test_resultcode("certs/ok/ecc_explicit_param_prime_custom_domain.pem", expect_present = [ "X509Cert_PublicKey_ECC_DomainParameters_Name_ExplicitCurve", "X509Cert_PublicKey_ECC_DomainParameters_Name_UnknownExplicit" ], expect_absent = "X509Cert_PublicKey_ECC_DomainParameters_Name_UnusedName")
 
