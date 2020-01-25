@@ -59,11 +59,8 @@ class PublicKeyEstimator(BaseEstimator):
 		except CurveNotFoundException as e:
 			return self._error_curve_not_found(certificate, e)
 
-		encoding_judgements = self._analyze_pubkey_encoding(certificate.pubkey.key)
-
 		result = {
 			"pubkey_alg":	pubkey.pk_alg.value.name,
-			"encoding":		encoding_judgements,
 		}
 		if pubkey.pk_alg.value.cryptosystem == Cryptosystems.RSA:
 			result["pretty"] = "RSA with %d bit modulus" % (pubkey.n.bit_length())
@@ -79,4 +76,6 @@ class PublicKeyEstimator(BaseEstimator):
 			result.update(self.algorithm("ecc").analyze(pubkey))
 		else:
 			raise LazyDeveloperException(NotImplemented, pubkey.pk_alg.value.cryptosystem)
+
+		result["security"] += self._analyze_pubkey_encoding(certificate.pubkey.key)
 		return result
