@@ -24,10 +24,23 @@ from x509sak.estimate.BaseEstimator import BaseEstimator
 from x509sak.Exceptions import LazyDeveloperException
 from x509sak.CurveDB import CurveNotFoundException
 from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, JudgementCode, Compatibility, Commonness
+from x509sak.PublicKey import RSAPublicKey
+from x509sak.estimate.DERValidator import DERValidator
 
 @BaseEstimator.register
 class PublicKeyEstimator(BaseEstimator):
 	_ALG_NAME = "pubkey"
+	_RSA_PUBKEY_DER_VALIDATOR = DERValidator.create_inherited("X509Cert_PublicKey_RSA", validation_subject = "Certificate RSA Public Key")
+
+	def _analyze_pubkey_encoding_rsa(self, pubkey):
+		judgements = SecurityJudgements()
+		asn1_details = pubkey.decoding_details
+		judgements += self._RSA_PUBKEY_DER_VALIDATOR.validate(asn1_details)
+		return judgements
+
+	def _analyze_pubkey_encoding(self, pubkey):
+		if isinstance(pubkey, RSAPublicKey):
+			return self._analyze_pubkey_encoding_rsa(pubkey)
 
 	def _error_curve_not_found(self, certificate, exception):
 		judgements = SecurityJudgements()
@@ -46,8 +59,11 @@ class PublicKeyEstimator(BaseEstimator):
 		except CurveNotFoundException as e:
 			return self._error_curve_not_found(certificate, e)
 
+		encoding_judgements = self._analyze_pubkey_encoding(certificate.pubkey.key)
+
 		result = {
 			"pubkey_alg":	pubkey.pk_alg.value.name,
+			"encoding":		encoding_judgements,
 		}
 		if pubkey.pk_alg.value.cryptosystem == Cryptosystems.RSA:
 			result["pretty"] = "RSA with %d bit modulus" % (pubkey.n.bit_length())

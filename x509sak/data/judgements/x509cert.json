@@ -6,7 +6,7 @@
 			"_import": "asn1_encoding_issues/*",
 			"_topic": "Certificate Public Key",
 			"RSA": {
-				"_import": [ "rsa_algorithm/*", "rsa_crypto/*", "rsa_pubkey_encoding_issues/*" ]
+				"_import": [ "rsa_algorithm/*", "rsa_crypto/*", "+rsa_pubkey_encoding_issues/*" ]
 			},
 			"ECC": {
 				"_import": [ "ecc_crypto/*", "ecdsa_pubkey_encoding_issues/*" ],

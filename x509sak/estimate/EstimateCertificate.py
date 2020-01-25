@@ -55,19 +55,6 @@ class CertificateEstimator(BaseEstimator):
 		if "trailing_data" in certificate.asn1_details.flags:
 			judgements += SecurityJudgement(JudgementCode.X509Cert_TrailingData, "Certificate contains %d bytes of trailing data." % (len(certificate.asn1_details.tail)), compatibility = Compatibility.STANDARDS_DEVIATION)
 
-		try:
-			pubkey_reencoding = pyasn1.codec.der.encoder.encode(certificate.pubkey.recreate().asn1)
-			if pubkey_reencoding != certificate.pubkey.der_data:
-				judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_Malformed_NonDEREncoding, "Certificate public key uses invalid DER encoding. Decoding and re-encoding yields %d byte blob while original was %d bytes." % (len(pubkey_reencoding), len(certificate.pubkey.der_data)), compatibility = Compatibility.STANDARDS_DEVIATION)
-		except pyasn1.error.PyAsn1Error:
-			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_Malformed_Undecodable, "Certificate public key uses invalid DER encoding. Re-encoding was not possible.", compatibility = Compatibility.STANDARDS_DEVIATION)
-		except NotImplementedError as e:
-			judgements += SecurityJudgement(JudgementCode.X509sakIssues_PublicKeyReencodingMissing, "Missing check due to non-implemented functionality: %s" % (str(e)), commonness = Commonness.UNUSUAL)
-		except CurveNotFoundException:
-			# We ignore this for the re-encoding, but have an explcit check for
-			# it in the EC checks that raises ECC_UnknownNamedCurve
-			pass
-
 		standard = RFCReference(rfcno = 5280, sect = [ "4.1.1.2", "4.1.2.3" ], verb = "MUST", text = "This field MUST contain the same algorithm identifier as the signature field in the sequence tbsCertificate (Section 4.1.2.3).")
 		oid_header = OID.from_asn1(certificate.asn1["tbsCertificate"]["signature"]["algorithm"])
 		oid_sig = OID.from_asn1(certificate.asn1["signatureAlgorithm"]["algorithm"])

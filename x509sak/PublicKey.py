@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2018 Johannes Bauer
+#	Copyright (C) 2018-2020 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -35,7 +35,19 @@ from x509sak.AlgorithmDB import PublicKeyAlgorithms, Cryptosystems
 class PublicKey(PEMDERObject):
 	_PEM_MARKER = "PUBLIC KEY"
 	_ASN1_MODEL = rfc2459.SubjectPublicKeyInfo
-	_ECPoint = collections.namedtuple("ECPoint", [ "curve", "x", "y" ])
+	_HANDLERS_BY_PK_ALG = { }
+	_HANDLERS_BY_CRYPTOSYSTEM = { }
+
+	@classmethod
+	def register_handler(cls, handler_class):
+		public_key_algs = handler_class._PK_ALG
+		assert(public_key_algs is not None)
+		if not isinstance(public_key_algs, tuple):
+			public_key_algs = [ public_key_algs ]
+		for public_key_alg in public_key_algs:
+			cls._HANDLERS_BY_PK_ALG[public_key_alg] = handler_class
+			cls._HANDLERS_BY_CRYPTOSYSTEM[public_key_alg.value.cryptosystem] = handler_class
+		return handler_class
 
 	def keyid(self, hashfnc = "sha1"):
 		hashval = hashlib.new(hashfnc)
@@ -48,25 +60,12 @@ class PublicKey(PEMDERObject):
 		return self._pk_alg
 
 	@property
-	def params(self):
-		return self._key["params"]
+	def key(self):
+		return self._key
 
 	@property
 	def keyspec(self):
-		if self.pk_alg.value.cryptosystem == Cryptosystems.RSA:
-			return KeySpecification(cryptosystem = self.pk_alg.value.cryptosystem, parameters = { "bitlen": self.n.bit_length() })
-		elif self.pk_alg.value.cryptosystem == Cryptosystems.DSA:
-			return KeySpecification(cryptosystem = self.pk_alg.value.cryptosystem, parameters = { "L": self.p.bit_length(), "N": self.q.bit_length()})
-		elif self.pk_alg.value.cryptosystem in [ Cryptosystems.ECC_ECDSA, Cryptosystems.ECC_EdDSA ]:
-			return KeySpecification(cryptosystem = self.pk_alg.value.cryptosystem, parameters = { "curvename": self.curve.name })
-		else:
-			raise LazyDeveloperException(NotImplemented, self.cryptosystem)
-
-	@property
-	def point(self):
-		if not all(element in self._key for element in [ "curve", "x", "y" ]):
-			raise InvalidUseException("To return a public key point, there needs to be a curve, x and y coordinate set.")
-		return self.curve.point(self.x, self.y)
+		return self._key.keyspec
 
 	def _post_decode_hook(self):
 		alg_oid = OID.from_asn1(self.asn1["algorithm"]["algorithm"])
@@ -74,105 +73,258 @@ class PublicKey(PEMDERObject):
 		if self._pk_alg is None:
 			raise UnknownAlgorithmException("Unable to determine public key algorithm for OID %s." % (alg_oid))
 
-		inner_key = ASN1Tools.bitstring2bytes(self.asn1["subjectPublicKey"])
-		if self.pk_alg.value.cryptosystem == Cryptosystems.RSA:
-			(key, _) = pyasn1.codec.der.decoder.decode(inner_key, asn1Spec = rfc2437.RSAPublicKey())
-			self._key = {
-				"n":		int(key["modulus"]),
-				"e":		int(key["publicExponent"]),
-				"params":	self.asn1["algorithm"]["parameters"] if self.asn1["algorithm"]["parameters"].hasValue() else None,
-			}
-		elif self.pk_alg.value.cryptosystem == Cryptosystems.ECC_ECDSA:
-			(alg_params, _) = pyasn1.codec.der.decoder.decode(self.asn1["algorithm"]["parameters"])
-			if isinstance(alg_params, pyasn1.type.univ.ObjectIdentifier):
-				# Named curve
-				alg_oid = OID.from_asn1(alg_params)
-				curve = CurveDB().instantiate(oid = alg_oid)
-				pk_point = curve.decode_point(inner_key)
-				self._key = {
-					"x":			pk_point.x,
-					"y":			pk_point.y,
-					"curve":		curve,
-					"named_curve":	True,
-				}
-			else:
-				curve = EllipticCurve.from_asn1(alg_params)
-				pk_point = curve.decode_point(inner_key)
-				self._key = {
-					"x":			pk_point.x,
-					"y":			pk_point.y,
-					"curve":		curve,
-					"named_curve":	False,
-				}
-		elif self.pk_alg.value.cryptosystem == Cryptosystems.ECC_EdDSA:
-			curve = CurveDB().instantiate(oid = alg_oid)
-			self._key = dict(self._pk_alg.value.fixed_params)
-			pk_point = curve.decode_point(inner_key)
-			self._key.update({
-				"x":			pk_point.x,
-				"y":			pk_point.y,
-				"curve":		curve,
-				"named_curve":	True,
-			})
-		elif self.pk_alg.value.cryptosystem == Cryptosystems.DSA:
-			(alg_params, _) = pyasn1.codec.der.decoder.decode(self.asn1["algorithm"]["parameters"], rfc3279.Dss_Parms())
-			(dsa_pubkey, _) = pyasn1.codec.der.decoder.decode(inner_key, rfc3279.DSAPublicKey())
-			self._key = {
-				"p":		int(alg_params["p"]),
-				"q":		int(alg_params["q"]),
-				"g":		int(alg_params["g"]),
-				"pubkey":	int(dsa_pubkey),
-			}
-		else:
-			raise LazyDeveloperException(NotImplemented, self._pk_alg)
+		if self._pk_alg not in self._HANDLERS_BY_PK_ALG:
+			raise UnknownAlgorithmException("Unable to determine public key handler for public key algorithm %s." % (self._pk_alg.name))
+
+		handler_class = self._HANDLERS_BY_PK_ALG[self._pk_alg]
+		key_data = ASN1Tools.bitstring2bytes(self.asn1["subjectPublicKey"])
+		self._key = handler_class.from_subject_pubkey_info(self._pk_alg, self.asn1["algorithm"]["parameters"], key_data)
+
 
 	@classmethod
 	def create(cls, cryptosystem, parameters):
-		asn1 = cls._ASN1_MODEL()
-		asn1["algorithm"] = rfc2459.AlgorithmIdentifier()
-		if cryptosystem == Cryptosystems.RSA:
-			asn1["algorithm"]["algorithm"] = OIDDB.KeySpecificationAlgorithms.inverse("rsaEncryption").to_asn1()
-			asn1["algorithm"]["parameters"] = pyasn1.type.univ.Any(value = pyasn1.codec.der.encoder.encode(pyasn1.type.univ.Null()))
-			inner_key = rfc2437.RSAPublicKey()
-			inner_key["modulus"] = pyasn1.type.univ.Integer(parameters["n"])
-			inner_key["publicExponent"] = pyasn1.type.univ.Integer(parameters["e"])
-			inner_key = pyasn1.codec.der.encoder.encode(inner_key)
-		elif cryptosystem == Cryptosystems.DSA:
-			asn1["algorithm"]["algorithm"] = OIDDB.KeySpecificationAlgorithms.inverse("id-dsa").to_asn1()
-			asn1["algorithm"]["parameters"] = rfc3279.Dss_Parms()
-			asn1["algorithm"]["parameters"]["p"] = parameters["p"]
-			asn1["algorithm"]["parameters"]["q"] = parameters["q"]
-			asn1["algorithm"]["parameters"]["g"] = parameters["g"]
-			inner_key = rfc3279.DSAPublicKey(parameters["pubkey"])
-			inner_key = pyasn1.codec.der.encoder.encode(inner_key)
-		elif cryptosystem == Cryptosystems.ECC_ECDSA:
-			curve = parameters["curve"]
-			asn1["algorithm"]["algorithm"] = OIDDB.KeySpecificationAlgorithms.inverse("ecPublicKey").to_asn1()
-			if curve.oid is not None:
-				asn1["algorithm"]["parameters"] = pyasn1.codec.der.encoder.encode(curve.oid.to_asn1())
-			else:
-				# TODO not implemented
-				#domain_params = SpecifiedECDomain()
-				#domain_params["version"] = 1
-				#asn1["algorithm"]["parameters"] = domain_params
-				raise NotImplementedError("Re-encoding of explicitly specified elliptic curve domain parameters (i.e., non-named curves) is not implemented in x509sak")
-			inner_key = curve.point(parameters["x"], parameters["y"]).encode()
-		elif cryptosystem == Cryptosystems.ECC_EdDSA:
-			curve = parameters["curve"]
-			asn1["algorithm"]["algorithm"] = curve.oid.to_asn1()
-			inner_key = curve.point(parameters["x"], parameters["y"]).encode()
-		else:
-			raise LazyDeveloperException(NotImplemented, cryptosystem)
-		asn1["subjectPublicKey"] = ASN1Tools.bytes2bitstring(inner_key)
-		return cls.from_asn1(asn1)
+		if cryptosystem not in cls._HANDLERS_BY_CRYPTOSYSTEM:
+			raise UnknownAlgorithmException("Unable to create public key for cryptosystem %s." % (cryptosystem.name))
 
-	def recreate(self):
-		return self.create(self.pk_alg.value.cryptosystem, self._key)
+		handler_class = cls._HANDLERS_BY_CRYPTOSYSTEM[cryptosystem]
+		asn1 = handler_class.create(parameters)
+		encoded_pubkey = pyasn1.codec.der.encoder.encode(asn1)
+		return cls(encoded_pubkey)
 
-	def __getattr__(self, key):
-		if key in self._key:
-			return self._key[key]
-		raise AttributeError("%s public key does not have a '%s' attribute." % (self.pk_alg.value.name, key))
+	def __getattr__(self, name):
+		try:
+			return self._key[name]
+		except KeyError:
+			raise AttributeError("%s public key does not have a '%s' attribute." % (self.pk_alg.value.name, name))
 
 	def __str__(self):
 		return "PublicKey<%s>" % (self.keyspec)
+
+
+class _BasePublicKey():
+	_PK_ALG = None
+
+	def __init__(self, accessible_parameters, decoding_details = None):
+		self._accessible_parameters = accessible_parameters if (accessible_parameters is not None) else { }
+		self._decoding_details = decoding_details
+
+	@property
+	def decoding_details(self):
+		return self._decoding_details
+
+	def _param(self, name):
+		return self._accessible_parameters.get(name)
+
+	def __getitem__(self, name):
+		return self._accessible_parameters[name]
+
+	@classmethod
+	def create(cls, parameters):
+		raise NotImplementedError(cls.__name__)
+
+	@classmethod
+	def from_subject_pubkey_info(cls, pk_alg, params_asn1, pubkey_data):
+		raise NotImplementedError(cls.__name__)
+
+
+@PublicKey.register_handler
+class RSAPublicKey(_BasePublicKey):
+	_PK_ALG = PublicKeyAlgorithms.RSA
+
+	@property
+	def keyspec(self):
+		return KeySpecification(cryptosystem = self._PK_ALG.value.cryptosystem, parameters = { "bitlen": self["n"].bit_length() })
+
+	@classmethod
+	def create(self, parameters):
+		asn1 = rfc2459.SubjectPublicKeyInfo()
+		asn1["algorithm"] = rfc2459.AlgorithmIdentifier()
+		asn1["algorithm"]["algorithm"] = OIDDB.KeySpecificationAlgorithms.inverse("rsaEncryption").to_asn1()
+		asn1["algorithm"]["parameters"] = pyasn1.type.univ.Any(value = pyasn1.codec.der.encoder.encode(pyasn1.type.univ.Null()))
+
+		inner_key = rfc2437.RSAPublicKey()
+		inner_key["modulus"] = pyasn1.type.univ.Integer(parameters["n"])
+		inner_key["publicExponent"] = pyasn1.type.univ.Integer(parameters["e"])
+		inner_key = pyasn1.codec.der.encoder.encode(inner_key)
+		asn1["subjectPublicKey"] = ASN1Tools.bytes2bitstring(inner_key)
+		return asn1
+
+	@classmethod
+	def from_subject_pubkey_info(cls, pk_alg, params_asn1, pubkey_data):
+		pubkey = ASN1Tools.safe_decode(pubkey_data, asn1_spec = rfc2437.RSAPublicKey())
+
+		if pubkey.asn1 is not None:
+			accessible_parameters = {
+				"n":		int(pubkey.asn1["modulus"]),
+				"e":		int(pubkey.asn1["publicExponent"]),
+				"params":	params_asn1 if params_asn1.hasValue() else None,
+			}
+		else:
+			accessible_parameters = None
+		return cls(accessible_parameters = accessible_parameters, decoding_details = pubkey)
+
+	def __repr__(self):
+		if self._param("n") is not None:
+			return "%s(%d bit modulus)" % (self.__class__.__name__, self["n"].bit_length())
+		else:
+			return "%s(undecodable)" % (self.__class__.__name__)
+
+
+@PublicKey.register_handler
+class DSAPublicKey(_BasePublicKey):
+	_PK_ALG = PublicKeyAlgorithms.DSA
+
+	@property
+	def N(self):
+		return self._params("p").bit_length() if (self._params("p") is not None) else None
+
+	@property
+	def L(self):
+		return self._params("q").bit_length() if (self._params("q") is not None) else None
+
+	@property
+	def keyspec(self):
+		return KeySpecification(cryptosystem = self._PK_ALG.value.cryptosystem, parameters = { "N": self.N, "L": self.L })
+
+	@classmethod
+	def create(self, parameters):
+		asn1 = rfc2459.SubjectPublicKeyInfo()
+		asn1["algorithm"] = rfc2459.AlgorithmIdentifier()
+		asn1["algorithm"]["algorithm"] = OIDDB.KeySpecificationAlgorithms.inverse("id-dsa").to_asn1()
+		asn1["algorithm"]["parameters"] = rfc3279.Dss_Parms()
+		asn1["algorithm"]["parameters"]["p"] = parameters["p"]
+		asn1["algorithm"]["parameters"]["q"] = parameters["q"]
+		asn1["algorithm"]["parameters"]["g"] = parameters["g"]
+
+		inner_key = rfc3279.DSAPublicKey(parameters["pubkey"])
+		inner_key = pyasn1.codec.der.encoder.encode(inner_key)
+		asn1["subjectPublicKey"] = ASN1Tools.bytes2bitstring(inner_key)
+
+		return asn1
+
+	@classmethod
+	def from_subject_pubkey_info(cls, pk_alg, params_asn1, pubkey_data):
+		params = ASN1Tools.safe_decode(params_asn1, asn1_spec = rfc3279.Dss_Parms())
+		pubkey = ASN1Tools.safe_decode(pubkey_data, asn1_spec = rfc3279.DSAPublicKey())
+
+		accessible_parameters = { }
+		if params.asn1 is not None:
+			accessible_parameters.update({
+				"p":		int(params.asn1["p"]),
+				"q":		int(params.asn1["q"]),
+				"g":		int(params.asn1["g"]),
+			})
+
+		if pubkey.asn1 is not None:
+			accessible_parameters.update({
+				"pubkey":	int(pubkey.asn1),
+			})
+
+		return cls(accessible_parameters = accessible_parameters, decoding_details = [ params, pubkey ])
+
+	def __repr__(self):
+		if self._param("p") is not None:
+			return "%s(%d-%d)" % (self.__class__.__name__, self.N, self.L)
+		else:
+			return "%s(undecodable)" % (self.__class__.__name__)
+
+
+@PublicKey.register_handler
+class ECDSAPublicKey(_BasePublicKey):
+	_PK_ALG = PublicKeyAlgorithms.ECC
+
+	@property
+	def keyspec(self):
+		if self._param("named_curve"):
+			return KeySpecification(cryptosystem = self._PK_ALG.value.cryptosystem, parameters = { "curvename": self["curve"].name })
+		else:
+			return None
+
+	@classmethod
+	def create(self, parameters):
+		asn1 = rfc2459.SubjectPublicKeyInfo()
+
+		asn1["algorithm"]["algorithm"] = OIDDB.KeySpecificationAlgorithms.inverse("ecPublicKey").to_asn1()
+		if parameters["curve"].oid is not None:
+			asn1["algorithm"]["parameters"] = pyasn1.codec.der.encoder.encode(parameters["curve"].oid.to_asn1())
+		else:
+			# TODO not implemented
+			#domain_params = SpecifiedECDomain()
+			#domain_params["version"] = 1
+			#asn1["algorithm"]["parameters"] = domain_params
+			raise NotImplementedError("Creation of explicitly specified elliptic curve domain parameters (i.e., non-named curves) is not implemented in x509sak")
+
+		inner_key = parameters["curve"].point(parameters["x"], parameters["y"]).encode()
+		asn1["subjectPublicKey"] = ASN1Tools.bytes2bitstring(inner_key)
+		return asn1
+
+	@classmethod
+	def from_subject_pubkey_info(cls, pk_alg, params_asn1, pubkey_data):
+		params = ASN1Tools.safe_decode(params_asn1)
+
+		accessible_parameters = { }
+		if params.asn1 is not None:
+			if isinstance(params.asn1, pyasn1.type.univ.ObjectIdentifier):
+				# Named curve
+				curve_oid = OID.from_asn1(params.asn1)
+				curve = CurveDB().instantiate(oid = curve_oid)
+				accessible_parameters.update({
+					"curve_oid":	curve_oid,
+					"curve":		curve,
+					"named_curve":	True,
+				})
+			else:
+				curve = EllipticCurve.from_asn1(params.asn1)
+				accessible_parameters.update({
+					"curve":		curve,
+					"named_curve":	False,
+				})
+
+		if accessible_parameters.get("curve") is not None:
+			pk_point = curve.decode_point(pubkey_data)
+			accessible_parameters.update({
+				"x": pk_point.x,
+				"y": pk_point.y,
+			})
+
+		return cls(accessible_parameters = accessible_parameters, decoding_details = [ params, pk_point ])
+
+
+@PublicKey.register_handler
+class EdDSAPublicKey(_BasePublicKey):
+	_PK_ALG = (PublicKeyAlgorithms.Ed25519, PublicKeyAlgorithms.Ed448)
+
+	@property
+	def point(self):
+		return self["curve"].point(self["x"], self["y"])
+
+	@property
+	def keyspec(self):
+		return KeySpecification(cryptosystem = self._PK_ALG.value.cryptosystem, parameters = { "curvename": self["curve"].name })
+
+	@classmethod
+	def create(self, parameters):
+		asn1 = rfc2459.SubjectPublicKeyInfo()
+		asn1["algorithm"] = rfc2459.AlgorithmIdentifier()
+		asn1["algorithm"]["algorithm"] = OIDDB.KeySpecificationAlgorithms.inverse("id-dsa").to_asn1()
+		asn1["algorithm"]["algorithm"] = parameters["curve"].oid.to_asn1()
+
+		inner_key = parameters["curve"].point(parameters["x"], parameters["y"]).encode()
+		asn1["subjectPublicKey"] = ASN1Tools.bytes2bitstring(inner_key)
+		return asn1
+
+
+	@classmethod
+	def from_subject_pubkey_info(cls, pk_alg, params_asn1, pubkey_data):
+		curve = CurveDB().instantiate(oid = pk_alg.value.oid)
+		pk_point = curve.decode_point(pubkey_data)
+
+		accessible_parameters = dict(pk_alg.value.fixed_params)
+		accessible_parameters.update({
+			"x":			pk_point.x,
+			"y":			pk_point.y,
+			"curve":		curve,
+			"point":		pk_point,
+			"named_curve":	True,
+		})
+		return cls(accessible_parameters = accessible_parameters, decoding_details = [ pk_point ])

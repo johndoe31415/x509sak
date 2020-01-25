@@ -34,6 +34,7 @@ class BaseValidationResult():
 	def _report(self, issue_name, message, **kwargs):
 		issue = self._validator.get_issue(issue_name)
 		if issue is None:
+#			print("Issue with no handler: %s" % (issue_name))
 			return
 		full_message = self._get_message(issue, message)
 		if "standard" not in kwargs:

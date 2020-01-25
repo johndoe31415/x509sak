@@ -44,6 +44,7 @@
 					"Invalid Type": { "_desc": "GeneralizedTime data type used for timestamp before year 2050" }
 				},
 				"RSA Public Key": {
+					"_import": "asn1_encoding_issues/*",
 					"_short_id": "rsa_pubkey_encoding_issues",
 					"Parameter field not present": { "_desc": "parameter field is not present" },
 					"RSA Encryption": {
