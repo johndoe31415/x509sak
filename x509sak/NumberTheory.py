@@ -22,13 +22,14 @@
 import math
 import random
 import collections
+import itertools
 from x509sak.Exceptions import InvalidInputException
 
 class NumberTheory():
 	"""Collection of number theoretic functions and modular arithmetic
 	helpers."""
-
 	_HammingWeightAnalysis = collections.namedtuple("HammingWeightAnalysis", [ "value", "bitlen", "hweight", "rnd_min_hweight", "rnd_max_hweight", "plausibly_random" ])
+	_SMALL_PRIMES = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97]
 
 	@classmethod
 	def lcm(cls, a, b):
@@ -136,8 +137,8 @@ class NumberTheory():
 
 	@classmethod
 	def pollard_rho(cls, n, max_iterations = None):
-		"""Calculate Pollards Rho for a given number n. Returns either a prime
-		factor of n or None."""
+		"""Calculate Pollards Rho for a given number n. Returns either a factor
+		of n (not necessarily prime) or None."""
 		def f(x, n):
 			return ((x * x) + 1) % n
 
@@ -155,6 +156,42 @@ class NumberTheory():
 		else:
 			assert(d == n)
 			return None
+
+	@classmethod
+	def find_small_factor(cls, n):
+		"""Finds a small prime factor of n by trying trial division of small
+		primes."""
+		for small_prime in cls._SMALL_PRIMES:
+			if (n % small_prime) == 0:
+				return small_prime
+		return None
+
+	@classmethod
+	def factor(cls, n, max_iterations = None):
+		"""Factors a compound integer."""
+		factors = [ ]
+		iteration = 0
+		while n > 1:
+			iteration += 1
+			if (max_iterations is not None) and (iteration > max_iterations):
+				return None
+
+			if cls.is_probable_prime(n):
+				factors.append(n)
+				break
+
+			factor = cls.find_small_factor(n)
+			if factor is not None:
+				factors.append(factor)
+				n //= factor
+				continue
+
+			factor = cls.pollard_rho(n, max_iterations = 100)
+			if factor is not None:
+				factors += cls.factor(factor)
+				n //= factor
+				continue
+		return factors
 
 	@classmethod
 	def cl_mul(cls, x, y):
@@ -278,3 +315,26 @@ class NumberTheory():
 		if two_msb_set:
 			value |= 1 << (bits - 2)
 		return value
+
+	@classmethod
+	def randprime_bits(cls, bits, two_msb_set = False):
+		"""Generate a random prime with bit length 'bits'. Optionally set both
+		MSBs."""
+		while True:
+			p = cls.randint_bits(bits, two_msb_set = two_msb_set)
+			p |= 1
+			if cls.is_probable_prime(p):
+				return p
+
+	@classmethod
+	def possible_divisors(cls, factorization):
+		"""From a number of factors, gives all non-trivial divisors, including
+		the trivial 1 and product(factorization)."""
+		ctr = collections.Counter(factorization)
+		factorization = sorted((factor, count) for (factor, count) in ctr.items())
+		generators = tuple(range(count + 1) for (factor, count) in factorization)
+		for exponents in itertools.product(*generators):
+			product = 1
+			for factor in ((factor ** exponent) for (exponent, (factor, max_exponent)) in zip(exponents, factorization)):
+				product *= factor
+			yield product

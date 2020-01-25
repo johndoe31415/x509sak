@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2018 Johannes Bauer
+#	Copyright (C) 2018-2020 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -127,3 +127,45 @@ class ECCMathTests(BaseTest):
 		(scalar, Q) = curve.expand_secret(bytes.fromhex("6c82a562cb808d10d632be89c8513ebf6c929f34ddfa8c9f63c9960ef6e348a3528c8a3fcc2f044e39a3fc5b94492f8f032e7549a20098f95b"))
 		self.assertEqual(scalar, 521658399617511624509929819094270498323007786671637499019582168374758478770958028340603419308639592898868374490003595203618871291427304)
 		self.assertEqual(Q.encode(), bytes.fromhex("5fd7449b59b461fd2ce787ec616ad46a1da1342485a70e1f8a0ea75d80e96778edf124769b46c7061bd6783df1e50f6cd1fa1abeafe8256180"))
+
+	def test_fp_scalar_mul(self):
+		curve = CurveDB().instantiate(name = "secp112r1")
+		P = curve.G.scalar_mul(0xa14b08db884ecd9acc3e507110be)
+		self.assertEqual(P.x, 0x5d39a5c8d8f5c634afea9d0adf23)
+		self.assertEqual(P.y, 0x88056785c1ea5bb9f320eefd630e)
+
+	def test_fp_scalar_mul_n(self):
+		curve = CurveDB().instantiate(name = "secp112r1")
+		P = curve.G.scalar_mul(curve.n)
+		self.assertEqual(P, curve.neutral_point)
+
+	def test_fp_scalar_mul_0(self):
+		curve = CurveDB().instantiate(name = "secp112r1")
+		P = curve.G.scalar_mul(0)
+		self.assertEqual(P, curve.neutral_point)
+
+	def test_fp_scalar_mul_1(self):
+		curve = CurveDB().instantiate(name = "secp112r1")
+		P = curve.G.scalar_mul(1)
+		self.assertEqual(P, curve.G)
+
+	def test_fp_point_dbl(self):
+		curve = CurveDB().instantiate(name = "secp112r1")
+		P = curve.point_addition(curve.G, curve.G)
+		self.assertEqual(P.x, 0x57cf52a0f9318000ee0bc032d756)
+		self.assertEqual(P.y, 0x60aee03bbcff537a8d17401f006c)
+
+	def test_fp_point_add(self):
+		curve = CurveDB().instantiate(name = "secp112r1")
+		Q = curve.point(0x123, 0x84bdce9a00a1895369a805a6c44e)
+		self.assertTrue(Q.on_curve())
+		P = curve.point_addition(curve.G, Q)
+		self.assertEqual(P.x, 0xbbabcf20193b825046cb2357bb87)
+		self.assertEqual(P.y, 0x5625e546a0459574b5eff88d17b9)
+
+	def test_fp_point_add_neutral(self):
+		curve = CurveDB().instantiate(name = "secp112r1")
+		Q = curve.point(0x9487239995a5ee76b55f9c2f098, 0x32df450fdbbe9dc44268aeb5ab8b)
+		self.assertTrue(Q.on_curve())
+		P = curve.point_addition(curve.G, Q)
+		self.assertEqual(P, curve.neutral_point)

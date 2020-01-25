@@ -1,0 +1,206 @@
+#!/usr/bin/python3
+#	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
+#	Copyright (C) 2020-2020 Johannes Bauer
+#
+#	This file is part of x509sak.
+#
+#	x509sak is free software; you can redistribute it and/or modify
+#	it under the terms of the GNU General Public License as published by
+#	the Free Software Foundation; this program is ONLY licensed under
+#	version 3 of the License, later versions are explicitly excluded.
+#
+#	x509sak is distributed in the hope that it will be useful,
+#	but WITHOUT ANY WARRANTY; without even the implied warranty of
+#	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#	GNU General Public License for more details.
+#
+#	You should have received a copy of the GNU General Public License
+#	along with x509sak; if not, write to the Free Software
+#	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+#	Johannes Bauer <JohannesBauer@gmx.de>
+
+import sys
+import re
+import random
+import subprocess
+import multiprocessing
+import pyasn1.codec.der.encoder
+from x509sak.ASN1Models import SpecifiedECDomain
+from x509sak.FriendlyArgumentParser import FriendlyArgumentParser
+from x509sak.NumberTheory import NumberTheory
+from x509sak.Exceptions import InvalidInputException
+from x509sak.OID import OIDDB
+from x509sak.ECCMath import PrimeFieldEllipticCurve
+
+parser = FriendlyArgumentParser(description = "Generate Elliptic Curves.")
+group = parser.add_mutually_exclusive_group()
+group.add_argument("-l", "--bitlen", metavar = "bits", type = int, default = 32, help = "Bit length of curve prime. Defaults to %(default)d.")
+group.add_argument("-p", "--param-p", metavar = "value", type = int, help = "Specify fixed prime parameter p.")
+group.add_argument("-c", "--curve", choices = [ "secp112r1", "secp112r2" ], help = "Specify specific curve parameters a, b, p.")
+parser.add_argument("-a", "--param-a", metavar = "value", type = int, help = "Specify fixed prime parameter a.")
+parser.add_argument("-b", "--param-b", metavar = "value", type = int, help = "Specify fixed prime parameter b.")
+parser.add_argument("-e", "--executable", metavar = "file", type = str, required = True, help = "Binary to MIRACL 'schoof' executable.")
+parser.add_argument("-t", "--type", metavar = "curvetype", choices = [ "any", "never", "composite_np", "almost_prime_np", "prime_np", "jinv_0", "mov", "anomalous", "supersingular" ], default = "almost_prime_np", help = "Type of curve to search for. Can be one of %(choices)s, defaults to %(default)s.")
+parser.add_argument("-q", "--parallel", type = int, default = multiprocessing.cpu_count(), help = "Number of concurrent processes to use, default is %(default)d.")
+parser.add_argument("--max-factorization-iterations", type = int, default = 100, help = "Maximum number of times it is attempted to factor #E(F_p) before giving up.")
+parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity.")
+
+args = parser.parse_args(sys.argv[1:])
+
+class CurveGenerator():
+	_REGEXES = [
+		re.compile("j-invariant= (?P<jinv>\d+)", flags = re.MULTILINE),
+		re.compile("NP= (?P<np>\d+)(?P<probably> (probably))?", flags = re.MULTILINE),
+		re.compile("fails MOV condition - K <= (?P<k>\d+)", flags = re.MULTILINE),
+		re.compile("Curve is (?P<anomalous>anomalous)", flags = re.MULTILINE),
+		re.compile("Curve is (?P<supersingular>supersingular)", flags = re.MULTILINE),
+		re.compile("NP is (?P<composite>composite)", flags = re.MULTILINE),
+	]
+
+	def __init__(self, args):
+		self._args = args
+
+		if args.curve is not None:
+			(self._fixed_p, self._fixed_a, self._fixed_b) = {
+				"secp112r1":	(4451685225093714772084598273548427, 4451685225093714772084598273548424, 2061118396808653202902996166388514),
+				"secp112r2":	(4451685225093714772084598273548427, 1970543761890640310119143205433388, 1660538572255285715897238774208265),
+			}[args.curve]
+		else:
+			self._fixed_p = self._args.param_p
+			self._fixed_a = self._args.param_a
+			self._fixed_b = self._args.param_b
+
+		self._p = self._generate_p() if (self._fixed_p is None) else self._fixed_p
+		print("Prime: 0x%x (%d bits)" % (self._p, self._p.bit_length()))
+
+		self._abort_condition = {
+			"any":				lambda r: True,
+			"never":			lambda r: False,
+			"composite_np":		lambda r: r.get("composite") is not None,
+			"almost_prime_np":	lambda r: r.get("composite") is None,
+			"prime_np":			lambda r: NumberTheory.is_probable_prime(r.get("np", 1)),
+			"jinv_0":			lambda r: r.get("jinv") == 0,
+			"mov":				lambda r: r.get("k") is not None,
+			"anomalous":		lambda r: r.get("anomalous") is not None,
+			"supersingular":	lambda r: r.get("supersingular") is not None,
+		}[self._args.type]
+
+	def _generate_p(self):
+		while True:
+			p = NumberTheory.randprime_bits(self._args.bitlen)
+			if ((p % 4) == 3) or ((p % 8) == 5):
+				return p
+
+	def _iteration(self):
+		a = random.randint(0, self._p - 1) if (self._fixed_a is None) else self._fixed_a
+		b = random.randint(0, self._p - 1) if (self._fixed_b is None) else self._fixed_b
+		a = a % self._p
+		b = b % self._p
+		cmd = [ args.executable, str(self._p), str(a), str(b) ]
+		output = subprocess.check_output(cmd)
+
+		text = output.decode()
+		results = {
+			"a":	a,
+			"b":	b,
+			"p":	self._p,
+		}
+		for regex in self._REGEXES:
+			match = regex.search(text)
+			if match is not None:
+				match = match.groupdict()
+				results.update(match)
+
+		for key in [ "k", "jinv", "np" ]:
+			if key in results:
+				results[key] = int(results[key])
+
+		if self._args.verbose >= 2:
+			print(results)
+			if self._args.verbose >= 3:
+				print(text)
+				print("-" * 120)
+
+		return results
+
+	def _pick_generator(self, a, b, p):
+		while True:
+			x = random.randint(1, p - 1)
+			ysqr = ((x ** 3) + (a * x) + b) % p
+			try:
+				y = NumberTheory.sqrt_mod_p(ysqr, p)
+				return (x, y[0])
+			except InvalidInputException:
+				pass
+
+	def _create_key(self, result, np_factorization):
+		try:
+			G = self._pick_generator(result["a"], result["b"], result["p"])
+		except NotImplementedError:
+			print("Unable to pick a generator, cannot write an EC key.")
+			return
+
+		print("Chosen generator: %s" % (str(G)))
+		print("Factorization of #E(F_p): %s" % (str(np_factorization)))
+		possible_ns = sorted(NumberTheory.possible_divisors(np_factorization))
+		print("%d possible subgroup orders for chosen generator." % (len(possible_ns)))
+		curve = PrimeFieldEllipticCurve(p = result["p"], a = result["a"], b = result["b"], n = 1, h = 1, Gx = G[0], Gy = G[1])
+		assert(curve.G.on_curve())
+		for possible_n in possible_ns:
+			Q = curve.G.scalar_mul(possible_n)
+			if Q is None:
+				print("Found order of generator G: n = %d" % (possible_n))
+				n = possible_n
+				break
+		h = result["np"] // n
+		print("Cofactor: h = %d" % (h))
+
+		field_len = ((result["p"].bit_length() + 7) // 8) + 1
+		asn1 = SpecifiedECDomain()
+		asn1["version"] = 1
+		asn1["fieldID"]["fieldType"] = OIDDB.ECFieldType.inverse("prime-field").to_asn1()
+		asn1["fieldID"]["parameters"] = pyasn1.type.univ.Integer(result["p"])
+		asn1["curve"]["a"] = int.to_bytes(result["a"], length = field_len, byteorder = "big")
+		asn1["curve"]["b"] = int.to_bytes(result["b"], length = field_len, byteorder = "big")
+		asn1["base"] = curve.G.encode()
+		asn1["order"] = n
+		asn1["cofactor"] = h
+		der_data = pyasn1.codec.der.encoder.encode(asn1)
+		pem_data = subprocess.check_output([ "openssl", "ecparam", "-inform", "der", "-text" ], input = der_data)
+		print(pem_data.decode())
+
+	def _worker(self, result_queue):
+		while True:
+			sys.stdout.write(".")
+			sys.stdout.flush()
+			result = self._iteration()
+			if self._abort_condition(result):
+				sys.stdout.write("+")
+				sys.stdout.flush()
+				if self._args.verbose >= 1:
+					print(result)
+				np_factorization = NumberTheory.factor(result["np"], max_iterations = self._args.max_factorization_iterations)
+				if np_factorization is not None:
+					break
+		result_queue.put((result, np_factorization))
+
+	def run(self):
+		result_queue = multiprocessing.Queue()
+
+		pool = [ multiprocessing.Process(target = self._worker, args = (result_queue, )) for _ in range(self._args.parallel) ]
+
+		for process in pool:
+			process.start()
+
+		(result, np_factorization) = result_queue.get()
+
+		for process in pool:
+			process.terminate()
+
+		print()
+		print(result)
+		self._create_key(result, np_factorization)
+
+cg = CurveGenerator(args)
+cg.run()

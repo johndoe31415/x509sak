@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2019 Johannes Bauer
+#	Copyright (C) 2018-2020 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -65,7 +65,7 @@ class EllipticCurvePoint():
 		return result
 
 	def __eq__(self, other):
-		return (self.curve, self.x, self.y) == (other.curve, other.x, other.y)
+		return (other is not None) and ((self.curve, self.x, self.y) == (other.curve, other.x, other.y))
 
 	def __str__(self):
 		return "(0x%x, 0x%x) on %s" % (self.x, self.y, self.curve)
@@ -266,6 +266,33 @@ class PrimeFieldEllipticCurve(EllipticCurve):
 	"""y^2 = x^3 + ax + b (mod p)"""
 	_DomainArgs = KwargsChecker(required_arguments = set([ "p", "a", "b", "n", "h" ]), optional_arguments = set([ "Gx", "Gy" ]))
 	_CURVE_TYPE = "prime"
+
+	@property
+	def neutral_point(self):
+		return None
+
+	def point_addition(self, P, Q):
+		if P is None:
+			# O + Q = Q
+			return Q
+		elif Q is None:
+			# P + O = P
+			return P
+		elif ((P.x == Q.x) and (((P.y + Q.y) % self.p) == 0)):
+			# P + (-P) = O
+			return None
+		elif P == Q:
+			# Point doubling
+			s = ((3 * P.x ** 2) + self.a) * NumberTheory.modinv(2 * P.y, self.p)
+			x = (s * s - (2 * P.x)) % self.p
+			y = (s * (P.x - x) - P.y) % self.p
+			return EllipticCurvePoint(self, x, y)
+		else:
+			# Point addition
+			s = (P.y - Q.y) * NumberTheory.modinv(P.x - Q.x, self.p)
+			x = ((s ** 2) - P.x - Q.x) % self.p
+			y = (s * (P.x - x) - P.y) % self.p
+			return EllipticCurvePoint(self, x, y)
 
 	@property
 	def is_koblitz(self):
