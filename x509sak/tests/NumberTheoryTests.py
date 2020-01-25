@@ -136,3 +136,35 @@ class NumberTheoryTests(BaseTest):
 
 		n = 0x10000000000000
 		self.assertFalse(NumberTheory.hamming_weight_analysis(n).plausibly_random)
+
+	def test_modinv_exception(self):
+		with self.assertRaises(Exception):
+			NumberTheory.movinv(0, 101)
+
+	def test_probable_prime(self):
+		self.assertTrue(NumberTheory.is_probable_prime(2))
+		self.assertTrue(NumberTheory.is_probable_prime(3))
+		self.assertTrue(NumberTheory.is_probable_prime(5))
+		self.assertTrue(NumberTheory.is_probable_prime(101))
+		self.assertFalse(NumberTheory.is_probable_prime(0))
+		self.assertFalse(NumberTheory.is_probable_prime(1))
+		self.assertFalse(NumberTheory.is_probable_prime(4))
+
+	def test_iterprimes(self):
+		primes = [ value for (no, value) in zip(range(25), NumberTheory.iter_primes()) ]
+		self.assertEquals(primes, [ 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97])
+
+	def test_find_small_factor(self):
+		self.assertEquals(NumberTheory.find_small_factor(7 * 2003), 7)
+		self.assertEquals(NumberTheory.find_small_factor(2 * 2003), 2)
+		self.assertEquals(NumberTheory.find_small_factor(71 * 2003), 71)
+		self.assertEquals(NumberTheory.find_small_factor(2003), None)
+
+	def test_factor(self):
+		self.assertEquals(list(sorted(NumberTheory.factor(101 * 211))), [ 101, 211 ])
+		self.assertEquals(list(sorted(NumberTheory.factor(2 ** 4))), [ 2, 2, 2, 2 ])
+		self.assertEquals(list(sorted(NumberTheory.factor(2 * 2 * 3 * 3 * 5))), [ 2, 2, 3, 3, 5 ])
+
+	def test_possible_divisors(self):
+		self.assertEquals(list(sorted(NumberTheory.possible_divisors([ 2, 2, 3 ]))), [ 1, 2, 3, 4, 6, 12 ])
+		self.assertEquals(list(sorted(NumberTheory.possible_divisors([ 2, 3, 5 ]))), [ 1, 2, 3, 5, 6, 10, 15, 30 ])

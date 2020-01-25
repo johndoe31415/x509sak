@@ -84,7 +84,9 @@ class NumberTheory():
 	def is_probable_prime(cls, p, trials = 10):
 		"""Probabilistic Miller-Rabin primality test for a number p with
 		'trials' Miller-Rabin rounds."""
-		if p in [ 2, 3 ]:
+		if p < 2:
+			return False
+		elif p in [ 2, 3 ]:
 			return True
 		for _ in range(trials):
 			if not cls._miller_rabin_isprime_round(p):
