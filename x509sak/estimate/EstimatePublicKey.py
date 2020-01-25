@@ -61,21 +61,26 @@ class PublicKeyEstimator(BaseEstimator):
 
 		result = {
 			"pubkey_alg":	pubkey.pk_alg.value.name,
+			"security":		SecurityJudgements(),
 		}
-		if pubkey.pk_alg.value.cryptosystem == Cryptosystems.RSA:
-			result["pretty"] = "RSA with %d bit modulus" % (pubkey.n.bit_length())
-			result.update(self.algorithm("rsa").analyze(pubkey))
-		elif pubkey.pk_alg.value.cryptosystem == Cryptosystems.DSA:
-			result["pretty"] = "DSA with %d bit modulus and %d bit output" % (pubkey.p.bit_length(), pubkey.q.bit_length())
-			result.update(self.algorithm("dsa").analyze(pubkey))
-		elif pubkey.pk_alg.value.cryptosystem == Cryptosystems.ECC_ECDSA:
-			result["pretty"] = "ECC on %s" % (pubkey.curve.name)
-			result.update(self.algorithm("ecc").analyze(pubkey))
-		elif pubkey.pk_alg.value.cryptosystem == Cryptosystems.ECC_EdDSA:
-			result["pretty"] = "EdDSA on %s" % (pubkey.curve.name)
-			result.update(self.algorithm("ecc").analyze(pubkey))
+
+		if pubkey.key.malformed:
+			result["pretty"] = "%s with malformed encoding" % (pubkey.pk_alg.name)
 		else:
-			raise LazyDeveloperException(NotImplemented, pubkey.pk_alg.value.cryptosystem)
+			if pubkey.pk_alg.value.cryptosystem == Cryptosystems.RSA:
+				result["pretty"] = "RSA with %d bit modulus" % (pubkey.n.bit_length())
+				result.update(self.algorithm("rsa").analyze(pubkey))
+			elif pubkey.pk_alg.value.cryptosystem == Cryptosystems.DSA:
+				result["pretty"] = "DSA with %d bit modulus and %d bit output" % (pubkey.p.bit_length(), pubkey.q.bit_length())
+				result.update(self.algorithm("dsa").analyze(pubkey))
+			elif pubkey.pk_alg.value.cryptosystem == Cryptosystems.ECC_ECDSA:
+				result["pretty"] = "ECC on %s" % (pubkey.curve.name)
+				result.update(self.algorithm("ecc").analyze(pubkey))
+			elif pubkey.pk_alg.value.cryptosystem == Cryptosystems.ECC_EdDSA:
+				result["pretty"] = "EdDSA on %s" % (pubkey.curve.name)
+				result.update(self.algorithm("ecc").analyze(pubkey))
+			else:
+				raise LazyDeveloperException(NotImplemented, pubkey.pk_alg.value.cryptosystem)
 
 		result["security"] += self._analyze_pubkey_encoding(certificate.pubkey.key)
 		return result

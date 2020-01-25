@@ -47,8 +47,10 @@ class RSASecurityEstimator(BaseEstimator):
 
 	@staticmethod
 	def analyze_e(e):
-		if e < 1:
-			return SecurityJudgement(JudgementCode.X509Cert_PublicKey_RSA_Exponent_Negative, "RSA exponent is zero or negative, this is a malicious key.", bits = 0)
+		if e < 0:
+			return SecurityJudgement(JudgementCode.X509Cert_PublicKey_RSA_Exponent_Negative, "RSA exponent is negative, this is either a wrong encoding or might be a malicious key.", bits = 0)
+		elif e == 0:
+			return SecurityJudgement(JudgementCode.X509Cert_PublicKey_RSA_Exponent_Zero, "RSA exponent is zero, this is a malicious key.", bits = 0)
 		elif e == 1:
 			return SecurityJudgement(JudgementCode.X509Cert_PublicKey_RSA_Exponent_One, "RSA exponent is 1, this is a malicious key.", bits = 0)
 		elif e in [ 3, 5, 7, 17, 257 ]:

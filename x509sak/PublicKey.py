@@ -112,6 +112,13 @@ class _BasePublicKey():
 	def decoding_details(self):
 		return self._decoding_details
 
+	@property
+	def malformed(self):
+		raise NotImplementedError(cls.__name__)
+
+	def has_param(self, name):
+		return name in self._accessible_parameters
+
 	def _param(self, name):
 		return self._accessible_parameters.get(name)
 
@@ -130,6 +137,10 @@ class _BasePublicKey():
 @PublicKey.register_handler
 class RSAPublicKey(_BasePublicKey):
 	_PK_ALG = PublicKeyAlgorithms.RSA
+
+	@property
+	def malformed(self):
+		return not self.has_param("n")
 
 	@property
 	def keyspec(self):
@@ -173,6 +184,10 @@ class RSAPublicKey(_BasePublicKey):
 @PublicKey.register_handler
 class DSAPublicKey(_BasePublicKey):
 	_PK_ALG = PublicKeyAlgorithms.DSA
+
+	@property
+	def malformed(self):
+		return not (self.has_param("p") and self.has_param("pubkey"))
 
 	@property
 	def N(self):
@@ -232,6 +247,10 @@ class DSAPublicKey(_BasePublicKey):
 @PublicKey.register_handler
 class ECDSAPublicKey(_BasePublicKey):
 	_PK_ALG = PublicKeyAlgorithms.ECC
+
+	@property
+	def malformed(self):
+		return self._param("curve") is None
 
 	@property
 	def keyspec(self):
@@ -295,6 +314,10 @@ class EdDSAPublicKey(_BasePublicKey):
 	_PK_ALG = (PublicKeyAlgorithms.Ed25519, PublicKeyAlgorithms.Ed448)
 
 	@property
+	def malformed(self):
+		return False
+
+	@property
 	def point(self):
 		return self["curve"].point(self["x"], self["y"])
 
@@ -312,7 +335,6 @@ class EdDSAPublicKey(_BasePublicKey):
 		inner_key = parameters["curve"].point(parameters["x"], parameters["y"]).encode()
 		asn1["subjectPublicKey"] = ASN1Tools.bytes2bitstring(inner_key)
 		return asn1
-
 
 	@classmethod
 	def from_subject_pubkey_info(cls, pk_alg, params_asn1, pubkey_data):

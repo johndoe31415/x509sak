@@ -401,8 +401,11 @@ class SecurityAnalyzerTests(BaseAnalyzerTest):
 	def test_constructed_rsa_modulus_compromised(self):
 		self._test_examine_x509test_resultcode("certs/constructed/rsa_modulus_compromised.pem", "X509Cert_PublicKey_RSA_Modulus_FactorizationKnown")
 
+	def test_constructed_rsa_exponent_negative(self):
+		self._test_examine_x509test_resultcode("certs/constructed/rsa_exponent_negative.pem", "X509Cert_PublicKey_RSA_Exponent_Negative")
+
 	def test_constructed_rsa_exponent0(self):
-		self._test_examine_x509test_resultcode("certs/constructed/rsa_exponent0.pem", "X509Cert_PublicKey_RSA_Exponent_Negative")
+		self._test_examine_x509test_resultcode("certs/constructed/rsa_exponent0.pem", expect_absent = "X509Cert_PublicKey_RSA_Exponent_Negative", expect_present = "X509Cert_PublicKey_RSA_Exponent_Zero")
 
 	def test_constructed_rsa_exponent1(self):
 		self._test_examine_x509test_resultcode("certs/constructed/rsa_exponent1.pem", "X509Cert_PublicKey_RSA_Exponent_One")
@@ -421,6 +424,15 @@ class SecurityAnalyzerTests(BaseAnalyzerTest):
 
 	def test_constructed_rsa_parameter_missing(self):
 		self._test_examine_x509test_resultcode("certs/constructed/rsa_parameter_missing.pem", "X509Cert_PublicKey_RSA_ParameterFieldNotPresent")
+
+	def test_constructed_rsa_pubkey_undecodable(self):
+		self._test_examine_x509test_resultcode("certs/constructed/rsa_pubkey_undecodable.pem", "X509Cert_PublicKey_RSA_Malformed_Undecodable")
+
+	def test_constructed_rsa_pubkey_unexpected_type(self):
+		self._test_examine_x509test_resultcode("certs/constructed/rsa_pubkey_unexpected_type.pem", "X509Cert_PublicKey_RSA_Malformed_UnexpectedType")
+
+	def test_constructed_rsa_pubkey_trailing_data(self):
+		self._test_examine_x509test_resultcode("certs/constructed/rsa_pubkey_trailing_data.pem", "X509Cert_PublicKey_RSA_TrailingData")
 
 	def test_include_raw_data_rsa(self):
 		self._test_examine_x509test_resultcode("certs/ok/rsa_512.pem", expect_present = [ "X509Cert_Signature_Function_Common", "X509Cert_Signature_HashFunction_Derated", "X509Cert_PublicKey_RSA_Modulus_LengthInBits", "X509Cert_Signature_HashFunction_DigestLengthInBits" ], include_raw = True)
