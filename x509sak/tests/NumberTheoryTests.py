@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2018 Johannes Bauer
+#	Copyright (C) 2018-2020 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -51,8 +51,8 @@ class NumberTheoryTests(BaseTest):
 	def test_gen_prime(self):
 		primes = set()
 		for _ in range(15):
-			p = NumberTheory.gen_insecure_probable_prime(6)
-			q = NumberTheory.gen_insecure_probable_prime(6)
+			p = NumberTheory.randprime_bits(6, two_msb_set = True)
+			q = NumberTheory.randprime_bits(6, two_msb_set = True)
 			primes.add(p)
 			primes.add(q)
 			n = p * q

@@ -92,19 +92,6 @@ class NumberTheory():
 		return True
 
 	@classmethod
-	def gen_insecure_probable_prime(cls, bitlength):
-		"""Generate a cryptographically INSECURE probabilistic (p < 1e-6)
-		prime."""
-		minval = 2 ** (bitlength - 1)
-		maxval = (2 ** bitlength) - 1
-		while True:
-			n = random.randint(minval, maxval)
-			n |= 1
-			n |= 2 ** (bitlength - 2)
-			if cls.is_probable_prime(n):
-				return n
-
-	@classmethod
 	def solve_crt(cls, moduli):
 		"""Solve the Chinese Remainder Theorem for the given values and
 		moduli."""
@@ -307,8 +294,8 @@ class NumberTheory():
 
 	@classmethod
 	def randint_bits(cls, bits, two_msb_set = False):
-		"""Generate a random integer with bit length 'bits'. Optionally set
-		both MSBs."""
+		"""Generate a cryptographically INSECURE random integer with bit length
+		'bits'. Optionally set both MSBs."""
 		minval = (1 << (bits - 1))
 		maxval = (1 << bits) - 1
 		value = random.randint(minval, maxval)
@@ -318,8 +305,8 @@ class NumberTheory():
 
 	@classmethod
 	def randprime_bits(cls, bits, two_msb_set = False):
-		"""Generate a random prime with bit length 'bits'. Optionally set both
-		MSBs."""
+		"""Generate a cryptographically INSECURE random prime with bit length
+		'bits'. Optionally set both MSBs."""
 		while True:
 			p = cls.randint_bits(bits, two_msb_set = two_msb_set)
 			p |= 1
