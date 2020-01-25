@@ -375,6 +375,18 @@ class SecurityAnalyzerTests(BaseAnalyzerTest):
 	def test_constructed_pubkey_bitbias_y(self):
 		self._test_examine_x509test_resultcode("certs/constructed/ecc_pubkey_y_bitbias.pem", "X509Cert_PublicKey_ECC_PublicKeyPoint_Y_BitBiasPresent", expect_absent = "X509Cert_PublicKey_ECC_PublicKeyPoint_X_BitBiasPresent")
 
+	def test_constructed_pubkey_ecc_anomalous_h1(self):
+		self._test_examine_x509test_resultcode("certs/constructed/pubkey_ecc_anomalous_h1.pem", "X509Cert_PublicKey_ECC_DomainParameters_CurveProperty_AnomalousCurve")
+
+	def test_constructed_pubkey_ecc_supersingular_h1(self):
+		self._test_examine_x509test_resultcode("certs/constructed/pubkey_ecc_supersingular_h1.pem", "X509Cert_PublicKey_ECC_DomainParameters_CurveProperty_SupersingularCurve")
+
+	def test_constructed_pubkey_ecc_supersingular_h76(self):
+		self._test_examine_x509test_resultcode("certs/constructed/pubkey_ecc_supersingular_h76.pem", "X509Cert_PublicKey_ECC_DomainParameters_CurveProperty_SupersingularCurve")
+
+	def test_constructed_pubkey_ecc_mov_h6(self):
+		self._test_examine_x509test_resultcode("certs/constructed/pubkey_ecc_mov_h6.pem", "X509Cert_PublicKey_ECC_DomainParameters_CurveProperty_LowEmbeddingDegree", expect_absent = [ "X509Cert_PublicKey_ECC_DomainParameters_CurveProperty_AnomalousCurve", "X509Cert_PublicKey_ECC_DomainParameters_CurveProperty_SupersingularCurve" ])
+
 	def test_hostname_ok(self):
 		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", "CertUsage_Purpose_ServerCert_SAN_Match", expect_absent = "CertUsage_Purpose_ServerCert_SAN_Mismatch", host_check = "mail.johannes-bauer.com")
 		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", "CertUsage_Purpose_ServerCert_SAN_Match", expect_absent = "CertUsage_Purpose_ServerCert_SAN_Mismatch", host_check = "www.johannes-bauer.com")

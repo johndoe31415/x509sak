@@ -56,10 +56,11 @@
 					"Binary Field": { "_desc": "curve domain is over binary field" },
 					"Prime Field": { "_desc": "curve domain is over prime field" },
 					"Curve Property": {
-						"Anomalous Curve": { "_desc": "curve is anomaleous, #E(F_p) = p" },
+						"Anomalous Curve": { "_desc": "curve is anomalous, #E(F_p) = p" },
 						"Weil Descent": { "_desc": "Weil Descent attack possible, F_2^m with non-prime m" },
 						"Koblitz Curve": { "_desc": "is a Koblitz curve" },
-						"Supersingular Curve": { "_desc": "curve is supersingular, #E(F_p^m) = 1 mod p" }
+						"Supersingular Curve": { "_desc": "curve is supersingular, #E(F_p^m) = 1 mod p" },
+						"Low Embedding Degree": { "_desc": "curve has low embedding degree and fails MOV condition" }
 					}
 				},
 				"Public Key Point": {

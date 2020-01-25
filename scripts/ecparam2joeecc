@@ -1,0 +1,51 @@
+#!/usr/bin/python3
+#	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
+#	Copyright (C) 2020-2020 Johannes Bauer
+#
+#	This file is part of x509sak.
+#
+#	x509sak is free software; you can redistribute it and/or modify
+#	it under the terms of the GNU General Public License as published by
+#	the Free Software Foundation; this program is ONLY licensed under
+#	version 3 of the License, later versions are explicitly excluded.
+#
+#	x509sak is distributed in the hope that it will be useful,
+#	but WITHOUT ANY WARRANTY; without even the implied warranty of
+#	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#	GNU General Public License for more details.
+#
+#	You should have received a copy of the GNU General Public License
+#	along with x509sak; if not, write to the Free Software
+#	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+#	Johannes Bauer <JohannesBauer@gmx.de>
+
+import sys
+import subprocess
+import pyasn1.codec.der.decoder
+from x509sak.ASN1Models import SpecifiedECDomain
+from x509sak.FriendlyArgumentParser import FriendlyArgumentParser
+
+parser = FriendlyArgumentParser(description = "Generate code from ecparams for joeecc.")
+parser.add_argument("filename", metavar = "filename", type = str, help = "ecparam PEM file.")
+args = parser.parse_args(sys.argv[1:])
+
+der_data = subprocess.check_output([ "openssl", "ecparam", "-outform", "der", "-in", args.filename ])
+
+(asn1, tail) = pyasn1.codec.der.decoder.decode(der_data, asn1Spec = SpecifiedECDomain())
+(param_asn1, tail) = pyasn1.codec.der.decoder.decode(asn1["fieldID"]["parameters"])
+p = int(param_asn1)
+a = int.from_bytes(asn1["curve"]["a"], byteorder = "big")
+b = int.from_bytes(asn1["curve"]["b"], byteorder = "big")
+G = bytes(asn1["base"])
+n = int(asn1["order"])
+h = int(asn1["cofactor"])
+elen = (len(G) - 1) // 2
+assert(G[0] == 0x04)
+Gx = int.from_bytes(G[1 : 1 + elen], byteorder = "big")
+Gy = int.from_bytes(G[1 + elen : ], byteorder = "big")
+
+print("import ecc")
+print("curve = ecc.ShortWeierstrassCurve(a = 0x%x, b = 0x%x, p = 0x%x, n = 0x%x, h = %d, Gx = 0x%x, Gy = 0x%x)" % (a, b, p, n, h, Gx, Gy))
+print("assert(curve.G.oncurve())")
+print("curve.getpointwithx(0x1234)[0].serialize_uncompressed().hex()")

@@ -32,9 +32,18 @@ from x509sak.CurveDB import CurveDB
 class ECCSecurityEstimator(BaseEstimator):
 	_ALG_NAME = "ecc"
 
-	# TODO: MOV attack also applies to curves of low embedding degree.
-	# Embedding degree should be >6; we have not implemented a check of the
-	# embedding degree here.
+	def _judge_curve_embedding_degree(self, curve):
+		d = 1
+		for k in range(1, 50 + 1):
+			d = (d * curve.p) % curve.n
+			if d == 1:
+				if (k == 1) or (NumberTheory.is_probable_prime(curve.n)):
+					fail_text = "k = %d" % (k)
+				else:
+					fail_text = "k <= %d" % (k)
+				literature = LiteratureReference(author = [ "Alfred Menezes", "Scott Vanstone", "Tatsuaki Okamoto" ], title = "Reducing Elliptic Curve Logarithms to Logarithms in a Finite Field", year = 1991, source = "ACM")
+				return SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_DomainParameters_CurveProperty_LowEmbeddingDegree, "This curve has low embedding degree (%s), it fails the MOV condition. It can be compromised using the probabilistic polynomial-time MOV attack." % (fail_text), bits = 0, commonness = Commonness.HIGHLY_UNUSUAL, literature = literature)
+		return None
 
 	def _judge_prime_field_curve(self, curve):
 		judgements = SecurityJudgements()
@@ -89,6 +98,11 @@ class ECCSecurityEstimator(BaseEstimator):
 					judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_DomainParameters_BinaryField_InvalidPolynomialPower, "ECC field polynomial contains x^%d where it would be expected to see a power of two or higher." % (custom_coeff), commonness = Commonness.HIGHLY_UNUSUAL, bits = 0)
 				elif custom_coeff >= curve.m:
 					judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_DomainParameters_BinaryField_InvalidPolynomialPower, "ECC field polynomial contains x^%d where it would be expected to see a power of less than x^m (i.e., x^%d)." % (custom_coeff, curve.m), commonness = Commonness.HIGHLY_UNUSUAL, bits = 0)
+		elif curve.curvetype == "prime":
+			# Only check embedding degree for non-named (explicit) curves; it's
+			# a comparatively expensive test and we assume that curves in the
+			# database are all cryptographically sound.
+			judgements += self._judge_curve_embedding_degree(curve)
 
 		return judgements
 
