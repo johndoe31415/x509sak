@@ -32,6 +32,44 @@ from x509sak.CurveDB import CurveDB
 class ECCSecurityEstimator(BaseEstimator):
 	_ALG_NAME = "ecc"
 
+	# TODO: MOV attack also applies to curves of low embedding degree.
+	# Embedding degree should be >6; we have not implemented a check of the
+	# embedding degree here.
+
+	def _judge_prime_field_curve(self, curve):
+		judgements = SecurityJudgements()
+
+		# E(Fp) = p + 1 - t
+		# t = p - E(Fp) + 1
+		EFp = curve.n * curve.h
+		trace = curve.p - EFp + 1
+		if trace == 0:
+			literature = LiteratureReference(author = [ "Alfred Menezes", "Scott Vanstone", "Tatsuaki Okamoto" ], title = "Reducing Elliptic Curve Logarithms to Logarithms in a Finite Field", year = 1991, source = "ACM")
+			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_DomainParameters_CurveProperty_SupersingularCurve, "This curve is supersingular, trace is zero. The curve can be attacked using the probabilistic polynomial-time MOV attack.", bits = 0, commonness = Commonness.HIGHLY_UNUSUAL, literature = literature)
+		elif trace == 1:
+			literature = LiteratureReference(author = [ "Nigel P. Smart" ], title = "The discrete logarithm problem on elliptic curves of trace one", year = 1997, month = 10, source = "HP Laboratories Bristol")
+			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_DomainParameters_CurveProperty_AnomalousCurve, "This curve is anomalous, #E(F_p) is equal to p. The curve can be attacked in linear time.", bits = 0, commonness = Commonness.HIGHLY_UNUSUAL, literature = literature)
+
+		return judgements
+
+	def _judge_binary_field_curve(self, curve):
+		judgements = SecurityJudgements()
+
+		EFpm = curve.n * curve.h
+		if (EFpm % 2) == 1:
+			# Supersingular: #E(F_p^m) = 1 mod p
+			literature = LiteratureReference(author = [ "Alfred Menezes", "Scott Vanstone", "Tatsuaki Okamoto" ], title = "Reducing Elliptic Curve Logarithms to Logarithms in a Finite Field", year = 1991, source = "ACM")
+			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_DomainParameters_CurveProperty_SupersingularCurve, "This curve is supersingular, #E(F_p^m) = 1 mod p. The curve can be attacked using an probabilistic polynomial-time MOV attack.", bits = 0, commonness = Commonness.HIGHLY_UNUSUAL, literature = literature)
+
+		literature = LiteratureReference(author = [ "Steven D. Galbraith", "Shishay W. Gebregiyorgis" ], title = "Summation polynomial algorithms for elliptic curves in characteristic two", year = 2014, source = "Progress in Cryptology -- INDOCRYPT 2014; LNCS 8885")
+		judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_DomainParameters_BinaryField, "Binary finite field elliptic curve is used. Recent advances in cryptography show there might be efficient attacks on such curves, hence it is recommended to use prime-field curves instead.", commonness = Commonness.UNUSUAL, literature = literature)
+
+		if not NumberTheory.is_probable_prime(curve.m):
+			literature = LiteratureReference(author = [ "Jeffrey Hoffstein", "Jill Pipher", "Joseph Silverman" ], title = "An Introduction to Mathematical Cryptography", year = 2008, source = "Springer")
+			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_DomainParameters_CurveProperty_WeilDescent, "Binary finite field elliptic curve has a field size that is non-primem, F(2^%d). Weil Descent attacks could be successful.", bits = 0, commonness = Commonness.HIGHLY_UNUSUAL, literature = literature)
+
+		return judgements
+
 	def _check_explicit_curve_params(self, curve):
 		judgements = SecurityJudgements()
 
@@ -117,8 +155,9 @@ class ECCSecurityEstimator(BaseEstimator):
 			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_PublicKeyPoint_Y_BitBiasPresent, "Hamming weight of public key field element's Y coordinate is %d at bitlength %d, but expected a weight between %d and %d when randomly chosen; this is likely not coincidential." % (hweight_analysis.hweight, hweight_analysis.bitlen, hweight_analysis.rnd_min_hweight, hweight_analysis.rnd_max_hweight), commonness = Commonness.HIGHLY_UNUSUAL)
 
 		if isinstance(curve, BinaryFieldEllipticCurve):
-			literature = LiteratureReference(author = [ "Steven D. Galbraith", "Shishay W. Gebregiyorgis" ], title = "Summation polynomial algorithms for elliptic curves in characteristic two", year = 2014, source = "Progress in Cryptology -- INDOCRYPT 2014; LNCS 8885")
-			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_DomainParameters_BinaryField, "Binary finite field elliptic curve is used. Recent advances in cryptography show there might be efficient attacks on such curves, hence it is recommended to use prime-field curves instead.", commonness = Commonness.UNUSUAL, literature = literature)
+			judgements += self._judge_binary_field_curve(curve)
+		elif isinstance(curve, PrimeFieldEllipticCurve):
+			judgements += self._judge_prime_field_curve(curve)
 
 		if not pubkey.named_curve:
 			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_DomainParameters_Name_ExplicitCurve, "Curve uses explicit encoding for domain parameters. Typically, named curves are used; explicit encoding of domain parameters is not recommended and may be rejected by implementations for simplicity reasons.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
