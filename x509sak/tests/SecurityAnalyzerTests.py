@@ -450,13 +450,16 @@ class SecurityAnalyzerTests(BaseAnalyzerTest):
 		self._test_examine_x509test_resultcode("certs/ok/rsa_512.pem", expect_present = [ "X509Cert_Signature_Function_Common", "X509Cert_Signature_HashFunction_Derated", "X509Cert_PublicKey_RSA_Modulus_LengthInBits", "X509Cert_Signature_HashFunction_DigestLengthInBits" ], include_raw = True)
 
 	def test_include_raw_data_ecc_fp(self):
-		self._test_examine_x509test_resultcode("certs/ok/ecc_secp256r1.pem", expect_present = "X509Cert_Signature_Function_Common", include_raw = True)
+		self._test_examine_x509test_resultcode("certs/ok/ecc_secp256r1.pem", expect_present = [ "X509Cert_Signature_Function_Common", "X509Cert_PublicKey_ECC_DomainParameters_PrimeField", "X509Cert_PublicKey_ECC_DomainParameters_Name_NamedCurve" ], expect_absent = "X509Cert_PublicKey_ECC_DomainParameters_BinaryField", include_raw = True)
 
 	def test_include_raw_data_ecc_f2m(self):
-		self._test_examine_x509test_resultcode("certs/ok/ecc_sect283r1.pem", include_raw = True)
+		self._test_examine_x509test_resultcode("certs/ok/ecc_sect283r1.pem", expect_present = [ "X509Cert_PublicKey_ECC_DomainParameters_BinaryField", "X509Cert_PublicKey_ECC_DomainParameters_Name_NamedCurve" ], expect_absent = "X509Cert_PublicKey_ECC_DomainParameters_PrimeField", include_raw = True)
 
 	def test_include_raw_data_ecc_twedwards(self):
 		self._test_examine_x509test_resultcode("certs/ok/pubkey_sig_ed25519.pem", expect_present = "X509Cert_Signature_Function_UncommonCryptosystem", include_raw = True)
+
+	def test_ecc_implicit_curve(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ecc_implicit_curve.pem", expect_present = "X509Cert_PublicKey_ECC_DomainParameters_Name_ImplicitCurve", expect_absent = [ "X509Cert_PublicKey_ECC_DomainParameters_Name_UnknownExplicit", "X509Cert_PublicKey_ECC_DomainParameters_Name_ExplicitCurve", "X509Cert_PublicKey_ECC_DomainParameters_Name_NamedCurve" ])
 
 	def test_explicit_prime(self):
 		self._test_examine_x509test_resultcode("certs/ok/ecc_explicit_param_prime.pem", expect_present = [ "X509Cert_PublicKey_ECC_DomainParameters_Name_UnusedName", "X509Cert_PublicKey_ECC_DomainParameters_Name_ExplicitCurve" ], expect_absent = "X509Cert_PublicKey_ECC_DomainParameters_Name_UnknownExplicit")

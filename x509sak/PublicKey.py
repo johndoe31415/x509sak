@@ -251,7 +251,7 @@ class ECDSAPublicKey(_BasePublicKey):
 
 	@property
 	def malformed(self):
-		return self._param("curve") is None
+		return (self._param("curve") is None) and (self._param("curve_source") != "implicitCurve")
 
 	@property
 	def keyspec(self):

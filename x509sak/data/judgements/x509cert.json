@@ -13,8 +13,9 @@
 				"Domain Parameters": {
 					"Name": {
 						"Named Curve": { "_desc": "curve is named by its OID" },
-						"Unkown Name": { "_desc": "curve name OID unknown" },
 						"Explicit Curve": { "_desc": "curve has explicitly encoded domain parameters" },
+						"Implicit Curve": { "_desc": "curve is implicit, parameter field is NULL" },
+						"Unkown Name": { "_desc": "curve name OID unknown" },
 						"Unknown Explicit": { "_desc": "explicit curve domain parameters are entirely unknown" },
 						"Unused Name": { "_desc": "explicit curve domain parameters are equal to named curve" }
 					}

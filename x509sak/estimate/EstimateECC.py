@@ -82,6 +82,8 @@ class ECCSecurityEstimator(BaseEstimator):
 	def _judge_prime_field_curve(self, curve):
 		judgements = SecurityJudgements()
 
+		judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_DomainParameters_PrimeField, "Prime finite field elliptic curve is used.", commonness = Commonness.COMMON)
+
 		if curve.h is not None:
 			# TODO: We might be able to guess the cofactor because of the Hasse bound.
 			# E(Fp) = p + 1 - t
@@ -104,14 +106,14 @@ class ECCSecurityEstimator(BaseEstimator):
 	def _judge_binary_field_curve(self, curve):
 		judgements = SecurityJudgements()
 
+		literature = LiteratureReference(author = [ "Steven D. Galbraith", "Shishay W. Gebregiyorgis" ], title = "Summation polynomial algorithms for elliptic curves in characteristic two", year = 2014, source = "Progress in Cryptology -- INDOCRYPT 2014; LNCS 8885")
+		judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_DomainParameters_BinaryField, "Binary finite field elliptic curve is used. Recent advances in cryptography show there might be efficient attacks on such curves, hence it is recommended to use prime-field curves instead.", commonness = Commonness.UNUSUAL, literature = literature)
+
 		EFpm = curve.n * curve.h
 		if (EFpm % 2) == 1:
 			# Supersingular: #E(F_p^m) = 1 mod p
 			literature = LiteratureReference(author = [ "Alfred Menezes", "Scott Vanstone", "Tatsuaki Okamoto" ], title = "Reducing Elliptic Curve Logarithms to Logarithms in a Finite Field", year = 1991, source = "ACM")
 			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_DomainParameters_CurveProperty_SupersingularCurve, "This curve is supersingular, #E(F_p^m) = 1 mod p. The curve can be attacked using an probabilistic polynomial-time MOV attack.", bits = 0, commonness = Commonness.HIGHLY_UNUSUAL, literature = literature)
-
-		literature = LiteratureReference(author = [ "Steven D. Galbraith", "Shishay W. Gebregiyorgis" ], title = "Summation polynomial algorithms for elliptic curves in characteristic two", year = 2014, source = "Progress in Cryptology -- INDOCRYPT 2014; LNCS 8885")
-		judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_DomainParameters_BinaryField, "Binary finite field elliptic curve is used. Recent advances in cryptography show there might be efficient attacks on such curves, hence it is recommended to use prime-field curves instead.", commonness = Commonness.UNUSUAL, literature = literature)
 
 		if not NumberTheory.is_probable_prime(curve.m):
 			literature = LiteratureReference(author = [ "Jeffrey Hoffstein", "Jill Pipher", "Joseph Silverman" ], title = "An Introduction to Mathematical Cryptography", year = 2008, source = "Springer")
@@ -170,9 +172,9 @@ class ECCSecurityEstimator(BaseEstimator):
 
 		return judgements
 
-	def analyze(self, pubkey):
-		curve = pubkey.curve
+	def _analyze_curve(self, pubkey):
 		judgements = SecurityJudgements()
+		curve = pubkey.curve
 
 		# Check that the encoded public key point is on curve first
 		Q = curve.point(pubkey.x, pubkey.y)
@@ -237,10 +239,23 @@ class ECCSecurityEstimator(BaseEstimator):
 		elif isinstance(curve, PrimeFieldEllipticCurve):
 			judgements += self._judge_prime_field_curve(curve)
 
-		if pubkey.curve_source == "specifiedCurve":
+		return judgements
+
+	def analyze(self, pubkey):
+		judgements = SecurityJudgements()
+
+		if pubkey.curve_source != "implicitCurve":
+			# Can only check most of the things when there's a curve we can actually check
+			judgements += self._analyze_curve(pubkey)
+
+		if pubkey.curve_source == "namedCurve":
+			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_DomainParameters_Name_NamedCurve, "Curve referenced by name in parameter field.", commonness = Commonness.COMMON)
+		elif pubkey.curve_source == "specifiedCurve":
 			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_DomainParameters_Name_ExplicitCurve, "Curve uses explicit encoding for domain parameters. Typically, named curves are used; explicit encoding of domain parameters is not recommended and may be rejected by implementations for simplicity reasons.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
 			judgements += self._check_explicit_curve_encoding(pubkey)
-			judgements += self._check_explicit_curve_params(curve)
+			judgements += self._check_explicit_curve_params(pubkey.curve)
+		else:
+			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_DomainParameters_Name_ImplicitCurve, "Curve uses implicit curve for domain parameters. This is highly uncommon practice and strongly discouraged.", bits = 0, commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
 
 		result = {
 			"specific":	{ },
