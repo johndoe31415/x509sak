@@ -157,7 +157,6 @@ class EllipticCurve():
 	@classmethod
 	def from_asn1(cls, asn1):
 		"""Decode explicitly encoded elliptic curve domain parameters, given as a Sequence (SpecifiedECDomain)."""
-
 		(specified_domain, tail) = ASN1Tools.redecode(asn1, SpecifiedECDomain())
 		if len(tail) != 0:
 			raise InvalidInputException("Attempted to decode the excplicit EC domain and encountered %d bytes of trailing data." % (len(tail)))

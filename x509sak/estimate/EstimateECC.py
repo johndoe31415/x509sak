@@ -36,7 +36,7 @@ class ECCSecurityEstimator(BaseEstimator):
 		judgements = SecurityJudgements()
 
 		if curve.h is None:
-			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_DomainParameters_CofactorMissing, "Curve cofactor h is not present in explicit domain parameter encoding. This is allowed, but highly unusual.", commonness = Commonness.HIGHLY_UNUSUAL)
+			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_DomainParameters_Cofactor_Missing, "Curve cofactor h is not present in explicit domain parameter encoding. This is allowed, but highly unusual.", commonness = Commonness.HIGHLY_UNUSUAL)
 		else:
 			if curve.h <= 0:
 				judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_DomainParameters_CurveProperty_Cofactor_Invalid, "Curve cofactor h = %d is zero or negative. This is invalid." % (curve.h), bits = 0, commonness = Commonness.HIGHLY_UNUSUAL)
@@ -152,6 +152,11 @@ class ECCSecurityEstimator(BaseEstimator):
 
 		return judgements
 
+	def _check_explicit_curve_encoding(self, pubkey):
+		param_decoding = pubkey.key.decoding_details[0]
+		# TODO
+#		print(param_decoding.asn1)
+
 	def analyze(self, pubkey):
 		curve = pubkey.curve
 		judgements = SecurityJudgements()
@@ -221,6 +226,7 @@ class ECCSecurityEstimator(BaseEstimator):
 
 		if not pubkey.named_curve:
 			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_DomainParameters_Name_ExplicitCurve, "Curve uses explicit encoding for domain parameters. Typically, named curves are used; explicit encoding of domain parameters is not recommended and may be rejected by implementations for simplicity reasons.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
+			judgements += self._check_explicit_curve_encoding(pubkey)
 			judgements += self._check_explicit_curve_params(curve)
 
 		result = {

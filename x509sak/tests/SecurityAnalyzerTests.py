@@ -486,7 +486,7 @@ class SecurityAnalyzerTests(BaseAnalyzerTest):
 		self._test_examine_x509test_resultcode("certs/ok/ecc_explicit_param_prime_h112.pem", expect_present = "X509Cert_PublicKey_ECC_DomainParameters_CurveProperty_Cofactor_Large")
 
 	def test_explicit_cofactor_missing(self):
-		self._test_examine_x509test_resultcode("certs/constructed/pubkey_ecc_missing_cofactor.pem", expect_present = "X509Cert_PublicKey_ECC_DomainParameters_CofactorMissing")
+		self._test_examine_x509test_resultcode("certs/constructed/pubkey_ecc_missing_cofactor.pem", expect_present = "X509Cert_PublicKey_ECC_DomainParameters_Cofactor_Missing")
 
 	def test_explicit_cofactor_invalid_zero(self):
 		self._test_examine_x509test_resultcode("certs/constructed/pubkey_ecc_cofactor_invalid_zero.pem", expect_present = "X509Cert_PublicKey_ECC_DomainParameters_CurveProperty_Cofactor_Invalid")
