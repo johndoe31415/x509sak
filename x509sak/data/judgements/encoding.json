@@ -64,6 +64,7 @@
 				"ECDSA Public Key": {
 					"_short_id": "ecdsa_pubkey_encoding_issues",
 					"Domain Parameters": {
+						"Cofactor Missing": { "_desc": "curve does not include optional cofactor" },
 						"Binary Field": {
 							"Duplicate Polynomial Power": { "_desc": "duplicate power in field polynomial" },
 							"Invalid Polynomial Power": { "_desc": "invalid power in field polynomial" }

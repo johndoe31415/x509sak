@@ -59,7 +59,7 @@ class NumberTheory():
 		"""Calculate modular inverse of a modulo m."""
 		(g, x, y) = cls.egcd(a, m)
 		if g != 1:
-			raise Exception("Modular inverse of %d mod %d does not exist" % (a, m))
+			raise InvalidInputException("Modular inverse of %d mod %d does not exist" % (a, m))
 		else:
 			return x % m
 
@@ -327,3 +327,17 @@ class NumberTheory():
 			for factor in ((factor ** exponent) for (exponent, (factor, max_exponent)) in zip(exponents, factorization)):
 				product *= factor
 			yield product
+
+	@classmethod
+	def isqrt(cls, value):
+		if value < 0:
+			raise InvalidInputException("Cannot return isqrt(%d)" % (value))
+		elif value < 2:
+			return value
+		else:
+			small = cls.isqrt(value >> 2) << 1
+			large = small + 1
+			if (large * large) > value:
+				return small
+			else:
+				return large

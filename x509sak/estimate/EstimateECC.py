@@ -32,6 +32,40 @@ from x509sak.CurveDB import CurveDB
 class ECCSecurityEstimator(BaseEstimator):
 	_ALG_NAME = "ecc"
 
+	def _judge_curve_cofactor(self, curve):
+		judgements = SecurityJudgements()
+
+		if curve.h is None:
+			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_DomainParameters_CurveProperty_Cofactor_Missing, "Curve cofactor h is not present in explicit domain parameter encoding. This is allowed, but highly unusual.", commonness = Commonness.HIGHLY_UNUSUAL)
+		else:
+			if curve.h <= 0:
+				judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_DomainParameters_CurveProperty_Cofactor_Invalid, "Curve cofactor h = %d is zero or negative. This is invalid." % (curve.h), bits = 0, commonness = Commonness.HIGHLY_UNUSUAL)
+			elif curve.h > 8:
+				judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_DomainParameters_CurveProperty_Cofactor_Large, "Curve cofactor is unusually large, h = %d. This is an indication the curve has non-ideal cryptographic properties; would expect h <= 8." % (curve.h), commonness = Commonness.HIGHLY_UNUSUAL)
+
+			if curve.curvetype == "prime":
+				field_size = curve.p
+			elif curve.curvetype == "binary":
+				# TODO: For GF(p), the number of group elements is simply p.
+				# For GF(2^m), I'm fairly certiain it is the reduction
+				# polynomial (essentially, it's modular polynomial arithmetic).
+				# Not 100% sure though. Verify.
+				field_size = curve.int_poly
+
+			# Hasse Theorem on Elliptic Curves:
+			# p - (2 * sqrt(p)) + 1 <= #E(F_p) <= p + (2 * sqrt(p)) + 1
+			# #E(F_p) = n h
+			# h >= (p - (2 * sqrt(p)) + 1) / n
+			# h <= (p + (2 * sqrt(p)) + 1) / n
+			sqrt_p = NumberTheory.isqrt(field_size)
+			hasse_h_min = (field_size - (2 * (sqrt_p + 1)) + 1) // curve.n
+			hasse_h_max = (field_size + (2 * (sqrt_p + 1)) + 1) // curve.n
+
+			if not (hasse_h_min <= curve.h <= hasse_h_max):
+				literature = LiteratureReference(author = "Helmut Hasse", title = "Zur Theorie der abstrakten elliptischen Funktionenkörper. I, II & III", year = 1936, source = "Crelle's Journal")
+				judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_DomainParameters_CurveProperty_Cofactor_OutsideHasseBound, "Curve cofactor h = %d is outside the Hasse bound (%d <= h <= %d). Cofactor therefore is invalid." % (curve.h, hasse_h_min, hasse_h_max), bits = 0, commonness = Commonness.HIGHLY_UNUSUAL, literature = literature)
+		return judgements
+
 	def _judge_curve_embedding_degree(self, curve):
 		d = 1
 		for k in range(1, 50 + 1):
@@ -58,6 +92,10 @@ class ECCSecurityEstimator(BaseEstimator):
 		elif trace == 1:
 			literature = LiteratureReference(author = [ "Nigel P. Smart" ], title = "The discrete logarithm problem on elliptic curves of trace one", year = 1997, month = 10, source = "HP Laboratories Bristol")
 			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_DomainParameters_CurveProperty_AnomalousCurve, "This curve is anomalous, #E(F_p) is equal to p. The curve can be attacked in linear time.", bits = 0, commonness = Commonness.HIGHLY_UNUSUAL, literature = literature)
+
+		p = ((4 * (curve.a ** 3)) + (27 * (curve.b ** 2))) % curve.p
+		if p == 0:
+			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_DomainParameters_CurveProperty_SingularCurve, "This curve is singular, 4a³ + 27b² = 0 mod p. Mathematical assumptions about the structure of the curve do not hold.", bits = 0, commonness = Commonness.HIGHLY_UNUSUAL)
 
 		return judgements
 
@@ -89,6 +127,8 @@ class ECCSecurityEstimator(BaseEstimator):
 		else:
 			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_DomainParameters_Name_UnusedName, "Explicit curve domain parameter encoding is used; curve domain parameters are equal to curve %s (OID %s). Recommend switching to that named curve." % (known_curve.name, known_curve.oid))
 
+		judgements += self._judge_curve_cofactor(curve)
+
 		if curve.curvetype == "binary":
 			if len(curve.poly) != len(set(curve.poly)):
 				judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_DomainParameters_BinaryField_DuplicatePolynomialPower, "ECC field polynomial contains duplicate powers: %s -- Conservatively rating as broken security." % (str(curve.poly)), commonness = Commonness.HIGHLY_UNUSUAL, bits = 0)
@@ -103,6 +143,10 @@ class ECCSecurityEstimator(BaseEstimator):
 			# a comparatively expensive test and we assume that curves in the
 			# database are all cryptographically sound.
 			judgements += self._judge_curve_embedding_degree(curve)
+
+			# This isn't computationally expensive, but we also assume database
+			# curves are cryptographically sound.
+			judgements += self._judge_curve_cofactor(curve)
 
 		return judgements
 

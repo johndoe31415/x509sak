@@ -152,19 +152,32 @@ class NumberTheoryTests(BaseTest):
 
 	def test_iterprimes(self):
 		primes = [ value for (no, value) in zip(range(25), NumberTheory.iter_primes()) ]
-		self.assertEquals(primes, [ 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97])
+		self.assertEqual(primes, [ 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97])
 
 	def test_find_small_factor(self):
-		self.assertEquals(NumberTheory.find_small_factor(7 * 2003), 7)
-		self.assertEquals(NumberTheory.find_small_factor(2 * 2003), 2)
-		self.assertEquals(NumberTheory.find_small_factor(71 * 2003), 71)
-		self.assertEquals(NumberTheory.find_small_factor(2003), None)
+		self.assertEqual(NumberTheory.find_small_factor(7 * 2003), 7)
+		self.assertEqual(NumberTheory.find_small_factor(2 * 2003), 2)
+		self.assertEqual(NumberTheory.find_small_factor(71 * 2003), 71)
+		self.assertEqual(NumberTheory.find_small_factor(2003), None)
 
 	def test_factor(self):
-		self.assertEquals(list(sorted(NumberTheory.factor(101 * 211))), [ 101, 211 ])
-		self.assertEquals(list(sorted(NumberTheory.factor(2 ** 4))), [ 2, 2, 2, 2 ])
-		self.assertEquals(list(sorted(NumberTheory.factor(2 * 2 * 3 * 3 * 5))), [ 2, 2, 3, 3, 5 ])
+		self.assertEqual(list(sorted(NumberTheory.factor(101 * 211))), [ 101, 211 ])
+		self.assertEqual(list(sorted(NumberTheory.factor(2 ** 4))), [ 2, 2, 2, 2 ])
+		self.assertEqual(list(sorted(NumberTheory.factor(2 * 2 * 3 * 3 * 5))), [ 2, 2, 3, 3, 5 ])
 
 	def test_possible_divisors(self):
-		self.assertEquals(list(sorted(NumberTheory.possible_divisors([ 2, 2, 3 ]))), [ 1, 2, 3, 4, 6, 12 ])
-		self.assertEquals(list(sorted(NumberTheory.possible_divisors([ 2, 3, 5 ]))), [ 1, 2, 3, 5, 6, 10, 15, 30 ])
+		self.assertEqual(list(sorted(NumberTheory.possible_divisors([ 2, 2, 3 ]))), [ 1, 2, 3, 4, 6, 12 ])
+		self.assertEqual(list(sorted(NumberTheory.possible_divisors([ 2, 3, 5 ]))), [ 1, 2, 3, 5, 6, 10, 15, 30 ])
+
+	def test_isqrt(self):
+		self.assertEqual(NumberTheory.isqrt(0), 0)
+		self.assertEqual(NumberTheory.isqrt(1), 1)
+		self.assertEqual(NumberTheory.isqrt(2), 1)
+		self.assertEqual(NumberTheory.isqrt(3), 1)
+		self.assertEqual(NumberTheory.isqrt(4), 2)
+		self.assertEqual(NumberTheory.isqrt(5), 2)
+		self.assertEqual(NumberTheory.isqrt(27), 5)
+		self.assertEqual(NumberTheory.isqrt(35), 5)
+		self.assertEqual(NumberTheory.isqrt(36), 6)
+		self.assertEqual(NumberTheory.isqrt(123456789), 11111)
+		self.assertEqual(NumberTheory.isqrt(1234567890), 35136)

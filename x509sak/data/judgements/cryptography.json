@@ -60,7 +60,13 @@
 						"Weil Descent": { "_desc": "Weil Descent attack possible, F_2^m with non-prime m" },
 						"Koblitz Curve": { "_desc": "is a Koblitz curve" },
 						"Supersingular Curve": { "_desc": "curve is supersingular, #E(F_p^m) = 1 mod p" },
-						"Low Embedding Degree": { "_desc": "curve has low embedding degree and fails MOV condition" }
+						"Singular Curve": { "_desc": "curve is singular, 4a^3 + 27b^2 = 0 mod p" },
+						"Low Embedding Degree": { "_desc": "curve has low embedding degree and fails MOV condition" },
+						"Cofactor": {
+							"Large": { "_desc": "curve has unusually large cofactor" },
+							"Invalid": { "_desc": "cofactor is zero or negative" },
+							"Outside Hasse Bound": { "_desc": "curve has cofactor outside Hasse bound" }
+						}
 					}
 				},
 				"Public Key Point": {

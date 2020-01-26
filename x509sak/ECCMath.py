@@ -340,6 +340,10 @@ class BinaryFieldEllipticCurve(EllipticCurve):
 		return self.m
 
 	@property
+	def int_poly(self):
+		return sum(1 << exponent for exponent in self.poly)
+
+	@property
 	def characteristic_cmpkey(self):
 		return (self.curvetype, self.a, self.b, self.n, self.h, self._domain_parameters.get("Gx"), self._domain_parameters.get("Gy"), self.m, tuple(sorted(set(self.poly))))
 
