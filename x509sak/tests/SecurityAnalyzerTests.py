@@ -488,6 +488,15 @@ class SecurityAnalyzerTests(BaseAnalyzerTest):
 	def test_explicit_cofactor_missing(self):
 		self._test_examine_x509test_resultcode("certs/constructed/pubkey_ecc_missing_cofactor.pem", expect_present = "X509Cert_PublicKey_ECC_DomainParameters_CofactorMissing")
 
+	def test_explicit_cofactor_invalid_zero(self):
+		self._test_examine_x509test_resultcode("certs/constructed/pubkey_ecc_cofactor_invalid_zero.pem", expect_present = "X509Cert_PublicKey_ECC_DomainParameters_CurveProperty_Cofactor_Invalid")
+
+	def test_explicit_cofactor_invalid_negative(self):
+		self._test_examine_x509test_resultcode("certs/constructed/pubkey_ecc_cofactor_invalid_negative.pem", expect_present = "X509Cert_PublicKey_ECC_DomainParameters_CurveProperty_Cofactor_Invalid")
+
+	def test_explicit_cofactor_outside_hasse(self):
+		self._test_examine_x509test_resultcode("certs/constructed/pubkey_ecc_cofactor_outside_hasse.pem", expect_present = "X509Cert_PublicKey_ECC_DomainParameters_CurveProperty_Cofactor_OutsideHasseBound")
+
 	def test_san_broad_match1(self):
 		self._test_examine_x509test_resultcode("certs/constructed/san_broad_match1.pem", expect_present = "X509Cert_Body_X509Exts_Ext_SAN_Name_DNS_Wildcard_BroadMatch")
 
