@@ -1,0 +1,43 @@
+#!/usr/bin/python3
+#	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
+#	Copyright (C) 2020-2020 Johannes Bauer
+#
+#	This file is part of x509sak.
+#
+#	x509sak is free software; you can redistribute it and/or modify
+#	it under the terms of the GNU General Public License as published by
+#	the Free Software Foundation; this program is ONLY licensed under
+#	version 3 of the License, later versions are explicitly excluded.
+#
+#	x509sak is distributed in the hope that it will be useful,
+#	but WITHOUT ANY WARRANTY; without even the implied warranty of
+#	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#	GNU General Public License for more details.
+#
+#	You should have received a copy of the GNU General Public License
+#	along with x509sak; if not, write to the Free Software
+#	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+#	Johannes Bauer <JohannesBauer@gmx.de>
+
+from x509sak.NumberTheory import NumberTheory
+
+p = 0xdb7c2abf62e35e668076bead208b
+a = 12345
+
+rhs = (-4 * (a ** 3)) % p
+rhs *= NumberTheory.modinv(27, p)
+rhs %= p
+b = NumberTheory.sqrt_mod_p(rhs, p)[0]
+
+assert(((4 * (a ** 3) + (27 * (b ** 2))) % p) == 0)
+print("p", hex(p))
+print("a", a)
+print("b", hex(b))
+
+x = 0x123456
+rhs = ((x ** 3) + (a * x) + b) % p
+y = NumberTheory.sqrt_mod_p(rhs, p)[0]
+assert((y ** 2) % p == ((x ** 3) + (a * x) + b) % p)
+print("x", int.to_bytes(x, length = 14, byteorder = "big").hex())
+print("y", int.to_bytes(y, length = 14, byteorder = "big").hex())
