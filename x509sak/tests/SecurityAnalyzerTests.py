@@ -489,13 +489,25 @@ class SecurityAnalyzerTests(BaseAnalyzerTest):
 		self._test_examine_x509test_resultcode("certs/constructed/pubkey_ecc_missing_cofactor.pem", expect_present = "X509Cert_PublicKey_ECC_DomainParameters_Cofactor_Missing")
 
 	def test_explicit_cofactor_invalid_zero(self):
-		self._test_examine_x509test_resultcode("certs/constructed/pubkey_ecc_cofactor_invalid_zero.pem", expect_present = "X509Cert_PublicKey_ECC_DomainParameters_CurveProperty_Cofactor_Invalid")
+		self._test_examine_x509test_resultcode("certs/constructed/pubkey_ecc_cofactor_invalid_zero.pem", expect_present = "X509Cert_PublicKey_ECC_DomainParameters_CurveProperty_Cofactor_Invalid", expect_absent = "X509Cert_PublicKey_ECC_DomainParameters_Seed_Present")
 
 	def test_explicit_cofactor_invalid_negative(self):
 		self._test_examine_x509test_resultcode("certs/constructed/pubkey_ecc_cofactor_invalid_negative.pem", expect_present = "X509Cert_PublicKey_ECC_DomainParameters_CurveProperty_Cofactor_Invalid")
 
 	def test_explicit_cofactor_outside_hasse(self):
 		self._test_examine_x509test_resultcode("certs/constructed/pubkey_ecc_cofactor_outside_hasse.pem", expect_present = "X509Cert_PublicKey_ECC_DomainParameters_CurveProperty_Cofactor_OutsideHasseBound")
+
+	def test_explicit_seed_present(self):
+		self._test_examine_x509test_resultcode("certs/ok/ecc_explicit_param_prime.pem", expect_present = "X509Cert_PublicKey_ECC_DomainParameters_Seed_Present")
+
+	def test_explicit_seed_empty(self):
+		self._test_examine_x509test_resultcode("certs/constructed/pubkey_ecc_seed_empty.pem", expect_present = "X509Cert_PublicKey_ECC_DomainParameters_Seed_Empty")
+
+	def test_explicit_seed_long(self):
+		self._test_examine_x509test_resultcode("certs/constructed/pubkey_ecc_seed_long.pem", expect_present = "X509Cert_PublicKey_ECC_DomainParameters_Seed_Long")
+
+	def test_explicit_seed_nobytestring(self):
+		self._test_examine_x509test_resultcode("certs/constructed/pubkey_ecc_seed_nobytestring.pem", expect_present = "X509Cert_PublicKey_ECC_DomainParameters_Seed_NoByteString")
 
 	def test_explicit_singular(self):
 		self._test_examine_x509test_resultcode("certs/constructed/pubkey_ecc_singular.pem", expect_present = "X509Cert_PublicKey_ECC_DomainParameters_CurveProperty_SingularCurve")

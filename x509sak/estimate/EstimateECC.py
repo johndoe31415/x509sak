@@ -153,9 +153,22 @@ class ECCSecurityEstimator(BaseEstimator):
 		return judgements
 
 	def _check_explicit_curve_encoding(self, pubkey):
+		judgements = SecurityJudgements()
 		param_decoding = pubkey.key.decoding_details[0]
-		# TODO
-#		print(param_decoding.asn1)
+		if param_decoding.asn1 is not None:
+			seed_bitstring = param_decoding.asn1.getComponent()["curve"]["seed"]
+			if seed_bitstring.hasValue():
+				judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_DomainParameters_Seed_Present, "Explicitly encoded public key contains seed. This is unnecessary, but not uncommon.")
+
+				if len(seed_bitstring) == 0:
+					judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_DomainParameters_Seed_Empty, "Explicitly encoded public key contains seed, but that seed is empty.", commonness = Commonness.UNUSUAL)
+				elif len(seed_bitstring) > 256:
+					judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_DomainParameters_Seed_Long, "Explicitly encoded public key contains long seed (%d bits)." % (len(seed_bitstring)), commonness = Commonness.UNUSUAL)
+
+				if (len(seed_bitstring) % 8) != 0:
+					judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_DomainParameters_Seed_NoByteString, "Explicitly encoded public key seed has uneven bit length (%d bits)." % (len(seed_bitstring)), commonness = Commonness.HIGHLY_UNUSUAL)
+
+		return judgements
 
 	def analyze(self, pubkey):
 		curve = pubkey.curve

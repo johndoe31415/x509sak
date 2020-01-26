@@ -70,7 +70,8 @@
 						"Seed": {
 							"Present": { "_desc": "seed is present in public key encoding" },
 							"Empty": { "_desc": "zero bytes seed present" },
-							"Long": { "_desc": "unusually long seed present" }
+							"Long": { "_desc": "unusually long seed present" },
+							"No Byte String": { "_desc": "seed length in bits is not divisible by 8" }
 						},
 						"Binary Field": {
 							"Duplicate Polynomial Power": { "_desc": "duplicate power in field polynomial" },
