@@ -31,6 +31,7 @@ from x509sak.Exceptions import UnknownAlgorithmException, LazyDeveloperException
 from x509sak.CurveDB import CurveDB
 from x509sak.ECCMath import EllipticCurve
 from x509sak.AlgorithmDB import PublicKeyAlgorithms, Cryptosystems
+from x509sak.ASN1Models import ECParameters
 
 class PublicKey(PEMDERObject):
 	_PEM_MARKER = "PUBLIC KEY"
@@ -254,7 +255,7 @@ class ECDSAPublicKey(_BasePublicKey):
 
 	@property
 	def keyspec(self):
-		if self._param("named_curve"):
+		if self._param("curve_source") == "named":
 			return KeySpecification(cryptosystem = self._PK_ALG.value.cryptosystem, parameters = { "curvename": self["curve"].name })
 		else:
 			return None
@@ -279,24 +280,32 @@ class ECDSAPublicKey(_BasePublicKey):
 
 	@classmethod
 	def from_subject_pubkey_info(cls, pk_alg, params_asn1, pubkey_data):
-		params = ASN1Tools.safe_decode(params_asn1)
+		params = ASN1Tools.safe_decode(params_asn1, asn1_spec = ECParameters())
 
 		accessible_parameters = { }
 		if params.asn1 is not None:
-			if isinstance(params.asn1, pyasn1.type.univ.ObjectIdentifier):
+			if params.asn1.getName() == "namedCurve":
 				# Named curve
-				curve_oid = OID.from_asn1(params.asn1)
+				curve_oid = OID.from_asn1(params.asn1["namedCurve"])
 				curve = CurveDB().instantiate(oid = curve_oid)
 				accessible_parameters.update({
-					"curve_oid":	curve_oid,
-					"curve":		curve,
-					"named_curve":	True,
+					"curve_oid":		curve_oid,
+					"curve":			curve,
+					"curve_source":		"named",
+				})
+			elif params.asn1.getName() == "specifiedCurve":
+				# Explicit curve or implicit curve
+				curve = EllipticCurve.from_asn1(params.asn1["specifiedCurve"])
+				accessible_parameters.update({
+					"curve":			curve,
+					"curve_source":		"explicit",
 				})
 			else:
-				curve = EllipticCurve.from_asn1(params.asn1)
+				# Implicit curve
+				print("IMPLICIT CURVE?")
 				accessible_parameters.update({
-					"curve":		curve,
-					"named_curve":	False,
+					"implicit_curve":	True,
+					"curve_source":		"implicit",
 				})
 
 		if accessible_parameters.get("curve") is not None:
@@ -305,6 +314,8 @@ class ECDSAPublicKey(_BasePublicKey):
 				"x": pk_point.x,
 				"y": pk_point.y,
 			})
+		else:
+			pk_point = None
 
 		return cls(accessible_parameters = accessible_parameters, decoding_details = [ params, pk_point ])
 
@@ -347,6 +358,6 @@ class EdDSAPublicKey(_BasePublicKey):
 			"y":			pk_point.y,
 			"curve":		curve,
 			"point":		pk_point,
-			"named_curve":	True,
+			"curve_source":	"named",
 		})
 		return cls(accessible_parameters = accessible_parameters, decoding_details = [ pk_point ])

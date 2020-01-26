@@ -157,29 +157,26 @@ class EllipticCurve():
 	@classmethod
 	def from_asn1(cls, asn1):
 		"""Decode explicitly encoded elliptic curve domain parameters, given as a Sequence (SpecifiedECDomain)."""
-		(specified_domain, tail) = ASN1Tools.redecode(asn1, SpecifiedECDomain())
-		if len(tail) != 0:
-			raise InvalidInputException("Attempted to decode the excplicit EC domain and encountered %d bytes of trailing data." % (len(tail)))
 
-		version = int(specified_domain["version"])
+		version = int(asn1["version"])
 		if version != 1:
 			raise InvalidInputException("Attempted to decode the excplicit EC domain and saw unknown version %d." % (version))
 
-		field_type = OID.from_asn1(specified_domain["fieldID"]["fieldType"])
+		field_type = OID.from_asn1(asn1["fieldID"]["fieldType"])
 		field_type_id = OIDDB.ECFieldType.get(field_type)
 		if field_type_id is None:
 			raise InvalidInputException("Encountered explicit EC domain parameters in unknown field with OID %s." % (str(field_type)))
 
 		domain_parameters = {
-			"a":	int.from_bytes(bytes(specified_domain["curve"]["a"]), byteorder = "big"),
-			"b":	int.from_bytes(bytes(specified_domain["curve"]["b"]), byteorder = "big"),
-			"n":	int(specified_domain["order"]),
+			"a":	int.from_bytes(bytes(asn1["curve"]["a"]), byteorder = "big"),
+			"b":	int.from_bytes(bytes(asn1["curve"]["b"]), byteorder = "big"),
+			"n":	int(asn1["order"]),
 		}
-		if specified_domain["cofactor"].hasValue():
-			domain_parameters["h"] = int(specified_domain["cofactor"])
-		base_point = bytes(specified_domain["base"])
+		if asn1["cofactor"].hasValue():
+			domain_parameters["h"] = int(asn1["cofactor"])
+		base_point = bytes(asn1["base"])
 		if field_type_id == "prime-field":
-			(field_params, tail) = pyasn1.codec.der.decoder.decode(bytes(specified_domain["fieldID"]["parameters"]), asn1Spec = ECFieldParametersPrimeField())
+			(field_params, tail) = pyasn1.codec.der.decoder.decode(bytes(asn1["fieldID"]["parameters"]), asn1Spec = ECFieldParametersPrimeField())
 			if len(tail) != 0:
 				raise InvalidInputException("Attempted to decode the excplicit EC domain and encountered %d bytes of trailing data of the prime basis Integer." % (len(tail)))
 
@@ -188,7 +185,7 @@ class EllipticCurve():
 			})
 			return cls.get_class_for_curvetype("prime").instantiate(domain_parameters, base_point)
 		elif field_type_id == "characteristic-two-field":
-			(field_params, tail) = pyasn1.codec.der.decoder.decode(bytes(specified_domain["fieldID"]["parameters"]), asn1Spec = ECFieldParametersCharacteristicTwoField())
+			(field_params, tail) = pyasn1.codec.der.decoder.decode(bytes(asn1["fieldID"]["parameters"]), asn1Spec = ECFieldParametersCharacteristicTwoField())
 			if len(tail) != 0:
 				raise InvalidInputException("Attempted to decode the excplicit EC domain and encountered %d bytes of trailing data of the characteristic two field Sequence." % (len(tail)))
 
