@@ -26,6 +26,7 @@ import json
 import string
 import functools
 from x509sak.Tools import JSONTools
+from x509sak.Exceptions import InvalidInternalDataException
 
 @functools.total_ordering
 class RichJudgementCode():
@@ -297,7 +298,6 @@ class JudgementStructure():
 		self._nodes_by_short_id = self._find_nodes_by_short_id()
 		self._root.assign_nodes_long_ids()
 
-
 		self._process_imports()
 		self._root = self._root.filter(filter_predicate = lambda node: not node.attrs.get("export"))
 		self._root.assign_nodes_long_ids()
@@ -398,6 +398,8 @@ class JudgementStructure():
 		exported_nodes = { }
 		def visit(node):
 			if node.attrs.get("desc") is not None:
+				if node.long_id in exported_nodes:
+					raise InvalidInternalDataException("Note with long ID '%s' appears twice (%s and %s)." % (node.long_id, exported_nodes[node.long_id], node))
 				exported_nodes[node.long_id] = node
 		self._root.walk(visit)
 
