@@ -224,15 +224,13 @@ class ECCSecurityEstimator(BaseEstimator):
 		elif isinstance(curve, PrimeFieldEllipticCurve):
 			judgements += self._judge_prime_field_curve(curve)
 
-		if pubkey.curve_source == "explicit":
+		if pubkey.curve_source == "specifiedCurve":
 			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_DomainParameters_Name_ExplicitCurve, "Curve uses explicit encoding for domain parameters. Typically, named curves are used; explicit encoding of domain parameters is not recommended and may be rejected by implementations for simplicity reasons.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
 			judgements += self._check_explicit_curve_encoding(pubkey)
 			judgements += self._check_explicit_curve_params(curve)
 
 		result = {
-			"specific":	{
-				"curve":		curve.name,
-			},
+			"specific":	{ },
 			"security":			judgements,
 		}
 

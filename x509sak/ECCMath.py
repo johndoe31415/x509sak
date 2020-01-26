@@ -157,7 +157,6 @@ class EllipticCurve():
 	@classmethod
 	def from_asn1(cls, asn1):
 		"""Decode explicitly encoded elliptic curve domain parameters, given as a Sequence (SpecifiedECDomain)."""
-
 		version = int(asn1["version"])
 		if version != 1:
 			raise InvalidInputException("Attempted to decode the excplicit EC domain and saw unknown version %d." % (version))

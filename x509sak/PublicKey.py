@@ -255,7 +255,7 @@ class ECDSAPublicKey(_BasePublicKey):
 
 	@property
 	def keyspec(self):
-		if self._param("curve_source") == "named":
+		if self._param("curve_source") == "namedCurve":
 			return KeySpecification(cryptosystem = self._PK_ALG.value.cryptosystem, parameters = { "curvename": self["curve"].name })
 		else:
 			return None
@@ -284,29 +284,24 @@ class ECDSAPublicKey(_BasePublicKey):
 
 		accessible_parameters = { }
 		if params.asn1 is not None:
-			if params.asn1.getName() == "namedCurve":
+			accessible_parameters["curve_source"] = params.asn1.getName()
+			if accessible_parameters["curve_source"] == "namedCurve":
 				# Named curve
-				curve_oid = OID.from_asn1(params.asn1["namedCurve"])
+				curve_oid = OID.from_asn1(params.asn1.getComponent())
 				curve = CurveDB().instantiate(oid = curve_oid)
 				accessible_parameters.update({
 					"curve_oid":		curve_oid,
 					"curve":			curve,
-					"curve_source":		"named",
 				})
-			elif params.asn1.getName() == "specifiedCurve":
+			elif accessible_parameters["curve_source"] == "specifiedCurve":
 				# Explicit curve or implicit curve
-				curve = EllipticCurve.from_asn1(params.asn1["specifiedCurve"])
+				curve = EllipticCurve.from_asn1(params.asn1.getComponent())
 				accessible_parameters.update({
 					"curve":			curve,
-					"curve_source":		"explicit",
 				})
 			else:
 				# Implicit curve
-				print("IMPLICIT CURVE?")
-				accessible_parameters.update({
-					"implicit_curve":	True,
-					"curve_source":		"implicit",
-				})
+				pass
 
 		if accessible_parameters.get("curve") is not None:
 			pk_point = curve.decode_point(pubkey_data)
@@ -358,6 +353,6 @@ class EdDSAPublicKey(_BasePublicKey):
 			"y":			pk_point.y,
 			"curve":		curve,
 			"point":		pk_point,
-			"curve_source":	"named",
+			"curve_source":	"namedCurve",
 		})
 		return cls(accessible_parameters = accessible_parameters, decoding_details = [ pk_point ])

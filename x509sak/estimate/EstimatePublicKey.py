@@ -74,7 +74,12 @@ class PublicKeyEstimator(BaseEstimator):
 				result["pretty"] = "DSA with %d bit modulus and %d bit output" % (pubkey.p.bit_length(), pubkey.q.bit_length())
 				result.update(self.algorithm("dsa").analyze(pubkey))
 			elif pubkey.pk_alg.value.cryptosystem == Cryptosystems.ECC_ECDSA:
-				result["pretty"] = "ECC on %s" % (pubkey.curve.name)
+				if pubkey.curve_source == "namedCurve":
+					result["pretty"] = "ECC on %s" % (pubkey.curve.name)
+				elif pubkey.curve_source == "specifiedCurve":
+					result["pretty"] = "ECC on specified %s" % (str(pubkey.curve))
+				else:
+					result["pretty"] = "ECC on %s" % (str(pubkey.curve_source))
 				result.update(self.algorithm("ecc").analyze(pubkey))
 			elif pubkey.pk_alg.value.cryptosystem == Cryptosystems.ECC_EdDSA:
 				result["pretty"] = "EdDSA on %s" % (pubkey.curve.name)
