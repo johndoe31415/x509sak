@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2019 Johannes Bauer
+#	Copyright (C) 2018-2020 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -29,6 +29,9 @@ class KwargsChecker():
 		self._optional_arguments = optional_arguments or set()
 		self._allowed_arguments = self._required_arguments | self._optional_arguments
 		self._check_functions = check_functions
+
+	def is_optional_argument(self, name):
+		return name in self._optional_arguments
 
 	def check_single(self, arg, hint = None):
 		if arg not in self._allowed_arguments:

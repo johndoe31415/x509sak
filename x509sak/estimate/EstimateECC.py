@@ -36,7 +36,7 @@ class ECCSecurityEstimator(BaseEstimator):
 		judgements = SecurityJudgements()
 
 		if curve.h is None:
-			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_DomainParameters_CurveProperty_Cofactor_Missing, "Curve cofactor h is not present in explicit domain parameter encoding. This is allowed, but highly unusual.", commonness = Commonness.HIGHLY_UNUSUAL)
+			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_DomainParameters_CofactorMissing, "Curve cofactor h is not present in explicit domain parameter encoding. This is allowed, but highly unusual.", commonness = Commonness.HIGHLY_UNUSUAL)
 		else:
 			if curve.h <= 0:
 				judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_DomainParameters_CurveProperty_Cofactor_Invalid, "Curve cofactor h = %d is zero or negative. This is invalid." % (curve.h), bits = 0, commonness = Commonness.HIGHLY_UNUSUAL)
@@ -82,16 +82,18 @@ class ECCSecurityEstimator(BaseEstimator):
 	def _judge_prime_field_curve(self, curve):
 		judgements = SecurityJudgements()
 
-		# E(Fp) = p + 1 - t
-		# t = p - E(Fp) + 1
-		EFp = curve.n * curve.h
-		trace = curve.p - EFp + 1
-		if trace == 0:
-			literature = LiteratureReference(author = [ "Alfred Menezes", "Scott Vanstone", "Tatsuaki Okamoto" ], title = "Reducing Elliptic Curve Logarithms to Logarithms in a Finite Field", year = 1991, source = "ACM")
-			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_DomainParameters_CurveProperty_SupersingularCurve, "This curve is supersingular, trace is zero. The curve can be attacked using the probabilistic polynomial-time MOV attack.", bits = 0, commonness = Commonness.HIGHLY_UNUSUAL, literature = literature)
-		elif trace == 1:
-			literature = LiteratureReference(author = [ "Nigel P. Smart" ], title = "The discrete logarithm problem on elliptic curves of trace one", year = 1997, month = 10, source = "HP Laboratories Bristol")
-			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_DomainParameters_CurveProperty_AnomalousCurve, "This curve is anomalous, #E(F_p) is equal to p. The curve can be attacked in linear time.", bits = 0, commonness = Commonness.HIGHLY_UNUSUAL, literature = literature)
+		if curve.h is not None:
+			# TODO: We might be able to guess the cofactor because of the Hasse bound.
+			# E(Fp) = p + 1 - t
+			# t = p - E(Fp) + 1
+			EFp = curve.n * curve.h
+			trace = curve.p - EFp + 1
+			if trace == 0:
+				literature = LiteratureReference(author = [ "Alfred Menezes", "Scott Vanstone", "Tatsuaki Okamoto" ], title = "Reducing Elliptic Curve Logarithms to Logarithms in a Finite Field", year = 1991, source = "ACM")
+				judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_DomainParameters_CurveProperty_SupersingularCurve, "This curve is supersingular, trace is zero. The curve can be attacked using the probabilistic polynomial-time MOV attack.", bits = 0, commonness = Commonness.HIGHLY_UNUSUAL, literature = literature)
+			elif trace == 1:
+				literature = LiteratureReference(author = [ "Nigel P. Smart" ], title = "The discrete logarithm problem on elliptic curves of trace one", year = 1997, month = 10, source = "HP Laboratories Bristol")
+				judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_ECC_DomainParameters_CurveProperty_AnomalousCurve, "This curve is anomalous, #E(F_p) is equal to p. The curve can be attacked in linear time.", bits = 0, commonness = Commonness.HIGHLY_UNUSUAL, literature = literature)
 
 		p = ((4 * (curve.a ** 3)) + (27 * (curve.b ** 2))) % curve.p
 		if p == 0:

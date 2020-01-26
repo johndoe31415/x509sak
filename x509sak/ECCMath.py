@@ -175,8 +175,9 @@ class EllipticCurve():
 			"a":	int.from_bytes(bytes(specified_domain["curve"]["a"]), byteorder = "big"),
 			"b":	int.from_bytes(bytes(specified_domain["curve"]["b"]), byteorder = "big"),
 			"n":	int(specified_domain["order"]),
-			"h":	int(specified_domain["cofactor"]),		# TODO cofactor is optional
 		}
+		if specified_domain["cofactor"].hasValue():
+			domain_parameters["h"] = int(specified_domain["cofactor"])
 		base_point = bytes(specified_domain["base"])
 		if field_type_id == "prime-field":
 			(field_params, tail) = pyasn1.codec.der.decoder.decode(bytes(specified_domain["fieldID"]["parameters"]), asn1Spec = ECFieldParametersPrimeField())
@@ -253,7 +254,13 @@ class EllipticCurve():
 		raise NotImplementedError(self.__class__.__name__)
 
 	def __getattr__(self, key):
-		return self._domain_parameters[key]
+		if key in self._domain_parameters:
+			return self._domain_parameters[key]
+		else:
+			if self._DomainArgs.is_optional_argument(key):
+				return None
+			else:
+				raise AttributeError(key)
 
 	def __str__(self):
 		if self.name is None:
@@ -264,7 +271,7 @@ class EllipticCurve():
 @EllipticCurve.register
 class PrimeFieldEllipticCurve(EllipticCurve):
 	"""y^2 = x^3 + ax + b (mod p)"""
-	_DomainArgs = KwargsChecker(required_arguments = set([ "p", "a", "b", "n", "h" ]), optional_arguments = set([ "Gx", "Gy" ]))
+	_DomainArgs = KwargsChecker(required_arguments = set([ "p", "a", "b", "n" ]), optional_arguments = set([ "h", "Gx", "Gy" ]))
 	_CURVE_TYPE = "prime"
 
 	@property
@@ -319,7 +326,7 @@ class PrimeFieldEllipticCurve(EllipticCurve):
 @EllipticCurve.register
 class BinaryFieldEllipticCurve(EllipticCurve):
 	"""y^2 + xy = x^3 + ax^2 + b (in F_{2^m}, reduced by irreducible poly)"""
-	_DomainArgs = KwargsChecker(required_arguments = set([ "m", "poly", "a", "b", "n", "h" ]), optional_arguments = set([ "Gx", "Gy", "basis" ]))
+	_DomainArgs = KwargsChecker(required_arguments = set([ "m", "poly", "a", "b", "n" ]), optional_arguments = set([ "h", "Gx", "Gy", "basis" ]))
 	_CURVE_TYPE = "binary"
 
 	def __init__(self, **domain_parameters):
