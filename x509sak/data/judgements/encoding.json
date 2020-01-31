@@ -20,9 +20,6 @@
 				"Distinguished Name": {
 					"_short_id": "dn_issues",
 					"_label": "DN",
-					"Illegal Character": { "_desc": "$name distinguished name contains illegal character" },
-					"Deprecated Type": { "_desc": "$name distinguished name contains deprecated type" },
-					"Non-Printable": { "_desc": "$name distinguished name contains non-printable type" },
 					"Unusually Many RDNs": { "_desc": "$name distinguished name contains an unusually high amount of RDNs" },
 					"Duplicate RDNs": { "_desc": "$name distinguished name contains duplicate RDNs" },
 					"No CN": { "_desc": "$name distinguished name contains no CN RDN" },
@@ -30,6 +27,10 @@
 					"Relative Distinguished Name": {
 						"_label": "RDN",
 						"Malformed": { "_desc": "$name relative distinguished name is malformed" },
+						"EmptyString": { "_desc": "$name relative distinguished name contains an empty string" },
+						"Illegal Character": { "_desc": "$name relative distinguished name contains illegal character" },
+						"Deprecated Type": { "_desc": "$name relative distinguished name contains deprecated type" },
+						"Non-Printable": { "_desc": "$name relative distinguished name contains non-printable type" },
 						"Length exceeded": { "_desc": "$name realative distinguished name exceeds maximum character length" },
 						"Multi-Valued RDN": { "_desc": "$name distinguished name contains multivalued RDN" },
 						"Duplicate Set": {

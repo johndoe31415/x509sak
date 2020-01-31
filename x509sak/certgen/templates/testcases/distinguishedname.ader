@@ -17,9 +17,9 @@
 		"duplicate_rdns":			"DuplicateRDNs",
 		"no_cn":					"NoCN",
 		"multiple_cn":				"MultipleCN",
-		"rdn_illegal_char":			"RDN_IllegalCharacter",		#
-		"rdn_deprecated_type":		"RDN_DeprecatedType",		#
-		"rdn_non_printable":		"RDN_NonPrintable",			#
+		"rdn_illegal_char":			"RDN_IllegalCharacter",
+		"rdn_deprecated_type":		"RDN_DeprecatedType",
+		"rdn_non_printable":		"RDN_NonPrintable",
 		"rdn_empty_string":			"RDN_EmptyString",
 		"rdn_malformed":			"RDN_Malformed",
 		"rdn_length_exceeded":		"RDN_LengthExceeded",

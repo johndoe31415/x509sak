@@ -299,10 +299,10 @@ class SecurityAnalyzerTests(BaseAnalyzerTest):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-soon-generalized-time.pem", "X509Cert_Body_Validity_NotBefore_InvalidType")
 
 	def test_examine_x509test_xf_subject_nonprintable(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-subject-nonprintable.pem", "X509Cert_Body_Subject_IllegalCharacter")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-subject-nonprintable.pem", "X509Cert_Body_Subject_RDN_IllegalCharacter")
 
 	def test_examine_x509test_xf_subject_t61(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-subject-t61.pem", "X509Cert_Body_Subject_DeprecatedType")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-subject-t61.pem", "X509Cert_Body_Subject_RDN_DeprecatedType")
 
 	def test_examine_x509test_xf_unknown_critical_ext(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-unknown-critical-ext.pem", "X509Cert_Body_X509Exts_Unknown_Critical")
@@ -584,7 +584,7 @@ class SecurityAnalyzerTests(BaseAnalyzerTest):
 		self._test_examine_x509test_resultcode("certs/constructed/dn_multivalue.pem", expect_present = "X509Cert_Body_Subject_RDN_MultiValuedRDN")
 
 	def test_dn_nonprintable(self):
-		self._test_examine_x509test_resultcode("certs/constructed/dn_nonprintable.pem", expect_present = "X509Cert_Body_Subject_NonPrintable")
+		self._test_examine_x509test_resultcode("certs/constructed/dn_nonprintable.pem", expect_present = "X509Cert_Body_Subject_RDN_NonPrintable")
 
 	def test_dn_duplicate_rdns(self):
 		self._test_examine_x509test_resultcode("certs/constructed/dn_multiple_identical_rdns.pem", expect_present = "X509Cert_Body_Subject_DuplicateRDNs")

@@ -50,10 +50,10 @@ class DistinguishedNameValidationResult(BaseValidationResult):
 			valid_chars = self._VALID_ALPHABETS[asn1type]
 			illegal_chars = set(rdn_item.printable_value) - valid_chars
 			if len(illegal_chars) > 0:
-				self._report("Enc_DER_Struct_DN_IllegalCharacter", "distinguished name contains character(s) \"%s\" which are invalid for a %s at element \"%s\"." % ("".join(sorted(illegal_chars)), asn1type.__name__, OIDDB.RDNTypes.get(rdn_item.oid, str(rdn_item.oid))), compatibility = Compatibility.STANDARDS_DEVIATION)
+				self._report("Enc_DER_Struct_DN_RDN_IllegalCharacter", "distinguished name contains character(s) \"%s\" which are invalid for a %s at element \"%s\"." % ("".join(sorted(illegal_chars)), asn1type.__name__, OIDDB.RDNTypes.get(rdn_item.oid, str(rdn_item.oid))), compatibility = Compatibility.STANDARDS_DEVIATION)
 
 		if isinstance(rdn_item.asn1, pyasn1.type.char.TeletexString):
-			self._report("Enc_DER_Struct_DN_DeprecatedType", "distinguished name contains deprecated TeletexString at element \"%s\"." % (OIDDB.RDNTypes.get(rdn_item.oid, str(rdn_item.oid))), compatibility = Compatibility.STANDARDS_DEVIATION)
+			self._report("Enc_DER_Struct_DN_RDN_DeprecatedType", "distinguished name contains deprecated TeletexString at element \"%s\"." % (OIDDB.RDNTypes.get(rdn_item.oid, str(rdn_item.oid))), compatibility = Compatibility.STANDARDS_DEVIATION)
 
 		if not rdn_item.decodable:
 			self._report("Enc_DER_Struct_DN_RDN_Malformed", "distinguished name contains undecodable RDN element \"%s\"." % (OIDDB.RDNTypes.get(rdn_item.oid, str(rdn_item.oid))), commonness = Commonness.HIGHLY_UNUSUAL)
@@ -66,7 +66,7 @@ class DistinguishedNameValidationResult(BaseValidationResult):
 
 		if not rdn_item.printable:
 			# TODO standards reference?
-			self._report("Enc_DER_Struct_DN_NonPrintable", "distinguished name contains RDN element item \"%s\" (ASN.1 type %s) which is not printable." % (OIDDB.RDNTypes.get(rdn_item.oid, str(rdn_item.oid)), rdn_item.asn1.__class__.__name__), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION)
+			self._report("Enc_DER_Struct_DN_RDN_NonPrintable", "distinguished name contains RDN element item \"%s\" (ASN.1 type %s) which is not printable." % (OIDDB.RDNTypes.get(rdn_item.oid, str(rdn_item.oid)), rdn_item.asn1.__class__.__name__), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION)
 
 	def _validate_rdn(self, rdn):
 		if rdn.component_cnt > 1:
