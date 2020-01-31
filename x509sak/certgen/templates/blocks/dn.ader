@@ -1,11 +1,41 @@
-<%def name="create_dn_cn(common_name, errcode = None)">
+<%def name="create_rdn_cn(text)">
 SET {
 	SEQUENCE {
-		# commonName
 		OBJECT_IDENTIFIER { 2.5.4.3 }
-		UTF8String { "${common_name}" }
+		UTF8String { "${text}" }
 	}
 }
+</%def>
+
+<%def name="create_rdn_ou(text)">
+SET {
+	SEQUENCE {
+		OBJECT_IDENTIFIER { 2.5.4.11 }
+		UTF8String { "${text}" }
+	}
+}
+</%def>
+
+<%def name="create_rdn_o(text)">
+SET {
+	SEQUENCE {
+		OBJECT_IDENTIFIER { 2.5.4.10 }
+		UTF8String { "${text}" }
+	}
+}
+</%def>
+
+<%def name="create_rdn_c(text)">
+SET {
+	SEQUENCE {
+		OBJECT_IDENTIFIER { 2.5.4.6 }
+		UTF8String { "${text}" }
+	}
+}
+</%def>
+
+<%def name="create_dn_cn(common_name, errcode = None)">
+${create_rdn_cn(common_name)}
 %if errcode is not None:
 SET {
 	SEQUENCE {
@@ -15,3 +45,4 @@ SET {
 }
 %endif
 </%def>
+

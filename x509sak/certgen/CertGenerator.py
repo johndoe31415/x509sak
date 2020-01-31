@@ -21,6 +21,7 @@
 
 import os
 import mako.lookup
+import mako.exceptions
 from x509sak.OID import OID, OIDDB
 from x509sak.BijectiveDict import BijectiveDict
 
@@ -54,14 +55,17 @@ class CertGenerator():
 	def __init__(self, template):
 		self._template = template
 		self._parameters = { }
-		self._template.render(**{
-			"p":						lambda name: None,
-			"h":						CertGeneratorHelper,
-			"declare_parameter":		self._declare_parameter,
-			"export_var":				lambda x, y: None,
-			"import_vars":				lambda *x: None,
-			"error":					lambda *x: None,
-		})
+		try:
+			self._template.render(**{
+				"p":						lambda name: None,
+				"h":						CertGeneratorHelper,
+				"declare_parameter":		self._declare_parameter,
+				"export_var":				lambda x, y: None,
+				"import_vars":				lambda *x: x,
+				"error":					lambda *x: None,
+			})
+		except:
+			print(mako.exceptions.text_error_template().render())
 
 	@classmethod
 	def instantiate(cls, template_name):
@@ -88,7 +92,7 @@ class CertGenerator():
 		if len(missing_keys) > 0:
 			raise Exception("Need to supply: %s" % (", ".join(sorted(missing_keys))))
 
-		exported_vars = { }
+		exported_vars = dict(parameters)
 		def export_var(varname, value):
 			exported_vars[varname] = value
 

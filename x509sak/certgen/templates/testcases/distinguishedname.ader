@@ -1,0 +1,54 @@
+<%inherit file="x509certificate.ader" />
+<%namespace file="dn.ader" import="*" />
+
+<%
+	declare_parameter("field", [ "subject", "issuer" ])
+	declare_parameter("mode", [ "no_cn", "multiple_cn" ])
+	(field, mode) = (str(p("field")), str(p("mode")))
+	export_var("filename", "dn_" + field + "_" + mode)
+
+	errcode = {
+		"subject":	"X509Cert_Body_Subject_",
+		"issuer":	"X509Cert_Body_Issuer_",
+	}.get(field, "?")
+	errcode += {
+		"no_cn":		"NoCN",
+		"multiple_cn":	"MultipleCN",
+	}.get(mode, "?")
+
+	if "?" in errcode:
+		error(errcode, field, mode)
+	export_var("errcode", errcode)
+%>
+
+<%block name="issuer">
+	<% (field, mode, errcode) = import_vars("field", "mode", "errcode") %>
+%if field != "issuer":
+	${create_dn_cn("X.509 DistinguishedName " + str(p("field")) + " with mode: " + str(p("mode")), errcode = errcode)}
+%else:
+${render_error(mode)}
+%endif
+</%block>
+
+<%block name="subject">
+	<% (field, mode, errcode) = import_vars("field", "mode", "errcode") %>
+%if field != "subject":
+	${create_dn_cn("X.509 DistinguishedName " + str(p("field")) + " with mode: " + str(p("mode")), errcode = errcode)}
+%else:
+${render_error(mode)}
+%endif
+</%block>
+
+<%def name="render_error(error_type)">
+%if error_type == "no_cn":
+${create_rdn_o("orga but no common name")}
+${create_rdn_c("DE")}
+${create_rdn_ou("this is the OU again no common name")}
+%elif error_type == "multiple_cn":
+${create_rdn_cn("first CN")}
+${create_rdn_o("orga")}
+${create_rdn_cn("second CN")}
+%else:
+${error("Unknown distinguished name", error_type)}
+%endif
+</%def>
