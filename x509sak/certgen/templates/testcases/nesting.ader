@@ -1,0 +1,32 @@
+<%inherit file="x509certificate.ader" />
+<%namespace file="dn.ader" import="*" />
+
+<%
+	declare_parameter("field", [ "x" ])
+	field = str(p("field"))
+	export_var("filename", "nesting_" + field)
+%>
+
+<%def name="nesting(level)">
+%for i in range(level):
+SEQUENCE {
+%endfor
+%for i in range(level):
+}
+%endfor
+</%def>
+
+<%block name="issuer">
+	${create_dn_cn("Foobar")}
+	SET {
+	SEQUENCE {
+		OBJECT_IDENTIFIER { 2.5.4.11 }
+		${nesting(1000)}
+	}
+}
+
+</%block>
+<%block name="subject">
+	${create_dn_cn("Foobar")}
+</%block>
+

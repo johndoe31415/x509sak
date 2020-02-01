@@ -39,6 +39,7 @@ class ActionTestcaseGen(BaseAction):
 	def __init__(self, cmdname, args):
 		BaseAction.__init__(self, cmdname, args)
 
+		sys.setrecursionlimit(10000)
 		self._cg = CertGenerator.instantiate(self._args.tcname + ".ader")
 		if self._args.list_parameters:
 			for (name, values) in sorted(self._cg.parameters):
