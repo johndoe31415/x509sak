@@ -888,16 +888,16 @@ class SecurityAnalyzerTests(BaseAnalyzerTest):
 		self._test_examine_x509test_resultcode("certs/constructed/lifetime_ca_exceptionallylong.pem", expect_present = "X509Cert_Body_Validity_Length_ExceptionallyLong")
 
 	def test_key_usage_excessive(self):
-		self._test_examine_x509test_resultcode("certs/constructed/ku-xmas.pem", expect_absent = "CertUsage_Purpose_ServerCert_KU_MissingBits", expect_present = [ "CertUsage_Purpose_ServerCert_KU_ExcessBits", "CertUsage_Purpose_ServerCert_KU_UnusualBits" ], purpose = "tls-server")
+		self._test_examine_x509test_resultcode("certs/constructed/ku_xmas.pem", expect_absent = "CertUsage_Purpose_ServerCert_KU_MissingBits", expect_present = [ "CertUsage_Purpose_ServerCert_KU_ExcessBits", "CertUsage_Purpose_ServerCert_KU_UnusualBits" ], purpose = "tls-server")
 
 	def test_key_usage_missing(self):
-		self._test_examine_x509test_resultcode("certs/constructed/ku-missing.pem", expect_absent = "CertUsage_Purpose_ClientCert_KU_MissingBits", expect_present = "CertUsage_Purpose_CACert_KU_MissingBits", purpose = "ca")
+		self._test_examine_x509test_resultcode("certs/constructed/ku_missing.pem", expect_absent = "CertUsage_Purpose_ClientCert_KU_MissingBits", expect_present = "CertUsage_Purpose_CACert_KU_MissingBits", purpose = "ca")
 
 	def test_key_usage_trailingzero(self):
-		self._test_examine_x509test_resultcode("certs/constructed/ku-trailingzero.pem", expect_present = "X509Cert_Body_X509Exts_Ext_KU_TrailingZeros")
+		self._test_examine_x509test_resultcode("certs/constructed/ku_trailingzero.pem", expect_present = "X509Cert_Body_X509Exts_Ext_KU_TrailingZeros")
 
 	def test_key_usage_malformed(self):
-		self._test_examine_x509test_resultcode("certs/constructed/ku-malformed.pem", expect_present = "X509Cert_Body_X509Exts_Ext_KU_Malformed_Undecodable")
+		self._test_examine_x509test_resultcode("certs/constructed/ku_malformed.pem", expect_present = "X509Cert_Body_X509Exts_Ext_KU_Malformed_Undecodable")
 
 	def test_key_usage_extension_missing(self):
 		self._test_examine_x509test_resultcode("certs/ok/short.pem", expect_present = "X509Cert_Body_X509Exts_Ext_KU_Missing")
