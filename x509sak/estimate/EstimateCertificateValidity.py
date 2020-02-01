@@ -85,7 +85,7 @@ class CrtValiditySecurityEstimator(BaseEstimator):
 				judgements += SecurityJudgement(JudgementCode.X509Cert_Body_Validity_NotBefore_InvalidType, "GeneralizedTime used for 'not before' validity timestamp although earlier than year 2050.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 			if (not_after < datetime.datetime(2050, 1, 1, 0, 0, 0)) and isinstance(certificate.asn1["tbsCertificate"]["validity"]["notAfter"].getComponent(), GeneralizedTime):
 				standard = RFCReference(rfcno = 5280, sect = "4.1.2.5", verb = "MUST", text = "CAs conforming to this profile MUST always encode certificate validity dates through the year 2049 as UTCTime; certificate validity dates in 2050 or later MUST be encoded as GeneralizedTime.")
-				judgements += SecurityJudgement(JudgementCode.X509Cert_Body_Validity_NotBefore_InvalidType, "GeneralizedTime used for 'not after' validity timestamp although earlier than year 2050.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+				judgements += SecurityJudgement(JudgementCode.X509Cert_Body_Validity_NotAfter_InvalidType, "GeneralizedTime used for 'not after' validity timestamp although earlier than year 2050.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 		return {
 			"not_before":		self._format_datetime(not_before) if not_before is not None else None,

@@ -296,7 +296,7 @@ class SecurityAnalyzerTests(BaseAnalyzerTest):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-serial-zero.pem", "X509Cert_Body_SerialNumber_BasicChecks_Zero")
 
 	def test_examine_x509test_xf_soon_generalized_time(self):
-		self._test_examine_x509test_resultcode("certs/x509test/xf-soon-generalized-time.pem", "X509Cert_Body_Validity_NotBefore_InvalidType")
+		self._test_examine_x509test_resultcode("certs/x509test/xf-soon-generalized-time.pem", "X509Cert_Body_Validity_NotAfter_InvalidType")
 
 	def test_examine_x509test_xf_subject_nonprintable(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-subject-nonprintable.pem", "X509Cert_Body_Subject_RDN_IllegalCharacter")
@@ -616,8 +616,11 @@ class SecurityAnalyzerTests(BaseAnalyzerTest):
 	def test_check_no_ca_when_expecting_ca(self):
 		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", expect_present = "CertUsage_Purpose_CACert_NoCACert", purpose = "ca")
 
-	def test_check_ca_when_expecting_no_ca(self):
+	def test_check_ca_when_expecting_no_ca_server(self):
 		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer-intermediate.pem", expect_absent = "CertUsage_Purpose_ClientCert_IsCACert", expect_present = "CertUsage_Purpose_ServerCert_IsCACert", purpose = "tls-server")
+
+	def test_check_ca_when_expecting_no_ca_client(self):
+		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer-intermediate.pem", expect_absent = "CertUsage_Purpose_ServerCert_IsCACert", expect_present = "CertUsage_Purpose_ClientCert_IsCACert", purpose = "tls-client")
 
 	def test_check_version(self):
 		self._test_examine_x509test_resultcode("certs/constructed/version1.pem", expect_present = "X509Cert_Body_Version_Not3")
@@ -1260,3 +1263,6 @@ class SecurityAnalyzerTests(BaseAnalyzerTest):
 
 	def test_cert_non_der_encoding(self):
 		self._test_examine_x509test_resultcode("certs/constructed/cert_non_der_encoding.pem", expect_present = "X509Cert_Malformed_NonDEREncoding")
+
+	def test_validity_notbefore_invalidtype(self):
+		self._test_examine_x509test_resultcode("certs/constructed/validity_notbefore_invalidtype.pem", "X509Cert_Body_Validity_NotBefore_InvalidType")

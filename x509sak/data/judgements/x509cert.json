@@ -140,7 +140,8 @@
 						"Too Long": { "_desc": "KU extension too long" },
 						"SignCert but no CA": { "_desc": "KU extension contains signCert flag but is no CA" },
 						"SignCert but no Basic Constraints": { "_desc": "KU extension contains signCert flag but has no Basic Constraints extension" },
-						"Undefined Bit Combination": { "_desc": "KU extension contains encipherOnly or decipherOnly without keyAgreement" }
+						"Undefined Bit Combination": { "_desc": "KU extension contains encipherOnly or decipherOnly without keyAgreement" },
+						"No Perfect Forward Secrecy": { "_desc": "KU extension contains keyEncipherment but not keyAgreement" }
 					},
 					"Extended Key Usage": {
 						"_label": "EKU",
@@ -333,10 +334,6 @@
 				"_label": "CA Cert",
 				"_import": "x509_ku_check{name=CA certificate}",
 				"No CA Cert": { "_desc": "certificate is not a CA certificate" },
-				"Extended Key Usage Mismatch": {
-					"_label": "EKU Mismatch",
-					"_desc": "extended key usage does not include TODO"
-				},
 				"Netscape Certificate Type": {
 					"_label": "NSCT",
 					"No SSL CA": { "_desc": "NSCT extension does not contain sslCA flag" },
