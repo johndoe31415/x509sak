@@ -3,7 +3,7 @@
 
 <%
 	declare_parameter("field", [ "subject", "issuer" ])
-	declare_parameter("mode", [ "empty", "rdn_empty_string", "no_cn", "multiple_cn", "rdn_illegal_char", "rdn_deprecated_type", "rdn_non_printable", "unusually_many_rdns", "duplicate_rdns", "rdn_malformed", "rdn_length_exceeded", "rdn_multivalued", "rdn_duplicate_key", "rdn_duplicate_key_value" ])
+	declare_parameter("mode", [ "empty", "rdn_empty_string", "no_cn", "multiple_cn", "rdn_illegal_char", "rdn_deprecated_type", "rdn_non_printable", "unusually_many_rdns", "duplicate_rdns", "rdn_length_exceeded", "rdn_multivalued", "rdn_duplicate_key", "rdn_duplicate_key_value" ])
 	(field, mode) = (str(p("field")), str(p("mode")))
 	export_var("filename", "dn_" + field + "_" + mode)
 
@@ -21,11 +21,10 @@
 		"rdn_deprecated_type":		"RDN_DeprecatedType",
 		"rdn_non_printable":		"RDN_NonPrintable",
 		"rdn_empty_string":			"RDN_EmptyString",
-		"rdn_malformed":			"RDN_Malformed",
 		"rdn_length_exceeded":		"RDN_LengthExceeded",
 		"rdn_multivalued":			"RDN_MultiValuedRDN",
 		"rdn_duplicate_key":		"RDN_DuplicateSet_Key",
-		"rdn_duplicate_key_value":	"RDN_DuplicateSet_KeyValue",
+		"rdn_duplicate_key_value":	"RDN_DuplicateSet_Key_Value",
 	}.get(mode, "?")
 
 	if "?" in errcode:
@@ -100,8 +99,6 @@ SET {
 ${create_rdn_c("AB")}
 ${create_rdn_cn("Common name")}
 ${create_rdn_c("CD")}
-
-%elif error_type == "rdn_malformed":
 
 %elif error_type == "rdn_length_exceeded":
 ${create_rdn_c("this is much too long")}

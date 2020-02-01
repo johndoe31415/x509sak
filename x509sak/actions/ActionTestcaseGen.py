@@ -30,6 +30,7 @@ from x509sak.X509Certificate import X509Certificate
 from x509sak.OID import OID
 from x509sak.estimate import JudgementCode
 from x509sak.certgen.CertGenerator import CertGenerator
+from x509sak.Tools import PEMDataTools
 
 class ActionTestcaseGen(BaseAction):
 	_EXPECT_PRESENT_CODEPOINT_OID = OID.from_str("1.13.99.127.41")
@@ -91,8 +92,8 @@ class ActionTestcaseGen(BaseAction):
 
 	def _analyze_pemfile(self, pem_filename):
 		x509cert = X509Certificate.read_pemfile(pem_filename)[0]
-		subject = x509cert.subject
-		present_codepoints = [ rdn.get_value(self._EXPECT_PRESENT_CODEPOINT_OID).printable_value for rdn in subject.get_all(self._EXPECT_PRESENT_CODEPOINT_OID) ]
+		present_codepoints = [ rdn.get_value(self._EXPECT_PRESENT_CODEPOINT_OID).printable_value for rdn in x509cert.subject.get_all(self._EXPECT_PRESENT_CODEPOINT_OID) ]
+		present_codepoints += [ rdn.get_value(self._EXPECT_PRESENT_CODEPOINT_OID).printable_value for rdn in x509cert.issuer.get_all(self._EXPECT_PRESENT_CODEPOINT_OID) ]
 
 		file_prefix = os.path.basename(pem_filename)[:-4]
 
@@ -127,9 +128,14 @@ class ActionTestcaseGen(BaseAction):
 		else:
 			outfile = self._args.output_dir + "/" + basename + ".pem"
 			der_data = subprocess.check_output("ascii2der", input = ascii_der.encode())
-			cert_data = subprocess.check_output([ "openssl", "x509", "-inform", "der", "-text" ], input = der_data)
-			cert_data = cert_data.decode()
-			cert_data = [ line.rstrip("\t ") for line in cert_data.split("\n") ]
+			try:
+				cert_data = subprocess.check_output([ "openssl", "x509", "-inform", "der", "-text" ], input = der_data)
+				cert_data = cert_data.decode()
+				cert_data = [ line.rstrip("\t ") for line in cert_data.split("\n") ]
+				cert_data = "\n".join(cert_data)
+			except subprocess.CalledProcessError as e:
+				# OpenSSL cannot encode the certificate
+				cert_data = PEMDataTools.data2pem(der_data, marker = "CERTIFICATE")
 			with open(outfile, "w") as f:
-				f.write("\n".join(cert_data))
+				f.write(cert_data)
 			return outfile

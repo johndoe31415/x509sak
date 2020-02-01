@@ -627,3 +627,84 @@ class GeneratedSecurityAnalyzerTests(BaseAnalyzerTest):
 		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_SAN_name_x400address_ok.pem", expect_present = "X509Cert_Body_X509Exts_Ext_SAN_Name_X400Address_Unexpected")
 
 # ====================================================================== End of generalname ======================================================================
+
+# ====================================================================== Begin of distinguishedname ======================================================================
+	def test_generated_distinguishedname_dn_issuer_duplicate_rdns(self):
+		self._test_examine_x509test_resultcode("certs/generated/distinguishedname/dn_issuer_duplicate_rdns.pem", expect_present = "X509Cert_Body_Issuer_DuplicateRDNs")
+
+	def test_generated_distinguishedname_dn_issuer_empty(self):
+		self._test_examine_x509test_resultcode("certs/generated/distinguishedname/dn_issuer_empty.pem", expect_present = "X509Cert_Body_Issuer_Empty")
+
+	def test_generated_distinguishedname_dn_issuer_multiple_cn(self):
+		self._test_examine_x509test_resultcode("certs/generated/distinguishedname/dn_issuer_multiple_cn.pem", expect_present = "X509Cert_Body_Issuer_MultipleCN")
+
+	def test_generated_distinguishedname_dn_issuer_no_cn(self):
+		self._test_examine_x509test_resultcode("certs/generated/distinguishedname/dn_issuer_no_cn.pem", expect_present = "X509Cert_Body_Issuer_NoCN")
+
+	def test_generated_distinguishedname_dn_issuer_rdn_deprecated_type(self):
+		self._test_examine_x509test_resultcode("certs/generated/distinguishedname/dn_issuer_rdn_deprecated_type.pem", expect_present = "X509Cert_Body_Issuer_RDN_DeprecatedType")
+
+	def test_generated_distinguishedname_dn_issuer_rdn_duplicate_key(self):
+		self._test_examine_x509test_resultcode("certs/generated/distinguishedname/dn_issuer_rdn_duplicate_key.pem", expect_present = "X509Cert_Body_Issuer_RDN_DuplicateSet_Key")
+
+	def test_generated_distinguishedname_dn_issuer_rdn_duplicate_key_value(self):
+		self._test_examine_x509test_resultcode("certs/generated/distinguishedname/dn_issuer_rdn_duplicate_key_value.pem", expect_present = "X509Cert_Body_Issuer_RDN_DuplicateSet_Key_Value")
+
+	def test_generated_distinguishedname_dn_issuer_rdn_empty_string(self):
+		self._test_examine_x509test_resultcode("certs/generated/distinguishedname/dn_issuer_rdn_empty_string.pem", expect_present = "X509Cert_Body_Issuer_RDN_EmptyString")
+
+	def test_generated_distinguishedname_dn_issuer_rdn_illegal_char(self):
+		self._test_examine_x509test_resultcode("certs/generated/distinguishedname/dn_issuer_rdn_illegal_char.pem", expect_present = "X509Cert_Body_Issuer_RDN_IllegalCharacter")
+
+	def test_generated_distinguishedname_dn_issuer_rdn_length_exceeded(self):
+		self._test_examine_x509test_resultcode("certs/generated/distinguishedname/dn_issuer_rdn_length_exceeded.pem", expect_present = "X509Cert_Body_Issuer_RDN_LengthExceeded")
+
+	def test_generated_distinguishedname_dn_issuer_rdn_multivalued(self):
+		self._test_examine_x509test_resultcode("certs/generated/distinguishedname/dn_issuer_rdn_multivalued.pem", expect_present = "X509Cert_Body_Issuer_RDN_MultiValuedRDN")
+
+	def test_generated_distinguishedname_dn_issuer_rdn_non_printable(self):
+		self._test_examine_x509test_resultcode("certs/generated/distinguishedname/dn_issuer_rdn_non_printable.pem", expect_present = "X509Cert_Body_Issuer_RDN_NonPrintable")
+
+	def test_generated_distinguishedname_dn_issuer_unusually_many_rdns(self):
+		self._test_examine_x509test_resultcode("certs/generated/distinguishedname/dn_issuer_unusually_many_rdns.pem", expect_present = "X509Cert_Body_Issuer_UnusuallyManyRDNs")
+
+	def test_generated_distinguishedname_dn_subject_duplicate_rdns(self):
+		self._test_examine_x509test_resultcode("certs/generated/distinguishedname/dn_subject_duplicate_rdns.pem", expect_present = "X509Cert_Body_Subject_DuplicateRDNs")
+
+	def test_generated_distinguishedname_dn_subject_empty(self):
+		self._test_examine_x509test_resultcode("certs/generated/distinguishedname/dn_subject_empty.pem", expect_present = "X509Cert_Body_Subject_Empty")
+
+	def test_generated_distinguishedname_dn_subject_multiple_cn(self):
+		self._test_examine_x509test_resultcode("certs/generated/distinguishedname/dn_subject_multiple_cn.pem", expect_present = "X509Cert_Body_Subject_MultipleCN")
+
+	def test_generated_distinguishedname_dn_subject_no_cn(self):
+		self._test_examine_x509test_resultcode("certs/generated/distinguishedname/dn_subject_no_cn.pem", expect_present = "X509Cert_Body_Subject_NoCN")
+
+	def test_generated_distinguishedname_dn_subject_rdn_deprecated_type(self):
+		self._test_examine_x509test_resultcode("certs/generated/distinguishedname/dn_subject_rdn_deprecated_type.pem", expect_present = "X509Cert_Body_Subject_RDN_DeprecatedType")
+
+	def test_generated_distinguishedname_dn_subject_rdn_duplicate_key(self):
+		self._test_examine_x509test_resultcode("certs/generated/distinguishedname/dn_subject_rdn_duplicate_key.pem", expect_present = "X509Cert_Body_Subject_RDN_DuplicateSet_Key")
+
+	def test_generated_distinguishedname_dn_subject_rdn_duplicate_key_value(self):
+		self._test_examine_x509test_resultcode("certs/generated/distinguishedname/dn_subject_rdn_duplicate_key_value.pem", expect_present = "X509Cert_Body_Subject_RDN_DuplicateSet_Key_Value")
+
+	def test_generated_distinguishedname_dn_subject_rdn_empty_string(self):
+		self._test_examine_x509test_resultcode("certs/generated/distinguishedname/dn_subject_rdn_empty_string.pem", expect_present = "X509Cert_Body_Subject_RDN_EmptyString")
+
+	def test_generated_distinguishedname_dn_subject_rdn_illegal_char(self):
+		self._test_examine_x509test_resultcode("certs/generated/distinguishedname/dn_subject_rdn_illegal_char.pem", expect_present = "X509Cert_Body_Subject_RDN_IllegalCharacter")
+
+	def test_generated_distinguishedname_dn_subject_rdn_length_exceeded(self):
+		self._test_examine_x509test_resultcode("certs/generated/distinguishedname/dn_subject_rdn_length_exceeded.pem", expect_present = "X509Cert_Body_Subject_RDN_LengthExceeded")
+
+	def test_generated_distinguishedname_dn_subject_rdn_multivalued(self):
+		self._test_examine_x509test_resultcode("certs/generated/distinguishedname/dn_subject_rdn_multivalued.pem", expect_present = "X509Cert_Body_Subject_RDN_MultiValuedRDN")
+
+	def test_generated_distinguishedname_dn_subject_rdn_non_printable(self):
+		self._test_examine_x509test_resultcode("certs/generated/distinguishedname/dn_subject_rdn_non_printable.pem", expect_present = "X509Cert_Body_Subject_RDN_NonPrintable")
+
+	def test_generated_distinguishedname_dn_subject_unusually_many_rdns(self):
+		self._test_examine_x509test_resultcode("certs/generated/distinguishedname/dn_subject_unusually_many_rdns.pem", expect_present = "X509Cert_Body_Subject_UnusuallyManyRDNs")
+
+# ====================================================================== End of distinguishedname ======================================================================

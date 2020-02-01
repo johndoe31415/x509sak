@@ -64,9 +64,14 @@ class DistinguishedNameValidationResult(BaseValidationResult):
 					standard = RFCReference(rfcno = 5280, sect = "A.1", verb = "MUST", text = "specifications of Upper Bounds MUST be regarded as mandatory from Annex B of ITU-T X.411 Reference Definition of MTS Parameter Upper Bounds")
 					self._report("Enc_DER_Struct_DN_RDN_LengthExceeded", "distinguished name contains RDN element \"%s\" which is supposed to have a maximum length of %d characters, but actually has a length of %d characters." % (OIDDB.RDNTypes.get(rdn_item.oid, str(rdn_item.oid)), max_length, len(rdn_item.printable_value)), commonness = Commonness.UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
+
 		if not rdn_item.printable:
 			# TODO standards reference?
 			self._report("Enc_DER_Struct_DN_RDN_NonPrintable", "distinguished name contains RDN element item \"%s\" (ASN.1 type %s) which is not printable." % (OIDDB.RDNTypes.get(rdn_item.oid, str(rdn_item.oid)), rdn_item.asn1.__class__.__name__), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION)
+
+		else:
+			if rdn_item.printable_value == "":
+				self._report("Enc_DER_Struct_DN_RDN_EmptyString", "contains relative distinguished name with empty string value.", commonness = Commonness.HIGHLY_UNUSUAL)
 
 	def _validate_rdn(self, rdn):
 		if rdn.component_cnt > 1:
@@ -87,11 +92,14 @@ class DistinguishedNameValidationResult(BaseValidationResult):
 			self._validate_rdn_component(rdn_item)
 
 	def _validate(self):
+		if self._subject.rdn_count == 0:
+			self._report("Enc_DER_Struct_DN_Empty", "contains no relative distinguished names (RDNs).", commonness = Commonness.HIGHLY_UNUSUAL)
+
 		all_cns = self._subject.get_all(OIDDB.RDNTypes.inverse("CN"))
 		if len(all_cns) == 0:
-			self._report("Enc_DER_Struct_DN_NoCN", "Certificate does not have any common name (CN) set.", commonness = Commonness.HIGHLY_UNUSUAL)
+			self._report("Enc_DER_Struct_DN_NoCN", "does not have any common name (CN) set.", commonness = Commonness.HIGHLY_UNUSUAL)
 		elif len(all_cns) > 1:
-			self._report("Enc_DER_Struct_DN_MultipleCN", "Certificate does have more than one common name (CN) set; in particular, %d CN fields were encountered." % (len(all_cns)), commonness = Commonness.UNUSUAL)
+			self._report("Enc_DER_Struct_DN_MultipleCN", "does have more than one common name (CN) set; in particular, %d CN fields were encountered." % (len(all_cns)), commonness = Commonness.UNUSUAL)
 
 		seen_oid_keys = set()
 		for rdn in self._subject:
@@ -100,12 +108,12 @@ class DistinguishedNameValidationResult(BaseValidationResult):
 			oidkey = rdn.oidkey
 			if oidkey in seen_oid_keys:
 				oidkey_str = " + ".join(OIDDB.RDNTypes.get(oid, str(oid)) for oid in oidkey)
-				self._report("Enc_DER_Struct_DN_DuplicateRDNs", "Distinguished name contains RDN element at least twice: %s (at element %s)" % (oidkey_str, rdn.pretty_str), commonness = Commonness.UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
+				self._report("Enc_DER_Struct_DN_DuplicateRDNs", "contains RDN element at least twice: %s (at element %s)" % (oidkey_str, rdn.pretty_str), commonness = Commonness.UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
 			else:
 				seen_oid_keys.add(oidkey)
 
 		if self._subject.rdn_count > self._LARGE_RDN_AMOUNT:
-			self._report("Enc_DER_Struct_DN_UnusuallyManyRDNs", "Distinguished name contains an unusually high amount of RDNs (%d)." % (self._subject.rdn_count), commonness = Commonness.UNUSUAL)
+			self._report("Enc_DER_Struct_DN_UnusuallyManyRDNs", "contains an unusually high amount of RDNs (%d)." % (self._subject.rdn_count), commonness = Commonness.UNUSUAL)
 
 class DistinguishedNameValidator(BaseValidator):
 	_ValidationResultClass = DistinguishedNameValidationResult
