@@ -885,7 +885,7 @@ class SecurityAnalyzerTests(BaseAnalyzerTest):
 		self._test_examine_x509test_resultcode("certs/constructed/lifetime_ca_exceptionallylong.pem", expect_present = "X509Cert_Body_Validity_Length_ExceptionallyLong")
 
 	def test_key_usage_excessive(self):
-		self._test_examine_x509test_resultcode("certs/constructed/ku-xmas.pem", expect_absent = [ "CertUsage_Purpose_ClientCert_KU_ExcessBits", "CertUsage_Purpose_ClientCert_KU_UnusualBits" ], expect_present = [ "CertUsage_Purpose_ServerCert_KU_ExcessBits", "CertUsage_Purpose_ServerCert_KU_UnusualBits" ], purpose = "tls-server")
+		self._test_examine_x509test_resultcode("certs/constructed/ku-xmas.pem", expect_absent = "CertUsage_Purpose_ServerCert_KU_MissingBits", expect_present = [ "CertUsage_Purpose_ServerCert_KU_ExcessBits", "CertUsage_Purpose_ServerCert_KU_UnusualBits" ], purpose = "tls-server")
 
 	def test_key_usage_missing(self):
 		self._test_examine_x509test_resultcode("certs/constructed/ku-missing.pem", expect_absent = "CertUsage_Purpose_ClientCert_KU_MissingBits", expect_present = "CertUsage_Purpose_CACert_KU_MissingBits", purpose = "ca")

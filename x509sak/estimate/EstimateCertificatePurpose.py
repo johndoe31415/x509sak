@@ -24,6 +24,7 @@ from x509sak.estimate.BaseEstimator import BaseEstimator
 from x509sak.estimate import JudgementCode, AnalysisOptions, Verdict, Commonness
 from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements
 from x509sak.Tools import ValidationTools
+from x509sak.FlagChecker import FlagChecker
 
 @BaseEstimator.register
 class PurposeEstimator(BaseEstimator):
@@ -77,14 +78,24 @@ class PurposeEstimator(BaseEstimator):
 				judgements += SecurityJudgement(JudgementCode.CertUsage_Purpose_ClientCert_IsCACert, "Certificate is a valid CA certificate even though it's supposed to be a TLS client.", commonness = Commonness.HIGHLY_UNUSUAL, verdict = Verdict.NO_SECURITY)
 
 		if ku_ext is not None:
+			# ('digitalSignature', 0),	The digitalSignature bit is asserted when the subject public key is used for verifying digital signatures, other than signatures on certificates (bit 5) and CRLs (bit 6), such as those used in an entity authentication service, a data origin authentication service, and/or an integrity service.
+			# ('nonRepudiation', 1),	The nonRepudiation bit is asserted when the subject public key is used to verify digital signatures, other than signatures on certificates (bit 5) and CRLs (bit 6), used to provide a non-repudiation service that protects against the signing entity falsely denying some action.
+			# ('keyEncipherment', 2),	The keyEncipherment bit is asserted when the subject public key is used for enciphering private or secret keys, i.e., for key transport.
+			# ('dataEncipherment', 3),	The dataEncipherment bit is asserted when the subject public key is used for directly enciphering raw user data without the use of an intermediate symmetric cipher.  Note that the use of this bit is extremely uncommon
+			# ('keyAgreement', 4),		The keyAgreement bit is asserted when the subject public key is used for key agreement.
+			# ('keyCertSign', 5),
+			# ('cRLSign', 6),
+			# ('encipherOnly', 7),		The meaning of the encipherOnly bit is undefined in the absence of the keyAgreement bit. When the encipherOnly bit is asserted and the keyAgreement bit is also set, the subject public key may be used only for enciphering data while performing key agreement.
+			# ('decipherOnly', 8)		The meaning of the decipherOnly bit is undefined in the absence of the keyAgreement bit. When the decipherOnly bit is asserted and the keyAgreement bit is also set, the subject public key may be used only for deciphering data while performing key agreement.
+
+			flag_checker = FlagChecker()
 			if purpose == AnalysisOptions.CertificatePurpose.CACertificate:
-				must_have = set([ "keyCertSign" ])
-				may_have = set([ "cRLSign", "digitalSignature" ])
-				may_not_have = set([ "encipherOnly", "decipherOnly" ])
+				flag_checker.may_not_have("nonRepudiation", "keyEncipherment", "dataEncipherment", "keyAgreement", "encipherOnly", "decipherOnly")
+				flag_checker.must_have("keyCertSign")
+				flag_checker.may_have("digitalSignature", "cRLSign")
 			elif purpose in [ AnalysisOptions.CertificatePurpose.TLSClientCertificate, AnalysisOptions.CertificatePurpose.TLSServerCertificate ]:
-				must_have = set([ "keyAgreement" ])
-				may_have = set([ "keyEncipherment" ])
-				may_not_have = set([ "encipherOnly", "decipherOnly", "keyCertSign", "cRLSign" ])
+				flag_checker.may_not_have("digitalSignature", "nonRepudiation", "dataEncipherment", "keyCertSign", "cRLSign", "encipherOnly", "decipherOnly")
+				flag_checker.complex_check([ "keyEncipherment", "keyAgreement" ], min_count = 1)
 			else:
 				raise NotImplementedError(purpose)
 
@@ -106,19 +117,20 @@ class PurposeEstimator(BaseEstimator):
 				}[purpose],
 			}
 
-			present_flags = ku_ext.flags
-			missing_must_haves = must_have - present_flags
-			if len(missing_must_haves) > 0:
-				judgements += SecurityJudgement(jcode["missing"], "Certificate with purpose %s should have at least KeyUsage %s, but %s is missing." % (purpose.name, ", ".join(sorted(must_have)), ", ".join(sorted(missing_must_haves))), commonness = Commonness.HIGHLY_UNUSUAL)
-
-			excess_flags = present_flags - must_have - may_have - may_not_have
-			if len(excess_flags) > 0:
-				judgements += SecurityJudgement(jcode["unusual"], "For certificate with purpose %s it is uncommon to have KeyUsage %s." % (purpose.name, ", ".join(sorted(excess_flags))), commonness = Commonness.UNUSUAL)
-
-			present_may_not_haves = present_flags & may_not_have
-			if len(present_may_not_haves) > 0:
-				judgements += SecurityJudgement(jcode["excess"], "Certificate with purpose %s must not have any KeyUsage %s. This certificate has %s." % (purpose.name, ", ".join(sorted(may_not_have)), ", ".join(sorted(present_may_not_haves))), commonness = Commonness.HIGHLY_UNUSUAL)
-
+			for violation in flag_checker.check(ku_ext.all_flags):
+				if violation.check_type == "missing":
+					judgements += SecurityJudgement(jcode["missing"], "Certificate with purpose %s should have at least KeyUsage %s, but %s is missing." % (purpose.name, ", ".join(sorted(violation.reference)), ", ".join(sorted(violation.flags))), commonness = Commonness.HIGHLY_UNUSUAL)
+				elif violation.check_type == "excess":
+					judgements += SecurityJudgement(jcode["excess"], "Certificate with purpose %s must not have any KeyUsage %s. This certificate has %s." % (purpose.name, ", ".join(sorted(violation.reference)), ", ".join(sorted(violation.flags))), commonness = Commonness.HIGHLY_UNUSUAL)
+				elif violation.check_type == "unusual":
+					judgements += SecurityJudgement(jcode["unusual"], "For certificate with purpose %s it is uncommon to have KeyUsage %s." % (purpose.name, ", ".join(sorted(violation.flags))), commonness = Commonness.UNUSUAL)
+				elif violation.check_type == "complex_too_few":
+					if len(violation.flags) == 0:
+						judgements += SecurityJudgement(jcode["missing"], "Certificate with purpose %s should have at least %d flag(s) out of %s, but none were present." % (purpose.name, violation.reference_count, ", ".join(sorted(violation.reference))), commonness = Commonness.HIGHLY_UNUSUAL)
+					else:
+						judgements += SecurityJudgement(jcode["missing"], "Certificate with purpose %s should have at least %d flag(s) out of %s, but only %s were present." % (purpose.name, violation.reference_count, ", ".join(sorted(violation.reference)), ", ".join(sorted(violation.flags))), commonness = Commonness.HIGHLY_UNUSUAL)
+				else:
+					raise Exception(NotImplemented)
 
 		if eku_ext is not None:
 			if (purpose == AnalysisOptions.CertificatePurpose.TLSClientCertificate) and (not eku_ext.client_auth):

@@ -381,7 +381,13 @@ class X509KeyUsageExtension(X509Extension):
 
 	@property
 	def flags(self):
+		"""Known flags (defined in the bitset) only."""
 		return self._flags
+
+	@property
+	def all_flags(self):
+		"""All set flags (also those not defined in bitset) only."""
+		return self._all_flags
 
 	@property
 	def malformed(self):
@@ -410,11 +416,20 @@ class X509KeyUsageExtension(X509Extension):
 	def _decode_hook(self):
 		if self.asn1 is None:
 			self._flags = None
+			self._all_flags = None
 		else:
 			self._flags = set()
-			for (name, bit) in self._ASN1_MODEL.namedValues.items():
-				if (len(self.asn1) > bit) and self.asn1[bit]:
-					self._flags.add(name)
+			self._all_flags = set()
+			known_bits = { bit : name for (name, bit) in self._ASN1_MODEL.namedValues.items() }
+			for (bit, value) in enumerate(self.asn1):
+				if value == 1:
+					if bit in known_bits:
+						flag_name =  known_bits[bit]
+						self._flags.add(flag_name)
+						self._all_flags.add(flag_name)
+					else:
+						flag_name = "bit-%d" % (bit)
+						self._all_flags.add(flag_name)
 
 	def __repr__(self):
 		if self.flags is not None:
