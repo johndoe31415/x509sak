@@ -478,10 +478,11 @@ class X509AuthorityInformationAccessExtension(X509Extension):
 
 	def _decode_hook(self):
 		self._methods = [ ]
-		for item in self.asn1:
-			oid = OID.from_asn1(item["accessMethod"])
-			location = item["accessLocation"]
-			self._methods.append((oid, location))
+		if self.asn1 is not None:
+			for item in self.asn1:
+				oid = OID.from_asn1(item["accessMethod"])
+				location = item["accessLocation"]
+				self._methods.append((oid, location))
 
 	def __repr__(self):
 		return "%s<%s>" % (self.__class__.__name__, ", ".join(str(oid) for (oid, location) in self._methods))

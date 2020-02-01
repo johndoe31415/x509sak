@@ -36,9 +36,10 @@ class CertGeneratorHelper():
 		OIDDB.X509Extensions.inverse("CRLDistributionPoints"):		"CRLDP",
 		OIDDB.X509Extensions.inverse("CertificatePolicies"):		"CP",
 		OIDDB.X509Extensions.inverse("AuthorityKeyIdentifier"):		"AKI",
-		OIDDB.X509Extensions.inverse("PolicyConstraints"):			"PC",
+#		OIDDB.X509Extensions.inverse("PolicyConstraints"):			"PC",
 		OIDDB.X509Extensions.inverse("ExtendedKeyUsage"):			"EKU",
 		OIDDB.X509Extensions.inverse("NetscapeCertificateType"):	"NSCT",
+		OIDDB.X509Extensions.inverse("id-pe-authorityInfoAccess"):	"AIA",
 	})
 
 	@classmethod

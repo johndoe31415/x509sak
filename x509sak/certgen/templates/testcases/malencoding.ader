@@ -5,6 +5,14 @@
 	declare_parameter("extension_oid", h.known_extension_oids())
 	declare_parameter("mode", [ "non_der", "trailing_data", "wrong_type", "malformed" ])
 	(ext, mode) = (str(h.extension_oid_abbreviation(p("extension_oid"))), str(p("mode")))
+
+	error_code = "X509Cert_Body_X509Exts_Ext_" + ext + "_" + {
+		"non_der":			"Malformed_NonDEREncoding",
+		"wrong_type":		"Malformed_UnexpectedType",
+		"malformed":		"Malformed_Undecodable",
+		"trailing_data":	"TrailingData",
+	}.get(mode, "?")
+	export_var("errcode", error_code)
 	export_var("ext", ext)
 	export_var("filename", "ext_%s_%s" % (ext, mode))
 %>
@@ -14,8 +22,8 @@
 	${create_dn_cn("X.509 Extension " + ext + " with error: " + mode)}
 </%block>
 <%block name="subject">
-	<% (ext, mode) = import_vars("ext", "mode") %>
-	${create_dn_cn("X.509 Extension " + ext + " with error: " + mode)}
+	<% (ext, mode, errcode) = import_vars("ext", "mode", "errcode") %>
+	${create_dn_cn("X.509 Extension " + ext + " with error: " + mode, errcode = errcode)}
 </%block>
 
 <%block name="extensions">
