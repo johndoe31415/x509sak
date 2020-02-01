@@ -27,7 +27,7 @@ from x509sak.OID import OIDDB
 from x509sak.AlgorithmDB import HashFunctions
 from x509sak.X509Extensions import X509ExtendedKeyUsageExtension
 from x509sak.estimate.BaseEstimator import BaseEstimator
-from x509sak.estimate import JudgementCode, Commonness, Compatibility
+from x509sak.estimate import JudgementCode, Commonness, Compatibility, Verdict
 from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, RFCReference
 from x509sak.estimate.GeneralNameValidator import GeneralNameValidator
 from x509sak.estimate.NameConstraintsSubtreeValidator import NameConstraintsSubtreeValidator
@@ -317,6 +317,16 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 						judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_KU_NotCritical, "CA certificate contains KeyUsage X.509 extension, but it is not marked as critical.", commonness = Commonness.UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 					else:
 						judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_KU_NotCritical, "CA certificate contains KeyUsage X.509 extension, but it is not marked as critical.", commonness = Commonness.UNUSUAL)
+
+				if ("encipherOnly" in ku_ext.flags) and ("keyAgreement" not in ku_ext.flags):
+					standard = RFCReference(rfcno = 5280, sect = "4.2.1.3", verb = "SHOULD", text = "The meaning of the encipherOnly bit is undefined in the absence of the keyAgreement bit.")
+					judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_KU_UndefinedBitCombination, "KeyUsage extension contains encipherOnly bit without keyAgreement bit set. The semantic of this is undefined.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+				if ("decipherOnly" in ku_ext.flags) and ("keyAgreement" not in ku_ext.flags):
+					standard = RFCReference(rfcno = 5280, sect = "4.2.1.3", verb = "SHOULD", text = "The meaning of the decipherOnly bit is undefined in the absence of the keyAgreement bit.")
+					judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_KU_UndefinedBitCombination, "KeyUsage extension contains decipherOnly bit without keyAgreement bit set. The semantic of this is undefined.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+
+				if ("keyEncipherment" in ku_ext.flags) and ("keyAgreement" not in ku_ext.flags):
+					judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_KU_NoPerfectForwardSecrecy, "KeyUsage extension allows keyEncipherment but no keyAgreement. This disallows perfect forward secrecy, an important security property of communication channels.", commonness = Commonness.HIGHLY_UNUSUAL, verdict = Verdict.WEAK)
 
 				if "keyCertSign" in ku_ext.flags:
 					bc = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("BasicConstraints"))

@@ -899,6 +899,15 @@ class SecurityAnalyzerTests(BaseAnalyzerTest):
 	def test_key_usage_malformed(self):
 		self._test_examine_x509test_resultcode("certs/constructed/ku_malformed.pem", expect_present = "X509Cert_Body_X509Exts_Ext_KU_Malformed_Undecodable")
 
+	def test_key_usage_encipheronly_without_keyagreement(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ku_encipheronly_without_keyagreement.pem", expect_present = "X509Cert_Body_X509Exts_Ext_KU_UndefinedBitCombination")
+
+	def test_key_usage_decipheronly_without_keyagreement(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ku_decipheronly_without_keyagreement.pem", expect_present = "X509Cert_Body_X509Exts_Ext_KU_UndefinedBitCombination")
+
+	def test_key_usage_no_pfs(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ku_no_pfs.pem", expect_present = "X509Cert_Body_X509Exts_Ext_KU_NoPerfectForwardSecrecy")
+
 	def test_key_usage_extension_missing(self):
 		self._test_examine_x509test_resultcode("certs/ok/short.pem", expect_present = "X509Cert_Body_X509Exts_Ext_KU_Missing")
 
