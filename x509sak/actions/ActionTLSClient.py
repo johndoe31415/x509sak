@@ -32,6 +32,12 @@ class ActionTLSClient(BaseAction):
 
 		tls_version = TLSVersion.ProtocolTLSv1_2
 		self._conn = TLSClientConnection.tcp_connect(tls_version = tls_version, servername = args.servername, port = args.port)
+		if self._args.starttls is None:
+			pass
+		elif self._args.starttls == "smtp":
+			self._starttls_smtp(self._conn.transport)
+		else:
+			raise NotImplementedError(self._args.starttls)
 		self._conn.decoder.add_hook("handshake", self._recv_handshake)
 		self._conn.decoder.add_hook("record_layer", self._recv_record_layer)
 
@@ -39,8 +45,14 @@ class ActionTLSClient(BaseAction):
 		client_hello = chh.create(server_name = args.servername)
 		frame = ClientHelloPkt.pack(client_hello)
 		self._conn.send_handshake(frame)
-
 		self._conn.receive()
+
+	def _starttls_smtp(self, conn):
+		conn.recvline()
+		conn.send(b"HELO foobar\r\n")
+		conn.recvline()
+		conn.send(b"STARTTLS\r\n")
+		conn.recvline()
 
 	def _recv_record_layer(self, hooktype, msg_id, data):
 		print("<- %3d %s %s (%d bytes)" % (msg_id, data["content_type"].name, data["record_layer_version"], len(data["payload"])))

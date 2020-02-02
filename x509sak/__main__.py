@@ -251,6 +251,7 @@ mc.register("hashpart", "Hash all substrings of a file and search for a particul
 
 def genparser(parser):
 	parser.add_argument("-p", "--port", metavar = "port", default = 443, help = "Port to connect to. Defaults to %(default)d.")
+	parser.add_argument("-s", "--starttls", choices = [ "smtp" ], help = "Perform a STARTTLS cleartext negotiation before sending TLS messages. Can be any of %(choices)s.")
 	parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity level. Can be specified multiple times.")
 	parser.add_argument("servername", metavar = "filename", type = str, help = "Server name to connect to.")
 mc.register("tlsclient", "Act as a TLS client", genparser, action = ActionTLSClient, visible = False)

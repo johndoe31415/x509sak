@@ -24,18 +24,30 @@ import time
 from x509sak.tls.Enums import TLSVersion, ContentType
 from x509sak.tls.TLSStructs import RecordLayerPkt
 from x509sak.tls.TLSMessageDecoder import TLSMessageDecoder
+from x509sak.tls.RXBuffer import RXBuffer
 
 class TLSConnectionInterruptedException(Exception): pass
 
 class TLSConnectionTransport():
 	def __init__(self, sock):
 		self._sock = sock
+		self._rxbuffer = RXBuffer()
 
 	def send(self, data):
 		return self._sock.send(data)
 
-	def recv(self, data):
-		return self._sock.recv(data)
+	def recvchunk(self, length):
+		chunk = self._sock.recv(length)
+		self._rxbuffer += chunk
+		return self._rxbuffer.get_all()
+
+	def recv(self, length):
+		self._rxbuffer.read_from(source = lambda buf: self._sock.recv(length - len(buf)), until = lambda buf: buf.have_bytes(length))
+		return self._rxbuffer.get(length)
+
+	def recvline(self):
+		self._rxbuffer.read_from(source = lambda buf: self._sock.recv(1024), until = lambda buf: buf.have_line())
+		return self._rxbuffer.getline()
 
 	def close(self):
 		self._sock.shutdown(socket.SHUT_RDWR)
@@ -49,6 +61,10 @@ class TLSClientConnection():
 		self._decoder = TLSMessageDecoder(side = "server")
 		self._decoder.add_hook("alert", self._msg_alert)
 		self._running = True
+
+	@property
+	def transport(self):
+		return self._transport
 
 	@property
 	def decoder(self):
@@ -78,7 +94,7 @@ class TLSClientConnection():
 	def receive(self):
 		self._running = True
 		while self._running:
-			data = self._transport.recv(1024)
+			data = self._transport.recvchunk(1024)
 			if len(data) != 0:
 				self._decoder.put(data)
 			else:
