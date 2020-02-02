@@ -67,19 +67,29 @@ class PublicKey(PEMDERObject):
 	def keyspec(self):
 		return self._key.keyspec
 
+	@property
+	def key_decodable(self):
+		return self.key_decoding_error is None
+
+	@property
+	def key_decoding_error(self):
+		return self._key_decoding_error
+
 	def _post_decode_hook(self):
 		alg_oid = OID.from_asn1(self.asn1["algorithm"]["algorithm"])
 		self._pk_alg = PublicKeyAlgorithms.lookup("oid", alg_oid)
 		if self._pk_alg is None:
-			raise UnknownAlgorithmException("Unable to determine public key algorithm for OID %s." % (alg_oid))
+			self._key_decoding_error = "Unable to determine public key algorithm for OID %s." % (alg_oid)
+			return
 
 		if self._pk_alg not in self._HANDLERS_BY_PK_ALG:
-			raise UnknownAlgorithmException("Unable to determine public key handler for public key algorithm %s." % (self._pk_alg.name))
+			self._key_decoding_error = "Unable to determine public key handler for public key algorithm %s." % (self._pk_alg.name)
+			return
 
 		handler_class = self._HANDLERS_BY_PK_ALG[self._pk_alg]
 		key_data = ASN1Tools.bitstring2bytes(self.asn1["subjectPublicKey"])
 		self._key = handler_class.from_subject_pubkey_info(self._pk_alg, self.asn1["algorithm"]["parameters"], key_data)
-
+		self._key_decoding_error = None
 
 	@classmethod
 	def create(cls, cryptosystem, parameters):

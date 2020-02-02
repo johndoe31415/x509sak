@@ -21,7 +21,7 @@
 
 from x509sak.AlgorithmDB import Cryptosystems
 from x509sak.estimate.BaseEstimator import BaseEstimator
-from x509sak.Exceptions import LazyDeveloperException
+from x509sak.Exceptions import LazyDeveloperException, UnknownAlgorithmException
 from x509sak.CurveDB import CurveNotFoundException
 from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, JudgementCode, Compatibility, Commonness
 from x509sak.PublicKey import RSAPublicKey
@@ -50,12 +50,23 @@ class PublicKeyEstimator(BaseEstimator):
 			"pretty":		"Unrecognized elliptic curve: %s" % (str(exception)),
 			"security":		judgements,
 		}
+		return result
 
+	def _error_public_key_type_unknown(self, certificate, decoding_error):
+		judgements = SecurityJudgements()
+		judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_UnknownKeyType, "Certificate public key uses unknown key system: %s Conservatively estimating broken security." % (decoding_error), bits = 0, compatibility = Compatibility.LIMITED_SUPPORT, commonness = Commonness.HIGHLY_UNUSUAL)
+		result = {
+			"pubkey_alg":	None,
+			"pretty":		"Undecodable public key: %s" % (decoding_error),
+			"security":		judgements,
+		}
 		return result
 
 	def analyze(self, certificate):
 		try:
 			pubkey = certificate.pubkey
+			if not pubkey.key_decodable:
+				return self._error_public_key_type_unknown(certificate, pubkey.key_decoding_error)
 		except CurveNotFoundException as e:
 			return self._error_curve_not_found(certificate, e)
 

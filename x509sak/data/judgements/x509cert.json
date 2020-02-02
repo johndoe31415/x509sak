@@ -3,7 +3,6 @@
 		"_label": "X509Cert",
 		"_import": "asn1_encoding_issues/*",
 		"Public Key": {
-			"_import": "asn1_encoding_issues/*",
 			"_topic": "Certificate Public Key",
 			"RSA": {
 				"_import": [ "rsa_algorithm/*", "rsa_crypto/*", "+rsa_pubkey_encoding_issues/*" ]
@@ -23,7 +22,8 @@
 			},
 			"DSA": {
 				"_import": [ "dsa_crypto/*", "dsa_pubkey_encoding_issues/*" ]
-			}
+			},
+			"Unknown Key Type": { "_desc": "unknown public key type" }
 		},
 		"Metadata": {
 			"_label": "Body",

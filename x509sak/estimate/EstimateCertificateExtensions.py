@@ -221,6 +221,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 						break
 					tried_hashfncs.append(hashfnc)
 				except ValueError:
+					# Hash algorithm not supported in this Python version.
 					pass
 			else:
 				if not certificate.is_ca_certificate:

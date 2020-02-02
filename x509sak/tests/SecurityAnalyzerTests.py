@@ -1317,3 +1317,6 @@ class SecurityAnalyzerTests(BaseAnalyzerTest):
 
 	def test_validity_notbefore_invalidtype(self):
 		self._test_examine_x509test_resultcode("certs/constructed/validity_notbefore_invalidtype.pem", "X509Cert_Body_Validity_NotBefore_InvalidType")
+
+	def test_unknown_pubkey(self):
+		self._test_examine_x509test_resultcode("certs/constructed/unknown_pubkey.pem", "X509Cert_PublicKey_UnknownKeyType")
