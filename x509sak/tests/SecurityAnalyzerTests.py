@@ -387,6 +387,12 @@ class SecurityAnalyzerTests(BaseAnalyzerTest):
 	def test_constructed_pubkey_ecc_mov_h6(self):
 		self._test_examine_x509test_resultcode("certs/constructed/pubkey_ecc_mov_h6.pem", "X509Cert_PublicKey_ECC_DomainParameters_CurveProperty_LowEmbeddingDegree", expect_absent = [ "X509Cert_PublicKey_ECC_DomainParameters_CurveProperty_AnomalousCurve", "X509Cert_PublicKey_ECC_DomainParameters_CurveProperty_SupersingularCurve" ])
 
+	def test_key_usage_ca_excessive_bits(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ku_ca_excess_bits.pem", "CertUsage_Purpose_CACert_KU_ExcessBits", expect_absent = "CertUsage_Purpose_CACert_KU_UnusualBits", purpose = "ca")
+
+	def test_key_usage_ca_unusual_bits(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ku_ca_unusual_bits.pem", "CertUsage_Purpose_CACert_KU_UnusualBits", expect_absent = "CertUsage_Purpose_CACert_KU_ExcessBits", purpose = "ca")
+
 	def test_hostname_ok(self):
 		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", "CertUsage_Purpose_ServerCert_SAN_Match", expect_absent = "CertUsage_Purpose_ServerCert_SAN_Mismatch", host_check = "mail.johannes-bauer.com")
 		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", "CertUsage_Purpose_ServerCert_SAN_Match", expect_absent = "CertUsage_Purpose_ServerCert_SAN_Mismatch", host_check = "www.johannes-bauer.com")

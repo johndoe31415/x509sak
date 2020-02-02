@@ -119,9 +119,9 @@ class PurposeEstimator(BaseEstimator):
 
 			for violation in flag_checker.check(ku_ext.all_flags):
 				if violation.check_type == "missing":
-					judgements += SecurityJudgement(jcode["missing"], "Certificate with purpose %s should have at least KeyUsage %s, but %s is missing." % (purpose.name, ", ".join(sorted(violation.reference)), ", ".join(sorted(violation.flags))), commonness = Commonness.HIGHLY_UNUSUAL)
+					judgements += SecurityJudgement(jcode["missing"], "Certificate with purpose %s should have at least key usage flags %s, but %s is missing." % (purpose.name, ", ".join(sorted(violation.reference)), ", ".join(sorted(violation.flags))), commonness = Commonness.HIGHLY_UNUSUAL)
 				elif violation.check_type == "excess":
-					judgements += SecurityJudgement(jcode["excess"], "Certificate with purpose %s must not have any KeyUsage %s. This certificate has %s." % (purpose.name, ", ".join(sorted(violation.reference)), ", ".join(sorted(violation.flags))), commonness = Commonness.HIGHLY_UNUSUAL)
+					judgements += SecurityJudgement(jcode["excess"], "Certificate with purpose %s has excessive key usage bits set: %s" % (purpose.name, ", ".join(sorted(violation.flags))), commonness = Commonness.HIGHLY_UNUSUAL)
 				elif violation.check_type == "unusual":
 					judgements += SecurityJudgement(jcode["unusual"], "For certificate with purpose %s it is uncommon to have KeyUsage %s." % (purpose.name, ", ".join(sorted(violation.flags))), commonness = Commonness.UNUSUAL)
 				elif violation.check_type == "complex_too_few":

@@ -62,7 +62,8 @@ class FlagChecker():
 		unusual_flags = flag_set - self._must_have - self._may_have - self._may_not_have
 		for (reference, min_count, max_count) in self._complex_checks:
 			unusual_flags = unusual_flags - reference
-		yield self._CheckResult(check_type = "unusual", reference = None, reference_count = None, flags = unusual_flags)
+		if len(unusual_flags) > 0:
+			yield self._CheckResult(check_type = "unusual", reference = None, reference_count = None, flags = unusual_flags)
 
 		for (reference, min_count, max_count) in self._complex_checks:
 			intersection = reference & flag_set
