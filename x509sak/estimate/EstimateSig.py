@@ -27,10 +27,18 @@ from x509sak.estimate import JudgementCode, Commonness, Compatibility
 from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, RFCReference
 from x509sak.NumberTheory import NumberTheory
 from x509sak.RSAPSSParameters import RSAPSSParameters
+from x509sak.estimate.DERValidator import DERValidator
+from x509sak.Tools import ASN1Tools
 
 @BaseEstimator.register
 class SignatureSecurityEstimator(BaseEstimator):
 	_ALG_NAME = "sig"
+
+# TODO FIXME
+#				standard = RFCReference(rfcno = 3279, sect = "2.2.3", verb = "MUST", text = "To easily transfer these two values as one signature, they MUST be ASN.1 encoded using the following ASN.1 structure:")	ecdsa
+# DSA				standard = RFCReference(rfcno = 3279, sect = "2.2.2", verb = "SHALL", text = "To easily transfer these two values as one signature, they SHALL be ASN.1 encoded using the following ASN.1 structure:")
+	_DER_VALIDATOR_ECDSA_SIGNATURE = DERValidator.create_inherited("X509Cert_Signature_ECDSA", validation_subject = "ECDSA signature")
+	_DER_VALIDATOR_DSA_SIGNATURE = DERValidator.create_inherited("X509Cert_Signature_DSA", validation_subject = "DSA signature")
 
 	def _analyze_rsa_pss_signature_params(self, signature_alg_params):
 		judgements = SecurityJudgements()
@@ -107,46 +115,35 @@ class SignatureSecurityEstimator(BaseEstimator):
 
 		if signature_alg.value.sig_fnc == SignatureFunctions.ecdsa:
 			# Decode ECDSA signature
-			try:
-				(asn1, tail) = pyasn1.codec.der.decoder.decode(signature, asn1Spec = rfc3279.ECDSA_Sig_Value())
-				if len(tail) > 0:
-					judgements += SecurityJudgement(JudgementCode.X509Cert_Signature_ECDSA_TrailingData, "ECDSA signature encoding has %d bytes of trailing data." % (len(tail)), commonness = Commonness.HIGHLY_UNUSUAL)
-
-				if root_cert is not None:
-					if root_cert.pubkey.pk_alg.value.cryptosystem == Cryptosystems.ECC_ECDSA:
-						# Check that this is really a potential parent CA certificate
-						ca_curve = root_cert.pubkey.curve
-						hweight_analysis = NumberTheory.hamming_weight_analysis(int(asn1["r"]), min_bit_length = ca_curve.field_bits)
-						if not hweight_analysis.plausibly_random:
-							judgements += SecurityJudgement(JudgementCode.X509Cert_Signature_ECDSA_R_BitBiasPresent, "Hamming weight of ECDSA signature R parameter is %d at bitlength %d, but expected a weight between %d and %d when randomly chosen; this is likely not coincidential." % (hweight_analysis.hweight, hweight_analysis.bitlen, hweight_analysis.rnd_min_hweight, hweight_analysis.rnd_max_hweight), commonness = Commonness.HIGHLY_UNUSUAL)
-						hweight_analysis = NumberTheory.hamming_weight_analysis(int(asn1["s"]), min_bit_length = ca_curve.field_bits)
-						if not hweight_analysis.plausibly_random:
-							judgements += SecurityJudgement(JudgementCode.X509Cert_Signature_ECDSA_S_BitBiasPresent, "Hamming weight of ECDSA signature S parameter is %d at bitlength %d, but expected a weight between %d and %d when randomly chosen; this is likely not coincidential." % (hweight_analysis.hweight, hweight_analysis.bitlen, hweight_analysis.rnd_min_hweight, hweight_analysis.rnd_max_hweight), commonness = Commonness.HIGHLY_UNUSUAL)
-			except pyasn1.error.PyAsn1Error:
-				standard = RFCReference(rfcno = 3279, sect = "2.2.3", verb = "MUST", text = "To easily transfer these two values as one signature, they MUST be ASN.1 encoded using the following ASN.1 structure:")
-				judgements += SecurityJudgement(JudgementCode.X509Cert_Signature_ECDSA_Malformed_Undecodable, "ECDSA signature cannot be successfully decoded.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+			asn1_details = ASN1Tools.safe_decode(signature, asn1_spec = rfc3279.ECDSA_Sig_Value())
+			judgements += self._DER_VALIDATOR_ECDSA_SIGNATURE.validate(asn1_details)
+			if (asn1_details.asn1 is not None) and (root_cert is not None):
+				if root_cert.pubkey.pk_alg.value.cryptosystem == Cryptosystems.ECC_ECDSA:
+					# Check that this is really a potential parent CA certificate
+					ca_curve = root_cert.pubkey.curve
+					hweight_analysis = NumberTheory.hamming_weight_analysis(int(asn1_details.asn1["r"]), min_bit_length = ca_curve.field_bits)
+					if not hweight_analysis.plausibly_random:
+						judgements += SecurityJudgement(JudgementCode.X509Cert_Signature_ECDSA_R_BitBiasPresent, "Hamming weight of ECDSA signature R parameter is %d at bitlength %d, but expected a weight between %d and %d when randomly chosen; this is likely not coincidential." % (hweight_analysis.hweight, hweight_analysis.bitlen, hweight_analysis.rnd_min_hweight, hweight_analysis.rnd_max_hweight), commonness = Commonness.HIGHLY_UNUSUAL)
+					hweight_analysis = NumberTheory.hamming_weight_analysis(int(asn1_details.asn1["s"]), min_bit_length = ca_curve.field_bits)
+					if not hweight_analysis.plausibly_random:
+						judgements += SecurityJudgement(JudgementCode.X509Cert_Signature_ECDSA_S_BitBiasPresent, "Hamming weight of ECDSA signature S parameter is %d at bitlength %d, but expected a weight between %d and %d when randomly chosen; this is likely not coincidential." % (hweight_analysis.hweight, hweight_analysis.bitlen, hweight_analysis.rnd_min_hweight, hweight_analysis.rnd_max_hweight), commonness = Commonness.HIGHLY_UNUSUAL)
 
 		elif signature_alg.value.sig_fnc == SignatureFunctions.dsa:
 			# Decode DSA signature
-			try:
-				(asn1, tail) = pyasn1.codec.der.decoder.decode(signature, asn1Spec = rfc3279.Dss_Sig_Value())
-				if len(tail) > 0:
-					judgements += SecurityJudgement(JudgementCode.X509Cert_Signature_DSA_TrailingData, "DSA signature encoding has %d bytes of trailing data." % (len(tail)), commonness = Commonness.HIGHLY_UNUSUAL)
-
+			asn1_details = ASN1Tools.safe_decode(signature, asn1_spec = rfc3279.Dss_Sig_Value())
+			judgements += self._DER_VALIDATOR_DSA_SIGNATURE.validate(asn1_details)
+			if (asn1_details.asn1 is not None) and (root_cert is not None):
 				if root_cert is not None:
 					if root_cert.pubkey.pk_alg.value.cryptosystem == Cryptosystems.DSA:
 						field_width = root_cert.pubkey.q.bit_length()
 
-						hweight_analysis = NumberTheory.hamming_weight_analysis(int(asn1["r"]), min_bit_length = field_width)
+						hweight_analysis = NumberTheory.hamming_weight_analysis(int(asn1_details.asn1["r"]), min_bit_length = field_width)
 						if not hweight_analysis.plausibly_random:
 							judgements += SecurityJudgement(JudgementCode.X509Cert_Signature_DSA_R_BitBiasPresent, "Hamming weight of DSA signature R parameter is %d at bitlength %d, but expected a weight between %d and %d when randomly chosen; this is likely not coincidential." % (hweight_analysis.hweight, hweight_analysis.bitlen, hweight_analysis.rnd_min_hweight, hweight_analysis.rnd_max_hweight), commonness = Commonness.HIGHLY_UNUSUAL)
 
-						hweight_analysis = NumberTheory.hamming_weight_analysis(int(asn1["s"]), min_bit_length = field_width)
+						hweight_analysis = NumberTheory.hamming_weight_analysis(int(asn1_details.asn1["s"]), min_bit_length = field_width)
 						if not hweight_analysis.plausibly_random:
 							judgements += SecurityJudgement(JudgementCode.X509Cert_Signature_DSA_S_BitBiasPresent, "Hamming weight of DSA signature S parameter is %d at bitlength %d, but expected a weight between %d and %d when randomly chosen; this is likely not coincidential." % (hweight_analysis.hweight, hweight_analysis.bitlen, hweight_analysis.rnd_min_hweight, hweight_analysis.rnd_max_hweight), commonness = Commonness.HIGHLY_UNUSUAL)
-			except pyasn1.error.PyAsn1Error:
-				standard = RFCReference(rfcno = 3279, sect = "2.2.2", verb = "SHALL", text = "To easily transfer these two values as one signature, they SHALL be ASN.1 encoded using the following ASN.1 structure:")
-				judgements += SecurityJudgement(JudgementCode.X509Cert_Signature_DSA_Malformed_Undecodable, "DSA signature cannot be successfully decoded.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 		result = {
 			"name":				signature_alg.name,

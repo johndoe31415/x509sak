@@ -366,6 +366,15 @@ class SecurityAnalyzerTests(BaseAnalyzerTest):
 	def test_constructed_ecdsa_sig_malformed(self):
 		self._test_examine_x509test_resultcode("certs/constructed/ecdsa_sig_malformed.pem", "X509Cert_Signature_ECDSA_Malformed_Undecodable", parent_certname = "certs/constructed/ecdsa_sig_malformed.pem")
 
+	def test_constructed_ecdsa_sig_trailing_data(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ecdsa_sig_trailing_data.pem", "X509Cert_Signature_ECDSA_TrailingData", parent_certname = "certs/constructed/ecdsa_sig_malformed.pem")
+
+	def test_constructed_ecdsa_sig_unexpected_type(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ecdsa_sig_unexpected_type.pem", "X509Cert_Signature_ECDSA_Malformed_UnexpectedType", parent_certname = "certs/constructed/ecdsa_sig_malformed.pem")
+
+	def test_constructed_ecdsa_sig_non_der_encoding(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ecdsa_sig_non_der_encoding.pem", "X509Cert_Signature_ECDSA_Malformed_NonDEREncoding", parent_certname = "certs/constructed/ecdsa_sig_malformed.pem")
+
 	def test_constructed_pubkey_bitbias_x_low_hweight(self):
 		self._test_examine_x509test_resultcode("certs/constructed/ecc_pubkey_x_bitbias1.pem", "X509Cert_PublicKey_ECC_PublicKeyPoint_X_BitBiasPresent", expect_absent = "X509Cert_PublicKey_ECC_PublicKeyPoint_Y_BitBiasPresent")
 
@@ -742,6 +751,15 @@ class SecurityAnalyzerTests(BaseAnalyzerTest):
 
 	def test_dsa_sig_malformed(self):
 		self._test_examine_x509test_resultcode("certs/constructed/dsa_sig_malformed.pem", expect_present = "X509Cert_Signature_DSA_Malformed_Undecodable")
+
+	def test_dsa_sig_unexpected_type(self):
+		self._test_examine_x509test_resultcode("certs/constructed/dsa_sig_unexpected_type.pem", expect_present = "X509Cert_Signature_DSA_Malformed_UnexpectedType", parent_certname = "certs/constructed/dsa_base.pem")
+
+	def test_dsa_sig_trailing_data(self):
+		self._test_examine_x509test_resultcode("certs/constructed/dsa_sig_trailing_data.pem", expect_present = "X509Cert_Signature_DSA_TrailingData", parent_certname = "certs/constructed/dsa_base.pem")
+
+	def test_dsa_sig_non_der_encoding(self):
+		self._test_examine_x509test_resultcode("certs/constructed/dsa_sig_non_der_encoding.pem", expect_present = "X509Cert_Signature_DSA_Malformed_NonDEREncoding", parent_certname = "certs/constructed/dsa_base.pem")
 
 	def test_dsa_typical_parameters(self):
 		self._test_examine_x509test_resultcode("certs/ok/dsa_sha1.pem", expect_present = [ "X509Cert_PublicKey_DSA_L_N_Common", "X509Cert_PublicKey_DSA_L_N" ], expect_absent = "X509Cert_PublicKey_DSA_L_N_Uncommon", include_raw = True)

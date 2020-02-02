@@ -279,10 +279,10 @@
 				"Uncommon Cryptosystem": { "_desc": "uncommon cryptosystem used" }
 			},
 			"ECDSA": {
-				"_import": [ "dsa_signature/*", "asn1_encoding_issues/*" ]
+				"_import": [ "dsa_signature/*", "+asn1_encoding_issues/*" ]
 			},
 			"DSA": {
-				"_import": [ "dsa_signature/*", "asn1_encoding_issues/*" ]
+				"_import": [ "dsa_signature/*", "+asn1_encoding_issues/*" ]
 			}
 		}
 	},
