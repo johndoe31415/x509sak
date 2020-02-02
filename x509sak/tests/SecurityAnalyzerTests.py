@@ -393,6 +393,18 @@ class SecurityAnalyzerTests(BaseAnalyzerTest):
 	def test_key_usage_ca_unusual_bits(self):
 		self._test_examine_x509test_resultcode("certs/constructed/ku_ca_unusual_bits.pem", "CertUsage_Purpose_CACert_KU_UnusualBits", expect_absent = "CertUsage_Purpose_CACert_KU_ExcessBits", purpose = "ca")
 
+	def test_key_usage_client_unusual_bits(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ku_client_unusual_bits.pem", "CertUsage_Purpose_ClientCert_KU_UnusualBits", expect_absent = "CertUsage_Purpose_ClientCert_KU_ExcessBits", purpose = "tls-client")
+
+	def test_key_usage_client_excess_bits(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ku_client_excess_bits.pem", "CertUsage_Purpose_ClientCert_KU_ExcessBits", expect_absent = "CertUsage_Purpose_ClientCert_KU_UnusualBits", purpose = "tls-client")
+
+	def test_key_usage_client_missing_bits(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ku_client_missing_bits.pem", "CertUsage_Purpose_ClientCert_KU_MissingBits", purpose = "tls-client")
+
+	def test_key_usage_server_missing_bits(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ku_server_missing_bits.pem", "CertUsage_Purpose_ServerCert_KU_MissingBits", purpose = "tls-server")
+
 	def test_hostname_ok(self):
 		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", "CertUsage_Purpose_ServerCert_SAN_Match", expect_absent = "CertUsage_Purpose_ServerCert_SAN_Mismatch", host_check = "mail.johannes-bauer.com")
 		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", "CertUsage_Purpose_ServerCert_SAN_Match", expect_absent = "CertUsage_Purpose_ServerCert_SAN_Mismatch", host_check = "www.johannes-bauer.com")
