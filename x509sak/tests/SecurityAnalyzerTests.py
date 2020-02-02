@@ -1049,6 +1049,9 @@ class SecurityAnalyzerTests(BaseAnalyzerTest):
 	def test_nsct_empty(self):
 		self._test_examine_x509test_resultcode("certs/constructed/nsct_empty.pem", expect_present = "X509Cert_Body_X509Exts_Ext_NSCT_Empty")
 
+	def test_nsct_trailing_zeros(self):
+		self._test_examine_x509test_resultcode("certs/constructed/nsct_trailing_zeros.pem", expect_present = "X509Cert_Body_X509Exts_Ext_NSCT_TrailingZeros")
+
 	def test_ext_empty_sequence(self):
 		self._test_examine_x509test_resultcode("certs/constructed/ext_empty_sequence.pem", expect_present = "X509Cert_Body_X509Exts_EmptySequence")
 

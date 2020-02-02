@@ -37,6 +37,7 @@ from x509sak.OtherModels import SCTVersion
 from x509sak.tls.Enums import HashAlgorithm, SignatureAlgorithm
 from x509sak.DistinguishedName import DistinguishedName
 from x509sak.Exceptions import InvalidInputException
+from x509sak.Tools import ASN1Tools
 
 @BaseEstimator.register
 class CrtExtensionsSecurityEstimator(BaseEstimator):
@@ -542,6 +543,10 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 					judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_NSCT_Empty, "Netscape Certificate Types X.509 extension contains no set bits.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION)
 				elif (len(bitlist) >= 5) and (bitlist[4] == 1):
 					judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_NSCT_UnusedBitSet, "Netscape Certificate Types X.509 extension has an invalid/unused bit set.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION)
+
+				if ASN1Tools.bitstring_has_trailing_zeros(ns_ext.asn1):
+					judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_NSCT_TrailingZeros, "Netscape Certificate Types X.509 extension has trailing zeros in bit string.", commonness = Commonness.HIGHLY_UNUSUAL)
+
 		return judgements
 
 	def _judge_crl_distribution_points_point_general_name(self, pointno, nameno, general_name):
