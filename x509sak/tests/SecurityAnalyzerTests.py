@@ -473,6 +473,9 @@ class SecurityAnalyzerTests(BaseAnalyzerTest):
 	def test_constructed_rsa_pubkey_trailing_data(self):
 		self._test_examine_x509test_resultcode("certs/constructed/rsa_pubkey_trailing_data.pem", "X509Cert_PublicKey_RSA_TrailingData")
 
+	def test_constructed_rsa_pubkey_non_der_encoding(self):
+		self._test_examine_x509test_resultcode("certs/constructed/rsa_pubkey_non_der_encoding.pem", "X509Cert_PublicKey_RSA_Malformed_NonDEREncoding")
+
 	def test_include_raw_data_rsa(self):
 		self._test_examine_x509test_resultcode("certs/ok/rsa_512.pem", expect_present = [ "X509Cert_Signature_Function_Common", "X509Cert_Signature_HashFunction_Derated", "X509Cert_PublicKey_RSA_Modulus_LengthInBits", "X509Cert_Signature_HashFunction_DigestLengthInBits" ], include_raw = True)
 
