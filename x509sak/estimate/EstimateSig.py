@@ -23,6 +23,7 @@ import pyasn1.codec.der.decoder
 from pyasn1_modules import rfc3279
 from x509sak.AlgorithmDB import SignatureAlgorithms, SignatureFunctions, Cryptosystems
 from x509sak.estimate.BaseEstimator import BaseEstimator
+from x509sak.estimate.Validator import ValidationJudgement
 from x509sak.estimate import JudgementCode, Commonness, Compatibility
 from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, RFCReference
 from x509sak.NumberTheory import NumberTheory
@@ -33,12 +34,12 @@ from x509sak.Tools import ASN1Tools
 @BaseEstimator.register
 class SignatureSecurityEstimator(BaseEstimator):
 	_ALG_NAME = "sig"
-
-# TODO FIXME
-#				standard = RFCReference(rfcno = 3279, sect = "2.2.3", verb = "MUST", text = "To easily transfer these two values as one signature, they MUST be ASN.1 encoded using the following ASN.1 structure:")	ecdsa
-# DSA				standard = RFCReference(rfcno = 3279, sect = "2.2.2", verb = "SHALL", text = "To easily transfer these two values as one signature, they SHALL be ASN.1 encoded using the following ASN.1 structure:")
-	_DER_VALIDATOR_ECDSA_SIGNATURE = DERValidator.create_inherited("X509Cert_Signature_ECDSA", validation_subject = "ECDSA signature")
-	_DER_VALIDATOR_DSA_SIGNATURE = DERValidator.create_inherited("X509Cert_Signature_DSA", validation_subject = "DSA signature")
+	_DER_VALIDATOR_ECDSA_SIGNATURE = DERValidator.create_inherited("X509Cert_Signature_ECDSA", validation_subject = "ECDSA signature", specific_judgements = {
+		("Enc_DER_EncodingIssues_Malformed_NonDEREncoding", "Enc_DER_EncodingIssues_Malformed_Undecodable", "Enc_DER_EncodingIssues_Malformed_UnexpectedType"): ValidationJudgement(standard = RFCReference(rfcno = 3279, sect = "2.2.3", verb = "SHALL", text = "To easily transfer these two values as one signature, they MUST be ASN.1 encoded using the following ASN.1 structure:")),
+	})
+	_DER_VALIDATOR_DSA_SIGNATURE = DERValidator.create_inherited("X509Cert_Signature_DSA", validation_subject = "DSA signature", specific_judgements = {
+		("Enc_DER_EncodingIssues_Malformed_NonDEREncoding", "Enc_DER_EncodingIssues_Malformed_Undecodable", "Enc_DER_EncodingIssues_Malformed_UnexpectedType"): ValidationJudgement(standard = RFCReference(rfcno = 3279, sect = "2.2.2", verb = "SHALL", text = "To easily transfer these two values as one signature, they SHALL be ASN.1 encoded using the following ASN.1 structure:")),
+	})
 
 	def _analyze_rsa_pss_signature_params(self, signature_alg_params):
 		judgements = SecurityJudgements()

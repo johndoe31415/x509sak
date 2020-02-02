@@ -37,11 +37,12 @@ class BaseValidationResult():
 #			print("Issue with no handler: %s" % (issue_name))
 			return
 		full_message = self._get_message(issue, message)
-		if "standard" not in kwargs:
-			kwargs["standard"] = issue.standard
-		if "info_payload" not in kwargs:
-			kwargs["info_payload"] = issue.info_payload
-		self._result += SecurityJudgement(issue.code, full_message, **kwargs)
+		if kwargs is None:
+			kwargs = { }
+		if issue.judgement is not None:
+			kwargs.update(issue.judgement.kwargs)
+		judgement = SecurityJudgement(issue.code, full_message, **kwargs)
+		self._result += judgement
 
 	def _delegate(self, subordinate_validator, subordinate_subject):
 		validation_result = subordinate_validator.validate(subordinate_subject)
@@ -54,15 +55,10 @@ class BaseValidationResult():
 		self._validate()
 		return self._result
 
-class ValidationIssue():
-	def __init__(self, code = None, standard = None, info_payload = None):
-		self._code = code
+class ValidationJudgement():
+	def __init__(self, standard = None, info_payload = None):
 		self._standard = standard
 		self._info_payload = info_payload
-
-	@property
-	def code(self):
-		return self._code
 
 	@property
 	def standard(self):
@@ -72,6 +68,28 @@ class ValidationIssue():
 	def info_payload(self):
 		return self._info_payload
 
+	@property
+	def kwargs(self):
+		kwargs = { }
+		if self.standard is not None:
+			kwargs["standard"] = self.standard
+		if self.info_payload is not None:
+			kwargs["info_payload"] = self.info_payload
+		return kwargs
+
+class ValidationIssue():
+	def __init__(self, code = None, judgement = None):
+		assert((judgement is None) or isinstance(judgement, ValidationJudgement))
+		self._code = code
+		self._judgement = judgement
+
+	@property
+	def code(self):
+		return self._code
+
+	@property
+	def judgement(self):
+		return self._judgement
 
 class BaseValidator():
 	_ValidationResultClass = None
@@ -87,8 +105,23 @@ class BaseValidator():
 		return self._validation_subject
 
 	@classmethod
-	def create_inherited(cls, root_point_name, **kwargs):
-		recognized_issues = { name: ValidationIssue(code = code) for (name, code) in JudgementCode.inheritance[root_point_name].items() }
+	def create_inherited(cls, root_point_name, specific_judgements = None, **kwargs):
+		def _expand_multikeys(multikey_dict):
+			result = { }
+			for (keys, value) in multikey_dict.items():
+				if isinstance(keys, tuple):
+					for key in keys:
+						result[key] = value
+				else:
+					result[keys] = value
+			return result
+
+		if specific_judgements is None:
+			specific_judgements = { }
+		else:
+			specific_judgements = _expand_multikeys(specific_judgements)
+
+		recognized_issues = { name: ValidationIssue(code = code, judgement = specific_judgements.get(name)) for (name, code) in JudgementCode.inheritance[root_point_name].items() }
 		return cls(recognized_issues = recognized_issues, **kwargs)
 
 	def get_issue(self, issue_name):

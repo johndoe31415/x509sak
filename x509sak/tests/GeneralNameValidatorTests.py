@@ -23,7 +23,7 @@ from pyasn1_modules import rfc5280
 import pyasn1.codec.der.decoder
 from pyasn1.type.univ import OctetString
 from x509sak.tests.BaseTest import BaseTest
-from x509sak.estimate.Validator import ValidationIssue
+from x509sak.estimate.Validator import ValidationIssue, ValidationJudgement
 from x509sak.estimate.GeneralNameValidator import GeneralNameValidator
 from x509sak.estimate import JudgementCode
 
@@ -68,7 +68,7 @@ class GeneralNameValidatorTests(BaseTest):
 		if additional_errors is not None:
 			self.assertTrue(all(error in valid_errors for error in additional_errors))
 			errors += additional_errors
-		recognized_issues = { name: ValidationIssue(code = JudgementCode.X509sakIssues_AnalysisNotImplemented, info_payload = name) for name in errors }
+		recognized_issues = { name: ValidationIssue(code = JudgementCode.X509sakIssues_AnalysisNotImplemented, judgement = ValidationJudgement(info_payload = name)) for name in errors }
 		result = GeneralNameValidator("Test GN", recognized_issues, permissible_uri_schemes = permissible_uri_schemes).validate_asn1(gn)
 		if assert_length is not None:
 			self.assertEqual(len(result), assert_length)
