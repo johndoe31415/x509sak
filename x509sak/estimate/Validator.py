@@ -77,6 +77,9 @@ class ValidationJudgement():
 			kwargs["info_payload"] = self.info_payload
 		return kwargs
 
+	def __repr__(self):
+		return "ValidationJudgement<std = %s, payload = %s>" % (self.standard, self.info_payload)
+
 class ValidationIssue():
 	def __init__(self, code = None, judgement = None):
 		assert((judgement is None) or isinstance(judgement, ValidationJudgement))
@@ -90,6 +93,9 @@ class ValidationIssue():
 	@property
 	def judgement(self):
 		return self._judgement
+
+	def __repr__(self):
+		return "Issue(%s / %s)" % (self._code.name, str(self.judgement))
 
 class BaseValidator():
 	_ValidationResultClass = None
