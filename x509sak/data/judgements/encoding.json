@@ -10,9 +10,9 @@
 					"_desc": "trailing data present"
 				},
 				"Malformed": {
-					"Undecodable": { "_desc": "no valid DER encoding" },
+					"Undecodable": { "_desc": "no valid DER encoding", "_require": "!always_decodable" },
 					"Non-DER Encoding": { "_desc": "decodable, but no valid DER" },
-					"Unexpected Type": { "_desc": "decoding resulted in unexpected type", "_require": "!notype" }
+					"Unexpected Type": { "_desc": "decoding resulted in unexpected type", "_require": "!always_correct_type" }
 				}
 			},
 			"Structures": {

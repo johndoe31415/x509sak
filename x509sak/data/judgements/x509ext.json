@@ -30,7 +30,6 @@
 	},
 
 	"x509sak Issues": {
-		"Public Key Reencoding Missing": { "_desc": "public key re-encoding not implemented" },
 		"Analysis Not Implemented": { "_desc": "analysis not implemented" }
 	}
 }

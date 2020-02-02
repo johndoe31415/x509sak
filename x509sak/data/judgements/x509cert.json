@@ -1,7 +1,7 @@
 {
 	"X.509 Certificate": {
 		"_label": "X509Cert",
-		"_import": "asn1_encoding_issues/*",
+		"_import": "asn1_encoding_issues/*:always_decodable,always_correct_type",
 		"Public Key": {
 			"_topic": "Certificate Public Key",
 			"RSA": {
@@ -263,7 +263,7 @@
 				"Unknown Extension": {
 					"_label": "Unknown",
 					"_topic": "Unknown X.509 Extension",
-					"_import": [ "+asn1_encoding_issues/*:notype", "x509_ext_checks/*:critical,notcritical{name=unknown}" ]
+					"_import": [ "+asn1_encoding_issues/*:always_correct_type", "x509_ext_checks/*:critical,notcritical{name=unknown}" ]
 				}
 			}
 		},
