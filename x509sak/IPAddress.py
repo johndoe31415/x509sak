@@ -178,4 +178,3 @@ class IPAddressSubnet():
 				return str(self.ip)
 			else:
 				return "%s/%d" % (self.ip, cidr)
-

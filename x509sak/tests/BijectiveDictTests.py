@@ -43,7 +43,7 @@ class BijectiveDictTests(BaseTest):
 
 	def test_nonbijective(self):
 		with self.assertRaises(Exception):
-			bijd = BijectiveDict({
+			BijectiveDict({
 				"a":	"1",
 				"b":	"2",
 				"c":	"2",

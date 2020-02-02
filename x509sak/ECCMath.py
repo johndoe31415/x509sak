@@ -25,7 +25,7 @@ import pyasn1.codec.der.decoder
 from x509sak.KwargsChecker import KwargsChecker
 from x509sak.NumberTheory import NumberTheory
 from x509sak.Exceptions import InvalidInputException, UnsupportedEncodingException
-from x509sak.ASN1Models import SpecifiedECDomain, ECFieldParametersPrimeField, ECFieldParametersCharacteristicTwoField, ECFieldParametersCharacteristicTwoFieldTrinomial, ECFieldParametersCharacteristicTwoFieldPentanomial
+from x509sak.ASN1Models import ECFieldParametersPrimeField, ECFieldParametersCharacteristicTwoField, ECFieldParametersCharacteristicTwoFieldTrinomial, ECFieldParametersCharacteristicTwoFieldPentanomial
 from x509sak.Tools import ASN1Tools
 from x509sak.OID import OID, OIDDB
 

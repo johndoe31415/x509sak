@@ -107,7 +107,7 @@ class CertGenerator():
 			raise Exception(*args)
 
 		result = self._template.render(**{
-			"p":						lambda name: parameters.get(name),
+			"p":						parameters.get,
 			"h":						CertGeneratorHelper,
 			"declare_parameter":		lambda x, y: None,
 			"export_var":				export_var,

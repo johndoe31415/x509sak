@@ -22,6 +22,7 @@
 import os
 import random
 from x509sak.tests import BaseTest
+from x509sak.Exceptions import InvalidInputException
 from x509sak.NumberTheory import NumberTheory
 
 class NumberTheoryTests(BaseTest):
@@ -138,8 +139,8 @@ class NumberTheoryTests(BaseTest):
 		self.assertFalse(NumberTheory.hamming_weight_analysis(n).plausibly_random)
 
 	def test_modinv_exception(self):
-		with self.assertRaises(Exception):
-			NumberTheory.movinv(0, 101)
+		with self.assertRaises(InvalidInputException):
+			NumberTheory.modinv(0, 101)
 
 	def test_probable_prime(self):
 		self.assertTrue(NumberTheory.is_probable_prime(2))

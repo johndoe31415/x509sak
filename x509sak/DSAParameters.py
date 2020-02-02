@@ -40,15 +40,15 @@ class DSAParameters(PEMDERObject):
 
 	@property
 	def p(self):
-		return int(self._asn1["p"])
+		return int(self.asn1["p"])
 
 	@property
 	def q(self):
-		return int(self._asn1["q"])
+		return int(self.asn1["q"])
 
 	@property
 	def g(self):
-		return int(self._asn1["g"])
+		return int(self.asn1["g"])
 
 	@property
 	def L(self):

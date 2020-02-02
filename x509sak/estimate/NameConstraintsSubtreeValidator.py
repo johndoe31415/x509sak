@@ -19,7 +19,6 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-from x509sak.estimate.Judgement import Commonness, Compatibility
 from x509sak.estimate.Validator import BaseValidationResult, BaseValidator
 from x509sak.estimate.GeneralNameValidator import GeneralNameValidator
 

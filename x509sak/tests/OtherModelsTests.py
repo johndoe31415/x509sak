@@ -19,12 +19,10 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-import datetime
 from x509sak.tests import BaseTest
 
 from x509sak.OtherModels import SignedCertificateTimestampList, SCTVersion
 from x509sak.tls.Enums import SignatureAlgorithm, HashAlgorithm
-from x509sak.HexDump import HexDump
 
 class OtherModelsTests(BaseTest):
 	def test_serialize_sctl(self):

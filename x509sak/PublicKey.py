@@ -20,17 +20,16 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 import hashlib
-import collections
 import pyasn1.codec.der.decoder
 from pyasn1_modules import rfc2459, rfc2437, rfc3279
 from x509sak.OID import OID, OIDDB
 from x509sak.PEMDERObject import PEMDERObject
 from x509sak.Tools import ASN1Tools
 from x509sak.KeySpecification import KeySpecification
-from x509sak.Exceptions import UnknownAlgorithmException, LazyDeveloperException, InvalidUseException
+from x509sak.Exceptions import UnknownAlgorithmException
 from x509sak.CurveDB import CurveDB
 from x509sak.ECCMath import EllipticCurve
-from x509sak.AlgorithmDB import PublicKeyAlgorithms, Cryptosystems
+from x509sak.AlgorithmDB import PublicKeyAlgorithms
 from x509sak.ASN1Models import ECParameters
 
 class PublicKey(PEMDERObject):
@@ -115,7 +114,7 @@ class _BasePublicKey():
 
 	@property
 	def malformed(self):
-		raise NotImplementedError(cls.__name__)
+		raise NotImplementedError(self.__class__.__name__)
 
 	def has_param(self, name):
 		return name in self._accessible_parameters
@@ -148,7 +147,7 @@ class RSAPublicKey(_BasePublicKey):
 		return KeySpecification(cryptosystem = self._PK_ALG.value.cryptosystem, parameters = { "bitlen": self["n"].bit_length() })
 
 	@classmethod
-	def create(self, parameters):
+	def create(cls, parameters):
 		asn1 = rfc2459.SubjectPublicKeyInfo()
 		asn1["algorithm"] = rfc2459.AlgorithmIdentifier()
 		asn1["algorithm"]["algorithm"] = OIDDB.KeySpecificationAlgorithms.inverse("rsaEncryption").to_asn1()
@@ -192,18 +191,18 @@ class DSAPublicKey(_BasePublicKey):
 
 	@property
 	def N(self):
-		return self._params("p").bit_length() if (self._params("p") is not None) else None
+		return self._param("p").bit_length() if (self._param("p") is not None) else None
 
 	@property
 	def L(self):
-		return self._params("q").bit_length() if (self._params("q") is not None) else None
+		return self._param("q").bit_length() if (self._param("q") is not None) else None
 
 	@property
 	def keyspec(self):
 		return KeySpecification(cryptosystem = self._PK_ALG.value.cryptosystem, parameters = { "N": self.N, "L": self.L })
 
 	@classmethod
-	def create(self, parameters):
+	def create(cls, parameters):
 		asn1 = rfc2459.SubjectPublicKeyInfo()
 		asn1["algorithm"] = rfc2459.AlgorithmIdentifier()
 		asn1["algorithm"]["algorithm"] = OIDDB.KeySpecificationAlgorithms.inverse("id-dsa").to_asn1()
@@ -261,7 +260,7 @@ class ECDSAPublicKey(_BasePublicKey):
 			return None
 
 	@classmethod
-	def create(self, parameters):
+	def create(cls, parameters):
 		asn1 = rfc2459.SubjectPublicKeyInfo()
 
 		asn1["algorithm"]["algorithm"] = OIDDB.KeySpecificationAlgorithms.inverse("ecPublicKey").to_asn1()
@@ -329,10 +328,11 @@ class EdDSAPublicKey(_BasePublicKey):
 
 	@property
 	def keyspec(self):
-		return KeySpecification(cryptosystem = self._PK_ALG.value.cryptosystem, parameters = { "curvename": self["curve"].name })
+		# TODO 25519 or 448?
+		return KeySpecification(cryptosystem = self._PK_ALG[0].value.cryptosystem, parameters = { "curvename": self["curve"].name })
 
 	@classmethod
-	def create(self, parameters):
+	def create(cls, parameters):
 		asn1 = rfc2459.SubjectPublicKeyInfo()
 		asn1["algorithm"] = rfc2459.AlgorithmIdentifier()
 		asn1["algorithm"]["algorithm"] = OIDDB.KeySpecificationAlgorithms.inverse("id-dsa").to_asn1()

@@ -100,7 +100,7 @@ class ActionTestcaseGen(BaseAction):
 
 		for codepoint_name in present_codepoints:
 			try:
-				codepoint = getattr(JudgementCode, codepoint_name)
+				getattr(JudgementCode, codepoint_name)
 			except AttributeError:
 				print("No such codepoint: %s (in %s)" % (codepoint_name, pem_filename))
 				return
@@ -128,13 +128,13 @@ class ActionTestcaseGen(BaseAction):
 			return None
 		else:
 			outfile = self._args.output_dir + "/" + basename + ".pem"
-			der_data = subprocess.check_output("ascii2der", input = ascii_der.encode())
+			der_data = subprocess.check_output([ "ascii2der" ], input = ascii_der.encode())
 			try:
 				cert_data = subprocess.check_output([ "openssl", "x509", "-inform", "der", "-text" ], input = der_data)
 				cert_data = cert_data.decode()
 				cert_data = [ line.rstrip("\t ") for line in cert_data.split("\n") ]
 				cert_data = "\n".join(cert_data)
-			except subprocess.CalledProcessError as e:
+			except subprocess.CalledProcessError:
 				# OpenSSL cannot encode the certificate
 				cert_data = PEMDataTools.data2pem(der_data, marker = "CERTIFICATE")
 			with open(outfile, "w") as f:
