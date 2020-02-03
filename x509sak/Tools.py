@@ -105,7 +105,7 @@ class CmdTools():
 class ASN1Tools():
 	_REGEX_UTCTime = re.compile(r"(?P<year>\d{2})(?P<month>\d{2})(?P<day>\d{2})(?P<hour>\d{2})(?P<minute>\d{2})(?P<second>\d{2})Z")
 	_REGEX_GeneralizedTime = re.compile(r"(?P<year>\d{4})(?P<month>\d{2})(?P<day>\d{2})(?P<hour>\d{2})(?P<minute>\d{2})(?P<second>\d{2})Z")
-	_DecodedASN1 = collections.namedtuple("DecodedASN1", [ "asn1", "generic_asn1", "tail", "flags", "original_der", "encoded_der" ])
+	_DecodedASN1 = collections.namedtuple("DecodedASN1", [ "asn1", "generic_asn1", "tail", "flags", "original_der", "encoded_der", "model_index" ])
 
 	@classmethod
 	def parse_datetime(cls, datetime_str):
@@ -170,6 +170,19 @@ class ASN1Tools():
 
 	@classmethod
 	def safe_decode(cls, der_data, asn1_spec = None):
+		def decode_reencode(der_data, asn1_spec = None):
+			try:
+				(asn1, tail) = pyasn1.codec.der.decoder.decode(der_data, asn1Spec = asn1_spec)
+			except pyasn1.error.PyAsn1Error:
+				return None
+
+			try:
+				reencoded = pyasn1.codec.der.encoder.encode(asn1)
+			except pyasn1.error.PyAsn1Error:
+				# Decodable, but not re-encodable!
+				reencoded = None
+			return (asn1, tail, reencoded)
+
 		result = {
 			"asn1": None,
 			"generic_asn1": None,
@@ -177,26 +190,42 @@ class ASN1Tools():
 			"flags": set(),
 			"original_der": der_data,
 			"encoded_der": None,
+			"model_index": None,
 		}
-		encoded_der = None
-		try:
-			(result["asn1"], result["tail"]) = pyasn1.codec.der.decoder.decode(der_data, asn1Spec = asn1_spec)
-			encoded_der = pyasn1.codec.der.encoder.encode(result["asn1"])
-		except pyasn1.error.PyAsn1Error:
-			try:
-				# Cannot be decoded under the given ASN1 spec, but maybe generically?
-				(result["generic_asn1"], result["tail"]) = pyasn1.codec.der.decoder.decode(der_data)
+
+		if isinstance(asn1_spec, tuple):
+			asn1_specs = asn1_spec
+		else:
+			asn1_specs = [ asn1_spec ]
+
+		for (model_index, asn1_spec) in enumerate(asn1_specs):
+			decoding_result = decode_reencode(der_data, asn1_spec)
+			if decoding_result is not None:
+				if model_index != 0:
+					result["flags"].add("fallback")
+				(result["asn1"], result["tail"], result["encoded_der"]) = decoding_result
+				result["model_index"] = model_index
+				break
+		else:
+			# No type matched. Try to decode generically, entirely without asn1Spec
+			decoding_result = decode_reencode(der_data)
+			if decoding_result is not None:
+				(result["generic_asn1"], result["tail"], result["encoded_der"]) = decoding_result
 				result["flags"].add("unexpected_type")
-				encoded_der = pyasn1.codec.der.encoder.encode(result["generic_asn1"])
-			except pyasn1.error.PyAsn1Error:
-				# Can be decoded as neither a specific not generic ASN.1 blob
+			else:
 				result["flags"].add("undecodable")
 
 		if (result["tail"] is not None) and (len(result["tail"]) > 0):
 			result["flags"].add("trailing_data")
-		if (encoded_der is not None) and (encoded_der != der_data):
-			result["encoded_der"] = encoded_der
-			result["flags"].add("non_der")
+		if result["encoded_der"] is None:
+			if not "undecodable" in result["flags"]:
+				result["flags"].add("non_encodable")
+		else:
+			if (result["encoded_der"] + result["tail"]) == der_data:
+				# If it's the same after re-encoding memory, we don't need to waste memory
+				result["encoded_der"] = None
+			else:
+				result["flags"].add("non_der")
 
 		return cls._DecodedASN1(**result)
 
