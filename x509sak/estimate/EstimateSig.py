@@ -19,7 +19,6 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-import pyasn1.codec.der.decoder
 from pyasn1_modules import rfc3279
 from x509sak.AlgorithmDB import SignatureAlgorithms, SignatureFunctions, Cryptosystems
 from x509sak.estimate.BaseEstimator import BaseEstimator
