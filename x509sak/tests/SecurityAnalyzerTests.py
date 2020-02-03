@@ -977,7 +977,7 @@ class SecurityAnalyzerTests(BaseAnalyzerTest):
 		self._test_examine_x509test_resultcode("certs/constructed/certpol_duplicate_qualifier_oid.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CP_Qualifier_Duplicate")
 
 	def test_certpol_cps_malformed(self):
-		self._test_examine_x509test_resultcode("certs/constructed/certpol_cps_malformed.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CP_CPS_Malformed_Undecodable")
+		self._test_examine_x509test_resultcode("certs/constructed/certpol_cps_malformed.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CP_CPS_Malformed_UnexpectedType")
 
 	def test_certpol_cps_constraint_violation(self):
 		self._test_examine_x509test_resultcode("certs/constructed/certpol_cps_constraint_violation.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CP_CPS_ConstraintViolation")
@@ -1004,7 +1004,7 @@ class SecurityAnalyzerTests(BaseAnalyzerTest):
 		self._test_examine_x509test_resultcode("certs/constructed/certpol_unotice_withnoticeref.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CP_UserNotice_NoticeRefPresent")
 
 	def test_certpol_unotice_malformed(self):
-		self._test_examine_x509test_resultcode("certs/constructed/certpol_unotice_malformed.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CP_UserNotice_Malformed_Undecodable")
+		self._test_examine_x509test_resultcode("certs/constructed/certpol_unotice_malformed.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CP_UserNotice_Malformed_UnexpectedType")
 
 	def test_certpol_unknown_qualifier_oid(self):
 		self._test_examine_x509test_resultcode("certs/constructed/certpol_unknown_qualifier_oid.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CP_Qualifier_Unknown")

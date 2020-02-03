@@ -187,7 +187,7 @@
 							"AnyPolicy with Unknown Qualifier": { "_desc": "CP extension contains anyPolicy with unknown qualifier" }
 						},
 						"User Notice": {
-							"_import": "+asn1_encoding_issues/*",
+							"_import": "+asn1_encoding_issues/*:always_decodable,never_trailing_data",
 							"Empty": { "_desc": "CP extension user notice is empty" },
 							"Constraint Violation": { "_desc": "CP extension user notice violates ASN.1 constraint" },
 							"noticeRef Present": { "_desc": "CP extension user notice contains noticeRef attribute" },
@@ -200,7 +200,7 @@
 						},
 						"Certification Practice Statement": {
 							"_label": "CPS",
-							"_import": [ "+asn1_encoding_issues/*", "uri_issues" ],
+							"_import": [ "+asn1_encoding_issues/*:always_decodable,never_trailing_data", "uri_issues" ],
 							"Constraint Violation": { "_desc": "CP extension CPS violates ASN.1 constraint" }
 						}
 					},

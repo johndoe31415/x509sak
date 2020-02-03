@@ -32,7 +32,7 @@ from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, RF
 from x509sak.estimate.GeneralNameValidator import GeneralNameValidator
 from x509sak.estimate.NameConstraintsSubtreeValidator import NameConstraintsSubtreeValidator
 from x509sak.estimate.DERValidator import DERValidator
-from x509sak.estimate.Validator import ValidationJudgement
+from x509sak.estimate.Validator import ValidationJudgement, ValidationIssue
 from x509sak.ASN1Wrapper import ASN1GeneralNamesWrapper
 from x509sak.OtherModels import SCTVersion
 from x509sak.tls.Enums import HashAlgorithm, SignatureAlgorithm
@@ -92,6 +92,16 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		"X509SubjectKeyIdentifierExtension": DERValidator.create_inherited("X509Cert_Body_X509Exts_Ext_SKI", validation_subject = "X.509 Subject Key Identifier extension"),
 		"X509NameConstraintsExtension": DERValidator.create_inherited("X509Cert_Body_X509Exts_Ext_NC", validation_subject = "X.509 Name Constraints extension"),
 	}
+
+	_DER_VALIDATOR_CERT_POLICY_USERNOTICE = DERValidator(validation_subject = "X.509 extension Certificate Policy extension User Notice qualifier", recognized_issues = {
+		"Enc_DER_EncodingIssues_Malformed_NonDEREncoding":		ValidationIssue(code = JudgementCode.X509Cert_Body_X509Exts_Ext_CP_UserNotice_Malformed_NonDEREncoding),
+		"Enc_DER_EncodingIssues_Malformed_UnexpectedType":		ValidationIssue(code = JudgementCode.X509Cert_Body_X509Exts_Ext_CP_UserNotice_Malformed_UnexpectedType, judgement = ValidationJudgement(standard = RFCReference(rfcno = 5280, sect = "4.2.1.4", verb = "MUST", text = "UserNotice ::= SEQUENCE {"))),
+	})
+
+	_DER_VALIDATOR_CERT_POLICY_CPS = DERValidator(validation_subject = "X.509 extension Certificate Policy extension CPS qualifier", recognized_issues = {
+		"Enc_DER_EncodingIssues_Malformed_NonDEREncoding":		ValidationIssue(code = JudgementCode.X509Cert_Body_X509Exts_Ext_CP_CPS_Malformed_NonDEREncoding),
+		"Enc_DER_EncodingIssues_Malformed_UnexpectedType":		ValidationIssue(code = JudgementCode.X509Cert_Body_X509Exts_Ext_CP_CPS_Malformed_UnexpectedType, judgement = ValidationJudgement(standard = RFCReference(rfcno = 5280, sect = "4.2.1.4", verb = "MUST", text = "CPSuri ::= IA5String"))),
+	})
 
 	def _analyze_extension(self, extension):
 		result = {
@@ -482,15 +492,14 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 
 					if qualifier.oid == OIDDB.X509ExtensionCertificatePolicyQualifierOIDs.inverse("id-qt-unotice"):
 						# User notice field is present
-						if qualifier.decoded_qualifier is None:
-							standard = RFCReference(rfcno = 5280, sect = "4.2.1.4", verb = "MUST", text = "UserNotice ::= SEQUENCE {")
-							judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_CP_UserNotice_Malformed_Undecodable, "Could not decode user notice qualifier in X.509 Certificate Policies extension of policy %s." % (policy.oid), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard, commonness = Commonness.HIGHLY_UNUSUAL)
-						else:
-							if qualifier.decoded_qualifier.constraint_violation:
-								standard = RFCReference(rfcno = 5280, sect = "4.2.1.4", verb = "MUST", text = "While the explicitText has a maximum size of 200 characters, some non-conforming CAs exceed this limit. Therefore, certificate users SHOULD gracefully handle explicitText with more than 200 characters.")
-								judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_CP_UserNotice_ConstraintViolation, "User notice qualifier of policy %s contains a qualifier which breaks the ASN.1 length constraint of 200 characters." % (policy.oid), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+						judgements += self._DER_VALIDATOR_CERT_POLICY_USERNOTICE.validate(qualifier.decoded_qualifier)
 
-							if len(qualifier.decoded_qualifier.asn1) == 0:
+						if "fallback" in qualifier.decoded_qualifier.flags:
+							standard = RFCReference(rfcno = 5280, sect = "4.2.1.4", verb = "MUST", text = "While the explicitText has a maximum size of 200 characters, some non-conforming CAs exceed this limit. Therefore, certificate users SHOULD gracefully handle explicitText with more than 200 characters.")
+							judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_CP_UserNotice_ConstraintViolation, "User notice qualifier of policy %s contains a qualifier which breaks the ASN.1 length constraint of 200 characters." % (policy.oid), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+
+						if qualifier.decoded_qualifier.asn1 is not None:
+							if (len(qualifier.decoded_qualifier.asn1) == 0) or (not qualifier.decoded_qualifier.asn1[0].hasValue()):
 								judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_CP_UserNotice_Empty, "User notice qualifier of policy %s contains empty sequence, no noticeRef or explicitText are present." % (policy.oid), commonness = Commonness.UNUSUAL)
 
 							# Check if noticeRef is present
@@ -526,16 +535,15 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 
 					elif qualifier.oid == OIDDB.X509ExtensionCertificatePolicyQualifierOIDs.inverse("id-qt-cps"):
 						# CPS field is present
-						if qualifier.decoded_qualifier is None:
+						judgements += self._DER_VALIDATOR_CERT_POLICY_CPS.validate(qualifier.decoded_qualifier)
+
+						if "fallback" in qualifier.decoded_qualifier.flags:
 							standard = RFCReference(rfcno = 5280, sect = "4.2.1.4", verb = "MUST", text = "CPSuri ::= IA5String")
-							judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_CP_CPS_Malformed_Undecodable, "Could not decode CPS qualifier in X.509 Certificate Policies extension of policy %s." % (policy.oid), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard, commonness = Commonness.HIGHLY_UNUSUAL)
-						else:
-							if qualifier.decoded_qualifier.constraint_violation:
-								standard = RFCReference(rfcno = 5280, sect = "4.2.1.4", verb = "MUST", text = "CPSuri ::= IA5String")
-								judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_CP_CPS_ConstraintViolation, "CPS qualifier in X.509 Certificate Policies extension violates IA5String constraint, actual type is %s." % (type(qualifier.decoded_qualifier.asn1.getComponent()).__name__), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard, commonness = Commonness.HIGHLY_UNUSUAL)
-								uri = str(qualifier.decoded_qualifier.asn1.getComponent())
-							else:
-								uri = str(qualifier.decoded_qualifier.asn1)
+							judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_CP_CPS_ConstraintViolation, "CPS qualifier in X.509 Certificate Policies extension violates IA5String constraint, actual type is %s." % (type(qualifier.decoded_qualifier.asn1.getComponent()).__name__), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard, commonness = Commonness.HIGHLY_UNUSUAL)
+							uri = str(qualifier.decoded_qualifier.asn1.getComponent())
+
+						if qualifier.decoded_qualifier.asn1 is not None:
+							uri = str(qualifier.decoded_qualifier.asn1)
 							if (not uri.startswith("http://")) and (not uri.startswith("https://")):
 								judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_CP_CPS_URI_UncommonURIScheme, "CPS URI of policy %s does not follow http/https scheme: %s" % (policy.oid, uri), compatibility = Compatibility.LIMITED_SUPPORT, commonness = Commonness.UNUSUAL)
 					else:

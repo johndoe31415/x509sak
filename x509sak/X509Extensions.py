@@ -509,17 +509,9 @@ class X509CertificatePoliciesExtension(X509Extension):
 	def decode_qualifier(cls, oid, qualifier_data):
 		decoded_qualifier = None
 		if oid == OIDDB.X509ExtensionCertificatePolicyQualifierOIDs.inverse("id-qt-cps"):
-			try:
-				decoded_qualifier = cls._DecodedQualifier(*pyasn1.codec.der.decoder.decode(qualifier_data, asn1Spec = rfc5280.CPSuri()), constraint_violation = False)
-			except pyasn1.error.PyAsn1Error:
-				with contextlib.suppress(pyasn1.error.PyAsn1Error):
-					decoded_qualifier = cls._DecodedQualifier(*pyasn1.codec.der.decoder.decode(qualifier_data, asn1Spec = ASN1Models.RelaxedCPSuri()), constraint_violation = True)
+			decoded_qualifier = ASN1Tools.safe_decode(qualifier_data, asn1_spec = (rfc5280.CPSuri(), ASN1Models.RelaxedCPSuri()))
 		elif oid == OIDDB.X509ExtensionCertificatePolicyQualifierOIDs.inverse("id-qt-unotice"):
-			try:
-				decoded_qualifier = cls._DecodedQualifier(*pyasn1.codec.der.decoder.decode(qualifier_data, asn1Spec = rfc5280.UserNotice()), constraint_violation = False)
-			except pyasn1.type.error.PyAsn1Error:
-				with contextlib.suppress(pyasn1.error.PyAsn1Error):
-					decoded_qualifier = cls._DecodedQualifier(*pyasn1.codec.der.decoder.decode(qualifier_data, asn1Spec = ASN1Models.RelaxedUserNotice()), constraint_violation = True)
+			decoded_qualifier = ASN1Tools.safe_decode(qualifier_data, asn1_spec = (rfc5280.UserNotice(), ASN1Models.RelaxedUserNotice()))
 		return decoded_qualifier
 
 	def get_policy(self, policy_oid):
