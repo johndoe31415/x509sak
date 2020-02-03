@@ -73,10 +73,7 @@ class X509Extensions():
 
 	def to_asn1(self):
 		extension_list = [ extension.to_asn1() for extension in self ]
-		# TODO: OMG this is fugly. We cannot use Extensions(), because it's
-		# tag-incompatible with the instance used inside TBSCertificate. So, I
-		# guess we're doing this? No way, Jose.
-		extensions_asn1 = rfc2459.Extensions().subtype(explicitTag = tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 3))
+		extensions_asn1 = rfc2459.TBSCertificate()["extensions"]
 		extensions_asn1.setComponents(*extension_list)
 		return extensions_asn1
 
