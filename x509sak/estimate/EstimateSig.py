@@ -26,10 +26,12 @@ from x509sak.estimate.BaseEstimator import BaseEstimator
 from x509sak.estimate.Validator import ValidationJudgement
 from x509sak.estimate import JudgementCode, Commonness, Compatibility
 from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, RFCReference
+from x509sak.estimate.Validator import ValidationIssue
 from x509sak.NumberTheory import NumberTheory
 from x509sak.RSAPSSParameters import RSAPSSParameters
 from x509sak.estimate.DERValidator import DERValidator
 from x509sak.Tools import ASN1Tools
+from x509sak import ASN1Models
 
 @BaseEstimator.register
 class SignatureSecurityEstimator(BaseEstimator):
@@ -41,42 +43,44 @@ class SignatureSecurityEstimator(BaseEstimator):
 		("Enc_DER_EncodingIssues_Malformed_NonDEREncoding", "Enc_DER_EncodingIssues_Malformed_Undecodable", "Enc_DER_EncodingIssues_Malformed_UnexpectedType"): ValidationJudgement(standard = RFCReference(rfcno = 3279, sect = "2.2.2", verb = "SHALL", text = "To easily transfer these two values as one signature, they SHALL be ASN.1 encoded using the following ASN.1 structure:")),
 	})
 
+	_DER_VALIDATOR_RSAPSS_PARAMETERS = DERValidator(validation_subject = "RSA/PSS parameters", recognized_issues = {
+		"Enc_DER_EncodingIssues_Malformed_NonDEREncoding":		ValidationIssue(code = JudgementCode.X509Cert_PublicKey_RSA_RSAPSS_Parameters_Malformed_NonDEREncoding),
+		"Enc_DER_EncodingIssues_Malformed_UnexpectedType":		ValidationIssue(code = JudgementCode.X509Cert_PublicKey_RSA_RSAPSS_Parameters_Malformed_UnexpectedType),
+	})
+
 	def _analyze_rsa_pss_signature_params(self, signature_alg_params):
 		judgements = SecurityJudgements()
-		try:
-			rsapss = RSAPSSParameters.decode(signature_alg_params)
-		except pyasn1.error.PyAsn1Error:
-			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_RSA_RSAPSS_Parameters_Malformed_Undecodable, "RSA/PSS parameter are malformed, unable to decode them.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, bits = 0)
-			return (None, judgements)
+		asn1_details = ASN1Tools.safe_decode(signature_alg_params, asn1_spec = ASN1Models.RSASSA_PSS_Params())
+		judgements += self._DER_VALIDATOR_RSAPSS_PARAMETERS.validate(asn1_details)
+		if asn1_details.asn1 is not None:
+			rsapss = RSAPSSParameters.from_asn1(asn1_details.asn1)
+			if rsapss.hash_algorithm is None:
+				judgements += SecurityJudgement(JudgementCode.X509Cert_Signature_HashFunction_Unknown, "Certificate has unknown hash function for use in RSA-PSS, OID %s. Cannot make security determination for that part." % (rsapss.hash_algorithm_oid), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
 
-		if len(rsapss.asn1_tail) > 0:
-			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_RSA_RSAPSS_Parameters_TrailingData, "RSA/PSS parameter encoding has %d bytes of trailing data." % (len(rsapss.asn1_tail)), commonness = Commonness.HIGHLY_UNUSUAL)
+			if rsapss.mask_algorithm is None:
+				judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_RSA_RSA_PSS_UnknownMaskFunction, "Certificate has unknown mask function for use in RSA-PSS, OID %s." % (rsapss.mask_algorithm_oid), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
 
-		if rsapss.hash_algorithm is None:
-			judgements += SecurityJudgement(JudgementCode.X509Cert_Signature_HashFunction_Unknown, "Certificate has unknown hash function for use in RSA-PSS, OID %s. Cannot make security determination for that part." % (rsapss.hash_algorithm_oid), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
+			if rsapss.mask_hash_algorithm is None:
+				judgements += SecurityJudgement(JudgementCode.X509Cert_Signature_HashFunction_Unknown, "Certificate has unknown mask hash function for use in RSA-PSS, OID %s." % (rsapss.mask_hash_algorithm_oid), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
 
-		if rsapss.mask_algorithm is None:
-			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_RSA_RSA_PSS_UnknownMaskFunction, "Certificate has unknown mask function for use in RSA-PSS, OID %s." % (rsapss.mask_algorithm_oid), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
+			if rsapss.trailer_field_value is None:
+				judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_RSA_RSA_PSS_UnknownTrailerField, "Certificate has unknown trailer field for use in RSA-PSS, trailer field ID %d." % (rsapss.trailer_field), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
 
-		if rsapss.mask_hash_algorithm is None:
-			judgements += SecurityJudgement(JudgementCode.X509Cert_Signature_HashFunction_Unknown, "Certificate has unknown mask hash function for use in RSA-PSS, OID %s." % (rsapss.mask_hash_algorithm_oid), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
+			if (rsapss.hash_algorithm is not None) and (rsapss.mask_hash_algorithm is not None) and (rsapss.hash_algorithm != rsapss.mask_hash_algorithm):
+				standard = RFCReference(rfcno = 3447, sect = "8.1", verb = "RECOMMEND", text = "Therefore, it is recommended that the EMSA-PSS mask generation function be based on the same hash function.")
+				judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_RSA_RSA_PSS_MultipleHashFunctions, "RSA-PSS uses hash function %s for hashing, but %s for masking. This is discouraged." % (rsapss.hash_algorithm.name, rsapss.mask_hash_algorithm.name), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT, standard = standard)
 
-		if rsapss.trailer_field_value is None:
-			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_RSA_RSA_PSS_UnknownTrailerField, "Certificate has unknown trailer field for use in RSA-PSS, trailer field ID %d." % (rsapss.trailer_field), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT)
-
-		if (rsapss.hash_algorithm is not None) and (rsapss.mask_hash_algorithm is not None) and (rsapss.hash_algorithm != rsapss.mask_hash_algorithm):
-			standard = RFCReference(rfcno = 3447, sect = "8.1", verb = "RECOMMEND", text = "Therefore, it is recommended that the EMSA-PSS mask generation function be based on the same hash function.")
-			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_RSA_RSA_PSS_MultipleHashFunctions, "RSA-PSS uses hash function %s for hashing, but %s for masking. This is discouraged." % (rsapss.hash_algorithm.name, rsapss.mask_hash_algorithm.name), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.LIMITED_SUPPORT, standard = standard)
-
-		if rsapss.salt_length < 0:
-			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_RSA_RSAPSS_InvalidSaltLength, "Certificate has negative salt length for use in RSA-PSS, %d bytes specified." % (rsapss.salt_length), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, bits = 0)
-		elif rsapss.salt_length == 0:
-			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_RSA_RSA_PSS_NoSaltUsed, "RSA-PSS does not use any salt.", commonness = Commonness.HIGHLY_UNUSUAL)
-		elif rsapss.salt_length < 16:
-			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_RSA_RSA_PSS_ShortSaltUsed, "RSA-PSS uses a comparatively short salt value of %d bits." % (rsapss.salt_length * 8), commonness = Commonness.UNUSUAL)
+			if rsapss.salt_length < 0:
+				judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_RSA_RSAPSS_InvalidSaltLength, "Certificate has negative salt length for use in RSA-PSS, %d bytes specified." % (rsapss.salt_length), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, bits = 0)
+			elif rsapss.salt_length == 0:
+				judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_RSA_RSA_PSS_NoSaltUsed, "RSA-PSS does not use any salt.", commonness = Commonness.HIGHLY_UNUSUAL)
+			elif rsapss.salt_length < 16:
+				judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_RSA_RSA_PSS_ShortSaltUsed, "RSA-PSS uses a comparatively short salt value of %d bits." % (rsapss.salt_length * 8), commonness = Commonness.UNUSUAL)
+			else:
+				judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_RSA_RSA_PSS_SaltLengthInBytes, "RSA-PSS uses a salt of %d bits." % (rsapss.salt_length * 8))
+			return (rsapss.hash_algorithm, judgements)
 		else:
-			judgements += SecurityJudgement(JudgementCode.X509Cert_PublicKey_RSA_RSA_PSS_SaltLengthInBytes, "RSA-PSS uses a salt of %d bits." % (rsapss.salt_length * 8))
-		return (rsapss.hash_algorithm, judgements)
+			return (None, judgements)
 
 	def _determine_hash_function(self, signature_alg, signature_alg_params):
 		hash_fnc = None

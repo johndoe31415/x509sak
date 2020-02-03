@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2019-2019 Johannes Bauer
+#	Copyright (C) 2019-2020 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -29,13 +29,12 @@ class RSAPSSParameters():
 		1:	0xbc,
 	}
 
-	def __init__(self, hash_algorithm_oid, mask_algorithm_oid, mask_hash_algorithm_oid, salt_length, trailer_field, asn1_tail = None):
+	def __init__(self, hash_algorithm_oid, mask_algorithm_oid, mask_hash_algorithm_oid, salt_length, trailer_field):
 		self._hash_algorithm_oid = hash_algorithm_oid
 		self._mask_algorithm_oid = mask_algorithm_oid
 		self._mask_hash_algorithm_oid = mask_hash_algorithm_oid
 		self._salt_length = salt_length
 		self._trailer_field = trailer_field
-		self._asn1_tail = asn1_tail
 		self._hash_algorithm = HashFunctions.lookup("oid", self.hash_algorithm_oid)
 		self._mask_algorithm = OIDDB.RSAPSSMaskGenerationAlgorithm.get(self.mask_algorithm_oid)
 		self._mask_hash_algorithm = HashFunctions.lookup("oid", self.mask_hash_algorithm_oid)
@@ -76,17 +75,9 @@ class RSAPSSParameters():
 	def trailer_field_value(self):
 		return self._TRAILER_FIELD_VALUES.get(self.trailer_field)
 
-	@property
-	def asn1_tail(self):
-		return self._asn1_tail
-
 	@classmethod
-	def decode(cls, signature_alg_params):
-		(asn1, tail) = pyasn1.codec.der.decoder.decode(signature_alg_params, asn1Spec = ASN1Models.RSASSA_PSS_Params())
-		constructor_arguments = {
-			"asn1_tail":	tail,
-		}
-
+	def from_asn1(cls, asn1):
+		constructor_arguments = { }
 		if asn1["hashAlgorithm"].hasValue():
 			constructor_arguments["hash_algorithm_oid"] = OID.from_asn1(asn1["hashAlgorithm"]["algorithm"])
 		else:

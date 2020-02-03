@@ -695,7 +695,7 @@ class SecurityAnalyzerTests(BaseAnalyzerTest):
 		self._test_examine_x509test_resultcode("certs/constructed/rsapss_malformed3.pem", expect_present = "X509Cert_PublicKey_RSA_RSA_PSS_UnknownTrailerField")
 
 	def test_rsa_pss_malformed4(self):
-		self._test_examine_x509test_resultcode("certs/constructed/rsapss_malformed4.pem", expect_present = "X509Cert_PublicKey_RSA_RSAPSS_Parameters_Malformed_Undecodable")
+		self._test_examine_x509test_resultcode("certs/constructed/rsapss_malformed4.pem", expect_present = "X509Cert_PublicKey_RSA_RSAPSS_Parameters_Malformed_UnexpectedType")
 
 	def test_rsa_pss_salt0(self):
 		self._test_examine_x509test_resultcode("certs/constructed/rsapss_salt0.pem", expect_present = "X509Cert_PublicKey_RSA_RSA_PSS_NoSaltUsed")
@@ -723,6 +723,12 @@ class SecurityAnalyzerTests(BaseAnalyzerTest):
 
 	def test_rsa_pss_mismatch_algo5(self):
 		self._test_examine_x509test_resultcode("certs/constructed/rsapss_mismatch_algo5.pem", expect_present = "X509Cert_Signature_Function_BodyMismatch")
+
+	def test_rsa_pss_non_der_encoding(self):
+		self._test_examine_x509test_resultcode("certs/constructed/rsapss_non_der_encoding.pem", expect_present = "X509Cert_PublicKey_RSA_RSAPSS_Parameters_Malformed_NonDEREncoding")
+
+	def test_rsa_pss_unexpected_type(self):
+		self._test_examine_x509test_resultcode("certs/constructed/rsapss_unexpected_type.pem", expect_present = "X509Cert_PublicKey_RSA_RSAPSS_Parameters_Malformed_UnexpectedType")
 
 	def test_mismatch_header_footer_sigparams(self):
 		self._test_examine_x509test_resultcode("certs/constructed/mismatch_header_footer_sigparams.pem", expect_present = "X509Cert_Signature_Function_BodyMismatch")

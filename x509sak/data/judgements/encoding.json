@@ -7,7 +7,7 @@
 			"Encoding Issues": {
 				"_short_id": "asn1_encoding_issues",
 				"Trailing Data": {
-					"_desc": "trailing data present"
+					"_desc": "trailing data present", "_require": "!never_trailing_data"
 				},
 				"Malformed": {
 					"Undecodable": { "_desc": "no valid DER encoding", "_require": "!always_decodable" },
@@ -56,7 +56,7 @@
 						"_label": "RSAPSS",
 						"Invalid salt length": { "_desc": "invalid salt length specified" },
 						"Parameters": {
-							"_import": "asn1_encoding_issues/*"
+							"_import": "asn1_encoding_issues/*:never_trailing_data,always_decodable"
 						}
 					}
 				},
