@@ -1097,8 +1097,6 @@ class SecurityAnalyzerTests(BaseAnalyzerTest):
 	def test_ca_relationship_validity_full_overlap(self):
 		self._test_examine_x509test_resultcode("certs/ok/johannes-bauer.com.pem", parent_certname = "certs/ok/johannes-bauer-intermediate.pem", expect_present = "CertUsage_CARelationship_Validity_FullOverlap")
 
-
-######### TODO FIXME CODE REVIEW UNTIL HERE
 	def test_ca_relationship_validity_partial_overlap(self):
 		self._test_examine_x509test_resultcode("certs/constructed/ca_rel_valid_firsthalf.pem", parent_certname = "certs/constructed/ca_rel_CA_y2k.pem", expect_present = "CertUsage_CARelationship_Validity_PartialOverlap")
 		self._test_examine_x509test_resultcode("certs/constructed/ca_rel_valid_secondhalf.pem", parent_certname = "certs/constructed/ca_rel_CA_y2k.pem", expect_present = "CertUsage_CARelationship_Validity_PartialOverlap")
@@ -1237,7 +1235,7 @@ class SecurityAnalyzerTests(BaseAnalyzerTest):
 	def test_crldp_issuer_name_bad_uri(self):
 		self._test_examine_x509test_resultcode("certs/constructed/crldp_issuer_name_bad_uri.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_CRLIssuer_URI_Malformed")
 
-	def test_crldp_issuer_name_empty_value(self):
+	def test_crldp_issuer_name_email_empty_value(self):
 		self._test_examine_x509test_resultcode("certs/constructed/crldp_issuer_name_empty_value.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_CRLIssuer_Email_Malformed")
 
 	def test_crldp_issuer_name_uncommon_identifier(self):
