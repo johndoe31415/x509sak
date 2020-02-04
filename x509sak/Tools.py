@@ -35,6 +35,7 @@ import urllib.parse
 import pyasn1.type.univ
 import pyasn1.codec.der.encoder
 import pyasn1.codec.der.decoder
+import pyasn1.codec.ber.decoder
 from x509sak.Exceptions import UnexpectedFileContentException, InvalidUsageException, InvalidInputException
 
 class PEMDataTools():
@@ -172,7 +173,7 @@ class ASN1Tools():
 	def safe_decode(cls, der_data, asn1_spec = None):
 		def decode_reencode(der_data, asn1_spec = None):
 			try:
-				(asn1, tail) = pyasn1.codec.der.decoder.decode(der_data, asn1Spec = asn1_spec)
+				(asn1, tail) = pyasn1.codec.ber.decoder.decode(der_data, asn1Spec = asn1_spec)
 			except pyasn1.error.PyAsn1Error:
 				return None
 

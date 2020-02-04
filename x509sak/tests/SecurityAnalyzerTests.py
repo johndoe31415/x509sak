@@ -979,11 +979,17 @@ class SecurityAnalyzerTests(BaseAnalyzerTest):
 	def test_certpol_cps_malformed(self):
 		self._test_examine_x509test_resultcode("certs/constructed/certpol_cps_malformed.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CP_CPS_Malformed_UnexpectedType")
 
+	def test_certpol_cps_uri_malformed(self):
+		self._test_examine_x509test_resultcode("certs/constructed/certpol_cps_uri_malformed.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CP_CPS_URI_Malformed")
+
+	def test_certpol_cps_non_der_encoding(self):
+		self._test_examine_x509test_resultcode("certs/constructed/certpol_cps_non_der_encoding.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CP_CPS_Malformed_NonDEREncoding")
+
 	def test_certpol_cps_constraint_violation(self):
 		self._test_examine_x509test_resultcode("certs/constructed/certpol_cps_constraint_violation.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CP_CPS_ConstraintViolation")
 
 	def test_certpol_cps_unusual_uri_scheme(self):
-		self._test_examine_x509test_resultcode("certs/constructed/certpol_cps_unusual_uri_scheme.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CP_CPS_URI_UncommonURIScheme")
+		self._test_examine_x509test_resultcode("certs/constructed/certpol_cps_unusual_uri_scheme.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CP_CPS_URI_UncommonURIScheme", expect_absent = "X509Cert_Body_X509Exts_Ext_CP_CPS_URI_Malformed")
 
 	def test_certpol_unotice_empty(self):
 		self._test_examine_x509test_resultcode("certs/constructed/certpol_unotice_empty.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CP_UserNotice_Empty")
@@ -1005,6 +1011,9 @@ class SecurityAnalyzerTests(BaseAnalyzerTest):
 
 	def test_certpol_unotice_malformed(self):
 		self._test_examine_x509test_resultcode("certs/constructed/certpol_unotice_malformed.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CP_UserNotice_Malformed_UnexpectedType")
+
+	def test_certpol_unotice_non_der_encoding(self):
+		self._test_examine_x509test_resultcode("certs/constructed/certpol_unotice_non_der_encoding.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CP_UserNotice_Malformed_NonDEREncoding")
 
 	def test_certpol_unknown_qualifier_oid(self):
 		self._test_examine_x509test_resultcode("certs/constructed/certpol_unknown_qualifier_oid.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CP_Qualifier_Unknown")

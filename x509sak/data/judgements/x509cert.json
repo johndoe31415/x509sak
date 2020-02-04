@@ -181,7 +181,6 @@
 						"Duplicate OID": { "_desc": "CP extension contains duplicate policy OID" },
 						"More than one policy": { "_desc": "CP extension contains more than one policy" },
 						"Qualifier": {
-							"_import": "asn1_encoding_issues/*",
 							"Duplicate": { "_desc": "CP extension contains duplicate qualifier OID" },
 							"Unknown": { "_desc": "CP extension contains unknown qualifier OID" },
 							"AnyPolicy with Unknown Qualifier": { "_desc": "CP extension contains anyPolicy with unknown qualifier" }
@@ -200,7 +199,7 @@
 						},
 						"Certification Practice Statement": {
 							"_label": "CPS",
-							"_import": [ "+asn1_encoding_issues/*:always_decodable,never_trailing_data", "uri_issues" ],
+							"_import": [ "+asn1_encoding_issues/*:always_decodable,never_trailing_data", "uri_issues:allow_uri" ],
 							"Constraint Violation": { "_desc": "CP extension CPS violates ASN.1 constraint" }
 						}
 					},

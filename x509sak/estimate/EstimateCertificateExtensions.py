@@ -38,7 +38,7 @@ from x509sak.OtherModels import SCTVersion
 from x509sak.tls.Enums import HashAlgorithm, SignatureAlgorithm
 from x509sak.DistinguishedName import DistinguishedName
 from x509sak.Exceptions import InvalidInputException
-from x509sak.Tools import ASN1Tools
+from x509sak.Tools import ASN1Tools, ValidationTools
 
 @BaseEstimator.register
 class CrtExtensionsSecurityEstimator(BaseEstimator):
@@ -543,8 +543,18 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 							uri = str(qualifier.decoded_qualifier.asn1.getComponent())
 
 						if qualifier.decoded_qualifier.asn1 is not None:
-							uri = str(qualifier.decoded_qualifier.asn1)
-							if (not uri.startswith("http://")) and (not uri.startswith("https://")):
+							if qualifier.decoded_qualifier.model_index == 0:
+								# Standard IA5String, take as-is
+								uri = str(qualifier.decoded_qualifier.asn1)
+							elif qualifier.decoded_qualifier.model_index == 1:
+								# Could be some other string (e.g., UTF8String), i.e., it's a choice.
+								uri = str(qualifier.decoded_qualifier.asn1.getComponent())
+							else:
+								raise NotImplementedError(qualifier.decoded_qualifier.model_index)
+
+							if not ValidationTools.validate_uri(uri):
+								judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_CP_CPS_URI_Malformed, "CPS URI of policy %s is malformed: %s" % (policy.oid, uri), compatibility = Compatibility.STANDARDS_DEVIATION, commonness = Commonness.HIGHLY_UNUSUAL)
+							elif (not uri.startswith("http://")) and (not uri.startswith("https://")):
 								judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_CP_CPS_URI_UncommonURIScheme, "CPS URI of policy %s does not follow http/https scheme: %s" % (policy.oid, uri), compatibility = Compatibility.LIMITED_SUPPORT, commonness = Commonness.UNUSUAL)
 					else:
 						standard = RFCReference(rfcno = 5280, sect = "4.2.1.4", verb = "MUST", text = "PolicyQualifierId ::= OBJECT IDENTIFIER ( id-qt-cps | id-qt-unotice )")
