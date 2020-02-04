@@ -1277,6 +1277,9 @@ class SecurityAnalyzerTests(BaseAnalyzerTest):
 	def test_ct_scts_malformed(self):
 		self._test_examine_x509test_resultcode("certs/constructed/ct_scts_malformed.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CTSCT_Malformed_Undecodable")
 
+	def test_ct_scts_non_der_encoding(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ct_scts_non_der_encoding.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CTSCT_Malformed_NonDEREncoding")
+
 	def test_ct_scts_ok(self):
 		self._test_examine_x509test_resultcode("certs/constructed/ct_scts_ok.pem", expect_absent = [ "X509Cert_Body_X509Exts_Ext_CTSCT_SCT_InvalidSignatureFunction", "X509Cert_Body_X509Exts_Ext_CTSCT_SCT_InvalidHashFunction", "X509Cert_Body_X509Exts_Ext_CTSCT_Malformed_Undecodable", "X509Cert_Body_X509Exts_Ext_CTSCT_Malformed_Content" ])
 
