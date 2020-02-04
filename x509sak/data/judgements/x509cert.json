@@ -122,8 +122,7 @@
 							"Minimum not Zero": { "_desc": "$name minimum attribute is non-zero" },
 							"Maximum present": { "_desc": "$name maximum attribute is present" },
 							"Name": {
-								"_import": "general_name_issues/*:allow_dirname,allow_dns,allow_dns_wc,allow_ip,allow_ip_subnet",
-								"Restiction on RegisteredID": { "_desc": "$name restriction on RegisteredID" }
+								"_import": "general_name_issues/*:allow_dirname,allow_dns,allow_dns_wc,allow_ip,allow_ip_subnet"
 							}
 						},
 						"Permitted Subtree": {

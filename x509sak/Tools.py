@@ -478,3 +478,22 @@ class DebugTools():
 	@classmethod
 	def pprint(cls, data):
 		pprint.PrettyPrinter().pprint(data)
+
+class DictTools():
+	@classmethod
+	def merge(cls, *dicts):
+		result = { }
+		for single_dict in dicts:
+			result.update(dict(single_dict))
+		return result
+
+	@classmethod
+	def expand_multikeys(cls, multikey_dict):
+		result = { }
+		for (keys, value) in multikey_dict.items():
+			if isinstance(keys, tuple):
+				for key in keys:
+					result[key] = value
+			else:
+				result[keys] = value
+		return result

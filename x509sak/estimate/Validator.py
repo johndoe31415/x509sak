@@ -19,8 +19,9 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-from x509sak.estimate import JudgementCode
+from x509sak.estimate import JudgementCode, Compatibility
 from x509sak.estimate.Judgement import SecurityJudgements, SecurityJudgement
+from x509sak.Tools import DictTools
 
 class BaseValidationResult():
 	def __init__(self, validator, subject):
@@ -41,6 +42,8 @@ class BaseValidationResult():
 			kwargs = { }
 		if issue.judgement is not None:
 			kwargs.update(issue.judgement.kwargs)
+		if ("standard" in kwargs) and ("compatibility" not in kwargs):
+			kwargs["compatibility"] = Compatibility.STANDARDS_DEVIATION
 		judgement = SecurityJudgement(issue.code, full_message, **kwargs)
 		self._result += judgement
 
@@ -112,20 +115,14 @@ class BaseValidator():
 
 	@classmethod
 	def create_inherited(cls, root_point_name, specific_judgements = None, **kwargs):
-		def _expand_multikeys(multikey_dict):
-			result = { }
-			for (keys, value) in multikey_dict.items():
-				if isinstance(keys, tuple):
-					for key in keys:
-						result[key] = value
-				else:
-					result[keys] = value
-			return result
-
 		if specific_judgements is None:
 			specific_judgements = { }
 		else:
-			specific_judgements = _expand_multikeys(specific_judgements)
+			specific_judgements = DictTools.expand_multikeys(specific_judgements)
+
+		invalid_keys = set(specific_judgements.keys()) - set(JudgementCode.inheritance[root_point_name].keys())
+		if len(invalid_keys) > 0:
+			raise Exception("Invalid specific_judgements passed: %s" % (", ".join(sorted(invalid_keys))))
 
 		recognized_issues = { name: ValidationIssue(code = code, judgement = specific_judgements.get(name)) for (name, code) in JudgementCode.inheritance[root_point_name].items() }
 		return cls(recognized_issues = recognized_issues, **kwargs)

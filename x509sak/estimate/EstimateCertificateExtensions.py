@@ -38,7 +38,7 @@ from x509sak.OtherModels import SCTVersion
 from x509sak.tls.Enums import HashAlgorithm, SignatureAlgorithm
 from x509sak.DistinguishedName import DistinguishedName
 from x509sak.Exceptions import InvalidInputException
-from x509sak.Tools import ASN1Tools, ValidationTools
+from x509sak.Tools import ASN1Tools, ValidationTools, DictTools
 
 @BaseEstimator.register
 class CrtExtensionsSecurityEstimator(BaseEstimator):
@@ -48,15 +48,22 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 	_GENERAL_NAME_JUDGEMENTS = {
 		"Enc_DER_Struct_GenName_DNS_Malformed":						ValidationJudgement(standard = RFCReference(rfcno = 1034, sect = "3.5", verb = "MUST", text = "The following syntax will result in fewer problems with many applications that use domain names (e.g., mail, TELNET).")),
 		"Enc_DER_Struct_GenName_DNS_OnlyWhitespace":				ValidationJudgement(standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "In addition, while the string \" \" is a legal domain name, subjectAltName extensions with a dNSName of \" \" MUST NOT be used.")),
-		"Enc_DER_Struct_GenName_DNS_Wildcard_InternationalLabel":	ValidationJudgement(standard = RFCReference(rfcno = 6125, sect = "6.4.3", verb = "SHOULD", text = "However, the client SHOULD NOT attempt to match a presented identifier where the wildcard character is embedded within an A-label or U-label [IDNA-DEFS] of an internationalized domain name [IDNA-PROTO].")),
-		"Enc_DER_Struct_GenName_DNS_Wildcard_MulitpleWildcards":	ValidationJudgement(standard = RFCReference(rfcno = 6125, sect = "6.4.3", verb = "SHOULD", text = "If the wildcard character is the only character of the left-most label in the presented identifier, the client SHOULD NOT compare against anything but the left-most label of the reference identifier")),
-		"Enc_DER_Struct_GenName_DNS_Wildcard_NotLeftmost":			ValidationJudgement(standard = RFCReference(rfcno = 6125, sect = "6.4.3", verb = "SHOULD", text = "The client SHOULD NOT attempt to match a presented identifier in which the wildcard character comprises a label other than the left-most label")),
 		"Enc_DER_Struct_GenName_Email_Malformed":					ValidationJudgement(standard = RFCReference(rfcno = 822, sect = "6.1", verb = "MUST", text = "addr-spec = local-part \"@\" domain")),
 		"Enc_DER_Struct_GenName_IPAddress_Malformed":				ValidationJudgement(standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "For IP version 4, as specified in [RFC791], the octet string MUST contain exactly four octets. For IP version 6, as specified in [RFC2460], the octet string MUST contain exactly sixteen octets.")),
 		"Enc_DER_Struct_GenName_URI_Malformed":						ValidationJudgement(standard = RFCReference(rfcno = 5280, sect = "4.2.1.6", verb = "MUST", text = "The name MUST NOT be a relative URI, and it MUST follow the URI syntax and encoding rules specified in [RFC3986]. The name MUST include both a scheme (e.g., \"http\" or \"ftp\") and a scheme-specific-part. URIs that include an authority ([RFC3986], Section 3.2) MUST include a fully qualified domain name or IP address as the host.")),
 	}
 
-	_SUBJECT_ALTERNATIVE_NAME_VALIDATOR = GeneralNameValidator.create_inherited("X509Cert_Body_X509Exts_Ext_SAN_Name", specific_judgements = _GENERAL_NAME_JUDGEMENTS,
+	_GENERAL_NAME_WILDCARD_JUDGEMENTS = {
+		"Enc_DER_Struct_GenName_DNS_Wildcard_InternationalLabel":	ValidationJudgement(standard = RFCReference(rfcno = 6125, sect = "6.4.3", verb = "SHOULD", text = "However, the client SHOULD NOT attempt to match a presented identifier where the wildcard character is embedded within an A-label or U-label [IDNA-DEFS] of an internationalized domain name [IDNA-PROTO].")),
+		"Enc_DER_Struct_GenName_DNS_Wildcard_MulitpleWildcards":	ValidationJudgement(standard = RFCReference(rfcno = 6125, sect = "6.4.3", verb = "SHOULD", text = "If the wildcard character is the only character of the left-most label in the presented identifier, the client SHOULD NOT compare against anything but the left-most label of the reference identifier")),
+		"Enc_DER_Struct_GenName_DNS_Wildcard_NotLeftmost":			ValidationJudgement(standard = RFCReference(rfcno = 6125, sect = "6.4.3", verb = "SHOULD", text = "The client SHOULD NOT attempt to match a presented identifier in which the wildcard character comprises a label other than the left-most label")),
+	}
+
+	_GENERAL_NAME_NAME_CONSTRAINTS_JUDGEMENTS = {
+		("Enc_DER_Struct_GenName_X400Address_Unexpected", "Enc_DER_Struct_GenName_EDIPartyName_Unexpected", "Enc_DER_Struct_GenName_RegisteredID_Unexpected"): ValidationJudgement(standard = RFCReference(rfcno = 5280, sect = "4.2.1.10", verb = "SHOULD", text = "and SHOULD NOT impose name constraints on the x400Address, ediPartyName, or registeredID name forms.")),
+	}
+
+	_SUBJECT_ALTERNATIVE_NAME_VALIDATOR = GeneralNameValidator.create_inherited("X509Cert_Body_X509Exts_Ext_SAN_Name", specific_judgements = DictTools.merge(_GENERAL_NAME_JUDGEMENTS, _GENERAL_NAME_WILDCARD_JUDGEMENTS),
 			validation_subject = "X.509 Subject Alternative Name Extension",
 			allow_dnsname_wildcard_matches = True, permissible_uri_schemes = [ "http", "https" ])
 	_ISSUER_ALTERNATIVE_NAME_VALIDATOR = GeneralNameValidator.create_inherited("X509Cert_Body_X509Exts_Ext_IAN_Name", specific_judgements = _GENERAL_NAME_JUDGEMENTS,
@@ -70,9 +77,9 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 			validation_subject = "X.509 CRL Distribution Points Extension (distribution point name)", permissible_uri_schemes = [ "http", "https", "ftp", "ftps", "ldap" ])
 	_CRL_DISTRIBUTION_POINT_ISSUER_VALIDATOR = GeneralNameValidator.create_inherited("X509Cert_Body_X509Exts_Ext_CRLDP_CRLIssuer", specific_judgements = _GENERAL_NAME_JUDGEMENTS,
 			validation_subject = "X.509 CRL Distribution Points Extension (CRL issuer)", permissible_uri_schemes = [ "http", "https", "ftp", "ftps", "ldap" ])
-	_NAME_CONSTRAINTS_PERMITTED_SUBTREE_VALIDATOR = NameConstraintsSubtreeValidator.create_inherited("X509Cert_Body_X509Exts_Ext_NC_PermittedSubtree", specific_judgements = _GENERAL_NAME_JUDGEMENTS,
+	_NAME_CONSTRAINTS_PERMITTED_SUBTREE_VALIDATOR = NameConstraintsSubtreeValidator.create_inherited("X509Cert_Body_X509Exts_Ext_NC_PermittedSubtree", specific_judgements = DictTools.merge(_GENERAL_NAME_JUDGEMENTS, _GENERAL_NAME_NAME_CONSTRAINTS_JUDGEMENTS),
 			validation_subject = "X.509 Name Constraints Permitted Subtree")
-	_NAME_CONSTRAINTS_EXCLUDED_SUBTREE_VALIDATOR = NameConstraintsSubtreeValidator.create_inherited("X509Cert_Body_X509Exts_Ext_NC_ExcludedSubtree", specific_judgements = _GENERAL_NAME_JUDGEMENTS,
+	_NAME_CONSTRAINTS_EXCLUDED_SUBTREE_VALIDATOR = NameConstraintsSubtreeValidator.create_inherited("X509Cert_Body_X509Exts_Ext_NC_ExcludedSubtree", specific_judgements = DictTools.merge(_GENERAL_NAME_JUDGEMENTS, _GENERAL_NAME_NAME_CONSTRAINTS_JUDGEMENTS),
 			validation_subject = "X.509 Name Constraints Excluded Subtree")
 
 	_UNKNOWN_EXTENSION_ENCODING_VALIDATOR = DERValidator.create_inherited("X509Cert_Body_X509Exts_Unknown", validation_subject = "Unknown X.509 extension")
