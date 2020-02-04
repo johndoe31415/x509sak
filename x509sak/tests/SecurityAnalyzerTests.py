@@ -986,7 +986,7 @@ class SecurityAnalyzerTests(BaseAnalyzerTest):
 		self._test_examine_x509test_resultcode("certs/constructed/certpol_cps_non_der_encoding.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CP_CPS_Malformed_NonDEREncoding")
 
 	def test_certpol_cps_constraint_violation(self):
-		self._test_examine_x509test_resultcode("certs/constructed/certpol_cps_constraint_violation.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CP_CPS_ConstraintViolation")
+		self._test_examine_x509test_resultcode("certs/constructed/certpol_cps_constraint_violation.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CP_CPS_ConstraintViolation", expect_absent = [ "X509Cert_Body_X509Exts_Ext_CP_CPS_URI_Malformed", "X509Cert_Body_X509Exts_Ext_CP_CPS_URI_UncommonURIScheme" ])
 
 	def test_certpol_cps_unusual_uri_scheme(self):
 		self._test_examine_x509test_resultcode("certs/constructed/certpol_cps_unusual_uri_scheme.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CP_CPS_URI_UncommonURIScheme", expect_absent = "X509Cert_Body_X509Exts_Ext_CP_CPS_URI_Malformed")
