@@ -235,10 +235,6 @@ class X509AuthorityKeyIdentifierExtension(X509Extension):
 		return cls.construct_from_asn1(asn1, critical = False)
 
 	@property
-	def malformed(self):
-		return self._malformed
-
-	@property
 	def keyid(self):
 		return self._keyid
 
@@ -262,9 +258,7 @@ class X509AuthorityKeyIdentifierExtension(X509Extension):
 		return ", ".join(values)
 
 	def _decode_hook(self):
-		self._malformed = self.asn1 is None
-
-		if not self._malformed:
+		if self.asn1 is not None:
 			if self.asn1.getComponentByName("keyIdentifier", None, instantiate = False) is not None:
 				self._keyid = bytes(self.asn1["keyIdentifier"])
 			else:
@@ -385,10 +379,6 @@ class X509KeyUsageExtension(X509Extension):
 	def all_flags(self):
 		"""All set flags (also those not defined in bitset) only."""
 		return self._all_flags
-
-	@property
-	def malformed(self):
-		return self.asn1 is None
 
 	@property
 	def has_trailing_zero(self):
@@ -564,10 +554,6 @@ class X509CRLDistributionPointsExtension(X509Extension):
 	def points(self):
 		return iter(self._distribution_points)
 
-	@property
-	def malformed(self):
-		return self._distribution_points is None
-
 	def _decode_hook(self):
 		if self.asn1 is None:
 			self._distribution_points = None
@@ -611,7 +597,7 @@ class X509CRLDistributionPointsExtension(X509Extension):
 			self._distribution_points.append(cdp)
 
 	def __repr__(self):
-		if not self.malformed:
+		if self.asn1 is not None:
 			return "%s<%s>" % (self.__class__.__name__, ", ".join(str(point) for point in self.points))
 		else:
 			return "%s<malformed>" % (self.__class__.__name__)
@@ -625,10 +611,6 @@ class X509CertificateTransparencySCTsExtension(X509Extension):
 	@property
 	def payload(self):
 		return self._payload
-
-	@property
-	def malformed_asn1(self):
-		return self.asn1 is None
 
 	@property
 	def malformed_payload(self):
@@ -653,12 +635,8 @@ class X509CertificateTransparencyPrecertificatePoisonExtension(X509Extension):
 	_HANDLER_OID = OIDDB.X509Extensions.inverse("CertificateTransparencyPrecertificatePoison")
 	_ASN1_MODEL = pyasn1.type.univ.Null
 
-	@property
-	def malformed(self):
-		return self.asn1 is None
-
 	def __repr__(self):
-		return "%s<%s>" % (self.__class__.__name__, "malformed" if self.malformed else "OK")
+		return "%s<%s>" % (self.__class__.__name__, "malformed" if (self.asn1 is None) else "OK")
 X509ExtensionRegistry.set_handler_class(X509CertificateTransparencyPrecertificatePoisonExtension)
 
 

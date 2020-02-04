@@ -81,13 +81,15 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		"X509AuthorityKeyIdentifierExtension": DERValidator.create_inherited("X509Cert_Body_X509Exts_Ext_AKI", validation_subject = "X.509 Authority Key Identifier extension"),
 		"X509BasicConstraintsExtension": DERValidator.create_inherited("X509Cert_Body_X509Exts_Ext_BC", validation_subject = "X.509 Basic Constraints extension"),
 		"X509CertificatePoliciesExtension": DERValidator.create_inherited("X509Cert_Body_X509Exts_Ext_CP", validation_subject = "X.509 Certificate Policies extension"),
-		"X509CertificateTransparencyPrecertificatePoisonExtension": DERValidator.create_inherited("X509Cert_Body_X509Exts_Ext_CTPP", validation_subject = "X.509 Certificate Transparency Precertificate Poison extension",
-			specific_judgements = {
-				("Enc_DER_EncodingIssues_Malformed_Undecodable", "Enc_DER_EncodingIssues_Malformed_UnexpectedType"): ValidationJudgement(standard = RFCReference(rfcno = 6962, sect = "3.1", verb = "MUST", text = "whose extnValue OCTET STRING contains ASN.1 NULL data (0x05 0x00))")),
-			}
-		),
-		"X509CertificateTransparencySCTsExtension": DERValidator.create_inherited("X509Cert_Body_X509Exts_Ext_CTSCT", validation_subject = "X.509 Certificate Transparency Signed Certificate Timestamps extension"),
-		"X509CRLDistributionPointsExtension": DERValidator.create_inherited("X509Cert_Body_X509Exts_Ext_CRLDP", validation_subject = "X.509 CRL Distribution Points extension"),
+		"X509CertificateTransparencyPrecertificatePoisonExtension": DERValidator.create_inherited("X509Cert_Body_X509Exts_Ext_CTPP", validation_subject = "X.509 Certificate Transparency Precertificate Poison extension",	specific_judgements = {
+			("Enc_DER_EncodingIssues_Malformed_Undecodable", "Enc_DER_EncodingIssues_Malformed_UnexpectedType"): ValidationJudgement(standard = RFCReference(rfcno = 6962, sect = "3.1", verb = "MUST", text = "whose extnValue OCTET STRING contains ASN.1 NULL data (0x05 0x00))")),
+		}),
+		"X509CertificateTransparencySCTsExtension": DERValidator.create_inherited("X509Cert_Body_X509Exts_Ext_CTSCT", validation_subject = "X.509 Certificate Transparency Signed Certificate Timestamps extension", specific_judgements = {
+			("Enc_DER_EncodingIssues_Malformed_Undecodable", "Enc_DER_EncodingIssues_Malformed_UnexpectedType"): ValidationJudgement(standard = RFCReference(rfcno = 6962, sect = "3.3", verb = "MUST", text = "SignedCertificateTimestampList ::= OCTET STRING")),
+		}),
+		"X509CRLDistributionPointsExtension": DERValidator.create_inherited("X509Cert_Body_X509Exts_Ext_CRLDP", validation_subject = "X.509 CRL Distribution Points extension", specific_judgements = {
+			("Enc_DER_EncodingIssues_Malformed_Undecodable", "Enc_DER_EncodingIssues_Malformed_UnexpectedType"): ValidationJudgement(standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "MUST", text = "CRLDistributionPoints ::= SEQUENCE SIZE (1..MAX) OF DistributionPoint")),
+		}),
 		"X509ExtendedKeyUsageExtension": DERValidator.create_inherited("X509Cert_Body_X509Exts_Ext_EKU", validation_subject = "X.509 Extended Key Usage extension"),
 		"X509IssuerAlternativeNameExtension": DERValidator.create_inherited("X509Cert_Body_X509Exts_Ext_IAN", validation_subject = "X.509 Issuer Alternative Name extension"),
 		"X509KeyUsageExtension": DERValidator.create_inherited("X509Cert_Body_X509Exts_Ext_KU", validation_subject = "X.509 Key Usage extension"),
@@ -266,9 +268,6 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 			elif len(aki.keyid) > 32:
 				judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_AKI_LongKeyID, "AuthorityKeyIdentifier X.509 extension contains long key ID (%d bytes)." % (len(aki.keyid)), commonness = Commonness.HIGHLY_UNUSUAL)
 
-			if aki.malformed:
-				judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_AKI_Malformed_Undecodable, "AuthorityKeyIdentifier X.509 extension is malformed, cannot decode it.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION)
-
 			if (aki.keyid is None) and (aki.ca_names is None) and (aki.serial is None):
 				judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_AKI_Empty, "AuthorityKeyIdentifier X.509 extension contains neither Key ID nor CA names nor a serial number.", commonness = Commonness.HIGHLY_UNUSUAL)
 
@@ -326,7 +325,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		judgements = SecurityJudgements()
 		ku_ext = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("KeyUsage"))
 		if ku_ext is not None:
-			if not ku_ext.malformed:
+			if ku_ext.asn1 is not None:
 				if ku_ext.has_trailing_zero:
 					# TODO: Possible standards violation?
 					judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_KU_TrailingZeros, "KeyUsage extension present, but contains trailing zero.", commonness = Commonness.HIGHLY_UNUSUAL)
@@ -631,11 +630,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 				standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "SHOULD", text = "The extension SHOULD be non-critical")
 				judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_CRLDP_Critical, "CRL Distribution Points X.509 extension is present, but marked critical.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
-			if cdp_ext.malformed:
-				# TODO is this correct? Think it's obsolete now and duplicate
-				standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "MUST", text = "CRLDistributionPoints ::= SEQUENCE SIZE (1..MAX) OF DistributionPoint")
-				judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_CRLDP_Malformed_Undecodable, "CRL Distribution Points X.509 extension is malformed and cannot be decoded.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
-			else:
+			if cdp_ext.asn1 is not None:
 				has_all_reasons = False
 				for (pointno, point) in enumerate(cdp_ext.points, 1):
 					if (point.point_name is None) and (point.reasons is None) and (point.crl_issuer is None):
@@ -729,12 +724,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 
 		scts_ext = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("CertificateTransparency"))
 		if scts_ext is not None:
-			# TODO this all needs to be refactored as well
-			if scts_ext.malformed_asn1:
-				standard = RFCReference(rfcno = 6962, sect = "3.3", verb = "MUST", text = "SignedCertificateTimestampList ::= OCTET STRING")
-				judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_CTSCT_Malformed_Undecodable, "Certificate Transparency Signed Certificate Timestamp X.509 extension cannot be decoded on ASN.1 layer.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
-
-			elif scts_ext.malformed_payload:
+			if scts_ext.malformed_payload:
 				standard = RFCReference(rfcno = 6962, sect = "3.2", verb = "MUST", text = "struct { ... } SignedCertificateTimestamp;")
 				judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_CTSCT_Malformed_Content, "Certificate Transparency Signed Certificate Timestamp X.509 extension cannot be decoded on payload layer.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 			else:
