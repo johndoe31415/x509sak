@@ -81,7 +81,11 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		"X509AuthorityKeyIdentifierExtension": DERValidator.create_inherited("X509Cert_Body_X509Exts_Ext_AKI", validation_subject = "X.509 Authority Key Identifier extension"),
 		"X509BasicConstraintsExtension": DERValidator.create_inherited("X509Cert_Body_X509Exts_Ext_BC", validation_subject = "X.509 Basic Constraints extension"),
 		"X509CertificatePoliciesExtension": DERValidator.create_inherited("X509Cert_Body_X509Exts_Ext_CP", validation_subject = "X.509 Certificate Policies extension"),
-		"X509CertificateTransparencyPrecertificatePoisonExtension": DERValidator.create_inherited("X509Cert_Body_X509Exts_Ext_CTPP", validation_subject = "X.509 Certificate Transparency Precertificate Poison extension"),
+		"X509CertificateTransparencyPrecertificatePoisonExtension": DERValidator.create_inherited("X509Cert_Body_X509Exts_Ext_CTPP", validation_subject = "X.509 Certificate Transparency Precertificate Poison extension",
+			specific_judgements = {
+				("Enc_DER_EncodingIssues_Malformed_Undecodable", "Enc_DER_EncodingIssues_Malformed_UnexpectedType"): ValidationJudgement(standard = RFCReference(rfcno = 6962, sect = "3.1", verb = "MUST", text = "whose extnValue OCTET STRING contains ASN.1 NULL data (0x05 0x00))")),
+			}
+		),
 		"X509CertificateTransparencySCTsExtension": DERValidator.create_inherited("X509Cert_Body_X509Exts_Ext_CTSCT", validation_subject = "X.509 Certificate Transparency Signed Certificate Timestamps extension"),
 		"X509CRLDistributionPointsExtension": DERValidator.create_inherited("X509Cert_Body_X509Exts_Ext_CRLDP", validation_subject = "X.509 CRL Distribution Points extension"),
 		"X509ExtendedKeyUsageExtension": DERValidator.create_inherited("X509Cert_Body_X509Exts_Ext_EKU", validation_subject = "X.509 Extended Key Usage extension"),
@@ -745,15 +749,6 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 			if not poison_ext.critical:
 				standard = RFCReference(rfcno = 6962, sect = "3.1", verb = "MUST", text = "The Precertificate is constructed from the certificate to be issued by adding a special critical poison extension")
 				judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_CTPP_NotCritical, "The Certificate Transparency Precertificate Poison X.509 extension is not marked as critical, turning it into an invalid precertificate.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
-
-# TODO PROPERLY REFACTOR THIS
-#			if poison_ext.malformed:
-#				standard = RFCReference(rfcno = 6962, sect = "3.1", verb = "MUST", text = "whose extnValue OCTET STRING contains ASN.1 NULL data (0x05 0x00))")
-#				judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_CTPP_Malformed_Undecodable, "The Certificate Transparency Precertificate Poison X.509 extension needs to contain an ASN.1 NULL value, but instead is not decodable.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
-#			else:
-#				if not isinstance(poison_ext.asn1, pyasn1.type.univ.Null):
-#					standard = RFCReference(rfcno = 6962, sect = "3.1", verb = "MUST", text = "whose extnValue OCTET STRING contains ASN.1 NULL data (0x05 0x00))")
-#					judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_CTPP_InvalidPayload, "The Certificate Transparency Precertificate Poison X.509 extension needs to contain an ASN.1 NULL value, but instead contains %s." % (type(poison_ext.asn1).__name__), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 		return judgements
 

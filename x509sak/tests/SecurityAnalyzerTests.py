@@ -1268,6 +1268,12 @@ class SecurityAnalyzerTests(BaseAnalyzerTest):
 	def test_ct_poison_not_critical(self):
 		self._test_examine_x509test_resultcode("certs/constructed/ct_poison_not_critical.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CTPP_NotCritical")
 
+	def test_ct_poison_trailing_data(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ct_poison_trailing_data.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CTPP_TrailingData")
+
+	def test_ct_poison_non_der_encoding(self):
+		self._test_examine_x509test_resultcode("certs/constructed/ct_poison_non_der_encoding.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CTPP_Malformed_NonDEREncoding")
+
 	def test_ct_scts_malformed(self):
 		self._test_examine_x509test_resultcode("certs/constructed/ct_scts_malformed.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CTSCT_Malformed_Undecodable")
 
