@@ -24,6 +24,7 @@ import pyasn1.codec.der.encoder
 from pyasn1_modules import rfc5280
 from x509sak.DistinguishedName import DistinguishedName
 from x509sak.IPAddress import IPAddressSubnet
+from x509sak.OID import OID
 
 class ASN1GeneralNameWrapper():
 	KNOWN_TYPE_NAMES = set([ "otherName", "rfc822Name", "dNSName", "x400Address", "directoryName", "ediPartyName", "uniformResourceIdentifier", "iPAddress", "registeredID" ])
@@ -65,6 +66,13 @@ class ASN1GeneralNameWrapper():
 		return self._cached
 
 	@property
+	def registered_id(self):
+		assert(self.name == "registeredID")
+		if self._cached is None:
+			self._cached = OID.from_asn1(self.asn1_value)
+		return self._cached
+
+	@property
 	def str_value(self):
 		if self.name in [ "dNSName", "rfc822Name", "uniformResourceIdentifier" ]:
 			result = str(self.asn1_value)
@@ -76,6 +84,8 @@ class ASN1GeneralNameWrapper():
 			result = "otherName:%s:#%s" % (oid, inner_value.hex())
 		elif self.name == "directoryName":
 			result = self.directory_name.pretty_str
+		elif self.name == "registeredID":
+			return str(self.registered_id)
 		else:
 			result = "%s:#%s" % (self._name, pyasn1.codec.der.encoder.encode(self.asn1_value).hex())
 		return result
