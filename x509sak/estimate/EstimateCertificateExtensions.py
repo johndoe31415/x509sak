@@ -449,7 +449,6 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 
 		return judgements
 
-#### TODO END OF CODE REVIEW
 	def _judge_certificate_policy(self, certificate):
 		judgements = SecurityJudgements()
 
@@ -478,6 +477,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 						judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_CP_Qualifier_AnyPolicyWithUnknownQualifier, "Unknown OID %s used in a qualification of an anyPolicy certificate policy." % (qualifier.oid), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard, commonness = Commonness.HIGHLY_UNUSUAL)
 
 			if policies_ext.policy_count > 1:
+				# TODO this is wrong, we're talking about the pocifyIdnetifier here!
 				standard = RFCReference(rfcno = 5280, sect = "4.2.1.4", verb = "RECOMMEND", text = "To promote interoperability, this profile RECOMMENDS that policy information terms consist of only an OID.")
 				judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_CP_MoreThanOnePolicy, "%d policies present in certificate, but only one is recommended." % (policies_ext.policy_count), compatibility = Compatibility.LIMITED_SUPPORT, standard = standard)
 
@@ -632,6 +632,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 				judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_CRLDP_Critical, "CRL Distribution Points X.509 extension is present, but marked critical.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 			if cdp_ext.malformed:
+				# TODO is this correct? Think it's obsolete now and duplicate
 				standard = RFCReference(rfcno = 5280, sect = "4.2.1.13", verb = "MUST", text = "CRLDistributionPoints ::= SEQUENCE SIZE (1..MAX) OF DistributionPoint")
 				judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_CRLDP_Malformed_Undecodable, "CRL Distribution Points X.509 extension is malformed and cannot be decoded.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 			else:
@@ -728,9 +729,11 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 
 		scts_ext = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("CertificateTransparency"))
 		if scts_ext is not None:
+			# TODO this all needs to be refactored as well
 			if scts_ext.malformed_asn1:
 				standard = RFCReference(rfcno = 6962, sect = "3.3", verb = "MUST", text = "SignedCertificateTimestampList ::= OCTET STRING")
 				judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_CTSCT_Malformed_Undecodable, "Certificate Transparency Signed Certificate Timestamp X.509 extension cannot be decoded on ASN.1 layer.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+
 			elif scts_ext.malformed_payload:
 				standard = RFCReference(rfcno = 6962, sect = "3.2", verb = "MUST", text = "struct { ... } SignedCertificateTimestamp;")
 				judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_CTSCT_Malformed_Content, "Certificate Transparency Signed Certificate Timestamp X.509 extension cannot be decoded on payload layer.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
