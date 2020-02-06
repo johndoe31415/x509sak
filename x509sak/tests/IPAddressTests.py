@@ -108,7 +108,28 @@ class IPAddressTests(BaseTest):
 		self.assertEqual(str(IPAddress.create_cidr_subnet(0)), "0.0.0.0")
 
 	def test_cidr_contained(self):
-		self.assertTrue(IPAddressSubnet.from_str("192.168.1.0/24").ip_in_subnet(IPAddress.from_str("192.168.1.123")))
-		self.assertTrue(IPAddressSubnet.from_str("192.168.1.0/24").ip_in_subnet(IPAddress.from_str("192.168.1.0")))
-		self.assertTrue(IPAddressSubnet.from_str("192.168.1.0/24").ip_in_subnet(IPAddress.from_str("192.168.1.255")))
-		self.assertFalse(IPAddressSubnet.from_str("192.168.1.0/24").ip_in_subnet(IPAddress.from_str("192.168.2.255")))
+		self.assertTrue(IPAddressSubnet.from_str("192.168.1.0/24").contains_ip(IPAddress.from_str("192.168.1.123")))
+		self.assertTrue(IPAddressSubnet.from_str("192.168.1.0/24").contains_ip(IPAddress.from_str("192.168.1.0")))
+		self.assertTrue(IPAddressSubnet.from_str("192.168.1.0/24").contains_ip(IPAddress.from_str("192.168.1.255")))
+		self.assertFalse(IPAddressSubnet.from_str("192.168.1.0/24").contains_ip(IPAddress.from_str("192.168.2.255")))
+
+	def test_subnet_overlap_simple(self):
+		subnet = IPAddressSubnet.from_str("192.168.1.0/24")
+		self.assertTrue(subnet.overlaps_subnet(IPAddressSubnet.from_str("0.0.0.0/0")))
+		self.assertTrue(subnet.overlaps_subnet(IPAddressSubnet.from_str("192.168.1.34/32")))
+		self.assertTrue(subnet.overlaps_subnet(IPAddressSubnet.from_str("192.168.1.0/24")))
+		self.assertTrue(subnet.overlaps_subnet(IPAddressSubnet.from_str("192.168.0.0/16")))
+		self.assertTrue(subnet.overlaps_subnet(IPAddressSubnet.from_str("192.0.0.0/8")))
+
+		self.assertFalse(subnet.overlaps_subnet(IPAddressSubnet.from_str("192.168.2.34/32")))
+		self.assertFalse(subnet.overlaps_subnet(IPAddressSubnet.from_str("192.5.1.0/24")))
+		self.assertFalse(subnet.overlaps_subnet(IPAddressSubnet.from_str("193.168.0.0/16")))
+		self.assertFalse(subnet.overlaps_subnet(IPAddressSubnet.from_str("255.0.0.0/8")))
+
+		subnet = IPAddressSubnet.from_str("10.0.20.0/255.0.255.0")
+		self.assertTrue(subnet.overlaps_subnet(IPAddressSubnet.from_str("0.0.0.0/0")))
+		self.assertTrue(subnet.overlaps_subnet(IPAddressSubnet.from_str("10.3.20.4/32")))
+		self.assertTrue(subnet.overlaps_subnet(IPAddressSubnet.from_str("10.0.20.0/32")))
+		self.assertTrue(subnet.overlaps_subnet(IPAddressSubnet.from_str("10.255.20.255/32")))
+		self.assertTrue(subnet.overlaps_subnet(IPAddressSubnet.from_str("10.0.0.0/8")))
+		self.assertTrue(subnet.overlaps_subnet(IPAddressSubnet.from_str("0.0.20.0/0.0.255.0")))

@@ -105,7 +105,7 @@ class GeneralNameValidationResult(BaseValidationResult):
 			if len(self._subject.asn1_value) == 4:
 				# IPv4 single address
 				for (network_class, subnet) in self._PRIVATE_SUBNETS_IPV4:
-					if subnet.ip_in_subnet(self._subject.ip):
+					if subnet.contains_ip(self._subject.ip):
 						self._report("Enc_DER_Struct_GenName_IPAddress_PrivateAddressSpace", "has network address %s in a %s subnet." % (self._subject.str_value, network_class), commonness = Commonness.UNUSUAL)
 						break
 

@@ -162,12 +162,17 @@ class IPAddressSubnet():
 		subnet = ip_subnet_data[mid:]
 		return cls(ip = IPAddress(ip), subnet = IPAddress(subnet))
 
-	def ip_in_subnet(self, ip):
-		if ip.is_ipv4 != self.is_ipv4:
+	def overlaps_subnet(self, subnet):
+		if subnet.is_ipv4 != self.is_ipv4:
+			# IPv4 and IPv6 never overlap
 			return False
-		self_network = int(self.ip) & int(self.subnet)
-		ip_network = int(ip) & int(self.subnet)
-		return self_network == ip_network
+		fixed_mask = int(subnet.subnet) & int(self.subnet)
+		return (int(subnet.ip) & fixed_mask) == (int(self.ip) & fixed_mask)
+
+	def contains_ip(self, ip):
+		length = 4 if ip.is_ipv4 else 16
+		full_subnet = IPAddress(bytes([ 255 ] * length))
+		return self.overlaps_subnet(IPAddressSubnet(ip, full_subnet))
 
 	def __str__(self):
 		cidr = self.cidr
