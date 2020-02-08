@@ -42,12 +42,12 @@ class GeneralNameValidationResult(BaseValidationResult):
 	)
 
 	_PRIVATE_SUBNETS_IPV6 = (
-#		("loopback",				IPAddressSubnet.from_str("::1/128")),
-#		("discard",					IPAddressSubnet.from_str("100::/64")),
-#		("deprecated 6to4 scheme",	IPAddressSubnet.from_str("2002::/16")),
-#		("link-local address",		IPAddressSubnet.from_str("fc00::/7")),
-#		("link-local address",		IPAddressSubnet.from_str("fe80::/8")),
-#		("multicast address",		IPAddressSubnet.from_str("ff00::/8")),
+		("loopback",				IPAddressSubnet.from_str("::1/128")),
+		("discard",					IPAddressSubnet.from_str("100::/64")),
+		("deprecated 6to4 scheme",	IPAddressSubnet.from_str("2002::/16")),
+		("link-local address",		IPAddressSubnet.from_str("fc00::/7")),
+		("link-local address",		IPAddressSubnet.from_str("fe80::/8")),
+		("multicast address",		IPAddressSubnet.from_str("ff00::/8")),
 	)
 
 	def _get_message(self, issue, message):

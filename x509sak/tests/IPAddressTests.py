@@ -133,3 +133,8 @@ class IPAddressTests(BaseTest):
 		self.assertTrue(subnet.overlaps_subnet(IPAddressSubnet.from_str("10.255.20.255/32")))
 		self.assertTrue(subnet.overlaps_subnet(IPAddressSubnet.from_str("10.0.0.0/8")))
 		self.assertTrue(subnet.overlaps_subnet(IPAddressSubnet.from_str("0.0.20.0/0.0.255.0")))
+
+	def test_subnet_ipv6_parse(self):
+		subnet = IPAddressSubnet.from_str("abcd:1234:9999::/48")
+		self.assertEqual(str(subnet.ip), "abcd:1234:9999::")
+		self.assertEqual(str(subnet.subnet), "ffff:ffff:ffff::")

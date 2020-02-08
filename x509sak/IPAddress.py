@@ -37,14 +37,31 @@ class IPAddress():
 
 	@classmethod
 	def from_str(cls, ip_str):
-		return cls(bytes(int(x) for x in ip_str.split(".")))
+		if "." in ip_str:
+			# Parse as IPv4
+			return cls(bytes(int(x) for x in ip_str.split(".")))
+		else:
+			def _parse_chunk(str_ipv6):
+				if str_ipv6 == "":
+					return bytes()
+				else:
+					return bytes().join(int(x, 16).to_bytes(byteorder = "big", length = 2) for x in str_ipv6.split(":"))
+
+			if "::" in ip_str:
+				(pre, post) = ip_str.split("::")
+				pre = _parse_chunk(pre)
+				post = _parse_chunk(post)
+				midlen = 16 - (len(pre) + len(post))
+				return cls(pre + bytes(midlen) + post)
+			else:
+				return cls(_parse_chunk(ip_str))
 
 	@classmethod
 	def create_cidr_subnet(cls, network_bits, is_ipv4 = True):
 		bits_total = 32 if is_ipv4 else 128
 		assert(0 <= network_bits <= bits_total)
 		all_bits = (1 << bits_total) - 1
-		variable_mask = (1 << (32 - network_bits)) - 1
+		variable_mask = (1 << (bits_total - network_bits)) - 1
 		cidr_mask = all_bits & (~variable_mask)
 		cidr_data = int.to_bytes(cidr_mask, length = bits_total // 8, byteorder = "big")
 		return cls(cidr_data)
