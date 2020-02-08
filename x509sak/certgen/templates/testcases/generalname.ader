@@ -3,7 +3,7 @@
 
 <%
 	declare_parameter("field", [ "CRLDP_point", "CRLDP_issuer", "AKI_caname", "SAN_name", "NC_permitted", "NC_excluded", "IAN_name" ])
-	declare_parameter("mode", [ "dirname_empty", "dirname_ok", "dns_malformed", "dns_ok", "dns_single_label", "dns_wc_broad", "dns_wc_international", "dns_wc_multiple", "dns_wc_notleftmost", "dns_wc_ok", "dns_whitespace", "edipartyname_ok", "email_malformed", "email_ok", "ip_malformed", "ip_ok", "ip_private", "othername_ok", "registeredid_ok", "uri_malformed", "uri_ok", "uri_uncommon_scheme", "x400address_empty", "x400address_ok", "subnet_ok", "subnet_malformed", "subnet_noncidr", "subnet_private" ])
+	declare_parameter("mode", [ "dirname_empty", "dirname_ok", "dns_malformed", "dns_ok", "dns_single_label", "dns_wc_broad", "dns_wc_international", "dns_wc_multiple", "dns_wc_notleftmost", "dns_wc_ok", "dns_whitespace", "edipartyname_ok", "email_malformed", "email_ok", "ip_malformed", "ip_ok", "ip_private", "othername_ok", "registeredid_ok", "uri_malformed", "uri_ok", "uri_uncommon_scheme", "x400address_empty", "x400address_ok", "subnet_ok", "subnet_malformed", "subnet_noncidr", "subnet_private", "ipv6_ok", "ipv6_private", "subnetv6_ok", "subnetv6_private" ])
 	(field, mode) = (str(p("field")), str(p("mode")))
 	export_var("filename", "ext_" + field + "_" + mode)
 
@@ -40,20 +40,9 @@
 		"x400address_ok":			"X400Address_Unexpected",
 		"x400address_empty":		"X400Address_Unexpected",
 	}
-
+"ipv6_ok", "ipv6_private", "subnetv6_ok", "subnetv6_private"
 	ip_subnet = field.startswith("NC_")
-	if ip_subnet:
-		# Expect IP subnet
-		expected_errcodes.update({
-			"ip_malformed":				"#",
-			"ip_private":				"#",
-			"ip_ok":					"IPAddress_Malformed",
-			"subnet_ok":				"IPAddress_Unexpected",
-			"subnet_malformed":			"IPAddress_MalformedSubnet",
-			"subnet_noncidr":			"IPAddress_NonCIDRBlock",
-			"subnet_private":			"IPAddress_PrivateAddressSpace",
-		})
-	else:
+	if not ip_subnet:
 		# Expect IP address
 		expected_errcodes.update({
 			"ip_malformed":				"IPAddress_Malformed",
@@ -63,6 +52,25 @@
 			"subnet_malformed":			"#",
 			"subnet_noncidr":			"#",
 			"subnet_private":			"#",
+			"ipv6_ok":					"IPAddress_Unexpected",
+			"ipv6_private":				"IPAddress_PrivateAddressSpace",
+			"subnetv6_ok":				"IPAddress_Malformed",
+			"subnetv6_private":			"#"
+		})
+	else:
+		# Expect IP subnet
+		expected_errcodes.update({
+			"ip_malformed":				"#",
+			"ip_private":				"#",
+			"ip_ok":					"IPAddress_Malformed",
+			"subnet_ok":				"IPAddress_Unexpected",
+			"subnet_malformed":			"IPAddress_MalformedSubnet",
+			"subnet_noncidr":			"IPAddress_NonCIDRBlock",
+			"subnet_private":			"IPAddress_PrivateAddressSpace",
+			"ipv6_ok":					"IPAddress_Malformed",
+			"ipv6_private":				"#",
+			"subnetv6_ok":				"IPAddress_Unexpected",
+			"subnetv6_private":			"IPAddress_PrivateAddressSpace"
 		})
 
 	errcode += expected_errcodes.get(mode, "?")
@@ -82,11 +90,11 @@
 <%def name="render_general_name(name_type)">
 # General Name
 %if name_type == "othername_ok":
-	[0] { 
+	[0] {
 		OBJECT_IDENTIFIER { 1.2.3.4 }
 		OCTET_STRING {
 			UTF8String { "Other!" }
-		} 
+		}
 	}
 %elif name_type == "email_ok":
 	[1 PRIMITIVE] { "foo@bar.com" }
@@ -164,6 +172,14 @@
 	[7] { OCTET_STRING { `aabb8800ffffaa00` } }
 %elif name_type == "subnet_private":
 	[7] { OCTET_STRING { `c0a80a00ffffff00` } }
+%elif name_type == "ipv6_ok":
+	[7] { OCTET_STRING { `2a02cb400200000000000000000001e4` } }		# bundesregierung.de LOL
+%elif name_type == "ipv6_private":
+	[7] { OCTET_STRING { `fd432894832094872307493826748932` } }
+%elif name_type == "subnetv6_ok":
+	[7] { OCTET_STRING { `2a02cb40020000000000000000000000ffffffffffffffff0000000000000000` } }
+%elif name_type == "subnetv6_private":
+	[7] { OCTET_STRING { `fd00cb40020000000000000000000000ffffffffffffffff0000000000000000` } }
 %elif name_type == "registeredid_ok":
 	[8 PRIMITIVE] { 1.2.3.4.5 }
 %else:

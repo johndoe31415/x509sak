@@ -206,6 +206,12 @@ class GeneratedSecurityAnalyzerTests(BaseAnalyzerTest):
 	def test_generated_generalname_ext_AKI_caname_ip_private(self):
 		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_AKI_caname_ip_private.pem", expect_present = "X509Cert_Body_X509Exts_Ext_AKI_CAName_IPAddress_PrivateAddressSpace")
 
+	def test_generated_generalname_ext_AKI_caname_ipv6_ok(self):
+		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_AKI_caname_ipv6_ok.pem", expect_present = "X509Cert_Body_X509Exts_Ext_AKI_CAName_IPAddress_Unexpected")
+
+	def test_generated_generalname_ext_AKI_caname_ipv6_private(self):
+		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_AKI_caname_ipv6_private.pem", expect_present = "X509Cert_Body_X509Exts_Ext_AKI_CAName_IPAddress_PrivateAddressSpace")
+
 	def test_generated_generalname_ext_AKI_caname_othername_ok(self):
 		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_AKI_caname_othername_ok.pem", expect_present = "X509Cert_Body_X509Exts_Ext_AKI_CAName_OtherName_Unexpected")
 
@@ -214,6 +220,9 @@ class GeneratedSecurityAnalyzerTests(BaseAnalyzerTest):
 
 	def test_generated_generalname_ext_AKI_caname_subnet_ok(self):
 		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_AKI_caname_subnet_ok.pem", expect_present = "X509Cert_Body_X509Exts_Ext_AKI_CAName_IPAddress_Malformed")
+
+	def test_generated_generalname_ext_AKI_caname_subnetv6_ok(self):
+		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_AKI_caname_subnetv6_ok.pem", expect_present = "X509Cert_Body_X509Exts_Ext_AKI_CAName_IPAddress_Malformed")
 
 	def test_generated_generalname_ext_AKI_caname_uri_malformed(self):
 		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_AKI_caname_uri_malformed.pem", expect_present = "X509Cert_Body_X509Exts_Ext_AKI_CAName_URI_Malformed")
@@ -266,6 +275,12 @@ class GeneratedSecurityAnalyzerTests(BaseAnalyzerTest):
 	def test_generated_generalname_ext_CRLDP_issuer_ip_private(self):
 		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_CRLDP_issuer_ip_private.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_CRLIssuer_IPAddress_PrivateAddressSpace")
 
+	def test_generated_generalname_ext_CRLDP_issuer_ipv6_ok(self):
+		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_CRLDP_issuer_ipv6_ok.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_CRLIssuer_IPAddress_Unexpected")
+
+	def test_generated_generalname_ext_CRLDP_issuer_ipv6_private(self):
+		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_CRLDP_issuer_ipv6_private.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_CRLIssuer_IPAddress_PrivateAddressSpace")
+
 	def test_generated_generalname_ext_CRLDP_issuer_othername_ok(self):
 		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_CRLDP_issuer_othername_ok.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_CRLIssuer_OtherName_Unexpected")
 
@@ -274,6 +289,9 @@ class GeneratedSecurityAnalyzerTests(BaseAnalyzerTest):
 
 	def test_generated_generalname_ext_CRLDP_issuer_subnet_ok(self):
 		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_CRLDP_issuer_subnet_ok.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_CRLIssuer_IPAddress_Malformed")
+
+	def test_generated_generalname_ext_CRLDP_issuer_subnetv6_ok(self):
+		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_CRLDP_issuer_subnetv6_ok.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_CRLIssuer_IPAddress_Malformed")
 
 	def test_generated_generalname_ext_CRLDP_issuer_uri_malformed(self):
 		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_CRLDP_issuer_uri_malformed.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_CRLIssuer_URI_Malformed")
@@ -326,6 +344,12 @@ class GeneratedSecurityAnalyzerTests(BaseAnalyzerTest):
 	def test_generated_generalname_ext_CRLDP_point_ip_private(self):
 		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_CRLDP_point_ip_private.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_PointName_IPAddress_PrivateAddressSpace")
 
+	def test_generated_generalname_ext_CRLDP_point_ipv6_ok(self):
+		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_CRLDP_point_ipv6_ok.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_PointName_IPAddress_Unexpected")
+
+	def test_generated_generalname_ext_CRLDP_point_ipv6_private(self):
+		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_CRLDP_point_ipv6_private.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_PointName_IPAddress_PrivateAddressSpace")
+
 	def test_generated_generalname_ext_CRLDP_point_othername_ok(self):
 		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_CRLDP_point_othername_ok.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_PointName_OtherName_Unexpected")
 
@@ -334,6 +358,9 @@ class GeneratedSecurityAnalyzerTests(BaseAnalyzerTest):
 
 	def test_generated_generalname_ext_CRLDP_point_subnet_ok(self):
 		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_CRLDP_point_subnet_ok.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_PointName_IPAddress_Malformed")
+
+	def test_generated_generalname_ext_CRLDP_point_subnetv6_ok(self):
+		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_CRLDP_point_subnetv6_ok.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_PointName_IPAddress_Malformed")
 
 	def test_generated_generalname_ext_CRLDP_point_uri_malformed(self):
 		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_CRLDP_point_uri_malformed.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CRLDP_PointName_URI_Malformed")
@@ -383,6 +410,12 @@ class GeneratedSecurityAnalyzerTests(BaseAnalyzerTest):
 	def test_generated_generalname_ext_IAN_name_ip_private(self):
 		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_IAN_name_ip_private.pem", expect_present = "X509Cert_Body_X509Exts_Ext_IAN_Name_IPAddress_PrivateAddressSpace")
 
+	def test_generated_generalname_ext_IAN_name_ipv6_ok(self):
+		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_IAN_name_ipv6_ok.pem", expect_present = "X509Cert_Body_X509Exts_Ext_IAN_Name_IPAddress_Unexpected")
+
+	def test_generated_generalname_ext_IAN_name_ipv6_private(self):
+		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_IAN_name_ipv6_private.pem", expect_present = "X509Cert_Body_X509Exts_Ext_IAN_Name_IPAddress_PrivateAddressSpace")
+
 	def test_generated_generalname_ext_IAN_name_othername_ok(self):
 		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_IAN_name_othername_ok.pem", expect_present = "X509Cert_Body_X509Exts_Ext_IAN_Name_OtherName_Unexpected")
 
@@ -391,6 +424,9 @@ class GeneratedSecurityAnalyzerTests(BaseAnalyzerTest):
 
 	def test_generated_generalname_ext_IAN_name_subnet_ok(self):
 		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_IAN_name_subnet_ok.pem", expect_present = "X509Cert_Body_X509Exts_Ext_IAN_Name_IPAddress_Malformed")
+
+	def test_generated_generalname_ext_IAN_name_subnetv6_ok(self):
+		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_IAN_name_subnetv6_ok.pem", expect_present = "X509Cert_Body_X509Exts_Ext_IAN_Name_IPAddress_Malformed")
 
 	def test_generated_generalname_ext_IAN_name_uri_malformed(self):
 		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_IAN_name_uri_malformed.pem", expect_present = "X509Cert_Body_X509Exts_Ext_IAN_Name_URI_Malformed")
@@ -443,6 +479,9 @@ class GeneratedSecurityAnalyzerTests(BaseAnalyzerTest):
 	def test_generated_generalname_ext_NC_excluded_ip_ok(self):
 		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_NC_excluded_ip_ok.pem", expect_present = "X509Cert_Body_X509Exts_Ext_NC_ExcludedSubtree_Name_IPAddress_Malformed")
 
+	def test_generated_generalname_ext_NC_excluded_ipv6_ok(self):
+		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_NC_excluded_ipv6_ok.pem", expect_present = "X509Cert_Body_X509Exts_Ext_NC_ExcludedSubtree_Name_IPAddress_Malformed")
+
 	def test_generated_generalname_ext_NC_excluded_othername_ok(self):
 		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_NC_excluded_othername_ok.pem", expect_present = "X509Cert_Body_X509Exts_Ext_NC_ExcludedSubtree_Name_OtherName_Unexpected")
 
@@ -457,6 +496,9 @@ class GeneratedSecurityAnalyzerTests(BaseAnalyzerTest):
 
 	def test_generated_generalname_ext_NC_excluded_subnet_private(self):
 		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_NC_excluded_subnet_private.pem", expect_present = "X509Cert_Body_X509Exts_Ext_NC_ExcludedSubtree_Name_IPAddress_PrivateAddressSpace")
+
+	def test_generated_generalname_ext_NC_excluded_subnetv6_private(self):
+		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_NC_excluded_subnetv6_private.pem", expect_present = "X509Cert_Body_X509Exts_Ext_NC_ExcludedSubtree_Name_IPAddress_PrivateAddressSpace")
 
 	def test_generated_generalname_ext_NC_excluded_uri_malformed(self):
 		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_NC_excluded_uri_malformed.pem", expect_present = "X509Cert_Body_X509Exts_Ext_NC_ExcludedSubtree_Name_URI_Malformed")
@@ -509,6 +551,9 @@ class GeneratedSecurityAnalyzerTests(BaseAnalyzerTest):
 	def test_generated_generalname_ext_NC_permitted_ip_ok(self):
 		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_NC_permitted_ip_ok.pem", expect_present = "X509Cert_Body_X509Exts_Ext_NC_PermittedSubtree_Name_IPAddress_Malformed")
 
+	def test_generated_generalname_ext_NC_permitted_ipv6_ok(self):
+		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_NC_permitted_ipv6_ok.pem", expect_present = "X509Cert_Body_X509Exts_Ext_NC_PermittedSubtree_Name_IPAddress_Malformed")
+
 	def test_generated_generalname_ext_NC_permitted_othername_ok(self):
 		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_NC_permitted_othername_ok.pem", expect_present = "X509Cert_Body_X509Exts_Ext_NC_PermittedSubtree_Name_OtherName_Unexpected")
 
@@ -523,6 +568,9 @@ class GeneratedSecurityAnalyzerTests(BaseAnalyzerTest):
 
 	def test_generated_generalname_ext_NC_permitted_subnet_private(self):
 		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_NC_permitted_subnet_private.pem", expect_present = "X509Cert_Body_X509Exts_Ext_NC_PermittedSubtree_Name_IPAddress_PrivateAddressSpace")
+
+	def test_generated_generalname_ext_NC_permitted_subnetv6_private(self):
+		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_NC_permitted_subnetv6_private.pem", expect_present = "X509Cert_Body_X509Exts_Ext_NC_PermittedSubtree_Name_IPAddress_PrivateAddressSpace")
 
 	def test_generated_generalname_ext_NC_permitted_uri_malformed(self):
 		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_NC_permitted_uri_malformed.pem", expect_present = "X509Cert_Body_X509Exts_Ext_NC_PermittedSubtree_Name_URI_Malformed")
@@ -581,6 +629,9 @@ class GeneratedSecurityAnalyzerTests(BaseAnalyzerTest):
 	def test_generated_generalname_ext_SAN_name_ip_private(self):
 		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_SAN_name_ip_private.pem", expect_present = "X509Cert_Body_X509Exts_Ext_SAN_Name_IPAddress_PrivateAddressSpace")
 
+	def test_generated_generalname_ext_SAN_name_ipv6_private(self):
+		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_SAN_name_ipv6_private.pem", expect_present = "X509Cert_Body_X509Exts_Ext_SAN_Name_IPAddress_PrivateAddressSpace")
+
 	def test_generated_generalname_ext_SAN_name_othername_ok(self):
 		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_SAN_name_othername_ok.pem", expect_present = "X509Cert_Body_X509Exts_Ext_SAN_Name_OtherName_Unexpected")
 
@@ -589,6 +640,9 @@ class GeneratedSecurityAnalyzerTests(BaseAnalyzerTest):
 
 	def test_generated_generalname_ext_SAN_name_subnet_ok(self):
 		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_SAN_name_subnet_ok.pem", expect_present = "X509Cert_Body_X509Exts_Ext_SAN_Name_IPAddress_Malformed")
+
+	def test_generated_generalname_ext_SAN_name_subnetv6_ok(self):
+		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_SAN_name_subnetv6_ok.pem", expect_present = "X509Cert_Body_X509Exts_Ext_SAN_Name_IPAddress_Malformed")
 
 	def test_generated_generalname_ext_SAN_name_uri_malformed(self):
 		self._test_examine_x509test_resultcode("certs/generated/generalname/ext_SAN_name_uri_malformed.pem", expect_present = "X509Cert_Body_X509Exts_Ext_SAN_Name_URI_Malformed")
