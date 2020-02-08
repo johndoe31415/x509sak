@@ -94,8 +94,8 @@ class PurposeEstimator(BaseEstimator):
 				flag_checker.must_have("keyCertSign")
 				flag_checker.may_have("digitalSignature", "cRLSign")
 			elif purpose in [ AnalysisOptions.CertificatePurpose.TLSClientCertificate, AnalysisOptions.CertificatePurpose.TLSServerCertificate ]:
-				flag_checker.may_not_have("digitalSignature", "nonRepudiation", "dataEncipherment", "keyCertSign", "cRLSign", "encipherOnly", "decipherOnly")
-				flag_checker.complex_check([ "keyEncipherment", "keyAgreement" ], min_count = 1)
+				flag_checker.may_not_have("nonRepudiation", "dataEncipherment", "keyCertSign", "cRLSign", "encipherOnly", "decipherOnly")
+				flag_checker.complex_check([ "digitalSignature", "keyEncipherment", "keyAgreement" ], min_count = 1)
 			else:
 				raise NotImplementedError(purpose)
 

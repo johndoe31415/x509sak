@@ -359,8 +359,8 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 					standard = RFCReference(rfcno = 5280, sect = "4.2.1.3", verb = "SHOULD", text = "The meaning of the decipherOnly bit is undefined in the absence of the keyAgreement bit.")
 					judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_KU_UndefinedBitCombination, "KeyUsage extension contains decipherOnly bit without keyAgreement bit set. The semantic of this is undefined.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
-				if ("keyEncipherment" in ku_ext.flags) and ("keyAgreement" not in ku_ext.flags):
-					judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_KU_NoPerfectForwardSecrecy, "KeyUsage extension allows keyEncipherment but no keyAgreement. This disallows perfect forward secrecy, an important security property of communication channels.", commonness = Commonness.HIGHLY_UNUSUAL, verdict = Verdict.WEAK)
+				if (("keyEncipherment" in ku_ext.flags) or ("keyAgreement" in ku_ext.flags)) and ("digitalSignature" not in ku_ext.flags):
+					judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_KU_NoPerfectForwardSecrecy, "KeyUsage extension allows keyEncipherment but no keyAgreement. This disallows perfect forward secrecy (keyAgreement with ephemeral keys), an important security property of communication channels.", commonness = Commonness.HIGHLY_UNUSUAL, verdict = Verdict.WEAK)
 
 				if "keyCertSign" in ku_ext.flags:
 					bc = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("BasicConstraints"))
