@@ -174,6 +174,12 @@ class IPAddressSubnet():
 		full_subnet = IPAddress(bytes([ 255 ] * length))
 		return self.overlaps_subnet(IPAddressSubnet(ip, full_subnet))
 
+	def overlaps(self, ip_or_subnet):
+		if isinstance(ip_or_subnet, IPAddress):
+			return self.contains_ip(ip_or_subnet)
+		else:
+			return self.overlaps_subnet(ip_or_subnet)
+
 	def __str__(self):
 		cidr = self.cidr
 		if cidr is None:

@@ -41,14 +41,14 @@ class GeneralNameValidationResult(BaseValidationResult):
 		("limited broadcast",		IPAddressSubnet.from_str("255.255.255.255/32")),
 	)
 
-#	_PRIVATE_SUBNETS_IPV6 = (
+	_PRIVATE_SUBNETS_IPV6 = (
 #		("loopback",				IPAddressSubnet.from_str("::1/128")),
 #		("discard",					IPAddressSubnet.from_str("100::/64")),
 #		("deprecated 6to4 scheme",	IPAddressSubnet.from_str("2002::/16")),
 #		("link-local address",		IPAddressSubnet.from_str("fc00::/7")),
 #		("link-local address",		IPAddressSubnet.from_str("fe80::/8")),
 #		("multicast address",		IPAddressSubnet.from_str("ff00::/8")),
-#	)
+	)
 
 	def _get_message(self, issue, message):
 		return "%s of type %s %s" % (self._validator.validation_subject, self._subject.name, message)
@@ -102,12 +102,13 @@ class GeneralNameValidationResult(BaseValidationResult):
 		elif self._validator.ip_addresses_are_subnets and (address_length not in [ 8, 32 ]):
 			self._report("Enc_DER_Struct_GenName_IPAddress_Malformed", "expects either 8 or 32 bytes of data for IPv4/IPv6 subnet, but saw %d bytes." % (len(self._subject.str_value)), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION)
 		else:
-			if len(self._subject.asn1_value) == 4:
-				# IPv4 single address
-				for (network_class, subnet) in self._PRIVATE_SUBNETS_IPV4:
-					if subnet.contains_ip(self._subject.ip):
-						self._report("Enc_DER_Struct_GenName_IPAddress_PrivateAddressSpace", "has network address %s in a %s subnet." % (self._subject.str_value, network_class), commonness = Commonness.UNUSUAL)
-						break
+			subject = self._subject.ip
+			ipv4 = subject.is_ipv4
+			private_subnets = self._PRIVATE_SUBNETS_IPV4 if ipv4 else self._PRIVATE_SUBNETS_IPV6
+			for (network_class, subnet) in private_subnets:
+				if subnet.overlaps(subject):
+					self._report("Enc_DER_Struct_GenName_IPAddress_PrivateAddressSpace", "has network address %s in a %s subnet." % (str(subject), network_class), commonness = Commonness.UNUSUAL)
+					break
 
 		if self._validator.ip_addresses_are_subnets and (address_length in [ 8, 32 ]):
 			if self._subject.ip.overlap:

@@ -3,7 +3,7 @@
 
 <%
 	declare_parameter("field", [ "CRLDP_point", "CRLDP_issuer", "AKI_caname", "SAN_name", "NC_permitted", "NC_excluded", "IAN_name" ])
-	declare_parameter("mode", [ "dirname_empty", "dirname_ok", "dns_malformed", "dns_ok", "dns_single_label", "dns_wc_broad", "dns_wc_international", "dns_wc_multiple", "dns_wc_notleftmost", "dns_wc_ok", "dns_whitespace", "edipartyname_ok", "email_malformed", "email_ok", "ip_malformed", "ip_ok", "ip_private", "othername_ok", "registeredid_ok", "uri_malformed", "uri_ok", "uri_uncommon_scheme", "x400address_empty", "x400address_ok", "subnet_ok", "subnet_malformed", "subnet_noncidr" ])
+	declare_parameter("mode", [ "dirname_empty", "dirname_ok", "dns_malformed", "dns_ok", "dns_single_label", "dns_wc_broad", "dns_wc_international", "dns_wc_multiple", "dns_wc_notleftmost", "dns_wc_ok", "dns_whitespace", "edipartyname_ok", "email_malformed", "email_ok", "ip_malformed", "ip_ok", "ip_private", "othername_ok", "registeredid_ok", "uri_malformed", "uri_ok", "uri_uncommon_scheme", "x400address_empty", "x400address_ok", "subnet_ok", "subnet_malformed", "subnet_noncidr", "subnet_private" ])
 	(field, mode) = (str(p("field")), str(p("mode")))
 	export_var("filename", "ext_" + field + "_" + mode)
 
@@ -41,15 +41,17 @@
 		"x400address_empty":		"X400Address_Unexpected",
 	}
 
-	if str(p("field")).startswith("NC_"):
+	ip_subnet = field.startswith("NC_")
+	if ip_subnet:
 		# Expect IP subnet
 		expected_errcodes.update({
-			"ip_malformed":				"IPAddress_Malformed",
-			"ip_private":				"IPAddress_Malformed",
+			"ip_malformed":				"#",
+			"ip_private":				"#",
 			"ip_ok":					"IPAddress_Malformed",
 			"subnet_ok":				"IPAddress_Unexpected",
 			"subnet_malformed":			"IPAddress_MalformedSubnet",
 			"subnet_noncidr":			"IPAddress_NonCIDRBlock",
+			"subnet_private":			"IPAddress_PrivateAddressSpace",
 		})
 	else:
 		# Expect IP address
@@ -58,8 +60,9 @@
 			"ip_private":				"IPAddress_PrivateAddressSpace",
 			"ip_ok":					"IPAddress_Unexpected",
 			"subnet_ok":				"IPAddress_Malformed",
-			"subnet_malformed":			"IPAddress_Malformed",
-			"subnet_noncidr":			"IPAddress_Malformed",
+			"subnet_malformed":			"#",
+			"subnet_noncidr":			"#",
+			"subnet_private":			"#",
 		})
 
 	errcode += expected_errcodes.get(mode, "?")
@@ -159,6 +162,8 @@
 	[7] { OCTET_STRING { `aabbccddffffff00` } }
 %elif name_type == "subnet_noncidr":
 	[7] { OCTET_STRING { `aabb8800ffffaa00` } }
+%elif name_type == "subnet_private":
+	[7] { OCTET_STRING { `c0a80a00ffffff00` } }
 %elif name_type == "registeredid_ok":
 	[8 PRIMITIVE] { 1.2.3.4.5 }
 %else:

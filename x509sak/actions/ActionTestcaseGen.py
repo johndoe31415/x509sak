@@ -91,52 +91,58 @@ class ActionTestcaseGen(BaseAction):
 				print(file = f)
 			print("# " + ("=" * 70) + " End of %s " % (self._args.tcname) + ("=" * 70), file = f)
 
-	def _analyze_pemfile(self, pem_filename):
-		x509cert = X509Certificate.read_pemfile(pem_filename)[0]
+	def _extract_codepoints(self, filename_prefix, pem_file):
+		x509cert = X509Certificate.from_pem_data(pem_file)[0]
 		present_codepoints = [ rdn.get_value(self._EXPECT_PRESENT_CODEPOINT_OID).printable_value for rdn in x509cert.subject.get_all(self._EXPECT_PRESENT_CODEPOINT_OID) ]
 		present_codepoints += [ rdn.get_value(self._EXPECT_PRESENT_CODEPOINT_OID).printable_value for rdn in x509cert.issuer.get_all(self._EXPECT_PRESENT_CODEPOINT_OID) ]
 
-		file_prefix = os.path.basename(pem_filename)[:-4]
-
+		codepoints = [ ]
 		for codepoint_name in present_codepoints:
+			if "#" in codepoint_name:
+				continue
 			try:
 				getattr(JudgementCode, codepoint_name)
 			except AttributeError:
-				print("No such codepoint: %s (in %s)" % (codepoint_name, pem_filename))
-				return
-
-		tc_filename = "certs/generated/%s/%s" % (self._args.tcname, os.path.basename(pem_filename))
-		tc = self._TCDefinition(full_name = "test_generated_%s_%s" % (self._args.tcname, file_prefix), filename = tc_filename, expect_present = present_codepoints)
-		self._tcs.append(tc)
+				print("No such codepoint: %s (in %s)" % (codepoint_name, filename_prefix))
+				continue
+			codepoints.append(codepoint_name)
+		return codepoints
 
 	def _render(self, concrete_values):
 		if self._args.verbose >= 1:
 			print(concrete_values)
-		render_result = self._cg.render(concrete_values)
-		pem_filename = self._store(render_result)
-		if pem_filename is not None:
-			self._analyze_pemfile(pem_filename)
-
-	def _store(self, render_result):
-		(basename, ascii_der) = render_result
+		(filename_prefix, ascii_der_source) = self._cg.render(concrete_values)
 
 		if self._args.no_pem:
-			outfile = self._args.output_dir + "/" + basename + ".ader"
-			with open(outfile, "w") as f:
-				f.write(ascii_der)
-			print(ascii_der)
-			return None
+			self._write_raw_ader_file(filename_prefix, ascii_der_source)
 		else:
-			outfile = self._args.output_dir + "/" + basename + ".pem"
-			der_data = subprocess.check_output([ "ascii2der" ], input = ascii_der.encode())
-			try:
-				cert_data = subprocess.check_output([ "openssl", "x509", "-inform", "der", "-text" ], input = der_data)
-				cert_data = cert_data.decode()
-				cert_data = [ line.rstrip("\t ") for line in cert_data.split("\n") ]
-				cert_data = "\n".join(cert_data)
-			except subprocess.CalledProcessError:
-				# OpenSSL cannot encode the certificate
-				cert_data = PEMDataTools.data2pem(der_data, marker = "CERTIFICATE")
-			with open(outfile, "w") as f:
-				f.write(cert_data)
-			return outfile
+			self._write_pem_file(filename_prefix, ascii_der_source)
+
+	def _write_raw_ader_file(self, filename_prefix, ascii_der_source):
+		outfile = self._args.output_dir + "/" + basename + ".ader"
+		with open(outfile, "w") as f:
+			f.write(ascii_der_source)
+		print(ascii_der_source)
+
+	def _write_pem_file(self, filename_prefix, ascii_der_source):
+		der_data = subprocess.check_output([ "ascii2der" ], input = ascii_der_source.encode())
+		try:
+			pem_cert = subprocess.check_output([ "openssl", "x509", "-inform", "der", "-text" ], input = der_data)
+			pem_cert = pem_cert.decode()
+			pem_cert = [ line.rstrip("\t ") for line in pem_cert.split("\n") ]
+			pem_cert = "\n".join(pem_cert)
+		except subprocess.CalledProcessError:
+			# OpenSSL cannot encode the certificate
+			pem_cert = PEMDataTools.data2pem(der_data, marker = "CERTIFICATE")
+
+		codepoints = self._extract_codepoints(filename_prefix, pem_cert)
+		if len(codepoints) == 0:
+			return
+
+		outfile = self._args.output_dir + "/" + filename_prefix + ".pem"
+		with open(outfile, "w") as f:
+			f.write(pem_cert)
+
+		tc_filename = "certs/generated/%s/%s.pem" % (self._args.tcname, filename_prefix)
+		tc = self._TCDefinition(full_name = "test_generated_%s_%s" % (self._args.tcname, filename_prefix), filename = tc_filename, expect_present = codepoints)
+		self._tcs.append(tc)
