@@ -43,6 +43,7 @@ class CertGeneratorHelper():
 		OIDDB.X509Extensions.inverse("NetscapeCertificateType"):							"NSCT",
 		OIDDB.X509Extensions.inverse("SubjectInformationAccess"):							"SIA",
 		OIDDB.X509Extensions.inverse("SubjectDirectoryAttributes"):							"SDA",
+		OIDDB.X509Extensions.inverse("FreshestCRL"):										"FCRL",
 		OIDDB.X509Extensions.inverse("id-pe-authorityInfoAccess"):							"AIA",
 	})
 

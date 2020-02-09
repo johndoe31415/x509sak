@@ -288,6 +288,11 @@
 						"_import": [ "+asn1_encoding_issues/*", "x509_ext_checks/*:notcritical{name=PC}" ],
 						"_topic": "X.509 Policy Constraints Extension",
 						"Empty": { "_desc": "no constraints present" }
+					},
+					"Freshest CRL": {
+						"_label": "FCRL",
+						"_import": [ "+asn1_encoding_issues/*", "x509_ext_checks/*:critical{name=FCRL}" ],
+						"_topic": "X.509 Freshest CRL Extension"
 					}
 				},
 				"Unknown Extension": {

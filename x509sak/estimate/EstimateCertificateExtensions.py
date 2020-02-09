@@ -109,6 +109,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		"X509PolicyConstraintsExtension": DERValidator.create_inherited("X509Cert_Body_X509Exts_Ext_PC", validation_subject = "X.509 Policy Constraints extension"),
 		"X509SubjectInformationAccessExtension": DERValidator.create_inherited("X509Cert_Body_X509Exts_Ext_SIA", validation_subject = "X.509 Subject Information Access extension"),
 		"X509SubjectDirectoryAttributesExtension": DERValidator.create_inherited("X509Cert_Body_X509Exts_Ext_SDA", validation_subject = "X.509 Subject Directory Attributes extension"),
+		"X509FreshestCRLExtension": DERValidator.create_inherited("X509Cert_Body_X509Exts_Ext_FCRL", validation_subject = "X.509 Freshest CRL extension"),
 	}
 
 	_DER_VALIDATOR_CERT_POLICY_USERNOTICE = DERValidator(validation_subject = "X.509 extension Certificate Policy extension User Notice qualifier", recognized_issues = {
@@ -574,11 +575,11 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 				if (len(bitlist) == 0) or (set(bitlist) == set([ 0 ])):
 					judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_NSCT_Empty, "Netscape Certificate Types X.509 extension contains no set bits.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION)
 				elif (len(bitlist) >= 5) and (bitlist[4] == 1):
-					standard = LiteratureReference(author = "ITU-T", title = "X.690: Information technology – ASN.1 encoding rules: Specification of Basic Encoding Rules (BER), Canonical Encoding Rules (CER) and Distinguished Encoding Rules (DER)", year = 2015, month = 8, sect = "11.2.2", quote = "Where Rec. ITU-T X.680 | ISO/IEC 8824-1, 22.7, applies, the bitstring shall have all trailing 0 bits removed before it is encoded.", deviation_type = "MUST")
-					judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_NSCT_UnusedBitSet, "Netscape Certificate Types X.509 extension has an invalid/unused bit set.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+					judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_NSCT_UnusedBitSet, "Netscape Certificate Types X.509 extension has an invalid/unused bit set.", commonness = Commonness.HIGHLY_UNUSUAL)
 
 				if ASN1Tools.bitstring_has_trailing_zeros(ns_ext.asn1):
-					judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_NSCT_TrailingZeros, "Netscape Certificate Types X.509 extension has trailing zeros in bit string.", commonness = Commonness.HIGHLY_UNUSUAL)
+					standard = LiteratureReference(author = "ITU-T", title = "X.690: Information technology – ASN.1 encoding rules: Specification of Basic Encoding Rules (BER), Canonical Encoding Rules (CER) and Distinguished Encoding Rules (DER)", year = 2015, month = 8, sect = "11.2.2", quote = "Where Rec. ITU-T X.680 | ISO/IEC 8824-1, 22.7, applies, the bitstring shall have all trailing 0 bits removed before it is encoded.", deviation_type = "MUST")
+					judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_NSCT_TrailingZeros, "Netscape Certificate Types X.509 extension has trailing zeros in bit string.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 		return judgements
 
@@ -690,6 +691,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 							judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_CRLDP_Reasons_UndefinedBitsAsserted, "CRL Distribution Points X.509 extension contains distribution point #%d which asserts undefined bit(s) %s." % (pointno, ", ".join(str(bit) for bit in sorted(undefined_bits))), commonness = Commonness.UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 						if point.reasons_trailing_zero:
+							standard = LiteratureReference(author = "ITU-T", title = "X.690: Information technology – ASN.1 encoding rules: Specification of Basic Encoding Rules (BER), Canonical Encoding Rules (CER) and Distinguished Encoding Rules (DER)", year = 2015, month = 8, sect = "11.2.2", quote = "Where Rec. ITU-T X.680 | ISO/IEC 8824-1, 22.7, applies, the bitstring shall have all trailing 0 bits removed before it is encoded.", deviation_type = "MUST")
 							judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_CRLDP_Reasons_TrailingZeros, "CRL Distribution Points X.509 extension contains distribution point #%d which has traililng bit(s)." % (pointno), commonness = Commonness.UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 					else:
 						has_all_reasons = True
@@ -831,6 +833,15 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 
 		return judgements
 
+	def _judge_freshest_crl(self, certificate):
+		judgements = SecurityJudgements()
+		fcrl_ext = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("FreshestCRL"))
+		if fcrl_ext is not None:
+			if fcrl_ext.critical:
+				standard = RFCReference(rfcno = 5280, sect = "4.2.1.15", verb = "MUST", text = "The extension MUST be marked as non-critical by conforming CAs.")
+				judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_FCRL_Critical, "The Freshest CRL X.509 extension is marked as critical.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+		return judgements
+
 	def _judge_certificate_extension_encoding(self, certificate):
 		judgements = SecurityJudgements()
 		for extension in certificate.extensions:
@@ -877,6 +888,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		judgements += self._judge_policy_constraints(certificate)
 		judgements += self._judge_subject_directory_attributes(certificate)
 		judgements += self._judge_subject_information_access(certificate)
+		judgements += self._judge_freshest_crl(certificate)
 
 		return {
 			"individual":	individual,
