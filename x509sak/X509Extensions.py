@@ -610,6 +610,11 @@ class X509CRLDistributionPointsExtension(X509Extension):
 
 
 @X509ExtensionRegistry.install_handler_class
+class X509FreshestCRLExtension(X509CRLDistributionPointsExtension):
+	_HANDLER_OID = OIDDB.X509Extensions.inverse("FreshestCRL")
+
+
+@X509ExtensionRegistry.install_handler_class
 class X509CertificateTransparencySCTsExtension(X509Extension):
 	_HANDLER_OID = OIDDB.X509Extensions.inverse("CertificateTransparency")
 	_ASN1_MODEL = pyasn1.type.univ.OctetString
@@ -683,3 +688,100 @@ class X509NameConstraintsExtension(X509Extension):
 
 	def __repr__(self):
 		return "%s<permitted = %s, excluded = %s>" % (self.__class__.__name__, self.permitted_subtrees, self.excluded_subtrees)
+
+
+@X509ExtensionRegistry.install_handler_class
+class X509SubjectDirectoryAttributes(X509Extension):
+	_HANDLER_OID = OIDDB.X509Extensions.inverse("SubjectDirectoryAttributes")
+	_ASN1_MODEL = rfc5280.SubjectDirectoryAttributes
+	_Attribute = collections.namedtuple("Attribute", [ "attribute_type", "values" ])
+
+	@property
+	def attributes(self):
+		return self._attributes
+
+	def _decode_hook(self):
+		self._attributes = [ ]
+		if self.asn1 is not None:
+			for attribute in self.asn1:
+				self._attributes.append(self._Attribute(attribute_type = OID.from_asn1(attribute["type"]), values = [ ASN1Tools.safe_decode(value) for value in attribute["values"] ]))
+
+	def __repr__(self):
+		return "%s<%s>" % (self.__class__.__name__, self.attributes)
+
+
+@X509ExtensionRegistry.install_handler_class
+class X509SubjectInformationAccess(X509Extension):
+	_HANDLER_OID = OIDDB.X509Extensions.inverse("SubjectInformationAccess")
+	_ASN1_MODEL = rfc5280.SubjectInfoAccessSyntax
+	_AccessDescription = collections.namedtuple("AccessDescription", [ "method", "location" ])
+
+	@property
+	def description(self):
+		return self._description
+
+	def _decode_hook(self):
+		self._description = [ ]
+		if self.asn1 is not None:
+			for access_description in self.asn1:
+				self._description.append(self._AccessDescription(method = OID.from_asn1(access_description["accessMethod"]), location = ASN1GeneralNameWrapper.from_asn1(access_description["accessLocation"])))
+
+	def __repr__(self):
+		return "%s<%s>" % (self.__class__.__name__, self.description)
+
+
+@X509ExtensionRegistry.install_handler_class
+class X509InhibitAnyPolicy(X509Extension):
+	_HANDLER_OID = OIDDB.X509Extensions.inverse("X509Version3CertificateExtensionInhibitAnyPolicy")
+	_ASN1_MODEL = rfc5280.InhibitAnyPolicy
+
+	@property
+	def skipcerts(self):
+		return None if (self.asn1 is None) else (int(self.asn1))
+
+	def __repr__(self):
+		return "%s<%s>" % (self.__class__.__name__, self.skipcerts)
+
+
+@X509ExtensionRegistry.install_handler_class
+class X509PolicyConstraints(X509Extension):
+	_HANDLER_OID = OIDDB.X509Extensions.inverse("PolicyConstraints")
+	_ASN1_MODEL = rfc5280.PolicyConstraints
+
+	@property
+	def require_explicit_policy(self):
+		return self._require_explicit_policy
+
+	@property
+	def inhibit_policy_mapping(self):
+		return self._inhibit_policy_mapping
+
+	def _decode_hook(self):
+		self._require_explicit_policy = None
+		self._inhibit_policy_mapping = None
+		if self.asn1 is not None:
+			self._require_explicit_policy = int(self.asn1["requireExplicitPolicy"]) if self.asn1["requireExplicitPolicy"].hasValue() else None
+			self._inhibit_policy_mapping = int(self.asn1["inhibitPolicyMapping"]) if self.asn1["inhibitPolicyMapping"].hasValue() else None
+
+	def __repr__(self):
+		return "%s<require explicit = %s; inhibit policy mapping = %s>" % (self.__class__.__name__, self.require_explicit_policy, self.inhibit_policy_mapping)
+
+
+@X509ExtensionRegistry.install_handler_class
+class X509PolicyMappings(X509Extension):
+	_HANDLER_OID = OIDDB.X509Extensions.inverse("PolicyMappings")
+	_ASN1_MODEL = rfc5280.PolicyMappings
+	_PolicyMapping = collections.namedtuple("PolicyMapping", [ "issuer_policy", "subject_policy" ])
+
+	@property
+	def mappings(self):
+		return self._mappings
+
+	def _decode_hook(self):
+		self._mappings = [ ]
+		if self.asn1 is not None:
+			for mapping in self.asn1:
+				self._mappings.append(self._PolicyMapping(issuer_policy = OID.from_asn1(mapping["issuerDomainPolicy"]), subject_policy = OID.from_asn1(mapping["subjectDomainPolicy"])))
+
+	def __repr__(self):
+		return "%s<%s>" % (self.__class__.__name__, self.mappings)

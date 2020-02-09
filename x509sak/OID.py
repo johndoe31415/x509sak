@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2019 Johannes Bauer
+#	Copyright (C) 2018-2020 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -188,6 +188,8 @@ class OIDDB():
 		OID.from_str("2.5.29.46"):					"FreshestCRL",
 		OID.from_str("2.5.29.54"):					"X509Version3CertificateExtensionInhibitAnyPolicy",
 
+		OID.from_str("1.3.6.1.5.5.7.1.11"):			"SubjectInformationAccess",
+
 		OID.from_str("1.2.840.113533.7.65.0"):		"EntrustVersionExtension",
 
 		OID.from_str("1.2.840.113549.1.9.15"):		"SMIMECapabilities",
@@ -311,4 +313,22 @@ class OIDDB():
 	"""RSAPSS Mask Generation Functions."""
 	RSAPSSMaskGenerationAlgorithm = BijectiveDict({
 		OID.from_str("1.2.840.113549.1.1.8"):		"mgf1",
+	})
+
+	"""Subject Information Access Method OIDs."""
+	SubjectInformationAccessMethod = BijectiveDict({
+		OID.from_str("1.3.6.1.5.5.7.48.1"):		"ocsp",
+		OID.from_str("1.3.6.1.5.5.7.48.2"):		"caIssuers",
+		OID.from_str("1.3.6.1.5.5.7.48.3"):		"timestamping",
+		OID.from_str("1.3.6.1.5.5.7.48.4"):		"DVCS",							# Data Validation and Certification Server
+		OID.from_str("1.3.6.1.5.5.7.48.5"):		"caRepository",
+		OID.from_str("1.3.6.1.5.5.7.48.6"):		"httpCerts",
+		OID.from_str("1.3.6.1.5.5.7.48.7"):		"httpCRLs",
+		OID.from_str("1.3.6.1.5.5.7.48.8"):		"XKMS",							# XML Key Management Specification
+		OID.from_str("1.3.6.1.5.5.7.48.9"):		"signedObjectRepository",
+		OID.from_str("1.3.6.1.5.5.7.48.10"):	"rpkiManifest",					# Resource Public Key Infrastructure
+		OID.from_str("1.3.6.1.5.5.7.48.11"):	"signedObject",
+		OID.from_str("1.3.6.1.5.5.7.48.12"):	"CMC",							# Certificate Management over CMS
+		OID.from_str("1.3.6.1.5.5.7.48.13"):	"rpkiNotify",					# Resource Public Key Infrastructure
+		OID.from_str("1.3.6.1.5.5.7.48.14"):	"stirTNList",					# Secure Telephone Identity Revisited Telephony Numbers
 	})
