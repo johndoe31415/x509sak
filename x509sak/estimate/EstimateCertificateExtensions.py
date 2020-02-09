@@ -28,7 +28,7 @@ from x509sak.AlgorithmDB import HashFunctions
 from x509sak.X509Extensions import X509ExtendedKeyUsageExtension
 from x509sak.estimate.BaseEstimator import BaseEstimator
 from x509sak.estimate import JudgementCode, Commonness, Compatibility, Verdict
-from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, RFCReference
+from x509sak.estimate.Judgement import SecurityJudgement, SecurityJudgements, RFCReference, LiteratureReference
 from x509sak.estimate.GeneralNameValidator import GeneralNameValidator
 from x509sak.estimate.NameConstraintsSubtreeValidator import NameConstraintsSubtreeValidator
 from x509sak.estimate.DERValidator import DERValidator
@@ -321,8 +321,8 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		if ku_ext is not None:
 			if ku_ext.asn1 is not None:
 				if ku_ext.has_trailing_zero:
-					# TODO: Possible standards violation?
-					judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_KU_TrailingZeros, "KeyUsage extension present, but contains trailing zero.", commonness = Commonness.HIGHLY_UNUSUAL)
+					standard = LiteratureReference(author = "ITU-T", title = "X.690: Information technology – ASN.1 encoding rules: Specification of Basic Encoding Rules (BER), Canonical Encoding Rules (CER) and Distinguished Encoding Rules (DER)", year = 2015, month = 8, sect = "11.2.2", quote = "Where Rec. ITU-T X.680 | ISO/IEC 8824-1, 22.7, applies, the bitstring shall have all trailing 0 bits removed before it is encoded.", deviation_type = "MUST")
+					judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_KU_TrailingZeros, "KeyUsage extension present, but contains trailing zero.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 				if ku_ext.all_bits_zero:
 					standard = RFCReference(rfcno = 5280, sect = "4.2.1.3", verb = "MUST", text = "When the keyUsage extension appears in a certificate, at least one of the bits MUST be set to 1.")
@@ -569,7 +569,8 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 				if (len(bitlist) == 0) or (set(bitlist) == set([ 0 ])):
 					judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_NSCT_Empty, "Netscape Certificate Types X.509 extension contains no set bits.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION)
 				elif (len(bitlist) >= 5) and (bitlist[4] == 1):
-					judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_NSCT_UnusedBitSet, "Netscape Certificate Types X.509 extension has an invalid/unused bit set.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION)
+					standard = LiteratureReference(author = "ITU-T", title = "X.690: Information technology – ASN.1 encoding rules: Specification of Basic Encoding Rules (BER), Canonical Encoding Rules (CER) and Distinguished Encoding Rules (DER)", year = 2015, month = 8, sect = "11.2.2", quote = "Where Rec. ITU-T X.680 | ISO/IEC 8824-1, 22.7, applies, the bitstring shall have all trailing 0 bits removed before it is encoded.", deviation_type = "MUST")
+					judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_NSCT_UnusedBitSet, "Netscape Certificate Types X.509 extension has an invalid/unused bit set.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 
 				if ASN1Tools.bitstring_has_trailing_zeros(ns_ext.asn1):
 					judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_NSCT_TrailingZeros, "Netscape Certificate Types X.509 extension has trailing zeros in bit string.", commonness = Commonness.HIGHLY_UNUSUAL)

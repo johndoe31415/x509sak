@@ -323,20 +323,43 @@ class RFCReference(StandardReference):
 @StandardReference.register
 class LiteratureReference(StandardReference):
 	_STD_TYPE = "literature"
-	_Arguments = KwargsChecker(required_arguments = set([ "author", "title" ]), optional_arguments = set([ "type", "year", "month", "source", "quote", "doi", "sect" ]), check_functions = {
+	_Arguments = KwargsChecker(required_arguments = set([ "author", "title" ]), optional_arguments = set([ "type", "year", "month", "source", "quote", "doi", "sect", "deviation_type" ]), check_functions = {
 		"year":		lambda x: isinstance(x, int),
 		"month":	lambda x: isinstance(x, int) and (1 <= x <= 12),
 	})
+	_MONTHNAMES = {
+		1:	"Jan",
+		2:	"Feb",
+		3:	"Mar",
+		4:	"Apr",
+		5:	"May",
+		6:	"Jun",
+		7:	"Jul",
+		8:	"Aug",
+		9:	"Sep",
+		10:	"Oct",
+		11:	"Nov",
+		12:	"Dec",
+	}
+
 
 	def __init__(self, **kwargs):
 		StandardReference.__init__(self)
 		self._Arguments.check(kwargs, "LiteratureReference")
 		self._fields = kwargs
+		if isinstance(self._fields["author"], str):
+			self._fields["author"] = [ self._fields["author"] ]
 		self._fields["type"] = self._STD_TYPE
 
 	@property
 	def deviation_type(self):
-		return None
+		if "deviation_type" not in self._fields:
+			return None
+		else:
+			return {
+				"SHOULD":		StandardDeviationType.RECOMMENDATION,
+				"MUST":			StandardDeviationType.VIOLATION,
+			}[self._fields["deviation_type"]]
 
 	@classmethod
 	def from_dict(cls, data):
@@ -347,7 +370,12 @@ class LiteratureReference(StandardReference):
 
 	def __str__(self):
 		text = " and ".join(self._fields["author"])
-		if self._fields["year"] is not None:
-			text += " (%d)" % (self._fields["year"])
+		if "year" in self._fields is not None:
+			if "month" in self._fields is not None:
+				text += " (%s %d)" % (self._MONTHNAMES[self._fields["month"]], self._fields["year"])
+			else:
+				text += " (%d)" % (self._fields["year"])
 		text += ". \"%s\"" % (self._fields["title"])
+		if "sect" in self._fields:
+			text += " Sect. %s" % (self._fields["sect"])
 		return text

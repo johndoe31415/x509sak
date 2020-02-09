@@ -178,14 +178,14 @@ class SecurityAnalyzerTests(BaseAnalyzerTest):
 	def test_examine_x509test_xf_ext_key_usage_too_long(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-key-usage-too-long.pem", "X509Cert_Body_X509Exts_Ext_KU_TooLong")
 
-#	def test_examine_x509test_xf_ext_key_usage_wrong_der(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-key-usage-wrong-der.pem", "Cert_X509Ext_KeyUsage_InvalidDER")
+	def test_examine_x509test_xf_ext_key_usage_wrong_der(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-key-usage-wrong-der.pem", "X509Cert_Body_X509Exts_Ext_KU_TrailingZeros")
 
 	def test_examine_x509test_xf_ext_keysign_nonca(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-keysign-nonca.pem", "X509Cert_Body_X509Exts_Ext_KU_SignCertButNoCA")
 
-#	def test_examine_x509test_xf_ext_name_constraints_empty(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-name-constraints-empty.pem", "X509Cert_Body_X509Exts_Ext_NC_Empty")
+	def test_examine_x509test_xf_ext_name_constraints_empty(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-name-constraints-empty.pem", "X509Cert_Body_X509Exts_Ext_NC_Empty")
 
 #	def test_examine_x509test_xf_ext_name_constraints_badip(self):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-name-constraints-badip.pem", "X509Cert_Body_X509Exts_Ext_NC_Subtree_Name_IPAddress_Malformed")
