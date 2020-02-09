@@ -691,7 +691,7 @@ class X509NameConstraintsExtension(X509Extension):
 
 
 @X509ExtensionRegistry.install_handler_class
-class X509SubjectDirectoryAttributes(X509Extension):
+class X509SubjectDirectoryAttributesExtension(X509Extension):
 	_HANDLER_OID = OIDDB.X509Extensions.inverse("SubjectDirectoryAttributes")
 	_ASN1_MODEL = rfc5280.SubjectDirectoryAttributes
 	_Attribute = collections.namedtuple("Attribute", [ "attribute_type", "values" ])

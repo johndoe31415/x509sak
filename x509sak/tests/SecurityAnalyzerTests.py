@@ -200,13 +200,11 @@ class SecurityAnalyzerTests(BaseAnalyzerTest):
 	def test_examine_x509test_xf_ext_name_constraints_regid(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-name-constraints-regid.pem", expect_present = [ "X509Cert_Body_X509Exts_Ext_NC_ExcludedSubtree_Name_RegisteredID_Unexpected", "X509Cert_Body_X509Exts_Ext_NC_PermittedSubtree_Name_RegisteredID_Unexpected" ])
 
-#	def test_examine_x509test_xf_ext_policy_constraint_empty(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-policy-constraint-empty.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-policy-constraint-empty.pem")
-#
-#	def test_examine_x509test_xf_ext_policy_constraint_noncrit(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-policy-constraint-noncrit.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-policy-constraint-noncrit.pem")
+	def test_examine_x509test_xf_ext_policy_constraint_empty(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-policy-constraint-empty.pem", "X509Cert_Body_X509Exts_Ext_PC_Empty")
+
+	def test_examine_x509test_xf_ext_policy_constraint_noncrit(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-policy-constraint-noncrit.pem", "X509Cert_Body_X509Exts_Ext_PC_NotCritical")
 
 	def test_examine_x509test_xf_ext_policy_map_empty(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-policy-map-empty.pem", "X509Cert_Body_X509Exts_Ext_PM_Empty")
@@ -223,21 +221,17 @@ class SecurityAnalyzerTests(BaseAnalyzerTest):
 	def test_examine_x509test_xf_ext_policy_map_unref(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-policy-map-unref.pem", "X509Cert_Body_X509Exts_Ext_PM_Unreferenced")
 
-#	def test_examine_x509test_xf_ext_subject_dirattr_critical(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-subject-dirattr-critical.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-subject-dirattr-critical.pem")
-#
-#	def test_examine_x509test_xf_ext_subject_dirattr_empty(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-subject-dirattr-empty.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-subject-dirattr-empty.pem")
-#
-#	def test_examine_x509test_xf_ext_subject_info_critical(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-subject-info-critical.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-subject-info-critical.pem")
-#
-#	def test_examine_x509test_xf_ext_subject_info_empty(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-subject-info-empty.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-subject-info-empty.pem")
+	def test_examine_x509test_xf_ext_subject_dirattr_critical(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-subject-dirattr-critical.pem", "X509Cert_Body_X509Exts_Ext_SDA_Critical")
+
+	def test_examine_x509test_xf_ext_subject_dirattr_empty(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-subject-dirattr-empty.pem", "X509Cert_Body_X509Exts_Ext_SDA_Empty")
+
+	def test_examine_x509test_xf_ext_subject_info_critical(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-subject-info-critical.pem", "X509Cert_Body_X509Exts_Ext_SIA_Critical")
+
+	def test_examine_x509test_xf_ext_subject_info_empty(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-subject-info-empty.pem", "X509Cert_Body_X509Exts_Ext_SIA_Empty")
 
 	def test_examine_x509test_xf_ext_subject_keyid_ca_absent(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-subject-keyid-ca-absent.pem", "X509Cert_Body_X509Exts_Ext_SKI_Missing")

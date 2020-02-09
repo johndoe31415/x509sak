@@ -270,6 +270,24 @@
 						"Unreferenced": { "_desc": "issuer policy mapping not included as policy" },
 						"From AnyPolicy": { "_desc": "mapping from anyPolicy" },
 						"To AnyPolicy": { "_desc": "mapping to anyPolicy" }
+					},
+					"Subject Information Access": {
+						"_label": "SIA",
+						"_import": [ "+asn1_encoding_issues/*", "x509_ext_checks/*:critical{name=SIA}" ],
+						"_topic": "X.509 Subject Information Access Extension",
+						"Empty": { "_desc": "no information present" }
+					},
+					"Subject Directory Attributes": {
+						"_label": "SDA",
+						"_import": [ "+asn1_encoding_issues/*", "x509_ext_checks/*:critical{name=SDA}" ],
+						"_topic": "X.509 Subject Directory Attributes Extension",
+						"Empty": { "_desc": "no attributes present" }
+					},
+					"Policy Constraints": {
+						"_label": "PC",
+						"_import": [ "+asn1_encoding_issues/*", "x509_ext_checks/*:notcritical{name=PC}" ],
+						"_topic": "X.509 Policy Constraints Extension",
+						"Empty": { "_desc": "no constraints present" }
 					}
 				},
 				"Unknown Extension": {

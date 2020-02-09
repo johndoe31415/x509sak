@@ -155,6 +155,18 @@ class GeneratedSecurityAnalyzerTests(BaseAnalyzerTest):
 	def test_generated_malencoding_ext_NSCT_wrong_type(self):
 		self._test_examine_x509test_resultcode("certs/generated/malencoding/ext_NSCT_wrong_type.pem", expect_present = "X509Cert_Body_X509Exts_Ext_NSCT_Malformed_UnexpectedType")
 
+	def test_generated_malencoding_ext_PC_malformed(self):
+		self._test_examine_x509test_resultcode("certs/generated/malencoding/ext_PC_malformed.pem", expect_present = "X509Cert_Body_X509Exts_Ext_PC_Malformed_Undecodable")
+
+	def test_generated_malencoding_ext_PC_non_der(self):
+		self._test_examine_x509test_resultcode("certs/generated/malencoding/ext_PC_non_der.pem", expect_present = "X509Cert_Body_X509Exts_Ext_PC_Malformed_NonDEREncoding")
+
+	def test_generated_malencoding_ext_PC_trailing_data(self):
+		self._test_examine_x509test_resultcode("certs/generated/malencoding/ext_PC_trailing_data.pem", expect_present = "X509Cert_Body_X509Exts_Ext_PC_TrailingData")
+
+	def test_generated_malencoding_ext_PC_wrong_type(self):
+		self._test_examine_x509test_resultcode("certs/generated/malencoding/ext_PC_wrong_type.pem", expect_present = "X509Cert_Body_X509Exts_Ext_PC_Malformed_UnexpectedType")
+
 	def test_generated_malencoding_ext_PM_malformed(self):
 		self._test_examine_x509test_resultcode("certs/generated/malencoding/ext_PM_malformed.pem", expect_present = "X509Cert_Body_X509Exts_Ext_PM_Malformed_Undecodable")
 
@@ -178,6 +190,30 @@ class GeneratedSecurityAnalyzerTests(BaseAnalyzerTest):
 
 	def test_generated_malencoding_ext_SAN_wrong_type(self):
 		self._test_examine_x509test_resultcode("certs/generated/malencoding/ext_SAN_wrong_type.pem", expect_present = "X509Cert_Body_X509Exts_Ext_SAN_Malformed_UnexpectedType")
+
+	def test_generated_malencoding_ext_SDA_malformed(self):
+		self._test_examine_x509test_resultcode("certs/generated/malencoding/ext_SDA_malformed.pem", expect_present = "X509Cert_Body_X509Exts_Ext_SDA_Malformed_Undecodable")
+
+	def test_generated_malencoding_ext_SDA_non_der(self):
+		self._test_examine_x509test_resultcode("certs/generated/malencoding/ext_SDA_non_der.pem", expect_present = "X509Cert_Body_X509Exts_Ext_SDA_Malformed_NonDEREncoding")
+
+	def test_generated_malencoding_ext_SDA_trailing_data(self):
+		self._test_examine_x509test_resultcode("certs/generated/malencoding/ext_SDA_trailing_data.pem", expect_present = "X509Cert_Body_X509Exts_Ext_SDA_TrailingData")
+
+	def test_generated_malencoding_ext_SDA_wrong_type(self):
+		self._test_examine_x509test_resultcode("certs/generated/malencoding/ext_SDA_wrong_type.pem", expect_present = "X509Cert_Body_X509Exts_Ext_SDA_Malformed_UnexpectedType")
+
+	def test_generated_malencoding_ext_SIA_malformed(self):
+		self._test_examine_x509test_resultcode("certs/generated/malencoding/ext_SIA_malformed.pem", expect_present = "X509Cert_Body_X509Exts_Ext_SIA_Malformed_Undecodable")
+
+	def test_generated_malencoding_ext_SIA_non_der(self):
+		self._test_examine_x509test_resultcode("certs/generated/malencoding/ext_SIA_non_der.pem", expect_present = "X509Cert_Body_X509Exts_Ext_SIA_Malformed_NonDEREncoding")
+
+	def test_generated_malencoding_ext_SIA_trailing_data(self):
+		self._test_examine_x509test_resultcode("certs/generated/malencoding/ext_SIA_trailing_data.pem", expect_present = "X509Cert_Body_X509Exts_Ext_SIA_TrailingData")
+
+	def test_generated_malencoding_ext_SIA_wrong_type(self):
+		self._test_examine_x509test_resultcode("certs/generated/malencoding/ext_SIA_wrong_type.pem", expect_present = "X509Cert_Body_X509Exts_Ext_SIA_Malformed_UnexpectedType")
 
 	def test_generated_malencoding_ext_SKI_malformed(self):
 		self._test_examine_x509test_resultcode("certs/generated/malencoding/ext_SKI_malformed.pem", expect_present = "X509Cert_Body_X509Exts_Ext_SKI_Malformed_Undecodable")

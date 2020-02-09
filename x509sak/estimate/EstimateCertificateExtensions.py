@@ -106,6 +106,9 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		"X509NameConstraintsExtension": DERValidator.create_inherited("X509Cert_Body_X509Exts_Ext_NC", validation_subject = "X.509 Name Constraints extension"),
 		"X509InhibitAnyPolicyExtension": DERValidator.create_inherited("X509Cert_Body_X509Exts_Ext_IAP", validation_subject = "X.509 Inhibit anyPolicy extension"),
 		"X509PolicyMappingsExtension": DERValidator.create_inherited("X509Cert_Body_X509Exts_Ext_PM", validation_subject = "X.509 Policy Mappings extension"),
+		"X509PolicyConstraintsExtension": DERValidator.create_inherited("X509Cert_Body_X509Exts_Ext_PC", validation_subject = "X.509 Policy Constraints extension"),
+		"X509SubjectInformationAccessExtension": DERValidator.create_inherited("X509Cert_Body_X509Exts_Ext_SIA", validation_subject = "X.509 Subject Information Access extension"),
+		"X509SubjectDirectoryAttributesExtension": DERValidator.create_inherited("X509Cert_Body_X509Exts_Ext_SDA", validation_subject = "X.509 Subject Directory Attributes extension"),
 	}
 
 	_DER_VALIDATOR_CERT_POLICY_USERNOTICE = DERValidator(validation_subject = "X.509 extension Certificate Policy extension User Notice qualifier", recognized_issues = {
@@ -784,6 +787,50 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 						judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_PM_Unreferenced, "The Policy Mappings X.509 extension contains mapping #%d which maps from policy %s. This policy is not referenced within the certificate%s" % (map_no, mapping.issuer_policy, error_msg), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 		return judgements
 
+	def _judge_policy_constraints(self, certificate):
+		judgements = SecurityJudgements()
+		pc_ext = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("PolicyConstraints"))
+		if pc_ext is not None:
+			if not pc_ext.critical:
+				standard = RFCReference(rfcno = 5280, sect = "4.2.2.11", verb = "MUST", text = "Conforming CAs MUST mark this extension as critical.")
+				judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_PC_NotCritical, "The Policy Constraint X.509 extension is marked as non-critical.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+
+			if (pc_ext.asn1 is not None) and (pc_ext.require_explicit_policy is None) and (pc_ext.inhibit_policy_mapping is None):
+				standard = RFCReference(rfcno = 5280, sect = "4.2.2.11", verb = "MUST", text = "Conforming CAs MUST NOT issue certificates where policy constraints is an empty sequence. ")
+				judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_PC_Empty, "The Policy Constraint X.509 extension contains neither a requireExplicitPolicy nor an inhibitPolicyMapping field.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+		return judgements
+
+	def _judge_subject_directory_attributes(self, certificate):
+		judgements = SecurityJudgements()
+		sda_ext = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("SubjectDirectoryAttributes"))
+		if sda_ext is not None:
+			if sda_ext.critical:
+				standard = RFCReference(rfcno = 5280, sect = "4.2.1.8", verb = "MUST", text = "Conforming CAs MUST mark this extension as non-critical.")
+				judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_SDA_Critical, "The Subject Directory Attributes X.509 extension is marked as critical.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+
+			if len(sda_ext.attributes) == 0:
+				standard = RFCReference(rfcno = 5280, sect = "4.2.1.8", verb = "MUST", text = "SubjectDirectoryAttributes ::= SEQUENCE SIZE (1..MAX) OF Attribute")
+				judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_SDA_Empty, "The Subject Directory Attributes X.509 extension contains no attributes.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+
+		return judgements
+
+	def _judge_subject_information_access(self, certificate):
+		judgements = SecurityJudgements()
+		sia_ext = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("SubjectInformationAccess"))
+		if sia_ext is not None:
+			if sia_ext.critical:
+				standard = RFCReference(rfcno = 5280, sect = "4.2.2.2", verb = "MUST", text = "Conforming CAs MUST mark this extension as non-critical.")
+				judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_SIA_Critical, "The Subject Information Access X.509 extension is marked as critical.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+
+			if len(sia_ext.description) == 0:
+				standard = RFCReference(rfcno = 5280, sect = "4.2.2.2", verb = "MUST", text = "SubjectInfoAccessSyntax ::= SEQUENCE SIZE (1..MAX) OF AccessDescription")
+				judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_SIA_Empty, "The Subject Information Access X.509 extension contains no method/locations.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+
+			# TODO: LDAP URIs ("The LDAP URI [RFC4516] MUST include a <dn> field containing")
+			# TODO: GeneralName validation
+
+		return judgements
+
 	def _judge_certificate_extension_encoding(self, certificate):
 		judgements = SecurityJudgements()
 		for extension in certificate.extensions:
@@ -827,6 +874,9 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		judgements += self._judge_certificate_transparency_poison(certificate)
 		judgements += self._judge_inhibit_any_policy(certificate)
 		judgements += self._judge_policy_mappings(certificate)
+		judgements += self._judge_policy_constraints(certificate)
+		judgements += self._judge_subject_directory_attributes(certificate)
+		judgements += self._judge_subject_information_access(certificate)
 
 		return {
 			"individual":	individual,
