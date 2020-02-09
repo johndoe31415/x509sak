@@ -962,10 +962,13 @@ class SecurityAnalyzerTests(BaseAnalyzerTest):
 		self._test_examine_x509test_resultcode("certs/constructed/ku_noncritical_ca.pem", expect_present = "X509Cert_Body_X509Exts_Ext_KU_NotCritical", purpose = "ca")
 
 	def test_certpol_polcount_1(self):
-		self._test_examine_x509test_resultcode("certs/constructed/certpol_polcount_1.pem", expect_absent = "X509Cert_Body_X509Exts_Ext_CP_MoreThanOnePolicy")
+		self._test_examine_x509test_resultcode("certs/constructed/certpol_polcount_1_no_qual.pem", expect_absent = "X509Cert_Body_X509Exts_Ext_CP_Qualifier_Present")
 
 	def test_certpol_polcount_2(self):
-		self._test_examine_x509test_resultcode("certs/constructed/certpol_polcount_2.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CP_MoreThanOnePolicy")
+		self._test_examine_x509test_resultcode("certs/constructed/certpol_polcount_2_no_qual.pem", expect_absent = "X509Cert_Body_X509Exts_Ext_CP_Qualifier_Present")
+
+	def test_certpol_polcount_2_with_qualifier(self):
+		self._test_examine_x509test_resultcode("certs/constructed/certpol_polcount_2_with_qualifier.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CP_Qualifier_Present")
 
 	def test_certpol_deprecated_oid(self):
 		self._test_examine_x509test_resultcode("certs/constructed/certpol_deprecated_oid.pem", expect_present = "X509Cert_Body_X509Exts_Ext_CP_DeprecatedOID")

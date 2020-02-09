@@ -482,11 +482,6 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 						standard = RFCReference(rfcno = 5280, sect = "4.2.1.4", verb = "MUST", text = "When qualifiers are used with the special policy anyPolicy, they MUST be limited to the qualifiers identified in this section.")
 						judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_CP_Qualifier_AnyPolicyWithUnknownQualifier, "Unknown OID %s used in a qualification of an anyPolicy certificate policy." % (qualifier.oid), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard, commonness = Commonness.HIGHLY_UNUSUAL)
 
-			if policies_ext.policy_count > 1:
-				# TODO this is wrong, we're talking about the pocifyIdnetifier here!
-				standard = RFCReference(rfcno = 5280, sect = "4.2.1.4", verb = "RECOMMEND", text = "To promote interoperability, this profile RECOMMENDS that policy information terms consist of only an OID.")
-				judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_CP_MoreThanOnePolicy, "%d policies present in certificate, but only one is recommended." % (policies_ext.policy_count), compatibility = Compatibility.LIMITED_SUPPORT, standard = standard)
-
 			# Check if qualifier is used twice. Not technically forbidden, but definitely weird.
 			for policy in policies:
 				seen_oids = { }
@@ -498,6 +493,10 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 
 			# Check for use of noticeRef
 			for policy in policies:
+				if len(policy.qualifiers) > 0:
+					standard = RFCReference(rfcno = 5280, sect = "4.2.1.4", verb = "RECOMMEND", text = "To promote interoperability, this profile RECOMMENDS that policy information terms consist of only an OID.")
+					judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_CP_Qualifier_Present, "%d policy qualifier(s) present for policy %s; the specification recommends using only an OID without qualifiers." % (len(policy.qualifiers), policy.oid), compatibility = Compatibility.LIMITED_SUPPORT, standard = standard)
+
 				for qualifier in policy.qualifiers:
 
 					if qualifier.oid == OIDDB.X509ExtensionCertificatePolicyQualifierOIDs.inverse("id-qt-unotice"):
