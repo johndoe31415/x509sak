@@ -711,7 +711,7 @@ class X509SubjectDirectoryAttributes(X509Extension):
 
 
 @X509ExtensionRegistry.install_handler_class
-class X509SubjectInformationAccess(X509Extension):
+class X509SubjectInformationAccessExtension(X509Extension):
 	_HANDLER_OID = OIDDB.X509Extensions.inverse("SubjectInformationAccess")
 	_ASN1_MODEL = rfc5280.SubjectInfoAccessSyntax
 	_AccessDescription = collections.namedtuple("AccessDescription", [ "method", "location" ])
@@ -731,7 +731,7 @@ class X509SubjectInformationAccess(X509Extension):
 
 
 @X509ExtensionRegistry.install_handler_class
-class X509InhibitAnyPolicy(X509Extension):
+class X509InhibitAnyPolicyExtension(X509Extension):
 	_HANDLER_OID = OIDDB.X509Extensions.inverse("X509Version3CertificateExtensionInhibitAnyPolicy")
 	_ASN1_MODEL = rfc5280.InhibitAnyPolicy
 
@@ -744,7 +744,7 @@ class X509InhibitAnyPolicy(X509Extension):
 
 
 @X509ExtensionRegistry.install_handler_class
-class X509PolicyConstraints(X509Extension):
+class X509PolicyConstraintsExtension(X509Extension):
 	_HANDLER_OID = OIDDB.X509Extensions.inverse("PolicyConstraints")
 	_ASN1_MODEL = rfc5280.PolicyConstraints
 
@@ -768,7 +768,7 @@ class X509PolicyConstraints(X509Extension):
 
 
 @X509ExtensionRegistry.install_handler_class
-class X509PolicyMappings(X509Extension):
+class X509PolicyMappingsExtension(X509Extension):
 	_HANDLER_OID = OIDDB.X509Extensions.inverse("PolicyMappings")
 	_ASN1_MODEL = rfc5280.PolicyMappings
 	_PolicyMapping = collections.namedtuple("PolicyMapping", [ "issuer_policy", "subject_policy" ])

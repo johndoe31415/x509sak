@@ -107,6 +107,18 @@ class GeneratedSecurityAnalyzerTests(BaseAnalyzerTest):
 	def test_generated_malencoding_ext_IAN_wrong_type(self):
 		self._test_examine_x509test_resultcode("certs/generated/malencoding/ext_IAN_wrong_type.pem", expect_present = "X509Cert_Body_X509Exts_Ext_IAN_Malformed_UnexpectedType")
 
+	def test_generated_malencoding_ext_IAP_malformed(self):
+		self._test_examine_x509test_resultcode("certs/generated/malencoding/ext_IAP_malformed.pem", expect_present = "X509Cert_Body_X509Exts_Ext_IAP_Malformed_Undecodable")
+
+	def test_generated_malencoding_ext_IAP_non_der(self):
+		self._test_examine_x509test_resultcode("certs/generated/malencoding/ext_IAP_non_der.pem", expect_present = "X509Cert_Body_X509Exts_Ext_IAP_Malformed_NonDEREncoding")
+
+	def test_generated_malencoding_ext_IAP_trailing_data(self):
+		self._test_examine_x509test_resultcode("certs/generated/malencoding/ext_IAP_trailing_data.pem", expect_present = "X509Cert_Body_X509Exts_Ext_IAP_TrailingData")
+
+	def test_generated_malencoding_ext_IAP_wrong_type(self):
+		self._test_examine_x509test_resultcode("certs/generated/malencoding/ext_IAP_wrong_type.pem", expect_present = "X509Cert_Body_X509Exts_Ext_IAP_Malformed_UnexpectedType")
+
 	def test_generated_malencoding_ext_KU_malformed(self):
 		self._test_examine_x509test_resultcode("certs/generated/malencoding/ext_KU_malformed.pem", expect_present = "X509Cert_Body_X509Exts_Ext_KU_Malformed_Undecodable")
 

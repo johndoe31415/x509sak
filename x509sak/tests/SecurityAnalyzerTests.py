@@ -154,14 +154,12 @@ class SecurityAnalyzerTests(BaseAnalyzerTest):
 #	def test_examine_x509test_xf_ext_freshest_crl_critical(self):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-freshest-crl-critical.pem", "")
 #		self._test_examine_x509test_noparse("certs/x509test/xf-ext-freshest-crl-critical.pem")
-#
-#	def test_examine_x509test_xf_ext_inhibit_anypolicy_negative(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-inhibit-anypolicy-negative.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-inhibit-anypolicy-negative.pem")
-#
-#	def test_examine_x509test_xf_ext_inhibit_anypolicy_noncritical(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-inhibit-anypolicy-noncritical.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-inhibit-anypolicy-noncritical.pem")
+
+	def test_examine_x509test_xf_ext_inhibit_anypolicy_negative(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-inhibit-anypolicy-negative.pem", "X509Cert_Body_X509Exts_Ext_IAP_Malformed_UnexpectedType")
+
+	def test_examine_x509test_xf_ext_inhibit_anypolicy_noncritical(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-inhibit-anypolicy-noncritical.pem", "X509Cert_Body_X509Exts_Ext_IAP_NotCritical")
 
 	def test_examine_x509test_xf_ext_issuer_altname_critical(self):
 		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-issuer-altname-critical.pem", "X509Cert_Body_X509Exts_Ext_IAN_Critical")

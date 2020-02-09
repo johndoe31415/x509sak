@@ -104,6 +104,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		"X509SubjectAlternativeNameExtension": DERValidator.create_inherited("X509Cert_Body_X509Exts_Ext_SAN", validation_subject = "X.509 Subject Alternative Name extension"),
 		"X509SubjectKeyIdentifierExtension": DERValidator.create_inherited("X509Cert_Body_X509Exts_Ext_SKI", validation_subject = "X.509 Subject Key Identifier extension"),
 		"X509NameConstraintsExtension": DERValidator.create_inherited("X509Cert_Body_X509Exts_Ext_NC", validation_subject = "X.509 Name Constraints extension"),
+		"X509InhibitAnyPolicyExtension": DERValidator.create_inherited("X509Cert_Body_X509Exts_Ext_IAP", validation_subject = "X.509 Inhibit anyPolicy extension"),
 	}
 
 	_DER_VALIDATOR_CERT_POLICY_USERNOTICE = DERValidator(validation_subject = "X.509 extension Certificate Policy extension User Notice qualifier", recognized_issues = {
@@ -739,6 +740,15 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 
 		return judgements
 
+	def _judge_inhibit_any_policy(self, certificate):
+		judgements = SecurityJudgements()
+		iap_ext = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("X509Version3CertificateExtensionInhibitAnyPolicy"))
+		if iap_ext is not None:
+			if not iap_ext.critical:
+				standard = RFCReference(rfcno = 5280, sect = "4.2.1.14", verb = "MUST", text = "Conforming CAs MUST mark this extension as critical.")
+				judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_IAP_NotCritical, "The Inhibit anyPolicy X.509 extension is not marked as critical.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+		return judgements
+
 	def _judge_certificate_extension_encoding(self, certificate):
 		judgements = SecurityJudgements()
 		for extension in certificate.extensions:
@@ -746,8 +756,13 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 				validator = self._UNKNOWN_EXTENSION_ENCODING_VALIDATOR
 			else:
 				ext_class_name = extension.__class__.__name__
-				validator = self._EXTENSION_ENCODING_VALIDATORS[ext_class_name]
-			judgements += validator.validate(extension.detailed_asn1)
+				validator = self._EXTENSION_ENCODING_VALIDATORS.get(ext_class_name)
+				if validator is None:
+					# Encoding validation not implemented for this class. We
+					# could output the class name here if we wanted to.
+					pass
+			if validator is not None:
+				judgements += validator.validate(extension.detailed_asn1)
 		return judgements
 
 	def analyze(self, certificate):
@@ -775,6 +790,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		judgements += self._judge_crl_distribution_points(certificate)
 		judgements += self._judge_certificate_transparency_scts(certificate)
 		judgements += self._judge_certificate_transparency_poison(certificate)
+		judgements += self._judge_inhibit_any_policy(certificate)
 
 		return {
 			"individual":	individual,

@@ -27,19 +27,23 @@ from x509sak.BijectiveDict import BijectiveDict
 
 class CertGeneratorHelper():
 	_Exported_Extension_OIDs = BijectiveDict({
-		OIDDB.X509Extensions.inverse("SubjectKeyIdentifier"):		"SKI",
-		OIDDB.X509Extensions.inverse("KeyUsage"):					"KU",
-		OIDDB.X509Extensions.inverse("SubjectAlternativeName"):		"SAN",
-		OIDDB.X509Extensions.inverse("IssuerAlternativeName"):		"IAN",
-		OIDDB.X509Extensions.inverse("BasicConstraints"):			"BC",
-		OIDDB.X509Extensions.inverse("NameConstraints"):			"NC",
-		OIDDB.X509Extensions.inverse("CRLDistributionPoints"):		"CRLDP",
-		OIDDB.X509Extensions.inverse("CertificatePolicies"):		"CP",
-		OIDDB.X509Extensions.inverse("AuthorityKeyIdentifier"):		"AKI",
-#		OIDDB.X509Extensions.inverse("PolicyConstraints"):			"PC",
-		OIDDB.X509Extensions.inverse("ExtendedKeyUsage"):			"EKU",
-		OIDDB.X509Extensions.inverse("NetscapeCertificateType"):	"NSCT",
-		OIDDB.X509Extensions.inverse("id-pe-authorityInfoAccess"):	"AIA",
+		OIDDB.X509Extensions.inverse("SubjectKeyIdentifier"):								"SKI",
+		OIDDB.X509Extensions.inverse("KeyUsage"):											"KU",
+		OIDDB.X509Extensions.inverse("SubjectAlternativeName"):								"SAN",
+		OIDDB.X509Extensions.inverse("IssuerAlternativeName"):								"IAN",
+		OIDDB.X509Extensions.inverse("BasicConstraints"):									"BC",
+		OIDDB.X509Extensions.inverse("NameConstraints"):									"NC",
+		OIDDB.X509Extensions.inverse("CRLDistributionPoints"):								"CRLDP",
+		OIDDB.X509Extensions.inverse("CertificatePolicies"):								"CP",
+		OIDDB.X509Extensions.inverse("AuthorityKeyIdentifier"):								"AKI",
+		OIDDB.X509Extensions.inverse("PolicyConstraints"):									"PC",
+		OIDDB.X509Extensions.inverse("PolicyMappings"):										"PM",
+		OIDDB.X509Extensions.inverse("X509Version3CertificateExtensionInhibitAnyPolicy"):	"IAP",
+		OIDDB.X509Extensions.inverse("ExtendedKeyUsage"):									"EKU",
+		OIDDB.X509Extensions.inverse("NetscapeCertificateType"):							"NSCT",
+		OIDDB.X509Extensions.inverse("SubjectInformationAccess"):							"SIA",
+		OIDDB.X509Extensions.inverse("SubjectDirectoryAttributes"):							"SDA",
+		OIDDB.X509Extensions.inverse("id-pe-authorityInfoAccess"):							"AIA",
 	})
 
 	@classmethod
