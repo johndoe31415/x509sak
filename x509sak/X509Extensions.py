@@ -98,9 +98,10 @@ class X509ExtensionRegistry():
 		cls._DEFAULT_HANDLER = handler
 
 	@classmethod
-	def set_handler_class(cls, handler):
+	def install_handler_class(cls, handler):
 		oid = handler.get_handler_oid()
 		cls._KNOWN_EXTENSIONS[oid] = handler
+		return handler
 
 	@classmethod
 	def create(cls, oid, critical, data):
@@ -191,6 +192,8 @@ class X509Extension():
 		return "%s<%s = %s>" % (self.__class__.__name__, self.name, self.format_value)
 X509ExtensionRegistry.set_default_class(X509Extension)
 
+
+@X509ExtensionRegistry.install_handler_class
 class X509SubjectKeyIdentifierExtension(X509Extension):
 	_HANDLER_OID = OIDDB.X509Extensions.inverse("SubjectKeyIdentifier")
 	_ASN1_MODEL = rfc2459.SubjectKeyIdentifier
@@ -220,8 +223,9 @@ class X509SubjectKeyIdentifierExtension(X509Extension):
 			self._keyid = bytes(self.asn1)
 		else:
 			self._keyid = None
-X509ExtensionRegistry.set_handler_class(X509SubjectKeyIdentifierExtension)
 
+
+@X509ExtensionRegistry.install_handler_class
 class X509AuthorityKeyIdentifierExtension(X509Extension):
 	_HANDLER_OID = OIDDB.X509Extensions.inverse("AuthorityKeyIdentifier")
 	_ASN1_MODEL = rfc2459.AuthorityKeyIdentifier
@@ -275,9 +279,9 @@ class X509AuthorityKeyIdentifierExtension(X509Extension):
 			self._keyid = None
 			self._ca_names = None
 			self._serial = None
-X509ExtensionRegistry.set_handler_class(X509AuthorityKeyIdentifierExtension)
 
 
+@X509ExtensionRegistry.install_handler_class
 class X509BasicConstraintsExtension(X509Extension):
 	_HANDLER_OID = OIDDB.X509Extensions.inverse("BasicConstraints")
 	_ASN1_MODEL = rfc2459.BasicConstraints
@@ -300,9 +304,9 @@ class X509BasicConstraintsExtension(X509Extension):
 
 	def __repr__(self):
 		return "%s<CA = %s>" % (self.__class__.__name__, self.is_ca)
-X509ExtensionRegistry.set_handler_class(X509BasicConstraintsExtension)
 
 
+@X509ExtensionRegistry.install_handler_class
 class X509ExtendedKeyUsageExtension(X509Extension):
 	_HANDLER_OID = OIDDB.X509Extensions.inverse("ExtendedKeyUsage")
 	_ASN1_MODEL = rfc2459.ExtKeyUsageSyntax
@@ -331,9 +335,9 @@ class X509ExtendedKeyUsageExtension(X509Extension):
 
 	def __repr__(self):
 		return "%s<%s>" % (self.__class__.__name__, ", ".join(OIDDB.X509ExtendedKeyUsage.get(oid, str(oid)) for oid in sorted(self._oids)))
-X509ExtensionRegistry.set_handler_class(X509ExtendedKeyUsageExtension)
 
 
+@X509ExtensionRegistry.install_handler_class
 class X509SubjectAlternativeNameExtension(X509Extension):
 	_HANDLER_OID = OIDDB.X509Extensions.inverse("SubjectAlternativeName")
 	_ASN1_MODEL = rfc5280.SubjectAltName
@@ -357,15 +361,15 @@ class X509SubjectAlternativeNameExtension(X509Extension):
 
 	def __repr__(self):
 		return "%s<%s>" % (self.__class__.__name__, ", ".join(str(asn1name) for asn1name in self._known_names))
-X509ExtensionRegistry.set_handler_class(X509SubjectAlternativeNameExtension)
 
 
+@X509ExtensionRegistry.install_handler_class
 class X509IssuerAlternativeNameExtension(X509SubjectAlternativeNameExtension):
 	_HANDLER_OID = OIDDB.X509Extensions.inverse("IssuerAlternativeName")
 	_ASN1_MODEL = rfc5280.IssuerAltName
-X509ExtensionRegistry.set_handler_class(X509IssuerAlternativeNameExtension)
 
 
+@X509ExtensionRegistry.install_handler_class
 class X509KeyUsageExtension(X509Extension):
 	_HANDLER_OID = OIDDB.X509Extensions.inverse("KeyUsage")
 	_ASN1_MODEL = rfc5280.KeyUsage
@@ -423,9 +427,9 @@ class X509KeyUsageExtension(X509Extension):
 			return "%s<%s>" % (self.__class__.__name__, ", ".join(sorted(self._flags)))
 		else:
 			return "%s<flags unparsable>" % (self.__class__.__name__)
-X509ExtensionRegistry.set_handler_class(X509KeyUsageExtension)
 
 
+@X509ExtensionRegistry.install_handler_class
 class X509NetscapeCertificateTypeExtension(X509Extension):
 	_HANDLER_OID = OIDDB.X509Extensions.inverse("NetscapeCertificateType")
 	_ASN1_MODEL = ASN1Models.NetscapeCertificateType
@@ -452,9 +456,9 @@ class X509NetscapeCertificateTypeExtension(X509Extension):
 
 	def __repr__(self):
 		return "%s<%s>" % (self.__class__.__name__, ", ".join(sorted(self._flags)))
-X509ExtensionRegistry.set_handler_class(X509NetscapeCertificateTypeExtension)
 
 
+@X509ExtensionRegistry.install_handler_class
 class X509AuthorityInformationAccessExtension(X509Extension):
 	_HANDLER_OID = OIDDB.X509Extensions.inverse("id-pe-authorityInfoAccess")
 	_ASN1_MODEL = rfc5280.AuthorityInfoAccessSyntax
@@ -473,8 +477,9 @@ class X509AuthorityInformationAccessExtension(X509Extension):
 
 	def __repr__(self):
 		return "%s<%s>" % (self.__class__.__name__, ", ".join(str(oid) for (oid, location) in self._methods))
-X509ExtensionRegistry.set_handler_class(X509AuthorityInformationAccessExtension)
 
+
+@X509ExtensionRegistry.install_handler_class
 class X509CertificatePoliciesExtension(X509Extension):
 	_HANDLER_OID = OIDDB.X509Extensions.inverse("CertificatePolicies")
 	_ASN1_MODEL = rfc5280.CertificatePolicies
@@ -527,8 +532,9 @@ class X509CertificatePoliciesExtension(X509Extension):
 
 	def __repr__(self):
 		return "%s<%s>" % (self.__class__.__name__, ", ".join(str(oid) for (oid, qualifiers) in self._policies))
-X509ExtensionRegistry.set_handler_class(X509CertificatePoliciesExtension)
 
+
+@X509ExtensionRegistry.install_handler_class
 class X509CRLDistributionPointsExtension(X509Extension):
 	_HANDLER_OID = OIDDB.X509Extensions.inverse("CRLDistributionPoints")
 	_ASN1_MODEL = rfc5280.CRLDistributionPoints
@@ -601,9 +607,9 @@ class X509CRLDistributionPointsExtension(X509Extension):
 			return "%s<%s>" % (self.__class__.__name__, ", ".join(str(point) for point in self.points))
 		else:
 			return "%s<malformed>" % (self.__class__.__name__)
-X509ExtensionRegistry.set_handler_class(X509CRLDistributionPointsExtension)
 
 
+@X509ExtensionRegistry.install_handler_class
 class X509CertificateTransparencySCTsExtension(X509Extension):
 	_HANDLER_OID = OIDDB.X509Extensions.inverse("CertificateTransparency")
 	_ASN1_MODEL = pyasn1.type.univ.OctetString
@@ -628,18 +634,18 @@ class X509CertificateTransparencySCTsExtension(X509Extension):
 
 	def __repr__(self):
 		return "%s<%s>" % (self.__class__.__name__, str(self.payload))
-X509ExtensionRegistry.set_handler_class(X509CertificateTransparencySCTsExtension)
 
 
+@X509ExtensionRegistry.install_handler_class
 class X509CertificateTransparencyPrecertificatePoisonExtension(X509Extension):
 	_HANDLER_OID = OIDDB.X509Extensions.inverse("CertificateTransparencyPrecertificatePoison")
 	_ASN1_MODEL = pyasn1.type.univ.Null
 
 	def __repr__(self):
 		return "%s<%s>" % (self.__class__.__name__, "malformed" if (self.asn1 is None) else "OK")
-X509ExtensionRegistry.set_handler_class(X509CertificateTransparencyPrecertificatePoisonExtension)
 
 
+@X509ExtensionRegistry.install_handler_class
 class X509NameConstraintsExtension(X509Extension):
 	_HANDLER_OID = OIDDB.X509Extensions.inverse("NameConstraints")
 	_ASN1_MODEL = rfc5280.NameConstraints
@@ -677,4 +683,3 @@ class X509NameConstraintsExtension(X509Extension):
 
 	def __repr__(self):
 		return "%s<permitted = %s, excluded = %s>" % (self.__class__.__name__, self.permitted_subtrees, self.excluded_subtrees)
-X509ExtensionRegistry.set_handler_class(X509NameConstraintsExtension)
