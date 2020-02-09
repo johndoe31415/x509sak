@@ -291,19 +291,6 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 			elif (aki.ca_names is not None) and (aki.serial is None):
 				standard = RFCReference(rfcno = 5280, sect = "A.2", verb = "MUST", text = "authorityCertIssuer and authorityCertSerialNumber MUST both be present or both be absent")
 				judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_AKI_CAnameWithoutSerial, "AuthorityKeyIdentifier X.509 extension contains CA issuer, but no CA serial number.", compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
-
-# TODO this code seems to be duplicate with EstimateCARelation.py
-#			if root_cert is not None:
-#				root_ski = root_cert.extensions.get_first(OIDDB.X509Extensions.inverse("SubjectKeyIdentifier"))
-#				if root_ski is None:
-#					judgements += SecurityJudgement(JudgementCode.CertUsage_CARelationship_AKI_KeyID_Uncheckable, "AuthorityKeyIdentifier X.509 extension present, but given root certificate does not contain any subject key identifier.", commonness = Commonness.HIGHLY_UNUSUAL)
-#				else:
-#					if (aki.keyid is not None) and (aki.keyid != root_ski.keyid):
-#						standard = RFCReference(rfcno = 5280, sect = "4.2.1.1", verb = "MUST", text = "The authority key identifier extension provides a means of identifying the public key corresponding to the private key used to sign a certificate.")
-#						judgements += SecurityJudgement(JudgementCode.CertUsage_CARelationship_AKI_KeyID_Mismatch, "AuthorityKeyIdentifier X.509 extension refers to authority key ID %s, but CA has key ID %s as their SubjectKeyIdentifier." % (aki.keyid.hex(), root_ski.keyid.hex()), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard, commonness = Commonness.HIGHLY_UNUSUAL)
-#					if (aki.serial is not None) and (aki.serial != root_cert.serial):
-#						standard = RFCReference(rfcno = 5280, sect = "4.2.1.1", verb = "MUST", text = "The authority key identifier extension provides a means of identifying the public key corresponding to the private key used to sign a certificate.")
-#						judgements += SecurityJudgement(JudgementCode.CertUsage_CARelationship_AKI_Serial_Mismatch, "AuthorityKeyIdentifier X.509 extension refers to CA certificate with serial number 0x%x, but given CA has serial number 0x%x." % (aki.serial, root_cert.serial), compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard, commonness = Commonness.HIGHLY_UNUSUAL)
 		return judgements
 
 	def _judge_name_constraints(self, certificate):
