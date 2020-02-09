@@ -261,6 +261,15 @@
 						"_label": "IAP",
 						"_import": [ "+asn1_encoding_issues/*", "x509_ext_checks/*:notcritical{name=IAP}" ],
 						"_topic": "X.509 Inhibit anyPolicy Extension"
+					},
+					"Policy Mappings": {
+						"_label": "PM",
+						"_import": [ "+asn1_encoding_issues/*", "x509_ext_checks/*:notcritical{name=PM}" ],
+						"_topic": "X.509 Policy Mappings Extension",
+						"Empty": { "_desc": "no mappings present" },
+						"Unreferenced": { "_desc": "issuer policy mapping not included as policy" },
+						"From AnyPolicy": { "_desc": "mapping from anyPolicy" },
+						"To AnyPolicy": { "_desc": "mapping to anyPolicy" }
 					}
 				},
 				"Unknown Extension": {

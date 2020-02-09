@@ -105,6 +105,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		"X509SubjectKeyIdentifierExtension": DERValidator.create_inherited("X509Cert_Body_X509Exts_Ext_SKI", validation_subject = "X.509 Subject Key Identifier extension"),
 		"X509NameConstraintsExtension": DERValidator.create_inherited("X509Cert_Body_X509Exts_Ext_NC", validation_subject = "X.509 Name Constraints extension"),
 		"X509InhibitAnyPolicyExtension": DERValidator.create_inherited("X509Cert_Body_X509Exts_Ext_IAP", validation_subject = "X.509 Inhibit anyPolicy extension"),
+		"X509PolicyMappingsExtension": DERValidator.create_inherited("X509Cert_Body_X509Exts_Ext_PM", validation_subject = "X.509 Policy Mappings extension"),
 	}
 
 	_DER_VALIDATOR_CERT_POLICY_USERNOTICE = DERValidator(validation_subject = "X.509 extension Certificate Policy extension User Notice qualifier", recognized_issues = {
@@ -749,6 +750,40 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 				judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_IAP_NotCritical, "The Inhibit anyPolicy X.509 extension is not marked as critical.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
 		return judgements
 
+	def _judge_policy_mappings(self, certificate):
+		judgements = SecurityJudgements()
+		pm_ext = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("PolicyMappings"))
+		if pm_ext is not None:
+			if not pm_ext.critical:
+				standard = RFCReference(rfcno = 5280, sect = "4.2.1.5", verb = "SHOULD", text = "Conforming CAs SHOULD mark this extension as critical.")
+				judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_PM_NotCritical, "The Policy Mappings X.509 extension is not marked as critical.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+
+			if pm_ext.asn1 is not None:
+				if len(pm_ext.mappings) == 0:
+					standard = RFCReference(rfcno = 5280, sect = "4.2.1.5", verb = "MUST", text = "PolicyMappings ::= SEQUENCE SIZE (1..MAX) OF SEQUENCE")
+					judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_PM_Empty, "The Policy Mappings X.509 extension contains no mappings.", commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+
+				cp_ext = certificate.extensions.get_first(OIDDB.X509Extensions.inverse("CertificatePolicies"))
+				if cp_ext is not None:
+					present_policies = set(cp_ext.policy_oids)
+				else:
+					present_policies = set()
+
+				any_policy = OIDDB.X509ExtensionCertificatePolicy.inverse("anyPolicy")
+				for (map_no, mapping) in enumerate(pm_ext.mappings, 1):
+					if mapping.issuer_policy == any_policy:
+						standard = RFCReference(rfcno = 5280, sect = "4.2.1.5", verb = "MUST", text = "Policies MUST NOT be mapped either to or from the special value anyPolicy")
+						judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_PM_FromAnyPolicy, "The Policy Mappings X.509 extension contains mapping #%d which maps from the anyPolicy to %s." % (map_no, mapping.subject_policy), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+					if mapping.subject_policy == any_policy:
+						standard = RFCReference(rfcno = 5280, sect = "4.2.1.5", verb = "MUST", text = "Policies MUST NOT be mapped either to or from the special value anyPolicy")
+						judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_PM_ToAnyPolicy, "The Policy Mappings X.509 extension contains mapping #%d which maps from %s to the anyPolicy." % (map_no, mapping.issuer_policy), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+
+					if mapping.issuer_policy not in present_policies:
+						standard = RFCReference(rfcno = 5280, sect = "4.2.1.5", verb = "SHOULD", text = "Each issuerDomainPolicy named in the policy mappings extension SHOULD also be asserted in a certificate policies extension in the same certificate.")
+						error_msg = "." if (cp_ext is not None) else "; there is no Certificate Policies extension present at all."
+						judgements += SecurityJudgement(JudgementCode.X509Cert_Body_X509Exts_Ext_PM_Unreferenced, "The Policy Mappings X.509 extension contains mapping #%d which maps from policy %s. This policy is not referenced within the certificate%s" % (map_no, mapping.issuer_policy, error_msg), commonness = Commonness.HIGHLY_UNUSUAL, compatibility = Compatibility.STANDARDS_DEVIATION, standard = standard)
+		return judgements
+
 	def _judge_certificate_extension_encoding(self, certificate):
 		judgements = SecurityJudgements()
 		for extension in certificate.extensions:
@@ -791,6 +826,7 @@ class CrtExtensionsSecurityEstimator(BaseEstimator):
 		judgements += self._judge_certificate_transparency_scts(certificate)
 		judgements += self._judge_certificate_transparency_poison(certificate)
 		judgements += self._judge_inhibit_any_policy(certificate)
+		judgements += self._judge_policy_mappings(certificate)
 
 		return {
 			"individual":	individual,

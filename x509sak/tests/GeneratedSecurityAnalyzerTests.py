@@ -155,6 +155,18 @@ class GeneratedSecurityAnalyzerTests(BaseAnalyzerTest):
 	def test_generated_malencoding_ext_NSCT_wrong_type(self):
 		self._test_examine_x509test_resultcode("certs/generated/malencoding/ext_NSCT_wrong_type.pem", expect_present = "X509Cert_Body_X509Exts_Ext_NSCT_Malformed_UnexpectedType")
 
+	def test_generated_malencoding_ext_PM_malformed(self):
+		self._test_examine_x509test_resultcode("certs/generated/malencoding/ext_PM_malformed.pem", expect_present = "X509Cert_Body_X509Exts_Ext_PM_Malformed_Undecodable")
+
+	def test_generated_malencoding_ext_PM_non_der(self):
+		self._test_examine_x509test_resultcode("certs/generated/malencoding/ext_PM_non_der.pem", expect_present = "X509Cert_Body_X509Exts_Ext_PM_Malformed_NonDEREncoding")
+
+	def test_generated_malencoding_ext_PM_trailing_data(self):
+		self._test_examine_x509test_resultcode("certs/generated/malencoding/ext_PM_trailing_data.pem", expect_present = "X509Cert_Body_X509Exts_Ext_PM_TrailingData")
+
+	def test_generated_malencoding_ext_PM_wrong_type(self):
+		self._test_examine_x509test_resultcode("certs/generated/malencoding/ext_PM_wrong_type.pem", expect_present = "X509Cert_Body_X509Exts_Ext_PM_Malformed_UnexpectedType")
+
 	def test_generated_malencoding_ext_SAN_malformed(self):
 		self._test_examine_x509test_resultcode("certs/generated/malencoding/ext_SAN_malformed.pem", expect_present = "X509Cert_Body_X509Exts_Ext_SAN_Malformed_Undecodable")
 

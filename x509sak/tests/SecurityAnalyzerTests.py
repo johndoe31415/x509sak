@@ -207,27 +207,22 @@ class SecurityAnalyzerTests(BaseAnalyzerTest):
 #	def test_examine_x509test_xf_ext_policy_constraint_noncrit(self):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-policy-constraint-noncrit.pem", "")
 #		self._test_examine_x509test_noparse("certs/x509test/xf-ext-policy-constraint-noncrit.pem")
-#
-#	def test_examine_x509test_xf_ext_policy_map_empty(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-policy-map-empty.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-policy-map-empty.pem")
-#
-#	def test_examine_x509test_xf_ext_policy_map_from_any(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-policy-map-from-any.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-policy-map-from-any.pem")
-#
-#	def test_examine_x509test_xf_ext_policy_map_noncritical(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-policy-map-noncritical.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-policy-map-noncritical.pem")
-#
-#	def test_examine_x509test_xf_ext_policy_map_to_any(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-policy-map-to-any.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-policy-map-to-any.pem")
-#
-#	def test_examine_x509test_xf_ext_policy_map_unref(self):
-#		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-policy-map-unref.pem", "")
-#		self._test_examine_x509test_noparse("certs/x509test/xf-ext-policy-map-unref.pem")
-#
+
+	def test_examine_x509test_xf_ext_policy_map_empty(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-policy-map-empty.pem", "X509Cert_Body_X509Exts_Ext_PM_Empty")
+
+	def test_examine_x509test_xf_ext_policy_map_from_any(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-policy-map-from-any.pem", "X509Cert_Body_X509Exts_Ext_PM_FromAnyPolicy")
+
+	def test_examine_x509test_xf_ext_policy_map_noncritical(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-policy-map-noncritical.pem", "X509Cert_Body_X509Exts_Ext_PM_NotCritical")
+
+	def test_examine_x509test_xf_ext_policy_map_to_any(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-policy-map-to-any.pem", "X509Cert_Body_X509Exts_Ext_PM_ToAnyPolicy")
+
+	def test_examine_x509test_xf_ext_policy_map_unref(self):
+		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-policy-map-unref.pem", "X509Cert_Body_X509Exts_Ext_PM_Unreferenced")
+
 #	def test_examine_x509test_xf_ext_subject_dirattr_critical(self):
 #		self._test_examine_x509test_resultcode("certs/x509test/xf-ext-subject-dirattr-critical.pem", "")
 #		self._test_examine_x509test_noparse("certs/x509test/xf-ext-subject-dirattr-critical.pem")
