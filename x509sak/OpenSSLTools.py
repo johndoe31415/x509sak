@@ -171,6 +171,7 @@ class OpenSSLTools():
 		with WorkDir(ca_manager.capath), tempfile.NamedTemporaryFile("w", prefix = "config_", suffix = ".cnf") as config_file:
 			openssl_config.write_to(config_file.name)
 			cmd = [ cls._EXECUTABLE, "ca", "-revoke", crt_absfilename ]
+			cmd += cls._privkey_option(ca_manager.private_key_storage, key_option = "keyfile")
 			SubprocessExecutor(cmd, env = { "OPENSSL_CONF": config_file.name }).run()
 
 	@classmethod
