@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2020 Johannes Bauer
+#	Copyright (C) 2018-2021 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -156,7 +156,7 @@ class X509Certificate(PEMDERObject):
 			potential_issuer.write_pemfile(issuer.name)
 
 			cmd = [ "openssl", "verify", "-CApath", emptydir ]
-			cmd += [ "-check_ss_sig", "-CAfile", issuer.name, subject.name ]
+			cmd += [ "-no_check_time", "-check_ss_sig", "-CAfile", issuer.name, subject.name ]
 			result = SubprocessExecutor(cmd, on_failure = "pass").run()
 			if result.successful:
 				return True
