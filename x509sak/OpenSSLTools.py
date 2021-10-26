@@ -237,7 +237,10 @@ class OpenSSLTools():
 			issuer_certificate.write_pemfile(issuer.name)
 
 			cmd = [ "openssl", "verify", "-CApath", emptydir ]
-			cmd += [ "-no_check_time" ]
+
+			print(cls.openssl_version())
+			if cls.openssl_version() >= (1, 1, 0, ""):
+				cmd += [ "-no_check_time" ]
 			cmd += [ "-check_ss_sig", "-CAfile", issuer.name, subject.name ]
 			result = SubprocessExecutor(cmd, on_failure = "pass").run()
 			if result.successful:
