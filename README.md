@@ -17,7 +17,7 @@ Syntax: ./x509sak.py [command] [options]
 
 Available commands:
 
-version: x509sak v0.0.1
+version: x509sak v0.0.2
 
 Options vary from command to command. To receive further info, type
     ./x509sak.py [command] --help

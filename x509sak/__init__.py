@@ -24,4 +24,4 @@ from .X509Certificate import X509Certificate
 from .CertificatePool import CertificatePool
 from .CAManager import CAManager
 
-VERSION = "0.0.2-pre"
+VERSION = "0.0.2"
