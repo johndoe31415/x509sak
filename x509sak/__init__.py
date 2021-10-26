@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2018 Johannes Bauer
+#	Copyright (C) 2018-2021 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -24,4 +24,4 @@ from .X509Certificate import X509Certificate
 from .CertificatePool import CertificatePool
 from .CAManager import CAManager
 
-VERSION = "0.0.1"
+VERSION = "0.0.2-pre"
