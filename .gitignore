@@ -12,3 +12,6 @@ htmlcov
 .examinecert_stats.json
 test_corpus_failures
 test_corpus_results.sqlite3
+x509sak.egg-info
+dist
+build
