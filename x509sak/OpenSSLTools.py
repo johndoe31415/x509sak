@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2019 Johannes Bauer
+#	Copyright (C) 2018-2021 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -29,12 +29,12 @@ from x509sak.WorkDir import WorkDir
 from x509sak.OpenSSLConfig import OpenSSLConfig
 from x509sak.TempUMask import TempUMask
 from x509sak.AlgorithmDB import Cryptosystems
-from x509sak.X509Certificate import X509Certificate
 
 class OpenSSLTools():
 	_EXECUTABLE = "openssl"
 	_CACHED_VERSION = None
 	_VERSION_RE = re.compile(r"^OpenSSL (?P<major>\d+)\.(?P<minor>\d+)\.(?P<fix>\d+)(?P<patch>[a-z])?")
+	_CERT_VERIFY_REGEX = re.compile(r"error (?P<error_code>\d+) at (?P<depth>\d+) depth lookup:(?P<reason>.*)")
 
 	@classmethod
 	def openssl_version(cls):
@@ -226,7 +226,38 @@ class OpenSSLTools():
 			return output
 
 	@classmethod
-	def get_tls_server_cert(cls, hostname, port = 443):
+	def get_tls_server_cert_pem(cls, hostname, port = 443):
 		result = SubprocessExecutor([ cls._EXECUTABLE, "s_client", "-connect", "%s:%d" % (hostname, port), "-servername", hostname ]).run()
-		certificates = X509Certificate.from_pem_data(result.stdout.decode())
-		return certificates[0]
+		return result.stdout.decode()
+
+	@classmethod
+	def	validate_signature(cls, issuer_certificate, subject_certificate, verbose_failure = False):
+		with tempfile.NamedTemporaryFile(prefix = "subject_", suffix = ".crt") as subject, tempfile.NamedTemporaryFile(prefix = "issuer_", suffix = ".crt") as issuer, tempfile.TemporaryDirectory(prefix = "empty") as emptydir:
+			subject_certificate.write_pemfile(subject.name)
+			issuer_certificate.write_pemfile(issuer.name)
+
+			cmd = [ "openssl", "verify", "-CApath", emptydir ]
+			cmd += [ "-no_check_time" ]
+			cmd += [ "-check_ss_sig", "-CAfile", issuer.name, subject.name ]
+			result = SubprocessExecutor(cmd, on_failure = "pass").run()
+			if result.successful:
+				return True
+			else:
+				# Maybe the certificate signature was okay, but the complete
+				# chain couldn't be established. This would still count as a
+				# successful verification, however.
+				match = cls._CERT_VERIFY_REGEX.search(result.stdouterr_text)
+				if match:
+					match = match.groupdict()
+					(error_code, depth) = (int(match["error_code"]), int(match["depth"]))
+					chain_valid = (error_code == 2) and (depth == 1)
+					if (not chain_valid) and verbose_failure:
+						print("Certificate verification error, error_code %d, depth = %d. %s not signed by %s." % (error_code, depth, subject_certificate, issuer_certificate))
+						result.dump()
+					return chain_valid
+				else:
+					# If in doubt, reject.
+					if verbose_failure:
+						print("Certificate verification error. %s not signed by %s." % (subject_certificate, issuer_certificate))
+						result.dump()
+					return False

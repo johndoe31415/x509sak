@@ -19,7 +19,6 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-import re
 import logging
 import datetime
 import tempfile
@@ -35,6 +34,7 @@ from x509sak.OID import OID, OIDDB
 from x509sak.PublicKey import PublicKey
 from x509sak.X509Extensions import X509ExtensionRegistry, X509Extensions
 from x509sak.Exceptions import UnknownAlgorithmException
+from x509sak.OpenSSLTools import OpenSSLTools
 
 _log = logging.getLogger("x509sak.X509Certificate")
 
@@ -49,7 +49,6 @@ class X509CertificateClass(enum.IntEnum):
 class X509Certificate(PEMDERObject):
 	_PEM_MARKER = "CERTIFICATE"
 	_ASN1_MODEL = rfc2459.Certificate
-	_CERT_VERIFY_REGEX = re.compile(r"error (?P<error_code>\d+) at (?P<depth>\d+) depth lookup:(?P<reason>.*)")
 
 	def _post_decode_hook(self):
 		self._extensions = None
@@ -151,34 +150,7 @@ class X509Certificate(PEMDERObject):
 		return self.signed_by(self)
 
 	def signed_by(self, potential_issuer, verbose_failure = False):
-		with tempfile.NamedTemporaryFile(prefix = "subject_", suffix = ".crt") as subject, tempfile.NamedTemporaryFile(prefix = "issuer_", suffix = ".crt") as issuer, tempfile.TemporaryDirectory(prefix = "empty") as emptydir:
-			self.write_pemfile(subject.name)
-			potential_issuer.write_pemfile(issuer.name)
-
-			cmd = [ "openssl", "verify", "-CApath", emptydir ]
-			cmd += [ "-no_check_time", "-check_ss_sig", "-CAfile", issuer.name, subject.name ]
-			result = SubprocessExecutor(cmd, on_failure = "pass").run()
-			if result.successful:
-				return True
-			else:
-				# Maybe the certificate signature was okay, but the complete
-				# chain couldn't be established. This would still count as a
-				# successful verification, however.
-				match = self._CERT_VERIFY_REGEX.search(result.stdouterr_text)
-				if match:
-					match = match.groupdict()
-					(error_code, depth) = (int(match["error_code"]), int(match["depth"]))
-					chain_valid = (error_code == 2) and (depth == 1)
-					if (not chain_valid) and verbose_failure:
-						print("Certificate verification error, error_code %d, depth = %d. %s not signed by %s." % (error_code, depth, self, potential_issuer))
-						result.dump()
-					return chain_valid
-				else:
-					# If in doubt, reject.
-					if verbose_failure:
-						print("Certificate verification error. %s not signed by %s." % (self, potential_issuer))
-						result.dump()
-					return False
+		return OpenSSLTools.validate_signature(subject_certificate = self, issuer_certificate = potential_issuer, verbose_failure = verbose_failure)
 
 	def dump_pem(self, f = None):
 		print("# Subject : %s" % (self.subject.pretty_str), file = f)
@@ -226,6 +198,12 @@ class X509Certificate(PEMDERObject):
 				elif server:
 					return X509CertificateClass.ServerAuth
 			return X509CertificateClass.Other
+
+	@classmethod
+	def from_tls_server(cls, hostname, port = 443):
+		pem_data = OpenSSLTools.get_tls_server_cert_pem(hostname = hostname, port = port)
+		certificates = cls.from_pem_data(pem_data)
+		return certificates[0]
 
 	def dump(self):
 		print("Subject:")

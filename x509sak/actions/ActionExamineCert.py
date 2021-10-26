@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2019 Johannes Bauer
+#	Copyright (C) 2018-2021 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -84,7 +84,7 @@ class ActionExamineCert(BaseAction):
 				(host, port) = host_port
 				port = int(port)
 				self._log.debug("Querying TLS server at %s port %d", host, port)
-				crts = [ OpenSSLTools.get_tls_server_cert(host, port) ]
+				crts = [ X509Certificate.from_tls_server(host, port) ]
 			else:
 				raise NotImplementedError(self._args.in_format)
 			source = CertificateAnalyzer.CertSource(source = crt_filename, crts = crts, source_type = self._args.in_format)
