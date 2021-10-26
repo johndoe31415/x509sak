@@ -231,14 +231,12 @@ class OpenSSLTools():
 		return result.stdout.decode()
 
 	@classmethod
-	def	validate_signature(cls, issuer_certificate, subject_certificate, verbose_failure = False):
+	def validate_signature(cls, issuer_certificate, subject_certificate, verbose_failure = False):
 		with tempfile.NamedTemporaryFile(prefix = "subject_", suffix = ".crt") as subject, tempfile.NamedTemporaryFile(prefix = "issuer_", suffix = ".crt") as issuer, tempfile.TemporaryDirectory(prefix = "empty") as emptydir:
 			subject_certificate.write_pemfile(subject.name)
 			issuer_certificate.write_pemfile(issuer.name)
 
 			cmd = [ "openssl", "verify", "-CApath", emptydir ]
-
-			print(cls.openssl_version())
 			if cls.openssl_version() >= (1, 1, 0, ""):
 				cmd += [ "-no_check_time" ]
 			cmd += [ "-check_ss_sig", "-CAfile", issuer.name, subject.name ]
