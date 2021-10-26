@@ -1,22 +1,22 @@
 #!/usr/bin/python3
 #
 #	MultiCommand - Provide an openssl-style multi-command abstraction
-#	Copyright (C) 2011-2019 Johannes Bauer
+#	Copyright (C) 2011-2021 Johannes Bauer
 #
-#	This file is part of jpycommon.
+#	This file is part of pycommon.
 #
-#	jpycommon is free software; you can redistribute it and/or modify
+#	pycommon is free software; you can redistribute it and/or modify
 #	it under the terms of the GNU General Public License as published by
 #	the Free Software Foundation; this program is ONLY licensed under
 #	version 3 of the License, later versions are explicitly excluded.
 #
-#	jpycommon is distributed in the hope that it will be useful,
+#	pycommon is distributed in the hope that it will be useful,
 #	but WITHOUT ANY WARRANTY; without even the implied warranty of
 #	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #	GNU General Public License for more details.
 #
 #	You should have received a copy of the GNU General Public License
-#	along with jpycommon; if not, write to the Free Software
+#	along with pycommon; if not, write to the Free Software
 #	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
@@ -32,12 +32,13 @@ from .PrefixMatcher import PrefixMatcher
 
 class MultiCommand():
 	RegisteredCommand = collections.namedtuple("RegisteredCommand", [ "name", "description", "parsergenerator", "action", "aliases", "visible" ])
-	ParseResult = collections.namedtuple("ParseResults", [ "command", "effective_cmd", "supplied_cmd", "args" ])
+	ParseResult = collections.namedtuple("ParseResults", [ "cmd", "args" ])
 
-	def __init__(self):
+	def __init__(self, trailing_text = None):
 		self._commands = { }
 		self._aliases = { }
 		self._cmdorder = [ ]
+		self._trailing_text = trailing_text
 
 	def register(self, commandname, description, parsergenerator, **kwargs):
 		supported_kwargs = set(("aliases", "action", "visible"))
@@ -73,6 +74,10 @@ class MultiCommand():
 				print("    %-15s    %s" % (commandname_line, description_line))
 				commandname_line = ""
 		print(file = sys.stderr)
+		if self._trailing_text is not None:
+			for line in textwrap.wrap(self._trailing_text, width = 80):
+				print(line, file = sys.stderr)
+			print(file = sys.stderr)
 		print("Options vary from command to command. To receive further info, type", file = sys.stderr)
 		print("    %s [command] --help" % (sys.argv[0]), file = sys.stderr)
 
@@ -98,23 +103,21 @@ class MultiCommand():
 			self._raise_error("Invalid command supplied: %s" % (str(e)))
 
 		if supplied_cmd in self._aliases:
-			effective_cmd = self._aliases[supplied_cmd]
-		else:
-			effective_cmd = supplied_cmd
+			supplied_cmd = self._aliases[supplied_cmd]
 
-		command = self._commands[effective_cmd]
+		command = self._commands[supplied_cmd]
 		parser = FriendlyArgumentParser(prog = sys.argv[0] + " " + command.name, description = command.description, add_help = False)
 		command.parsergenerator(parser)
 		parser.add_argument("--help", action = "help", help = "Show this help page.")
 		parser.setsilenterror(silent)
 		args = parser.parse_args(cmdline[1:])
-		return self.ParseResult(command = command, effective_cmd = effective_cmd, supplied_cmd = supplied_cmd, args = args)
+		return self.ParseResult(command, args)
 
 	def run(self, cmdline, silent = False):
 		parseresult = self.parse(cmdline, silent)
-		if parseresult.command.action is None:
-			raise Exception("Should run command '%s', but no action was registered." % (parseresult.command.name))
-		parseresult.command.action(parseresult.supplied_cmd, parseresult.args)
+		if parseresult.cmd.action is None:
+			raise Exception("Should run command '%s', but no action was registered." % (parseresult.cmd.name))
+		parseresult.cmd.action(parseresult.cmd.name, parseresult.args)
 
 if __name__ == "__main__":
 	mc = MultiCommand()

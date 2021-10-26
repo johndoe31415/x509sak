@@ -23,6 +23,7 @@ import os
 import sys
 import logging
 import traceback
+import x509sak
 from x509sak.actions.ActionBuildChain import ActionBuildChain
 from x509sak.actions.ActionGraphPool import ActionGraphPool
 from x509sak.actions.ActionFindCert import ActionFindCert
@@ -64,7 +65,7 @@ def main():
 	if "X509SAK_PAUSE_BEFORE_EXECUTION" in os.environ:
 		SubprocessExecutor.pause_before_execution()
 
-	mc = MultiCommand()
+	mc = MultiCommand(trailing_text = "version: x509sak v%s" % (x509sak.VERSION))
 
 	def genparser(parser):
 		parser.add_argument("-s", "--ca-source", metavar = "path", action = "append", default = [ ], help = "CA file (PEM format) or directory (containing .pem/.crt files) to include when building the chain. Can be specified multiple times to include multiple locations.")
