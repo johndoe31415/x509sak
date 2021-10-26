@@ -1,4 +1,3 @@
-recursive-include x509sak/tests/data *
 recursive-include x509sak/data *
 
 recursive-exclude x509sak *.pyc

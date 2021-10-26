@@ -1,4 +1,5 @@
 import setuptools
+import x509sak
 
 with open("README.md") as f:
 	long_description = f.read()
@@ -6,7 +7,7 @@ with open("README.md") as f:
 setuptools.setup(
 	name = "x509sak",
 	packages = setuptools.find_packages(),
-	version = "0.0.2",
+	version = x509sak.VERSION,
 	license = "gpl-3.0",
 	description = "X.509 Swiss Army Knife is a toolkit atop OpenSSL to ease generation of CAs and aid white-hat pentesting",
 	long_description = long_description,
@@ -14,7 +15,7 @@ setuptools.setup(
 	author = "Johannes Bauer",
 	author_email = "joe@johannes-bauer.com",
 	url = "https://github.com/johndoe31415/x509sak",
-	download_url = "https://github.com/johndoe31415/x509sak/archive/v0.0.2.tar.gz",
+	download_url = "https://github.com/johndoe31415/x509sak/archive/v" + x509sak.VERSION + ".tar.gz",
 	keywords = [ "x509", "certificate", "toolkit", "openssl", "pki", "pentesting", "pkcs11", "ca" ],
 	install_requires = [
 		"pyasn1",
