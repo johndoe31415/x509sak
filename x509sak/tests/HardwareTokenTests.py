@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2019 Johannes Bauer
+#	Copyright (C) 2018-2021 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -148,3 +148,25 @@ class HardwareTokenTests(BaseTest):
 
 			# Verify the child certificate is valid
 			SubprocessExecutor([ "openssl", "verify", "-check_ss_sig", "-CAfile", "root_ca/CA.crt", "client.crt" ]).run()
+
+	def test_revoke_certificate(self):
+		with SoftHSMInstance() as hsm, tempfile.TemporaryDirectory() as tempdir, WorkDir(tempdir):
+			key_name = hsm.keygen(key_id = 1, key_label = "CA_key", key_spec = "EC:secp256r1")
+
+			# Create root certificate with key in SoftHSM
+			self._run_x509sak([ "createca", "-s", "/CN=Root CA with key in HSM", "--pkcs11-so-search", hsm.so_search_path, "--pkcs11-module", "libsofthsm2.so", "--hardware-key", key_name, "root_ca" ], env = hsm.env)
+
+			# Then create child certificate with that CA, but have child key in software
+			self._run_x509sak([ "createcsr", "-s", "/CN=Child Cert", "-t", "tls-client", "-c", "root_ca", "client.key", "client.crt" ], env = hsm.env)
+
+			# Verify the child certificate is valid
+			SubprocessExecutor([ "openssl", "verify", "-check_ss_sig", "-CAfile", "root_ca/CA.crt", "client.crt" ]).run()
+
+			# Revoke the certificate
+			self._run_x509sak([ "revokecrt", "root_ca", "client.crt" ], env = hsm.env)
+
+			# Emit a CRL
+			self._run_x509sak([ "createcrl", "root_ca", "revoked_client.crl" ], env = hsm.env)
+
+			# Verify the child certificate is *not* valid anymore
+			SubprocessExecutor([ "openssl", "verify", "-crl_check", "-CRLfile", "revoked_client.crl", "-check_ss_sig", "-CAfile", "root_ca/CA.crt", "client.crt" ], success_return_codes = [ 2 ]).run()

@@ -185,6 +185,7 @@ class OpenSSLTools():
 				cmd += [ "-crldays", str(validity_days) ]
 			if signing_hash is not None:
 				cmd += [ "-md", signing_hash ]
+			cmd += cls._privkey_option(ca_manager.private_key_storage, key_option = "keyfile")
 			SubprocessExecutor(cmd, env = { "OPENSSL_CONF": config_file.name }).run()
 
 	@classmethod
