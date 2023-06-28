@@ -118,7 +118,10 @@ class OpenSSLTools():
 				cmd += [ "-set_serial", "%d" % (serial) ]
 			cmd += cls._privkey_option(private_key_storage)
 			cmd += [  "-subj", subject_dn, "-out", output_filename ]
-			SubprocessExecutor(cmd, env = { "OPENSSL_CONF": config_file.name }).run()
+			execution_result = SubprocessExecutor(cmd, env = { "OPENSSL_CONF": config_file.name }).run()
+			if len(execution_result.stderr) != 0:
+				errors = execution_result.stderr_text.strip("\r\n").split("\n")
+				raise InvalidInputException(f"Creation of CSR failed because OpenSSL raised warnings: {' / '.join(errors)}")
 
 	@classmethod
 	def create_selfsigned_certificate(cls, private_key_storage, certificate_filename, subject_dn, validity_days, x509_extensions = None, subject_alternative_dns_names = None, subject_alternative_ip_addresses = None, signing_hash = None, serial = None):
