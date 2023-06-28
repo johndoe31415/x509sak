@@ -1,5 +1,5 @@
 #	x509sak - The X.509 Swiss Army Knife white-hat certificate toolkit
-#	Copyright (C) 2018-2021 Johannes Bauer
+#	Copyright (C) 2018-2023 Johannes Bauer
 #
 #	This file is part of x509sak.
 #
@@ -232,7 +232,7 @@ class OpenSSLTools():
 
 	@classmethod
 	def get_tls_server_cert_pem(cls, hostname, port = 443):
-		result = SubprocessExecutor([ cls._EXECUTABLE, "s_client", "-connect", "%s:%d" % (hostname, port), "-servername", hostname ]).run()
+		result = SubprocessExecutor([ cls._EXECUTABLE, "s_client", "-legacy_renegotiation", "-connect", "%s:%d" % (hostname, port), "-servername", hostname ]).run()
 		return result.stdout.decode()
 
 	@classmethod
